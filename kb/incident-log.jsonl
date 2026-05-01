@@ -1,0 +1,1 @@
+{"ts": "2026-05-01T19:26:35Z", "alert_hash": null, "channel": null, "classification": "poll-cycle", "matched_kb": null, "confidence": null, "action": "summary", "details": {"polled": 4, "new": 10, "deduped": 0, "failed": 0, "push_blocked": true, "push_note": "git push returning 403 for all branches; commits local only"}, "duration_s": 413, "runtime_cost_usd": 0.45}
