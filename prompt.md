@@ -12,9 +12,8 @@ You act as Ben (the user who connected the Slack MCP). When the prompt says "DM 
 
 You have a working tree of this repo cloned at the routine root. You also have:
 
-- **Bash** for running scripts and git operations.
-- **Slack MCP** — `conversations.history`, `chat.postMessage`, `conversations.open`, `reactions.get`, `users.info`.
-- **GitHub MCP** for branch/PR operations on this repo.
+- **Bash** for running scripts and all git operations. `git` is available; `gh` CLI is available and authenticated via the `GH_TOKEN` env var (`gh auth login --with-token <<< "$GH_TOKEN"` once at the start of each run if `gh` reports unauthenticated).
+- **Slack MCP** — `conversations.history`, `chat.postMessage`, `conversations.open`, `reactions.get`, `users.info`. There is no GitHub MCP — branch/commit/push/PR operations all go through `git`+`gh` in Bash with the `GH_TOKEN` secret.
 - Routine secrets in env: `DD_API_KEY`, `DD_APP_KEY`, `ELK_BASE_URL`, `ELK_USER`, `ELK_PASS`, `GH_TOKEN`, `SSH_HOST`, `SSH_PORT`, `SSH_USER`, `SSH_PASS`, `SQL_HOST_PROD1`, `SQL_HOST_PROD2`, `SQL_USER`, `SQL_PASS_RO`, `SQL_DATABASE`, and `MONGO_URI_<NAME>` for each Mongo environment (warehouse, retail, delta, ...).
 
 Investigation helpers (all read-only, all share the same SSH bastion):
