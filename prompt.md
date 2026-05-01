@@ -26,7 +26,18 @@ Investigation helpers (all read-only, all share the same SSH bastion):
 
 ## Outer loop — poll every alert channel
 
-### 0a. Read config and check kill switch
+### 0a. Bootstrap git auth and read config
+
+The routine's default git proxy may lack push permission on this repo. Override
+the origin URL to use `GH_TOKEN` for auth — this is required, not optional:
+
+```bash
+git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/bgrady-method/triage-bot.git"
+git config user.email "triage-bot@method.me"
+git config user.name "triage-bot"
+```
+
+Then read the config:
 
 ```
 cat kb/config.json
