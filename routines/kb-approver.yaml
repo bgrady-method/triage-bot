@@ -1,8 +1,9 @@
 # Routine: kb-approver  (v0.5)
 #
-# Runs every 30 minutes. Scans the bot's recent self-DM history for ✅ reactions
-# on bot-posted messages that contained proposed KB additions, and merges those
-# additions into kb/known-issues.json or kb/false-alarms.json on main.
+# Runs every hour (cloud routine minimum cadence). Scans the bot's recent
+# self-DM history for ✅ reactions on bot-posted messages that contained
+# proposed KB additions, and merges those additions into
+# kb/known-issues.json or kb/false-alarms.json on main.
 #
 # Also auto-promotes false-alarm classifications confirmed by 2+ alerts in 24h
 # (no human approval required for those — too low-stakes).
@@ -15,7 +16,7 @@ prompt: |
   Slack MCP), so "Ben's DM channel" is the bot's self-DM channel — call
   conversations.open with your own user ID to find/open it.
 
-  Run this procedure every 30 min:
+  Run this procedure every hour:
 
   ## Part 1 — Approved DMs
 
@@ -50,7 +51,7 @@ prompt: |
 
 trigger:
   type: cron
-  expression: "*/30 * * * *"   # every 30 minutes
+  expression: "0 * * * *"      # hourly (cloud routine cron minimum is 1h)
 
 repos:
   - url: https://github.com/bgrady-method/triage-bot
