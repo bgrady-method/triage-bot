@@ -1,0 +1,64 @@
+# Routine: kb-approver
+#
+# Runs every 30 minutes. Scans Ben's recent DM history for ✅ reactions on
+# bot-posted messages that contained proposed KB additions, and merges those
+# additions into kb/known-issues.json or kb/false-alarms.json on main.
+#
+# Also auto-promotes false-alarm classifications confirmed by 2+ alerts in 24h
+# (no human approval required for those — too low-stakes).
+
+name: kb-approver
+description: Merges Ben-approved KB additions into main; auto-promotes repeated false alarms
+
+prompt: |
+  You are the triage-bot KB approver. Run this exact procedure every 30 min:
+
+  ## Part 1 — Approved DMs
+  1. Use Slack `conversations.history` on Ben's DM channel with the bot, last 6h.
+  2. For each bot-posted message that contains a fenced JSON block tagged
+     `proposed_kb_entry`:
+       - Use `reactions.get` on the message timestamp.
+       - If Ben (SLACK_BEN_USER_ID) has reacted ✅:
+           - Parse the JSON entry.
+           - Append it to kb/known-issues.json or kb/false-alarms.json (file is
+             chosen by a `target` field in the proposed JSON).
+           - Reorder/dedupe by `id` (later wins).
+           - Commit with message: "kb-approver: add <entry.id> from <message_ts>"
+       - If Ben reacted ❌: do nothing (the message stays as a record).
+       - If no reaction: skip.
+  3. Push main once at the end if any commits were made.
+
+  ## Part 2 — Auto-promote repeated false alarms
+  1. Read last 24h of kb/incident-log.jsonl.
+  2. Group by `alert_hash`. For any hash appearing ≥2 times where every
+     occurrence has classification=false-alarm and matched_kb=null:
+       - Pull the original alert text from Slack via `conversations.history`
+         using the channel/ts in the log.
+       - Synthesize a minimal KB entry with the alert's signature as a
+         `contains` clause (longest stable substring).
+       - Append to kb/false-alarms.json.
+       - Commit: "kb-approver: auto-promote false-alarm <signature>"
+  3. Post to #triage-bot-health: "🤖 kb-approver: +N approved, +M auto-promoted"
+     (only if N+M > 0 — silent runs aren't worth the noise).
+
+trigger:
+  type: cron
+  expression: "*/30 * * * *"   # every 30 minutes
+
+repos:
+  - url: https://github.com/REPLACE_WITH_GH_USER/triage-bot
+    branch: main
+    push_branches: ["main"]
+
+mcp_connectors:
+  - slack
+  - github
+
+secrets:
+  - SLACK_BOT_TOKEN
+  - SLACK_BEN_USER_ID
+  - GH_TOKEN
+  - HEALTH_CHANNEL_ID
+
+settings:
+  timeout_minutes: 5

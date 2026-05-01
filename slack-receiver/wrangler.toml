@@ -1,0 +1,23 @@
+# Cloudflare Workers config.
+#
+# Deploy:
+#   cd slack-receiver
+#   npm install -g wrangler           # one-time
+#   wrangler login                    # one-time
+#   wrangler secret put SLACK_SIGNING_SECRET
+#   wrangler secret put SLACK_BOT_TOKEN
+#   wrangler secret put ROUTINE_FIRE_URL
+#   wrangler secret put ROUTINE_FIRE_TOKEN
+#   wrangler secret put ALLOWED_CHANNELS    # comma-separated channel IDs
+#   wrangler secret put DEBUG_CHANNEL_ID
+#   wrangler deploy
+#
+# After deploy, the Worker URL appears in the output. Plug that URL into the
+# Slack app's "Event Subscriptions" Request URL.
+
+name = "triage-bot-slack-receiver"
+main = "worker.js"
+compatibility_date = "2026-01-01"
+
+[vars]
+PHASE = "0"   # "0" = observation (post to debug channel), "1" = live (fire routine)

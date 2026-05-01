@@ -1,0 +1,5 @@
+# Runtime deps for the triage-bot scripts.
+# Stdlib-only modules (alert_hash, match_kb, dd_search, es_search) have no deps.
+# sql_query.py needs pyodbc + the Microsoft ODBC Driver 18 installed on the host.
+
+pyodbc>=5.0,<6

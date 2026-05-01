@@ -1,0 +1,18 @@
+{
+  "enabled": true,
+  "max_runs_per_day": 50,
+  "max_spend_usd": 20,
+  "pr_mode": "off",
+  "conservative_mode_until_run": 50,
+  "channels": {
+    "alert-system": "C00000000",
+    "alert-frontend-errors": "C00000000",
+    "alert-runtime-monitoring": "C00000000",
+    "swat": "C00000000",
+    "triage-bot-debug": "C00000000",
+    "triage-bot-health": "C00000000",
+    "triage-bot-requests": "C00000000"
+  },
+  "ben_slack_user_id": "U00000000",
+  "comment": "channel IDs and ben_slack_user_id need to be filled in once the Slack app is installed; everything else is the safe default"
+}

@@ -1,0 +1,64 @@
+# Routine: heartbeat
+#
+# Runs every 6h. Posts a one-liner to #triage-bot-health summarizing the bot's
+# state, and enforces the daily spend cap by flipping kb/config.json.enabled
+# to false if today's spend exceeds the cap.
+#
+# This is the canary: if #triage-bot-health goes silent for >12h, the bot is
+# dead and Ben should investigate.
+
+name: heartbeat
+description: Posts triage-bot status; enforces spend cap
+
+prompt: |
+  You are the triage-bot heartbeat. Run this exact procedure:
+
+  1. Read kb/incident-log.jsonl. Compute:
+     - Lines today (UTC midnight to now)
+     - Lines this week
+     - Sum of runtime_cost_usd today
+     - Time since last line (seconds)
+     - Last KB update: `git log -1 --format=%ct -- kb/known-issues.json kb/false-alarms.json`
+
+  2. Read kb/config.json's max_spend_usd.
+
+  3. If sum_cost_today > max_spend_usd:
+       - Edit kb/config.json: set "enabled": false
+       - git commit kb/config.json with message "heartbeat: daily spend cap reached, disabling"
+       - git push origin main
+       - Post to #triage-bot-health: "🔴 triage-bot DISABLED: today's spend $X.XX > cap $Y.YY"
+     Else:
+       - Post to #triage-bot-health: "🟢 triage-bot alive · today: N runs ($X.XX) · last alert <ago> · last KB update <ago>"
+
+  4. Sanity-check the Slack receiver. GET https://triage-bot-slack-receiver.<account>.workers.dev with no body.
+     Should return 200 and a short identification string. If it doesn't:
+       - Post to #triage-bot-health: "🔴 Cloudflare Worker unreachable: <status>"
+
+  5. Sanity-check that no alert in the last 6h is missing an incident-log entry.
+     - List channel history of #alert-runtime-monitoring last 6h via Slack API
+     - For each non-bot message, compute alert_hash and check kb/incident-log.jsonl
+     - If any are missing, list them in the heartbeat post (max 3, "...and N more")
+
+  Keep the post under 4 lines.
+
+trigger:
+  type: cron
+  expression: "0 */6 * * *"    # every 6 hours
+
+repos:
+  - url: https://github.com/REPLACE_WITH_GH_USER/triage-bot
+    branch: main
+    push_branches: ["main"]    # heartbeat needs to be able to flip the kill switch
+
+mcp_connectors:
+  - slack
+  - github
+
+secrets:
+  - SLACK_BOT_TOKEN
+  - GH_TOKEN
+  - HEALTH_CHANNEL_ID
+  - WORKER_HEALTH_URL          # the Cloudflare Worker URL
+
+settings:
+  timeout_minutes: 3
