@@ -1,0 +1,1 @@
+{"ts": "2026-05-01T19:24:20Z", "alert_hash": "7bea68b6d8d3c381", "channel": "alert-frontend-errors", "classification": "needs-human", "matched_kb": null, "confidence": 0.78, "action": "dm-self", "duration_s": 5, "runtime_cost_usd": 0.04}
