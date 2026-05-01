@@ -1,4 +1,4 @@
-# Routine: heartbeat
+# Routine: heartbeat  (v0.5)
 #
 # Runs every 6h. Posts a one-liner to #triage-bot-health summarizing the bot's
 # state, and enforces the daily spend cap by flipping kb/config.json.enabled
@@ -14,10 +14,11 @@ prompt: |
   You are the triage-bot heartbeat. Run this exact procedure:
 
   1. Read kb/incident-log.jsonl. Compute:
-     - Lines today (UTC midnight to now)
+     - Per-message lines today (UTC midnight to now), excluding `classification=poll-cycle` summaries
+     - Poll-cycle lines today (the cron heartbeat — should be ≥1 every 6h)
      - Lines this week
-     - Sum of runtime_cost_usd today
-     - Time since last line (seconds)
+     - Sum of runtime_cost_usd today (across all line types)
+     - Time since last poll-cycle line (this is the most direct "is the cron alive" signal)
      - Last KB update: `git log -1 --format=%ct -- kb/known-issues.json kb/false-alarms.json`
 
   2. Read kb/config.json's max_spend_usd.
@@ -27,16 +28,14 @@ prompt: |
        - git commit kb/config.json with message "heartbeat: daily spend cap reached, disabling"
        - git push origin main
        - Post to #triage-bot-health: "🔴 triage-bot DISABLED: today's spend $X.XX > cap $Y.YY"
+     Else if time_since_last_poll_cycle > 90 minutes:
+       - Post to #triage-bot-health: "🟡 triage-bot: no poll cycle in <Nm> — cron may be stuck"
      Else:
-       - Post to #triage-bot-health: "🟢 triage-bot alive · today: N runs ($X.XX) · last alert <ago> · last KB update <ago>"
+       - Post to #triage-bot-health: "🟢 triage-bot alive · today: N alerts processed ($X.XX) · last poll <ago> · last KB update <ago>"
 
-  4. Sanity-check the Slack receiver. GET https://triage-bot-slack-receiver.<account>.workers.dev with no body.
-     Should return 200 and a short identification string. If it doesn't:
-       - Post to #triage-bot-health: "🔴 Cloudflare Worker unreachable: <status>"
-
-  5. Sanity-check that no alert in the last 6h is missing an incident-log entry.
-     - List channel history of #alert-runtime-monitoring last 6h via Slack API
-     - For each non-bot message, compute alert_hash and check kb/incident-log.jsonl
+  4. Sanity-check that recent alerts have incident-log entries.
+     - For each alert channel, slack conversations.history last 6h
+     - For each non-bot, non-self message: compute alert_hash, grep kb/incident-log.jsonl
      - If any are missing, list them in the heartbeat post (max 3, "...and N more")
 
   Keep the post under 4 lines.
@@ -55,10 +54,7 @@ mcp_connectors:
   - github
 
 secrets:
-  - SLACK_BOT_TOKEN
   - GH_TOKEN
-  - HEALTH_CHANNEL_ID
-  - WORKER_HEALTH_URL          # the Cloudflare Worker URL
 
 settings:
-  timeout_minutes: 3
+  timeout_minutes: 5

@@ -1,7 +1,7 @@
-# Routine: kb-approver
+# Routine: kb-approver  (v0.5)
 #
-# Runs every 30 minutes. Scans Ben's recent DM history for ✅ reactions on
-# bot-posted messages that contained proposed KB additions, and merges those
+# Runs every 30 minutes. Scans the bot's recent self-DM history for ✅ reactions
+# on bot-posted messages that contained proposed KB additions, and merges those
 # additions into kb/known-issues.json or kb/false-alarms.json on main.
 #
 # Also auto-promotes false-alarm classifications confirmed by 2+ alerts in 24h
@@ -11,31 +11,38 @@ name: kb-approver
 description: Merges Ben-approved KB additions into main; auto-promotes repeated false alarms
 
 prompt: |
-  You are the triage-bot KB approver. Run this exact procedure every 30 min:
+  You are the triage-bot KB approver. The bot acts as Ben (the user who connected
+  Slack MCP), so "Ben's DM channel" is the bot's self-DM channel — call
+  conversations.open with your own user ID to find/open it.
+
+  Run this procedure every 30 min:
 
   ## Part 1 — Approved DMs
-  1. Use Slack `conversations.history` on Ben's DM channel with the bot, last 6h.
-  2. For each bot-posted message that contains a fenced JSON block tagged
-     `proposed_kb_entry`:
-       - Use `reactions.get` on the message timestamp.
-       - If Ben (SLACK_BEN_USER_ID) has reacted ✅:
-           - Parse the JSON entry.
-           - Append it to kb/known-issues.json or kb/false-alarms.json (file is
-             chosen by a `target` field in the proposed JSON).
-           - Reorder/dedupe by `id` (later wins).
-           - Commit with message: "kb-approver: add <entry.id> from <message_ts>"
-       - If Ben reacted ❌: do nothing (the message stays as a record).
-       - If no reaction: skip.
-  3. Push main once at the end if any commits were made.
+
+  1. Resolve your own user ID via Slack MCP `users.info` on the authenticated user.
+     Open the self-DM channel via `conversations.open users=<your_user_id>`. Cache the channel ID.
+  2. `conversations.history` last 6h on the self-DM channel.
+  3. For each message containing a fenced JSON block tagged `proposed_kb_entry`:
+     - `reactions.get` on the message ts.
+     - If you (Ben) reacted ✅:
+         - Parse the JSON entry.
+         - Append it to kb/known-issues.json or kb/false-alarms.json (chosen by `target` field).
+         - Reorder/dedupe by `id` (later wins).
+         - Commit with message: "kb-approver: add <entry.id> from <message_ts>"
+     - If you reacted ❌: do nothing (the message stays as a record).
+     - If no reaction: skip.
+  4. Push main once at the end if any commits were made.
 
   ## Part 2 — Auto-promote repeated false alarms
-  1. Read last 24h of kb/incident-log.jsonl.
+
+  1. Read last 24h of kb/incident-log.jsonl, ignoring `classification=poll-cycle` lines.
   2. Group by `alert_hash`. For any hash appearing ≥2 times where every
-     occurrence has classification=false-alarm and matched_kb=null:
-       - Pull the original alert text from Slack via `conversations.history`
-         using the channel/ts in the log.
+     occurrence has classification=false-alarm AND matched_kb=null:
+       - Pull the original alert text from Slack via conversations.history
+         using the channel/ts derivable from the log + the corresponding alert
+         channel.
        - Synthesize a minimal KB entry with the alert's signature as a
-         `contains` clause (longest stable substring).
+         `contains` clause (longest stable substring across the occurrences).
        - Append to kb/false-alarms.json.
        - Commit: "kb-approver: auto-promote false-alarm <signature>"
   3. Post to #triage-bot-health: "🤖 kb-approver: +N approved, +M auto-promoted"
@@ -55,10 +62,7 @@ mcp_connectors:
   - github
 
 secrets:
-  - SLACK_BOT_TOKEN
-  - SLACK_BEN_USER_ID
   - GH_TOKEN
-  - HEALTH_CHANNEL_ID
 
 settings:
   timeout_minutes: 5

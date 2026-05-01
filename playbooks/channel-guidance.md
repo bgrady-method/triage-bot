@@ -56,10 +56,8 @@ Each of the four alert channels has a different upstream and a different signal-
 
 | Channel | Where the bot replies |
 |---|---|
-| `alert-frontend-errors` | DM to Ben |
-| `alert-runtime-monitoring` | DM to Ben |
-| `alert-system` | DM to Ben |
-| `swat` | **Thread reply on the alert itself** (not a DM) |
-| `triage-bot-debug` | (Phase 0 only) Cloudflare Worker posts here directly |
-| `triage-bot-health` | Heartbeat + failure summaries |
-| `triage-bot-requests` | (Reserved for v1.5 hybrid SQL pattern, if revived) |
+| `alert-frontend-errors` | Self-DM (bot acts as Ben via Slack MCP) |
+| `alert-runtime-monitoring` | Self-DM |
+| `alert-system` | Self-DM |
+| `swat` | **Thread reply on the alert itself** (not a DM) — slow in v0.5 (up to 60 min) but still the right surface |
+| `triage-bot-health` | Heartbeat + failure summaries + cycle deferrals |
