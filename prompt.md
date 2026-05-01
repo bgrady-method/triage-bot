@@ -26,7 +26,7 @@ Investigation helpers (all read-only, all share the same SSH bastion):
 
 ## Outer loop — poll every alert channel
 
-### 0a. Bootstrap git auth and read config
+### 0a. Bootstrap git auth, load orientation, read config
 
 The routine's default git proxy may lack push permission on this repo. Override
 the origin URL to use `GH_TOKEN` for auth — this is required, not optional:
@@ -36,6 +36,30 @@ git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/bgrady-
 git config user.email "triage-bot@method.me"
 git config user.name "triage-bot"
 ```
+
+Then load orientation. `CLAUDE.md` (this repo, root) gives you Method's
+architecture, the service catalog with paths to per-repo CLAUDE.mds, the
+domain glossary, and critical-path impact facts. Read it once per cycle and
+hold it in working context:
+
+```
+cat CLAUDE.md
+```
+
+When investigating an alert later, lazy-load any service-specific CLAUDE.md
+referenced in the alert text:
+
+```bash
+cat <repo>/CLAUDE.md   # e.g. cat ms-tables-fields-api/CLAUDE.md
+```
+
+Service-specific CLAUDE.mds give you the .NET version, DB tables owned, key
+endpoints, common failure modes, and recent gotchas — all of which sharpen
+your hypotheses before you query Datadog or ES.
+
+For infrastructure-shaped alerts (IIS, RabbitMQ, Redis, ES, SQL cluster),
+read the relevant file under `DeveloperTools/method-infrastructure/` — see
+the index in CLAUDE.md.
 
 Then read the config:
 
