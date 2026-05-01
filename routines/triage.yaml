@@ -65,16 +65,30 @@ secrets:
   - ELK_PASS
   - ELK_INDEX_GLOB            # default: logstash-*
 
-  # SQL via SSH tunnel
-  - SSH_HOST
-  - SSH_PORT                  # default: 22
-  - SSH_USER
-  - SSH_PRIVATE_KEY           # PEM contents (NOT a path)
-  - SQL_HOST
+  # SSH bastion (used by both SQL and Mongo tunnels — single set of creds)
+  - SSH_HOST                  # e.g. hq.method.me
+  - SSH_PORT                  # e.g. 9433
+  - SSH_USER                  # e.g. b.grady
+  - SSH_PASS                  # password auth (not key)
+
+  # SQL via SSH tunnel — values mirror method-db-tools/config/connections.json
+  - SQL_HOST_PROD1            # e.g. 172.31.121.125
+  - SQL_HOST_PROD2            # e.g. 172.31.121.225
   - SQL_PORT                  # default: 1433
-  - SQL_USER
+  - SQL_USER                  # e.g. reader
   - SQL_PASS_RO
-  - SQL_DATABASE
+  - SQL_DATABASE              # e.g. AlocetSystem
+
+  # MongoDB via SSH tunnel — full URIs (with embedded admin creds, mirrors connections.json)
+  # Add a MONGO_URI_<NAME> for each environment you want queryable.
+  - MONGO_URI_WAREHOUSE
+  - MONGO_URI_RETAIL
+  - MONGO_URI_DELTA
+  - MONGO_URI_SIGMA
+  - MONGO_URI_EPSILON
+  - MONGO_URI_MEGA
+  - MONGO_URI_GAMMA
+  - MONGO_URI_BETA
 
   # GitHub
   - GH_TOKEN                  # PAT with repo write on triage-bot, repo read on Method services

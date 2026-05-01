@@ -1,33 +1,35 @@
 """SQL query runner (read-only) over an SSH tunnel.
 
+Mirrors the connection model in `method-db-tools/scripts/db_utils.py` (pyodbc +
+ApplicationIntent=ReadOnly for production), adding an SSH tunnel layer because
+this routine runs from Anthropic's cloud (no VPN, no internal-network access).
+
 Constraints (security, by design):
-  - Only the named templates in scripts/sql_templates/ can be run.
+  - Only the named templates in scripts/sql_templates/ are runnable.
   - The routine prompt cannot inject ad-hoc SQL — it picks a template name and
-    supplies typed parameters.
-  - All parameters are bound via pyodbc's `?` placeholder mechanism, never
-    string-substituted into the SQL.
-  - The DB user (SQL_USER / SQL_PASS_RO) MUST be a read-only role on the
-    server side; this script does not attempt to enforce that itself.
+    supplies typed parameters bound via pyodbc's ? placeholder mechanism.
+  - The DB user is `reader`, a read-only account; pyodbc connects with
+    ApplicationIntent=ReadOnly. Even if the role were misconfigured, the
+    `tier_policies.production.allow_writes_flag: false` check in the skills'
+    connections.json (which we mirror in spirit) blocks writes.
 
 Auth via env vars / routine secrets:
-  SSH_HOST            — bastion hostname
-  SSH_PORT            — default 22
-  SSH_USER            — bastion user
-  SSH_PRIVATE_KEY     — PEM contents (NOT a path); we materialize it to a temp file
-  SQL_HOST            — target SQL server hostname (private, behind bastion)
-  SQL_PORT            — default 1433
-  SQL_USER            — read-only DB user
+  SSH_HOST            — bastion hostname (e.g. hq.method.me)
+  SSH_PORT            — bastion port (default 22; Method uses 9433)
+  SSH_USER            — bastion user (e.g. b.grady)
+  SSH_PASS            — bastion password
+  SQL_HOST_PROD1      — prod1 host/IP target of the tunnel (e.g. 172.31.121.125)
+  SQL_HOST_PROD2      — prod2 host/IP target of the tunnel (e.g. 172.31.121.225)
+  SQL_PORT            — SQL Server port (default 1433)
+  SQL_USER            — read-only DB user (e.g. reader)
   SQL_PASS_RO         — read-only DB password
-  SQL_DATABASE        — initial database (templates may use USE in the future)
+  SQL_DATABASE        — initial database (e.g. AlocetSystem)
 
 Usage:
   python sql_query.py --template health-check
   python sql_query.py --template account-lookup --param search="acme"
-
-Templates may declare typed parameters in a leading comment block:
-  -- @param search:str
-  -- @param account_id:int
-The runner enforces that only declared params are accepted, with the right type.
+  python sql_query.py --template health-check --connection prod2
+  python sql_query.py --list
 """
 
 from __future__ import annotations
@@ -36,12 +38,7 @@ import argparse
 import json
 import os
 import re
-import shutil
-import socket
-import subprocess
 import sys
-import tempfile
-import time
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Iterator
@@ -49,6 +46,11 @@ from typing import Any, Iterator
 TEMPLATES_DIR = Path(__file__).parent / "sql_templates"
 PARAM_DECL_RE = re.compile(r"^--\s*@param\s+([A-Za-z_]\w*):(str|int|bool)\s*$", re.MULTILINE)
 PARAM_PLACEHOLDER_RE = re.compile(r":(?P<name>[A-Za-z_]\w*)")
+
+CONNECTIONS = {
+    "prod1": {"host_env": "SQL_HOST_PROD1", "description": "Production SQL Server 1 (read-only)"},
+    "prod2": {"host_env": "SQL_HOST_PROD2", "description": "Production SQL Server 2 (read-only)"},
+}
 
 
 def die(msg: str, code: int = 1) -> None:
@@ -75,7 +77,6 @@ def env_int(key: str, default: int) -> int:
 
 
 def load_template(name: str) -> tuple[str, dict[str, str]]:
-    """Returns (sql, declared_params:{name: type})."""
     if not re.fullmatch(r"[A-Za-z0-9_-]+", name):
         die(f"invalid template name: {name!r}")
     p = TEMPLATES_DIR / f"{name}.sql"
@@ -101,7 +102,6 @@ def coerce(value: str, type_: str) -> Any:
 
 
 def bind_params(sql: str, declared: dict[str, str], supplied: dict[str, str]) -> tuple[str, list[Any]]:
-    """Replace :name placeholders with ? and return positional args in order."""
     unknown = set(supplied) - set(declared)
     if unknown:
         die(f"undeclared params supplied: {sorted(unknown)}; template declares {sorted(declared)}")
@@ -127,110 +127,83 @@ def bind_params(sql: str, declared: dict[str, str], supplied: dict[str, str]) ->
 
 
 @contextmanager
-def ssh_tunnel(local_port: int) -> Iterator[None]:
-    """Open an SSH local-forward to SQL_HOST:SQL_PORT for the lifetime of the block."""
-    if shutil.which("ssh") is None:
-        die("ssh client not found in PATH")
-
-    pem = env_required("SSH_PRIVATE_KEY")
-    key_file = tempfile.NamedTemporaryFile("w", suffix=".pem", delete=False)
+def ssh_tunnel(remote_host: str, remote_port: int) -> Iterator[int]:
+    """Open SSH local-forward to remote_host:remote_port; yield the local port."""
     try:
-        key_file.write(pem)
-        key_file.close()
-        os.chmod(key_file.name, 0o600)
+        from sshtunnel import SSHTunnelForwarder  # type: ignore
+    except ImportError:
+        die("sshtunnel required (pip install sshtunnel paramiko)")
 
-        sql_host = env_required("SQL_HOST")
-        sql_port = env_int("SQL_PORT", 1433)
-        ssh_host = env_required("SSH_HOST")
-        ssh_port = env_int("SSH_PORT", 22)
-        ssh_user = env_required("SSH_USER")
-
-        cmd = [
-            "ssh",
-            "-i", key_file.name,
-            "-p", str(ssh_port),
-            "-N",
-            "-o", "StrictHostKeyChecking=accept-new",
-            "-o", "ExitOnForwardFailure=yes",
-            "-o", "ServerAliveInterval=15",
-            "-L", f"{local_port}:{sql_host}:{sql_port}",
-            f"{ssh_user}@{ssh_host}",
-        ]
-        proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
-        try:
-            # Wait until the local forward is accepting connections (max 10s)
-            deadline = time.time() + 10
-            while time.time() < deadline:
-                if proc.poll() is not None:
-                    err = proc.stderr.read().decode("utf-8", errors="replace") if proc.stderr else ""
-                    die(f"ssh tunnel exited early: {err.strip()}")
-                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                    s.settimeout(0.3)
-                    try:
-                        s.connect(("127.0.0.1", local_port))
-                        break
-                    except OSError:
-                        time.sleep(0.2)
-            else:
-                die("ssh tunnel did not become ready within 10s")
-            yield
-        finally:
-            proc.terminate()
-            try:
-                proc.wait(timeout=5)
-            except subprocess.TimeoutExpired:
-                proc.kill()
+    forwarder = SSHTunnelForwarder(
+        (env_required("SSH_HOST"), env_int("SSH_PORT", 22)),
+        ssh_username=env_required("SSH_USER"),
+        ssh_password=env_required("SSH_PASS"),
+        remote_bind_address=(remote_host, remote_port),
+        # local_bind_address omitted -> sshtunnel picks a free local port
+        set_keepalive=15,
+    )
+    forwarder.start()
+    try:
+        yield forwarder.local_bind_port
     finally:
-        try:
-            os.unlink(key_file.name)
-        except OSError:
-            pass
+        forwarder.stop()
 
 
 def run_query(sql: str, params: list[Any], local_port: int) -> dict:
     try:
         import pyodbc  # type: ignore
     except ImportError:
-        die("pyodbc is required (pip install pyodbc; system needs the MS ODBC Driver 18)")
+        die("pyodbc required (pip install pyodbc + Microsoft ODBC Driver 17/18 system package)")
 
     db = env_required("SQL_DATABASE")
     user = env_required("SQL_USER")
     pw = env_required("SQL_PASS_RO")
+    # Driver name matches db_utils.py:72 ("ODBC Driver 17 for SQL Server" for production).
     conn_str = (
-        "Driver={ODBC Driver 18 for SQL Server};"
-        f"Server=tcp:127.0.0.1,{local_port};"
-        f"Database={db};"
+        "DRIVER={ODBC Driver 17 for SQL Server};"
+        f"SERVER=tcp:127.0.0.1,{local_port};"
+        f"DATABASE={db};"
         f"UID={user};PWD={pw};"
         "Encrypt=yes;TrustServerCertificate=yes;"
         "Connection Timeout=10;"
-        # This client is read-only by intent. Server-side role enforcement is the source of truth.
-        "ApplicationIntent=ReadOnly;"
+        "ApplicationIntent=ReadOnly;"  # mirrors db_utils.py:95
     )
-    with pyodbc.connect(conn_str, autocommit=True, readonly=True) as conn:
+    with pyodbc.connect(conn_str, autocommit=True) as conn:
+        # Mirror db_utils.py:98 — query timeout from tier policy (production = 30s)
+        conn.timeout = 30
         cur = conn.cursor()
         cur.execute(sql, params)
         if cur.description is None:
             return {"columns": [], "rows": [], "rowcount": cur.rowcount}
         cols = [c[0] for c in cur.description]
-        rows = [list(r) for r in cur.fetchmany(500)]  # hard cap
-        # Coerce non-JSON-serializable types
+        rows = [list(r) for r in cur.fetchmany(500)]   # hard cap mirrors tier_policies.production.max_rows_ceiling
         for row in rows:
             for i, v in enumerate(row):
                 if hasattr(v, "isoformat"):
                     row[i] = v.isoformat()
-        return {"columns": cols, "rows": rows, "rowcount": cur.rowcount, "truncated": cur.fetchone() is not None}
+        return {
+            "columns": cols,
+            "rows": rows,
+            "rowcount": cur.rowcount,
+            "truncated": cur.fetchone() is not None,
+        }
 
 
 def main() -> int:
     p = argparse.ArgumentParser(description="Run a vetted read-only SQL template over an SSH tunnel.")
-    p.add_argument("--template", required=True, help="Template name (without .sql).")
+    p.add_argument("--template", help="Template name (without .sql).")
+    p.add_argument(
+        "--connection",
+        choices=sorted(CONNECTIONS.keys()),
+        default="prod1",
+        help="Which production SQL instance to query.",
+    )
     p.add_argument(
         "--param",
         action="append",
         default=[],
         help="key=value parameter for the template. Repeatable.",
     )
-    p.add_argument("--local-port", type=int, default=15433, help="Local SSH-forwarded port.")
     p.add_argument("--list", action="store_true", help="List available templates and exit.")
     args = p.parse_args()
 
@@ -238,6 +211,9 @@ def main() -> int:
         for f in sorted(TEMPLATES_DIR.glob("*.sql")):
             print(f.stem)
         return 0
+
+    if not args.template:
+        die("--template is required (use --list to see options)")
 
     sql, declared = load_template(args.template)
 
@@ -250,9 +226,15 @@ def main() -> int:
 
     bound_sql, args_list = bind_params(sql, declared, supplied)
 
-    with ssh_tunnel(args.local_port):
-        result = run_query(bound_sql, args_list, args.local_port)
+    conn_meta = CONNECTIONS[args.connection]
+    remote_host = env_required(conn_meta["host_env"])
+    remote_port = env_int("SQL_PORT", 1433)
 
+    with ssh_tunnel(remote_host, remote_port) as local_port:
+        result = run_query(bound_sql, args_list, local_port)
+
+    result["connection"] = args.connection
+    result["remote_host"] = remote_host
     json.dump(result, sys.stdout, indent=2)
     sys.stdout.write("\n")
     return 0

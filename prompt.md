@@ -15,9 +15,13 @@ You have a working tree of this repo cloned at the routine root. You also have:
 - **Bash** for running scripts and git operations.
 - **Slack MCP** — `conversations.history`, `chat.postMessage`, `conversations.open`, `reactions.get`, `users.info`.
 - **GitHub MCP** for branch/PR operations on this repo.
-- Routine secrets in env: `DD_API_KEY`, `DD_APP_KEY`, `ELK_BASE_URL`, `ELK_USER`, `ELK_PASS`, `GH_TOKEN`, `SSH_HOST`, `SSH_USER`, `SSH_PRIVATE_KEY`, `SQL_HOST`, `SQL_USER`, `SQL_PASS_RO`, `SQL_DATABASE`.
+- Routine secrets in env: `DD_API_KEY`, `DD_APP_KEY`, `ELK_BASE_URL`, `ELK_USER`, `ELK_PASS`, `GH_TOKEN`, `SSH_HOST`, `SSH_PORT`, `SSH_USER`, `SSH_PASS`, `SQL_HOST_PROD1`, `SQL_HOST_PROD2`, `SQL_USER`, `SQL_PASS_RO`, `SQL_DATABASE`, and `MONGO_URI_<NAME>` for each Mongo environment (warehouse, retail, delta, ...).
 
-You **never** run ad-hoc SQL. Use `scripts/sql_query.py` with the named templates only.
+Investigation helpers (all read-only, all share the same SSH bastion):
+- `scripts/dd_search.py` — Datadog logs / monitors / metrics
+- `scripts/es_search.py` — Elasticsearch / Logstash search and aggregation
+- `scripts/sql_query.py` — vetted SQL templates against prod1 (default) or prod2; never ad-hoc SQL
+- `scripts/mongo_query.py` — read-only Mongo (find / count / distinct / aggregate without `$out`/`$merge`); pass `--connection <name>` and `--account <db>`
 
 ---
 

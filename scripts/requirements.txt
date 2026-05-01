@@ -1,5 +1,12 @@
 # Runtime deps for the triage-bot scripts.
-# Stdlib-only modules (alert_hash, match_kb, dd_search, es_search) have no deps.
-# sql_query.py needs pyodbc + the Microsoft ODBC Driver 18 installed on the host.
+# Stdlib-only modules (alert_hash, match_kb, dd_search, es_search) need nothing here.
 
+# SQL: pyodbc + the Microsoft ODBC Driver 17/18 (system package — `apt-get install -y msodbcsql18`)
 pyodbc>=5.0,<6
+
+# Mongo client (used by mongo_query.py)
+pymongo>=4.6,<5
+
+# SSH tunneling (cloud routine has no VPN; reaches Method's internal SQL/Mongo through hq.method.me)
+sshtunnel>=0.4,<1
+paramiko>=3,<4

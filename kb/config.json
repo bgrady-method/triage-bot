@@ -6,11 +6,11 @@
   "conservative_mode_until_run": 50,
   "poll_window_minutes": 65,
   "channels": {
-    "alert-system": "C00000000",
-    "alert-frontend-errors": "C00000000",
-    "alert-runtime-monitoring": "C00000000",
-    "swat": "C00000000",
-    "triage-bot-health": "C00000000"
+    "alert-system": "CPHHABKAA",
+    "alert-frontend-errors": "C03TYHGRS23",
+    "alert-runtime-monitoring": "C063V5HTTFU",
+    "swat": "C01L5K42GQ6",
+    "triage-bot-health": "C0B0Q3KHC07"
   },
   "comment": "Channel IDs need to be filled in once the Slack MCP is connected. max_runs_per_day raised to 100 for v0.5 because each hourly poll cycle may process several messages — count is per-message, not per-cycle. poll_window_minutes is 65 (slightly more than the hourly cron) so we never miss a message landing right at the boundary."
 }
