@@ -46,7 +46,7 @@ trigger:
   expression: "*/30 * * * *"   # every 30 minutes
 
 repos:
-  - url: https://github.com/REPLACE_WITH_GH_USER/triage-bot
+  - url: https://github.com/bgrady-method/triage-bot
     branch: main
     push_branches: ["main"]
 

@@ -46,7 +46,7 @@ trigger:
   expression: "0 */6 * * *"    # every 6 hours
 
 repos:
-  - url: https://github.com/REPLACE_WITH_GH_USER/triage-bot
+  - url: https://github.com/bgrady-method/triage-bot
     branch: main
     push_branches: ["main"]    # heartbeat needs to be able to flip the kill switch
 

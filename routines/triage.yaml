@@ -28,7 +28,7 @@ trigger:
 
 repos:
   # The bot's own repo — KB lives here, scripts run from here, prompt is read from here
-  - url: https://github.com/REPLACE_WITH_GH_USER/triage-bot
+  - url: https://github.com/bgrady-method/triage-bot
     branch: main
     push_branches: ["claude/*"]   # routine pushes its own work to claude/* branches only
 
