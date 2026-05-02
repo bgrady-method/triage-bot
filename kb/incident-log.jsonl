@@ -15,3 +15,4 @@
 {"ts": "2026-05-02T08:16:10Z", "alert_hash": "40db37ef60ae5b5c", "channel": "alert-system", "classification": "deduplicated", "matched_kb": null, "confidence": null, "action": "deduplicated", "duration_s": 0, "runtime_cost_usd": 0}
 {"ts": "2026-05-02T08:21:11Z", "alert_hash": null, "channel": null, "classification": "poll-cycle", "matched_kb": null, "confidence": null, "action": "summary", "details": {"polled": 3, "new": 2, "deduped": 1, "failed": 0}, "duration_s": 390, "runtime_cost_usd": 0.06}
 {"ts":"2026-05-02T09:15:18Z","alert_hash":"0b5423c562866226","channel":"alert-frontend-errors","classification":"deduplicated","matched_kb":null,"confidence":null,"action":"deduplicated","duration_s":0,"runtime_cost_usd":0}
+{"ts":"2026-05-02T09:22:56Z","alert_hash":"d96a1dcf25cf0f67","channel":"alert-system","classification":"needs-human","matched_kb":null,"confidence":0.72,"action":"dm-self","duration_s":15,"runtime_cost_usd":0.001}
