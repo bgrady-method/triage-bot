@@ -19,15 +19,15 @@ The list is **seed**. The routine should append entries as new patterns surface.
 
 ---
 
-### F1. Cache staleness when Subscriber.Agent stops
+### F1. Cache staleness when Runtime.Core.Subscriber stops
 
 - **Symptom:** Users see stale screen metadata, stale permissions, stale lookups for tens of minutes after a Designer change.
-- **Service(s):** Runtime.Core.Subscriber.Agent.
-- **Mechanism:** Subscriber consumes RabbitMQ events (`tables-fields.view.change`, `method.account-user.change`, others). On consume it invalidates Redis cache keys (prefix `runtime-core:2:`). When the agent stops, events queue but are not consumed, so cache keys live to their TTL — minutes to hours.
+- **Service(s):** Runtime.Core.Subscriber. (Older docs / matrix predecessors called this `Subscriber.Agent`; the canonical name per [runtime-core/CLAUDE.md:11](https://github.com/methodcrm/runtime-core/blob/master/CLAUDE.md#L11) is `Runtime.Core.Subscriber`.)
+- **Mechanism:** Subscriber consumes RabbitMQ events (`tables-fields.view.change`, `method.account-user.change`, others). On consume it invalidates Redis cache keys (prefix `runtime-core:2:`). When the consumer stops, events queue but are not consumed, so cache keys live to their TTL — minutes to hours.
 - **Detection today:** None automatic. Discovered when users complain or when an engineer happens to notice queue depth.
 - **Proposed SLO target:** Subscriber availability 99.9% over 30d (≤ 43 min unavailability). Heartbeat `No Data` alert + RabbitMQ consumer lag alert (depth > 100 messages for > 5 min).
 - **Course modules:** `level-4/cache-invalidation.json`, `level-10/observability.json`, `level-10/disaster-recovery.json`, `level-1/availability-and-slas.json`.
-- **Source:** `runtime-core/CLAUDE.md` lists Subscriber as a critical worker; `triage-bot/CLAUDE.md` flags it as a critical-path failure.
+- **Source:** [runtime-core/CLAUDE.md](https://github.com/methodcrm/runtime-core/blob/master/CLAUDE.md) lists Subscriber as a critical worker; `CLAUDE.md` (this repo) flags it as a critical-path failure.
 
 ### F2. RabbitMQ DLQ accumulation
 

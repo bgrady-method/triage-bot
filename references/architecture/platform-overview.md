@@ -18,8 +18,10 @@ GATEWAY / AUTH        ms-gateway-api (Ocelot) · oauth2 · ms-authentication-api
         │             JWT cache in Redis. Single point of failure for all NEW sessions.
         ▼
 RUNTIME / DESIGNER    runtime-core (Runtime.Core.Api · Designer.Core.Api · Apps.Api ·
-        │             AI.Core.Api · EDA.Orchestrator.Api · JournalAgent · Method.Search)
-        │             ms-tables-fields-api · ms-account-api · ms-tags-api · …
+        │             Runtime.Core.Subscriber · Runtime.AppUpdate.Agent ·
+        │             AI.Core.Api · EDA.Orchestrator.Api · JournalAgent · Method.Search¹)
+        │             ms-tables-fields-api · ms-search-api¹ · ms-account-api · ms-tags-api · …
+        │             ¹ Method.Search and ms-search-api may be the same thing — see service catalog in CLAUDE.md
         ▼
 RUNTIME-LAYER STATE   MongoDB    (Apps, Screens, Controls, Events, ActionSets)
         │
@@ -47,7 +49,7 @@ These shape "is this a P0?" reasoning. Memorize.
 | `microservices` IIS pool recycle    | `archive`, `calendar-sync`, `import`, `sync`, `tables-fields`, `gmailaddon` all restart together. |
 | `legacy` IIS pool recycle           | Every legacy ASP.NET site restarts together. |
 | `runtime-core` pool stopped         | Runtime, Designer, RestApi, gateway-routed `/apps` endpoints all stop responding. |
-| `Runtime.Core.Subscriber.Agent` stopped | Cache invalidation halts. Users see stale screens. **No alert exists for this today.** |
+| `Runtime.Core.Subscriber` stopped | Cache invalidation halts. Users see stale screens. **No alert exists for this today.** |
 | RabbitMQ broker down                | Async events back up. AppRoutines queue. Cache invalidation halts. |
 | SQL cluster down                    | All accounts on that cluster offline. C1-C5 distribution is uneven. |
 
@@ -63,8 +65,9 @@ ms-gateway-api (Ocelot)
   ├─ ms-tables-fields-api   (spider* tables — no-code metadata)
   ├─ ms-account-api         (AlocetSystem registry)
   ├─ ms-documents-api       (S3-backed file uploads)
-  ├─ ms-email-api           (transactional email)
+  ├─ ms-email-api           (transactional email; flagged inactive in 02-services.md)
   ├─ ms-scheduler-api       (cron-style schedules)
+  ├─ ms-search-api          (Elasticsearch-backed full-text search)
   ├─ qbo-sync-api           (QuickBooks Online sync)
   └─ legacy-* APIs          (BRE, billing, sync legacy, miurl)
 
@@ -74,7 +77,7 @@ Service-to-service calls (peer-to-peer HTTP, NOT routed through gateway):
   ms-* ←→ ms-authentication-api (JWT validate)
 
 Async (RabbitMQ + MassTransit):
-  Designer save → tables-fields.view.change → Runtime.Core.Subscriber.Agent → Redis invalidation
+  Designer save → tables-fields.view.change → Runtime.Core.Subscriber → Redis invalidation
   Runtime action → AppRoutine queue → Subscriber executes → SQL writes → audit events
   EDA.Orchestrator.Api fans out cross-service business events
 ```
@@ -89,7 +92,7 @@ Every repository-layer query filters by `MainAccount`. The filter is the multi-t
 
 Stability reviews must consider these explicitly because they are easy to miss in alert dashboards (don't appear in `trace.web.*` metrics):
 
-- **Runtime.Core.Subscriber.Agent** — consumes RabbitMQ events. Critical for cache invalidation and AppRoutine execution. **No heartbeat monitor today.**
+- **Runtime.Core.Subscriber** — consumes RabbitMQ events. Critical for cache invalidation and AppRoutine execution. **No heartbeat monitor today.** (Some older docs call this `Subscriber.Agent`; the canonical name is `Runtime.Core.Subscriber` per `runtime-core/CLAUDE.md:11`.)
 - **Runtime.AppUpdate.Agent** — app installation, publishing, version management.
 - **legacy-email-agent** — email queue worker.
 - **ms-reminder-agent** — reminder scheduler.
@@ -106,20 +109,20 @@ Stability reviews must consider these explicitly because they are easy to miss i
 
 ## Related infrastructure docs
 
-The cloned `DeveloperTools/method-infrastructure/` directory holds the canonical infrastructure documentation. The stability-review routine reads these on demand:
+[methodcrm/DeveloperTools `method-infrastructure/`](https://github.com/methodcrm/DeveloperTools/tree/bgrady/global-skills-export/method-infrastructure) holds the canonical infrastructure documentation. **`DeveloperTools` is not in `routines/stability-review.yaml` `repos:`** — fetch via `gh api 'repos/methodcrm/DeveloperTools/contents/method-infrastructure/<file>.md' --jq '.content' | base64 -d`. The stability-review routine reads these on demand:
 
 | File | Read when… |
 |------|-----------|
 | `01-iis-inventory.md` | An IIS pool / app pool / site recycle is implicated. |
-| `02-services.md` | RabbitMQ / Redis / Elasticsearch / Windows Services issue. |
+| `02-services.md` | Service catalog (40+ services, 9 tiers); pool / host / health URL lookups. |
 | `03-gateway-routing.md` | Anything `ms-gateway-api` / Ocelot / JWT / CORS. |
 | `04-databases.md` | SQL clusters, Mongo, Redis layout. **Always read for DB/cluster alerts.** |
 | `05-auth-flow.md` | OAuth / identity / token issues. |
 | `06-frontend-stack.md` | UI build / NX / CDN. |
 | `07-build-and-deploy.md` | Deploy correlation, CI/CD. |
-| `08-interdependencies.md` | **Read first when assessing impact.** The if-X-breaks-then-Y map. |
+| `08-interdependencies.md` | **Read first when assessing impact.** The if-X-breaks-then-Y map. **Source of truth for `references/architecture/service-dependency-matrix.md`.** |
 
-`DeveloperTools/ClaudeCode/claude-plugin/references/incident/` holds the canonical incident playbooks (`triage-process.md`, `classification.md`, `log-sources.md`, `bug-analysis-template.md`, `post-deploy.md`).
+[methodcrm/DeveloperTools `ClaudeCode/claude-plugin/references/incident/`](https://github.com/methodcrm/DeveloperTools/tree/bgrady/global-skills-export/ClaudeCode/claude-plugin/references/incident) holds the canonical incident playbooks (`triage-process.md`, `classification.md`, `log-sources.md`, `bug-analysis-template.md`, `post-deploy.md`).
 
 ## What this file isn't
 
