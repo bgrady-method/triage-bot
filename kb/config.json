@@ -5,6 +5,7 @@
   "pr_mode": "off",
   "conservative_mode_until_run": 50,
   "poll_window_minutes": 65,
+  "group_window_minutes": 30,
   "channels": {
     "alert-system": "CPHHABKAA",
     "alert-frontend-errors": "C03TYHGRS23",
@@ -12,5 +13,5 @@
     "swat": "C01L5K42GQ6",
     "triage-bot-health": "C0B0Q3KHC07"
   },
-  "comment": "Channel IDs need to be filled in once the Slack MCP is connected. max_runs_per_day raised to 100 for v0.5 because each hourly poll cycle may process several messages — count is per-message, not per-cycle. poll_window_minutes is 65 (slightly more than the hourly cron) so we never miss a message landing right at the boundary."
+  "comment": "group_window_minutes: rolling gap threshold for clustering alerts into root-cause groups (default 30). max_runs_per_day counts groups (investigations), not individual alert messages. poll_window_minutes is 65 so we never miss a message landing right at the hourly boundary."
 }
