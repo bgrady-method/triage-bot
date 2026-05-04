@@ -1,0 +1,87 @@
+# Routine: stability-review  (v0.1)
+#
+# Runs monthly. Synthesises the trailing 30 days of triage-bot output
+# (kb/incident-log.jsonl + docs/investigations/*.md + KB) plus fresh
+# DD/ES queries plus read-only Jira cross-reference into a postmortem-
+# style markdown report committed to stability-reviews/YYYY-MM/report.md.
+#
+# Setup steps (mirror routines/triage.yaml — but note Atlassian MCP is new):
+#   1. https://claude.ai/code/routines -> "New routine"
+#   2. Paste stability-review-prompt.md as the prompt
+#   3. Connect Slack MCP (OAuth as Ben — same identity as the triage routine)
+#   4. Connect GitHub MCP
+#   5. Connect Atlassian MCP (NEW — OAuth as Ben; required for read-only Jira)
+#   6. Add the secrets listed below
+#   7. Save. The cron fires on the next first-Tuesday-of-month at 09:23 local.
+#
+# Operational controls:
+#   - Kill switch: kb/config.json.enabled = false (same as all routines).
+#   - Per-routine cap: kb/config.json.stability_review.max_spend_usd (default 5).
+#   - Idempotence: if a report for YYYY-MM already exists, the routine
+#     overwrites it with a "superseding earlier run" header.
+
+name: stability-review
+description: Monthly postmortem-style synthesis across alerts, investigations, and architecture
+
+prompt_file: stability-review-prompt.md
+
+trigger:
+  type: cron
+  expression: "23 9 1-7 * 2"   # first Tuesday of the month, 09:23 local
+                               # (cron evaluates day-of-month 1-7 AND day-of-week 2)
+
+repos:
+  # The bot's own repo — references live here, scripts run from here, prompt is read from here,
+  # and the monthly report is committed back to main.
+  - url: https://github.com/bgrady-method/triage-bot
+    branch: main
+    push_branches: ["main"]    # commits the monthly report + an incident-log line
+
+  # Method service repos — kept in sync with routines/triage.yaml so per-service CLAUDE.md
+  # is available for architectural lookups during the review.
+  - url: https://github.com/methodintegration/m-one
+    branch: main
+    push_branches: []
+  - url: https://github.com/methodintegration/tables-fields
+    branch: main
+    push_branches: []
+  - url: https://github.com/methodintegration/api-gateway
+    branch: main
+    push_branches: []
+  # Add more service repos here in lockstep with routines/triage.yaml.
+
+mcp_connectors:
+  - slack       # post one-liner to #triage-bot-health, DM Exec Summary to Ben
+  - github      # branch / commit / push handled via git+gh in Bash
+  - atlassian   # NEW for triage-bot — read-only Jira (searchJiraIssuesUsingJql, getJiraIssue)
+
+secrets:
+  # Datadog
+  - DD_API_KEY
+  - DD_APP_KEY
+  - DD_SITE                   # default: datadoghq.com
+
+  # Elasticsearch / Logstash
+  - ELK_BASE_URL              # e.g. https://logstash.method.internal:9243
+  - ELK_USER
+  - ELK_PASS
+  - ELK_INDEX_GLOB            # default: logstash-*
+
+  # GitHub
+  - GH_TOKEN                  # PAT with repo write on triage-bot
+
+  # Note: no SQL / Mongo / SSH secrets. The stability review reads from triage-bot's
+  # own data (incident-log + investigation reports) and DD / ES. It does not query
+  # tenant databases directly. If a finding requires DB context, surface the question
+  # in the report — a human investigator can pursue it via the triage routine.
+
+  # Note: no SLACK_BOT_TOKEN. Slack MCP handles auth via its own OAuth.
+  # The bot acts as Ben (the user who connected the MCP).
+
+  # Note: no Atlassian secret. Atlassian MCP handles auth via its own OAuth — same
+  # identity model as Slack MCP.
+
+settings:
+  timeout_minutes: 30          # 30-day synthesis is heavier than a single triage cycle
+  max_concurrent_runs: 1       # cron fires once a month; single run in flight
+  unrestricted_branch_push: false

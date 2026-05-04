@@ -1,0 +1,5 @@
+# Stability reviews
+
+Output directory for the `stability-review` routine. One subdirectory per month — `YYYY-MM/report.md`.
+
+The directory is committed (not gitignored) so the trend analysis section of each new report can read prior months' reports.

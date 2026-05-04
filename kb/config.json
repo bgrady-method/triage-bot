@@ -13,5 +13,8 @@
     "swat": "C01L5K42GQ6",
     "triage-bot-health": "C0B0Q3KHC07"
   },
-  "comment": "group_window_minutes: rolling gap threshold for clustering alerts into root-cause groups (default 30). max_runs_per_day counts groups (investigations), not individual alert messages. poll_window_minutes is 65 so we never miss a message landing right at the hourly boundary."
+  "stability_review": {
+    "max_spend_usd": 5
+  },
+  "comment": "group_window_minutes: rolling gap threshold for clustering alerts into root-cause groups (default 30). max_runs_per_day counts groups (investigations), not individual alert messages. poll_window_minutes is 65 so we never miss a message landing right at the hourly boundary. stability_review.max_spend_usd is the per-run cap for the monthly stability-review routine (separate from the global cap)."
 }
