@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "title": "2.6 Global Delivery Design",
+    "description": "Designing for users worldwide: anycast, multi-region deployment, latency-based routing, and edge computing.",
+    "level": "level-2",
+    "slug": "global-delivery",
+    "order": 6,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "Your application has users in North America, Europe, and Asia. All servers are in US-East. European and Asian users report 200-400ms latency. What are your options, and what new challenges does each introduce?"
+    },
+    {
+      "type": "markdown",
+      "content": "## The problem: speed of light\n\nLight in fiber travels at roughly 200,000 km/s. A round trip from New York to Sydney (16,000 km) takes at minimum 160ms \u2014 and real-world routing adds overhead, making it 200-300ms. No amount of code optimization can fix physics.\n\n**The solution: move your infrastructure closer to users.**\n\n### Anycast\n\nAnnouce the same IP address from multiple locations worldwide. Routers automatically send traffic to the nearest location using BGP routing.\n\n- **How it works:** Your CDN has servers in 200 cities, all announcing IP 1.2.3.4. A user in Tokyo is routed to the Tokyo server; a user in London to the London server.\n- **Used by:** CloudFlare, Google DNS (8.8.8.8), all major CDNs\n- **Best for:** Stateless services where any server can handle any request (DNS, CDN, static content)\n- **Challenge:** Not suitable for stateful connections \u2014 BGP routing can change mid-connection\n\n### Multi-region deployment\n\nDeploy your full application stack in multiple geographic regions.\n\n**Active-passive:** One primary region handles writes. Other regions serve reads and failover.\n- Simpler data consistency (single write point)\n- Higher write latency for distant users\n- Manual or automated failover on primary failure\n\n**Active-active:** All regions handle reads and writes.\n- Lowest latency for all users\n- Conflict resolution needed for concurrent writes to different regions\n- Complex data replication and consistency management\n\n### Latency-based routing\n\nDNS services (Route 53, Cloudflare) measure latency from users to each region and route to the fastest one.\n\n```\nUser in Japan \u2192 measured latency:\n  Tokyo: 5ms  \u2190 routed here\n  Oregon: 80ms\n  Virginia: 180ms\n```\n\n### Edge computing\n\nRun code at CDN edge locations, not just cache content. Process requests at the nearest edge server.\n\n| Platform | Runtime | Use case |\n|---|---|---|\n| Cloudflare Workers | V8 isolates | API routing, auth, A/B tests |\n| AWS Lambda@Edge | Node.js, Python | Request/response transformation |\n| Vercel Edge Functions | V8 | Dynamic SSR, personalization |\n| Deno Deploy | Deno | Full-stack edge applications |\n\n**What to run at the edge:** Authentication token validation, geo-based routing, A/B testing, personalized headers, simple API responses.\n\n**What NOT to run at the edge:** Database queries (the DB is still in one region), complex business logic, long-running computations.\n\n## Putting it together\n\nA global architecture typically combines:\n1. **Anycast + CDN** for static content (images, CSS, JS)\n2. **Edge compute** for auth, routing, and light processing\n3. **Multi-region application servers** for API logic\n4. **Replicated databases** for data access\n5. **Latency-based DNS** to route users to the nearest region"
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "You are going active-active across US-East and EU-West. A user in Paris updates their profile name. A user in New York views that profile 100ms later. Under what conditions will the New York user see the old name?",
+      "answer": "**The New York user will see the old name if replication lag exceeds 100ms.** In an active-active setup, the write happens in EU-West (closest to Paris). The data must replicate to US-East before the New York user can read it. If you use asynchronous replication (common for cross-region due to latency), the replication lag could be 100-500ms. With synchronous replication, the write would not complete until both regions confirm \u2014 guaranteeing the New York user sees the update but adding 100-200ms to the Paris user's write latency. This is the fundamental tradeoff in multi-region architectures: low-latency writes (async replication, eventual consistency) vs strong consistency (sync replication, higher write latency)."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Physics limits latency \u2014 move infrastructure closer to users. Anycast routes to the nearest server automatically. Multi-region deployments trade complexity for latency. Active-active is the gold standard but requires solving cross-region data consistency. Edge computing handles light processing near users."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "You now understand the full network layer. Module 2.7 is the checkpoint \u2014 put it all together by designing the network infrastructure for a global application."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What is Anycast?",
+      "options": [
+        "A protocol for encrypting global traffic",
+        "Announcing the same IP from multiple locations so routers send traffic to the nearest one",
+        "A DNS record type for global load balancing"
+      ],
+      "correctIndex": 1,
+      "explanation": "Anycast announces the same IP from multiple locations \u2014 BGP routing sends traffic to the nearest server.",
+      "encourageCorrect": "Right! Anycast is elegant \u2014 same IP everywhere, routed to the closest server automatically.",
+      "encourageIncorrect": "Anycast announces the same IP from multiple locations. BGP routing sends users to the nearest server."
+    },
+    {
+      "question": "What is the approximate minimum round-trip time between New York and Sydney?",
+      "options": [
+        "About 50ms",
+        "About 160ms",
+        "About 500ms"
+      ],
+      "correctIndex": 1,
+      "explanation": "Light in fiber at 200,000 km/s across 16,000 km equals about 160ms minimum round trip.",
+      "encourageCorrect": "Great recall! This is why we need CDNs \u2014 physics sets a hard floor on latency.",
+      "encourageIncorrect": "The minimum is about 160ms. Real-world routing makes it 200-300ms. No code can fix physics!"
+    }
+  ]
+}

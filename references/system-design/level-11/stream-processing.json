@@ -1,0 +1,55 @@
+{
+  "meta": {
+    "title": "11.2 Stream Processing",
+    "description": "Kafka Streams, Flink, and real-time processing. Windowing, watermarks, and exactly-once semantics.",
+    "level": "level-11",
+    "slug": "stream-processing",
+    "order": 2,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "You need to detect fraudulent transactions within 5 seconds of occurrence. Batch processing runs hourly. What do you need instead?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Stream processing\n\nProcess unbounded data in real-time as it arrives.\n\n### Key concepts\n\n**Windowing:** Group events into time-based windows for aggregation.\n- **Tumbling window:** Fixed, non-overlapping (every 5 minutes)\n- **Sliding window:** Overlapping (5-minute window, sliding every 1 minute)\n- **Session window:** Gap-based (group events with <30 seconds between them)\n\n**Watermarks:** Handle late-arriving events. A watermark says \"all events before time T have arrived.\" Events arriving after the watermark are either dropped or processed in a correction.\n\n**Exactly-once semantics:** Guarantee each event is processed exactly once, even with failures. Achieved through: idempotent writes, transactional producers (Kafka), and checkpointing (Flink).\n\n### Frameworks\n\n| Framework | Strengths |\n|---|---|\n| Kafka Streams | Lightweight library (no cluster needed), Java/Kotlin |\n| Apache Flink | Full-featured, true streaming, exactly-once, stateful processing |\n| Spark Structured Streaming | Micro-batch (not true streaming), familiar Spark API |\n| Amazon Kinesis Data Analytics | Managed, serverless |\n\n**Choose Kafka Streams** for simple stream processing that runs within your application. **Choose Flink** for complex event processing, large state, or sub-second latency requirements."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Stream processing handles unbounded real-time data with windowing, watermarks, and exactly-once guarantees. Kafka Streams for simple cases; Flink for complex stateful processing. Windowing strategy depends on your aggregation needs."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 11.3 covers event sourcing \u2014 storing events as the source of truth instead of current state."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What is a tumbling window in stream processing?",
+      "options": [
+        "A window that overlaps with adjacent windows",
+        "A fixed, non-overlapping time window",
+        "A window based on gaps between events"
+      ],
+      "correctIndex": 1,
+      "explanation": "A tumbling window is a fixed-size, non-overlapping window \u2014 for example, every 5 minutes with no overlap.",
+      "encourageCorrect": "You got it! Tumbling windows divide time into clean, non-overlapping segments.",
+      "encourageIncorrect": "A tumbling window is fixed and non-overlapping. Sliding windows overlap, and session windows are gap-based."
+    },
+    {
+      "question": "What do watermarks help with in stream processing?",
+      "options": [
+        "Encrypting event data",
+        "Handling late-arriving events",
+        "Compressing event payloads"
+      ],
+      "correctIndex": 1,
+      "explanation": "Watermarks signal that all events before a certain time have arrived, helping handle late events.",
+      "encourageCorrect": "Right! Watermarks are essential for dealing with events that arrive out of order or late.",
+      "encourageIncorrect": "Watermarks help handle late-arriving events by signaling that all events before time T have arrived."
+    }
+  ]
+}

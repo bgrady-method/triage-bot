@@ -1,0 +1,65 @@
+{
+  "meta": {
+    "title": "1.2 Latency and Throughput",
+    "description": "The two dimensions of performance: how fast and how many. Measuring, reasoning about, and improving both.",
+    "level": "level-1",
+    "slug": "latency-and-throughput",
+    "order": 2,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "Your API endpoint has a p50 latency of 50ms and a p99 latency of 2 seconds. Is this a healthy system? What does the gap between p50 and p99 tell you?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Two dimensions, one system\n\n**Latency** is the time it takes for a single operation to complete \u2014 the delay between request and response. Measured in milliseconds.\n\n**Throughput** is the number of operations a system can handle per unit of time \u2014 requests per second (RPS), transactions per second (TPS), or megabytes per second.\n\nThese are related but independent. You can have low latency with low throughput (a single fast worker). You can have high throughput with high latency (a batch pipeline that processes millions of records but takes hours).\n\n### Latency: the numbers that matter\n\n| Operation | Typical Latency |\n|---|---|\n| L1 cache reference | 1 ns |\n| L2 cache reference | 4 ns |\n| Main memory reference | 100 ns |\n| SSD random read | 16 \u03bcs |\n| HDD random read | 2-10 ms |\n| Network round trip (same datacenter) | 0.5 ms |\n| Network round trip (cross-continent) | 50-150 ms |\n| Read 1 MB from SSD | 50 \u03bcs |\n| Read 1 MB from network | 10 ms |\n\nThe key insight: **there are 5-6 orders of magnitude between memory and network.** This is why caching works so well \u2014 you are replacing a 10ms network call with a 100ns memory lookup.\n\n### Percentile thinking\n\nNever use averages for latency. Use **percentiles**:\n\n- **p50 (median)**: Half of requests are faster than this. Your \"typical\" experience.\n- **p95**: 95% of requests are faster. What most users experience.\n- **p99**: 99% of requests are faster. Your worst-performing users (often your most valuable \u2014 power users with the most data).\n- **p99.9**: The tail. Often 10-100x the p50. This is where garbage collection pauses, cache misses, and retry storms live.\n\n**Amazon found that every 100ms of latency cost them 1% of sales.** They measure at p99.9 because the users in the tail are often those with the most items in their cart.\n\n### Throughput: the capacity question\n\nThroughput depends on:\n1. **Parallelism** \u2014 How many operations can run simultaneously?\n2. **Per-operation cost** \u2014 How long does each operation take?\n3. **Bottlenecks** \u2014 What is the slowest component in the chain?\n\n**Little's Law** gives you the relationship:\n\n```\nThroughput = Concurrency / Latency\n```\n\nIf your system handles 100 concurrent requests and average latency is 200ms:\n```\nThroughput = 100 / 0.2s = 500 requests/second\n```\n\nTo increase throughput, you can: increase concurrency (more workers, more connections) or decrease latency (caching, optimization, better algorithms).\n\n### The tradeoff\n\nOptimizing for latency and throughput often pull in opposite directions:\n- **Batching** increases throughput (process many items at once) but increases latency (each item waits for the batch).\n- **Caching** reduces latency but may reduce throughput if cache invalidation creates contention.\n- **Compression** reduces network time (latency) but costs CPU (throughput)."
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "Your service has a p50 latency of 30ms and a p99 latency of 5 seconds. The average latency is 200ms. A teammate says 'our average latency is fine.' What is wrong with this reasoning, and what might be causing the p99 spike?",
+      "answer": "**What is wrong:** Averages hide the tail. A p50 of 30ms with a p99 of 5 seconds means 1 in 100 users waits 166x longer than the median user. If you have 1M requests/day, that is 10,000 users per day experiencing unacceptable latency. The 200ms average is pulled up by the tail but still masks how bad the tail really is.\n\n**Likely causes of the p99 spike:** (1) Garbage collection pauses \u2014 the JVM or runtime periodically freezes for GC. (2) Cache misses \u2014 99% of requests hit the cache (30ms) but 1% miss and hit the database (5 seconds). (3) Connection pool exhaustion \u2014 most requests get a connection immediately, but under load some wait in a queue. (4) Cold starts \u2014 if using serverless or container autoscaling, new instances take seconds to warm up. (5) Database query plan degradation \u2014 most queries use an index, but some edge cases trigger full table scans."
+    },
+    {
+      "type": "tryItYourself",
+      "title": "Calculate the throughput of a system with the following characteristics: a web server with 200 worker threads, each request takes 100ms on average (80ms of which is waiting for the database). What is the current throughput? If you add a cache that eliminates the database call for 90% of requests (reducing those requests to 10ms), what is the new throughput?",
+      "solution": "**Current throughput:** 200 concurrent workers / 0.1s per request = 2,000 RPS.\n\n**With caching:** 90% of requests take 10ms, 10% take 100ms. Weighted average latency = (0.9 \u00d7 10ms) + (0.1 \u00d7 100ms) = 9ms + 10ms = 19ms. Throughput = 200 / 0.019s = ~10,526 RPS. That is a 5.3x improvement from caching, because most requests finish much faster, freeing up workers to handle new requests. Note that the database also benefits \u2014 it now handles 1/10th the queries."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Latency is how fast; throughput is how many. Never use averages \u2014 use percentiles (p50, p95, p99). Little's Law (Throughput = Concurrency / Latency) connects all three dimensions. Optimizing for latency and throughput often involves different tradeoffs."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "You now know how to measure performance. But performance is meaningless if the system is down. Module 1.3 covers availability \u2014 how to quantify uptime and understand the cost of each additional nine of reliability."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "Why should you use percentiles (p50, p99) instead of averages for latency?",
+      "options": [
+        "Percentiles are easier to calculate",
+        "Averages hide the tail latency that affects real users",
+        "Percentiles use less memory to store"
+      ],
+      "correctIndex": 1,
+      "explanation": "Averages hide the tail \u2014 a p50 of 30ms with a p99 of 5 seconds still gives a fine average while 1% of users suffer.",
+      "encourageCorrect": "Exactly! Averages mask the worst-case experience that tail users have.",
+      "encourageIncorrect": "Averages hide the tail latency. A service with p50 of 30ms and p99 of 5 seconds looks fine on average but is terrible for 1% of users."
+    },
+    {
+      "question": "What does Little s Law state?",
+      "options": [
+        "Latency = Throughput x Concurrency",
+        "Throughput = Concurrency / Latency",
+        "Concurrency = Throughput x Latency squared"
+      ],
+      "correctIndex": 1,
+      "explanation": "Little s Law: Throughput = Concurrency / Latency. It connects all three dimensions of performance.",
+      "encourageCorrect": "Nice! Little s Law is one of the most useful equations in system design.",
+      "encourageIncorrect": "Little s Law says Throughput = Concurrency / Latency. It is a fundamental relationship connecting the three performance dimensions."
+    }
+  ]
+}

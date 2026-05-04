@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "title": "4.3 Distributed Caching",
+    "description": "Redis vs Memcached, cluster mode, data partitioning, replication, and cache topology.",
+    "level": "level-4",
+    "slug": "distributed-caching",
+    "order": 3,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "Your single Redis server has 64GB of RAM but you need to cache 500GB of data. You also need the cache to survive server restarts. What are your options?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Redis vs Memcached\n\n| Feature | Redis | Memcached |\n|---|---|---|\n| Data structures | Strings, lists, sets, sorted sets, hashes, streams | Strings only |\n| Persistence | RDB snapshots, AOF log | None (pure cache) |\n| Replication | Built-in leader-follower | None |\n| Clustering | Redis Cluster (auto-sharding) | Client-side sharding |\n| Lua scripting | Yes | No |\n| Pub/Sub | Yes | No |\n| Max memory | Limited by RAM | Limited by RAM |\n| Thread model | Single-threaded (mostly) | Multi-threaded |\n\n**Choose Redis when:** You need data structures beyond simple key-value, persistence, replication, or pub/sub.\n\n**Choose Memcached when:** You need simple key-value caching with multi-threaded performance, or you want the simplest possible cache with no persistence.\n\n**In practice:** Redis dominates. Most teams choose Redis by default.\n\n## Redis Cluster\n\nRedis Cluster automatically partitions data across multiple nodes using hash slots (16,384 slots distributed across nodes).\n\n```\nNode 1: slots 0-5460\nNode 2: slots 5461-10922\nNode 3: slots 10923-16383\n```\n\nEach key is assigned to a slot: `slot = CRC16(key) % 16384`\n\n**Adding a node:** Redis migrates some slots from existing nodes to the new node. Minimal disruption.\n\n**Replication within cluster:** Each primary node has 1+ replicas. If a primary fails, its replica is promoted automatically.\n\n## Cache topology patterns\n\n**Embedded cache:** Cache lives in the application process memory (e.g., Guava, Caffeine). Fastest access (nanoseconds) but not shared across instances and lost on restart.\n\n**Side-car cache:** Cache runs alongside the application on the same machine. Local network access. Used in Kubernetes with Redis sidecars.\n\n**Remote cache:** Centralized cache cluster accessed over the network. Shared across all application instances. Adds ~1ms network latency.\n\n**Client-side caching with server tracking:** Redis 6+ supports client-side caching where the server notifies clients when cached keys change. Combines the speed of embedded cache with the freshness of remote cache."
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "Your Redis Cluster has 3 nodes with 64GB each (192GB total). One node fails and its replica takes over. But the replica was behind by 2 seconds of replication. What data is lost, and how do you mitigate this?",
+      "answer": "**Lost data:** Any writes to the failed primary in the last 2 seconds before failure. Redis uses asynchronous replication by default, so the replica may not have received the most recent writes.\n\n**Mitigation options:** (1) Use WAIT command for critical writes \u2014 blocks until N replicas acknowledge the write. Trades latency for durability. (2) Accept the loss for cache data (it can be rebuilt from the database). (3) Use Redis with AOF (append-only file) persistence on the primary \u2014 even if the replica is behind, the primary's AOF can be used for recovery if the disk survives. (4) Use synchronous replication for critical data (Redis supports WAIT with a timeout). Key insight: if Redis is used as a cache (data can be reloaded from the database), a few seconds of data loss is acceptable. If Redis is used as a primary data store, you need stronger durability guarantees."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Redis is the default choice for distributed caching \u2014 it offers data structures, persistence, replication, and clustering. Redis Cluster auto-shards across nodes using hash slots. Choose your cache topology (embedded, sidecar, remote) based on latency requirements and sharing needs."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "A single cache layer helps. Module 4.4 shows how to combine multiple cache layers (in-process, distributed, CDN) for maximum performance."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What is a key advantage of Redis over Memcached?",
+      "options": [
+        "Redis is multi-threaded",
+        "Redis supports data structures like lists, sets, and sorted sets",
+        "Redis has lower latency"
+      ],
+      "correctIndex": 1,
+      "explanation": "Redis supports rich data structures while Memcached only supports strings.",
+      "encourageCorrect": "Right! Redis data structures make it much more versatile than Memcached.",
+      "encourageIncorrect": "Redis supports rich data structures (lists, sets, sorted sets, hashes) beyond simple strings."
+    },
+    {
+      "question": "How does Redis Cluster distribute data across nodes?",
+      "options": [
+        "Round-robin assignment",
+        "Hash slots (16,384 slots distributed across nodes)",
+        "Manual partition mapping"
+      ],
+      "correctIndex": 1,
+      "explanation": "Redis Cluster uses 16,384 hash slots distributed across nodes.",
+      "encourageCorrect": "Exactly! The hash slot approach makes it easy to add or remove nodes.",
+      "encourageIncorrect": "Redis Cluster uses 16,384 hash slots. Keys are hashed to a slot, and slots are assigned to nodes."
+    }
+  ]
+}

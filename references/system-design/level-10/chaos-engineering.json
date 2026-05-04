@@ -1,0 +1,55 @@
+{
+  "meta": {
+    "title": "10.5 Chaos Engineering",
+    "description": "Deliberately injecting failures to find weaknesses. Chaos Monkey, Litmus, and game days.",
+    "level": "level-10",
+    "slug": "chaos-engineering",
+    "order": 5,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "You believe your system handles server failures gracefully. But you have never actually tested it by killing a server in production. Should you? What is the risk of NOT testing?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Chaos engineering principles\n\n1. **Define steady state:** What does 'healthy' look like? (request rate, error rate, latency)\n2. **Hypothesize:** 'If we kill Service X, the circuit breaker will activate and users will see degraded but functional behavior.'\n3. **Run experiment:** Inject the failure in a controlled way.\n4. **Observe:** Did the system behave as hypothesized?\n5. **Fix:** If not, improve resilience and re-test.\n\n## Types of chaos experiments\n\n| Experiment | What it tests |\n|---|---|\n| Kill a server/pod | Auto-scaling, load balancing, failover |\n| Add network latency | Timeout configurations, circuit breakers |\n| Block network between services | Partition handling, fallback behavior |\n| Fill disk | Log rotation, alerting, graceful handling |\n| Exhaust memory | OOM handling, container limits |\n| DNS failure | Caching, fallback resolution |\n\n## Tools\n\n- **Chaos Monkey (Netflix):** Randomly terminates production instances\n- **Litmus:** Kubernetes-native chaos engineering\n- **Gremlin:** Managed chaos-as-a-service\n- **Toxiproxy:** Simulate network conditions (latency, packet loss)\n\n## Game days\n\nScheduled exercises where the team simulates failures and practices incident response. Like a fire drill. Run quarterly. Include on-call rotation, communication procedures, and post-incident review."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Chaos engineering proactively finds weaknesses by injecting controlled failures. Start small (kill one pod), build confidence, and gradually increase scope. Game days practice incident response. The risk of NOT testing resilience is discovering weaknesses during a real outage."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 10.6 covers the ultimate resilience challenge: disaster recovery and multi-region architecture."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What is the first step in a chaos engineering experiment?",
+      "options": [
+        "Inject a random failure",
+        "Define what steady state looks like",
+        "Turn off a production server"
+      ],
+      "correctIndex": 1,
+      "explanation": "You must first define steady state (what healthy looks like) before you can measure the impact of a failure.",
+      "encourageCorrect": "Great recall! You need to know what normal looks like before you can test what broken does.",
+      "encourageIncorrect": "The first step is defining steady state \u2014 what does healthy look like? Without this baseline, you cannot measure the impact of failures."
+    },
+    {
+      "question": "Why is chaos engineering valuable?",
+      "options": [
+        "It eliminates all possible failures",
+        "It proactively finds weaknesses before real outages expose them",
+        "It makes systems faster"
+      ],
+      "correctIndex": 1,
+      "explanation": "Chaos engineering finds weaknesses proactively so you can fix them before a real outage hits your users.",
+      "encourageCorrect": "Well said! Finding weaknesses on your terms is much better than discovering them during a real incident.",
+      "encourageIncorrect": "Chaos engineering proactively finds weaknesses \u2014 discovering problems in a controlled experiment is better than during a real outage."
+    }
+  ]
+}

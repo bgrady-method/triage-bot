@@ -1,0 +1,55 @@
+{
+  "meta": {
+    "title": "11.5 Data Architectures",
+    "description": "Lambda architecture, Kappa architecture, data mesh, and choosing the right data architecture.",
+    "level": "level-11",
+    "slug": "data-architectures",
+    "order": 5,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "You need both real-time dashboards (sub-second) and historical analytics (complex queries over years of data). Do you use one system or two?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Lambda Architecture\n\nTwo parallel processing paths:\n- **Batch layer:** Processes all historical data periodically (Spark, complete but slow)\n- **Speed layer:** Processes real-time stream (Kafka Streams/Flink, fast but approximate)\n- **Serving layer:** Merges results from both layers\n\n**Pros:** Handles both real-time and historical. Batch corrects any speed-layer inaccuracies.\n**Cons:** Two code paths to maintain. Complexity of merging results.\n\n## Kappa Architecture\n\nOne processing path: everything is a stream. Historical processing = replay the event log.\n\n- **Stream layer:** Processes all events (Kafka + Flink)\n- **Replay:** Reprocess historical data by resetting consumer offset\n\n**Pros:** One code path. Simpler. Event log is the source of truth.\n**Cons:** Replaying years of data can be slow. Not all processing fits the streaming model.\n\n## Data Mesh\n\nDecentralized data architecture. Each domain team owns its data as a product.\n\n**Principles:**\n1. **Domain ownership:** Teams own their data end-to-end\n2. **Data as a product:** Treat data with the same care as a customer-facing product\n3. **Self-serve platform:** Central team provides tools, not data processing\n4. **Federated governance:** Shared standards, decentralized execution\n\n**When to use:** Large organizations (100+ engineers) with multiple data domains.\n\n| Architecture | Best for | Complexity |\n|---|---|---|\n| Lambda | Mixed batch + real-time | High |\n| Kappa | Stream-first systems | Medium |\n| Data Mesh | Large organizations | High (organizational) |\n| Simple ETL | Small data, periodic reporting | Low |"
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Lambda uses dual batch+streaming paths (powerful but complex). Kappa simplifies to streaming only (replay for reprocessing). Data mesh decentralizes data ownership to domain teams. Choose based on your real-time requirements, data volume, and organizational size."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 11.6 is the checkpoint \u2014 design a data pipeline for a real-time analytics platform."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "How does Lambda architecture process data?",
+      "options": [
+        "Through a single streaming pipeline",
+        "Through two parallel paths: batch and speed layers",
+        "Through periodic database snapshots"
+      ],
+      "correctIndex": 1,
+      "explanation": "Lambda architecture uses a batch layer (complete but slow) and a speed layer (fast but approximate) in parallel.",
+      "encourageCorrect": "Exactly! The dual-path approach gives you both accuracy and real-time results.",
+      "encourageIncorrect": "Lambda architecture uses two parallel paths: a batch layer for historical processing and a speed layer for real-time."
+    },
+    {
+      "question": "What is the key simplification Kappa architecture makes compared to Lambda?",
+      "options": [
+        "It removes the serving layer",
+        "It uses only a streaming path for everything",
+        "It eliminates the need for a database"
+      ],
+      "correctIndex": 1,
+      "explanation": "Kappa simplifies by using only a streaming path \u2014 historical reprocessing is done by replaying the event log.",
+      "encourageCorrect": "That is right! One processing path instead of two makes Kappa much simpler to maintain.",
+      "encourageIncorrect": "Kappa simplifies to streaming only \u2014 replay the event log when you need to reprocess historical data."
+    }
+  ]
+}

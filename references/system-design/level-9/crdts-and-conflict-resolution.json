@@ -1,0 +1,55 @@
+{
+  "meta": {
+    "title": "9.5 CRDTs and Conflict Resolution",
+    "description": "Conflict-free replicated data types, last-writer-wins, merge functions, and designing for concurrent updates.",
+    "level": "level-9",
+    "slug": "crdts-and-conflict-resolution",
+    "order": 5,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "Two users simultaneously edit the same document \u2014 one on a plane (offline) and one in an office. When the plane lands and syncs, how do you merge their changes without losing either person's work?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Conflict resolution strategies\n\n### Last-Writer-Wins (LWW)\nUse timestamps to pick the 'latest' write. Simple but loses data \u2014 the earlier write is silently discarded.\n\n### Application-level merge\nCustom logic combines concurrent writes. Complex but preserves all data. Example: merging shopping carts = union of items.\n\n### CRDTs (Conflict-free Replicated Data Types)\nData structures mathematically guaranteed to converge when replicas merge, regardless of operation order.\n\n**Types:**\n- **G-Counter:** Grow-only counter. Each node increments its own counter. Total = sum of all counters.\n- **PN-Counter:** Positive-Negative counter. Two G-Counters (one for increments, one for decrements).\n- **G-Set:** Grow-only set. Elements can be added, never removed. Merge = union.\n- **OR-Set (Observed-Remove Set):** Elements can be added and removed. Uses unique tags per add to resolve add/remove conflicts.\n- **LWW-Register:** Last-writer-wins register. Simple but lossy.\n\n**Used by:** Redis (CRDT-based active-active), Riak, Apple Notes (collaboration), Figma (multiplayer editing).\n\n### When to use CRDTs\n\n- Offline-first applications (mobile, collaborative editing)\n- Multi-region active-active databases\n- Systems where availability > consistency\n- When you can express your data model as CRDT operations"
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "CRDTs are data structures that automatically converge without coordination \u2014 ideal for multi-region and offline-first systems. LWW is simplest but loses data. Application-level merge preserves data but is complex. Choose based on your data model and conflict tolerance."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 9.6 covers consistent hashing \u2014 how to distribute data across nodes while minimizing redistribution when nodes change."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What makes CRDTs special?",
+      "options": [
+        "They compress data efficiently",
+        "They are mathematically guaranteed to converge when replicas merge, regardless of operation order",
+        "They prevent all write conflicts"
+      ],
+      "correctIndex": 1,
+      "explanation": "CRDTs always converge to the same state when replicas merge, with no coordination needed.",
+      "encourageCorrect": "Exactly! Mathematical convergence without coordination is what makes CRDTs powerful.",
+      "encourageIncorrect": "CRDTs are data structures guaranteed to converge when replicas merge, regardless of operation order."
+    },
+    {
+      "question": "What is the tradeoff of Last-Writer-Wins (LWW) conflict resolution?",
+      "options": [
+        "It is slow to resolve",
+        "It is simple but silently discards the earlier write",
+        "It requires manual intervention"
+      ],
+      "correctIndex": 1,
+      "explanation": "LWW picks the latest write by timestamp \u2014 the earlier concurrent write is silently lost.",
+      "encourageCorrect": "Right! LWW is simplest but data loss is the hidden cost.",
+      "encourageIncorrect": "LWW is simple \u2014 pick the latest timestamp. But the earlier concurrent write is silently discarded."
+    }
+  ]
+}

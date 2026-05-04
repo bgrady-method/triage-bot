@@ -1,0 +1,55 @@
+{
+  "meta": {
+    "title": "10.1 Rate Limiting Algorithms",
+    "description": "Token bucket, leaky bucket, fixed window, sliding window. Distributed rate limiting and client-side strategies.",
+    "level": "level-10",
+    "slug": "rate-limiting",
+    "order": 1,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "Your API allows 100 requests per minute per user. At minute boundaries (e.g., 12:00:59 and 12:01:00), a user sends 100 requests in each window \u2014 200 requests in 2 seconds. Is your rate limiter broken?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Rate limiting algorithms\n\n### Token Bucket\nA bucket holds tokens (max = burst size). Tokens added at a fixed rate. Each request consumes one token. If empty, request is rejected. Allows bursts up to bucket size.\n\n### Leaky Bucket\nRequests enter a queue (bucket). Processed at a fixed rate. If queue is full, new requests are rejected. Smooths bursts to a constant rate.\n\n### Fixed Window\nCount requests in fixed time windows (e.g., per minute). Reset counter at window boundary. Problem: burst at window edges (your predictPrompt scenario \u2014 200 requests in 2 seconds).\n\n### Sliding Window\nCombines fixed window efficiency with sliding accuracy. Weight the previous window's count by overlap percentage.\n\n```\nCurrent window: 12:01, 30 seconds in (50% through)\nPrevious window (12:00): 80 requests\nCurrent window (12:01): 30 requests so far\n\nEstimate: 80 \u00d7 0.5 + 30 = 70 requests\nLimit: 100 \u2192 Allow\n```\n\n| Algorithm | Burst handling | Memory | Accuracy |\n|---|---|---|---|\n| Token bucket | Allows controlled bursts | Low | Good |\n| Leaky bucket | Smooths to constant rate | Low | Good |\n| Fixed window | Edge burst problem | Low | Moderate |\n| Sliding window | No edge bursts | Medium | High |\n\n### Distributed rate limiting\nWith multiple API servers, each needs to check the same counter. Use Redis with atomic INCR + EXPIRE. Or use a local rate limiter with a global sync (less accurate, more resilient)."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Token bucket allows controlled bursts; leaky bucket enforces constant rate; sliding window is the most accurate. For distributed systems, use Redis-backed counters. Return HTTP 429 with Retry-After header."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Rate limiting prevents overload from external traffic. Module 10.2 covers circuit breakers \u2014 preventing cascade failures between internal services."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "Which rate limiting algorithm allows controlled bursts of traffic?",
+      "options": [
+        "Leaky bucket",
+        "Token bucket",
+        "Fixed window"
+      ],
+      "correctIndex": 1,
+      "explanation": "The token bucket algorithm allows bursts up to the bucket size while maintaining an average rate.",
+      "encourageCorrect": "That is right! Token bucket is great when you want to allow short bursts while controlling average rate.",
+      "encourageIncorrect": "The token bucket allows bursts \u2014 tokens accumulate up to the bucket size. The leaky bucket enforces a constant rate instead."
+    },
+    {
+      "question": "What HTTP status code should you return when rate limiting a request?",
+      "options": [
+        "403 Forbidden",
+        "429 Too Many Requests",
+        "503 Service Unavailable"
+      ],
+      "correctIndex": 1,
+      "explanation": "HTTP 429 (Too Many Requests) is the standard status code for rate-limited requests, ideally with a Retry-After header.",
+      "encourageCorrect": "Correct! 429 with a Retry-After header tells the client exactly what is happening and when to try again.",
+      "encourageIncorrect": "The standard response is HTTP 429 Too Many Requests, ideally with a Retry-After header so the client knows when to retry."
+    }
+  ]
+}

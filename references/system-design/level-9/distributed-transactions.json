@@ -1,0 +1,55 @@
+{
+  "meta": {
+    "title": "9.4 Distributed Transactions",
+    "description": "Two-phase commit, three-phase commit, and why distributed transactions are the last resort.",
+    "level": "level-9",
+    "slug": "distributed-transactions",
+    "order": 4,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "Two databases must both commit or both rollback a transaction. The coordinator sends 'commit' to both, but one database's network cable is cut mid-message. Now what?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Two-Phase Commit (2PC)\n\n**Phase 1 (Prepare):** Coordinator asks all participants: 'Can you commit?' Each participant writes to its WAL and responds Yes/No.\n\n**Phase 2 (Commit/Abort):** If all said Yes \u2192 Coordinator sends Commit. If any said No \u2192 Coordinator sends Abort.\n\n**The problem:** If the coordinator crashes after Phase 1 but before Phase 2, participants are stuck \u2014 they have locked resources but do not know whether to commit or abort. They are blocked until the coordinator recovers.\n\n**2PC is a blocking protocol.** A single coordinator failure can freeze the entire system.\n\n## Why 2PC is the last resort\n\n- **Performance:** Two network round trips + disk writes at every participant\n- **Availability:** Coordinator failure blocks all participants\n- **Latency:** All participants must respond before commit\n- **Scalability:** Does not scale with the number of participants\n\n## Alternatives (preferred)\n\n| Alternative | How | When |\n|---|---|---|\n| Saga pattern | Sequence of local transactions with compensation | Microservices workflows |\n| Eventual consistency | Accept temporary inconsistency, reconcile later | Most distributed systems |\n| Single database | Avoid the problem entirely | When possible |\n| Outbox pattern | Atomic local write + event, async propagation | Event-driven systems |\n\n**Rule:** Avoid distributed transactions if at all possible. Design your service boundaries so that transactions stay within a single service's database."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Two-phase commit guarantees atomicity across databases but is slow, blocking, and fragile. Avoid distributed transactions by designing service boundaries that keep transactions local. Use sagas, eventual consistency, or the outbox pattern instead."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 9.5 covers CRDTs \u2014 data structures designed to resolve conflicts automatically without coordination."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What is the main problem with Two-Phase Commit (2PC)?",
+      "options": [
+        "It is too slow for reads",
+        "If the coordinator crashes after Phase 1, participants are blocked with locked resources",
+        "It does not support rollback"
+      ],
+      "correctIndex": 1,
+      "explanation": "2PC is blocking \u2014 coordinator failure between phases freezes participants.",
+      "encourageCorrect": "Right! The coordinator is a single point of failure.",
+      "encourageIncorrect": "2PC is blocking \u2014 if the coordinator crashes after Phase 1, participants hold locks indefinitely."
+    },
+    {
+      "question": "What should you use instead of distributed transactions in microservices?",
+      "options": [
+        "Larger database servers",
+        "Sagas, eventual consistency, or the outbox pattern",
+        "Synchronous RPC calls"
+      ],
+      "correctIndex": 1,
+      "explanation": "Avoid distributed transactions by keeping transactions local. Use sagas for coordination.",
+      "encourageCorrect": "Exactly! Design boundaries to avoid distributed transactions.",
+      "encourageIncorrect": "Use sagas, eventual consistency, or the outbox pattern instead of distributed transactions."
+    }
+  ]
+}

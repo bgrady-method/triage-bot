@@ -1,0 +1,64 @@
+{
+  "meta": {
+    "title": "1.4 Consistency Models",
+    "description": "Strong, eventual, causal, and read-your-writes consistency. What each means and when each is appropriate.",
+    "level": "level-1",
+    "slug": "consistency-models",
+    "order": 4,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "You post a photo on social media. You immediately check your profile and the photo is not there. Five seconds later it appears. Is this a bug, or is this by design? When would this be acceptable, and when would it not be?"
+    },
+    {
+      "type": "markdown",
+      "content": "## The consistency spectrum\n\nIn a distributed system, data exists on multiple nodes. When a write happens on one node, how quickly and reliably do other nodes reflect that change? The answer defines your consistency model.\n\n### Strong consistency (linearizability)\n\nEvery read returns the most recent write. All clients see the same data at the same time. The system behaves as if there is a single copy of the data.\n\n**How it works:** Writes must be acknowledged by a majority of replicas before returning success. Reads must check with a majority or read from the leader.\n\n**Cost:** Higher latency (every operation waits for coordination), lower availability (if majority is unreachable, the system blocks), lower throughput.\n\n**Use when:** Financial transactions, inventory counts, unique constraints (usernames, seat reservations).\n\n### Eventual consistency\n\nIf no new writes occur, all replicas will eventually converge to the same value. There is no guarantee about when.\n\n**How it works:** Writes are acknowledged by one node and asynchronously propagated. Reads may return stale data.\n\n**Cost:** Possible stale reads, conflict resolution needed for concurrent writes.\n\n**Use when:** Social media feeds, product reviews, analytics counters, DNS.\n\n### Causal consistency\n\nIf operation A causally depends on operation B (e.g., B is a reply to A), then any node that sees B will also see A. Unrelated operations may appear in different orders on different nodes.\n\n**How it works:** Operations carry dependency metadata (vector clocks or similar). Nodes delay delivering an operation until all its dependencies are present.\n\n**Use when:** Comment threads, chat messages, collaborative editing.\n\n### Read-your-writes consistency\n\nA client always sees its own writes. Other clients may see stale data.\n\n**How it works:** Route the user's reads to the same replica that accepted their write, or use session tokens to track the user's write position.\n\n**Use when:** User profile updates, settings changes, shopping cart modifications.\n\n| Model | Guarantee | Latency | Availability | Example |\n|---|---|---|---|---|\n| Strong | Latest data always | Highest | Lowest | Bank balance |\n| Causal | Cause before effect | Medium | Medium | Chat messages |\n| Read-your-writes | See own writes | Low-Medium | High | User profile |\n| Eventual | Converges eventually | Lowest | Highest | Social feed likes |\n\n## The practical question\n\nMost systems do not pick one model globally. They use **different consistency levels for different operations**:\n\n- User's account balance: strong consistency\n- User's profile photo: read-your-writes\n- Like count on a post: eventual consistency\n- Comments on a post: causal consistency\n\nThis is called **tunable consistency** \u2014 systems like Cassandra and DynamoDB let you configure consistency per query."
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "An e-commerce site shows product inventory counts. Two users simultaneously try to buy the last item. Under eventual consistency, what can go wrong? Under strong consistency, what is the tradeoff?",
+      "answer": "**Eventual consistency problem:** Both users read the inventory as 1. Both place orders. Both succeed. Now inventory is -1. The business has oversold \u2014 one customer will be disappointed. This is the classic lost update or write conflict problem.\n\n**Strong consistency tradeoff:** Only one user's purchase succeeds. The second user sees the item as out of stock. Correctness is guaranteed, but the system is slower (both reads and writes must coordinate with the leader or quorum) and less available (if the leader is down, purchases block entirely).\n\n**The real-world answer:** Use strong consistency for the inventory decrement (a critical invariant) but eventual consistency for the product page display. Show \"Only 1 left!\" with eventual consistency, but use a strongly consistent compare-and-swap for the actual purchase."
+    },
+    {
+      "type": "explainBack",
+      "prompt": "A junior engineer asks: 'Why don't we just use strong consistency everywhere? It seems like the safest option.' Explain why this is not practical and give examples of when weaker consistency models are not just acceptable, but preferable."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Consistency is a spectrum, not a binary. Strong consistency guarantees correctness but costs latency and availability. Eventual consistency maximizes performance but risks stale reads. Most real systems use different consistency models for different operations based on the business requirements of each."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "You now have the conceptual tools: scalability, latency, availability, and consistency. Module 1.5 teaches you to put numbers on these concepts \u2014 back-of-envelope estimation lets you sanity-check any design in minutes."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What does strong consistency guarantee?",
+      "options": [
+        "Every read returns the most recent write",
+        "Data is eventually synchronized",
+        "Writes are always fast"
+      ],
+      "correctIndex": 0,
+      "explanation": "Strong consistency means every read returns the most recent write \u2014 the system behaves as if there is a single copy of the data.",
+      "encourageCorrect": "Perfect! Strong consistency means all clients always see the latest data.",
+      "encourageIncorrect": "Not quite \u2014 strong consistency guarantees that every read returns the most recent write, as if there is a single copy of the data."
+    },
+    {
+      "question": "What is the main tradeoff of eventual consistency?",
+      "options": [
+        "Higher storage costs",
+        "Reads may return stale data",
+        "Writes are slower"
+      ],
+      "correctIndex": 1,
+      "explanation": "Eventual consistency allows reads to return stale data temporarily, but offers better performance and availability.",
+      "encourageCorrect": "You got it! Stale reads are the price you pay for better performance and availability.",
+      "encourageIncorrect": "The main tradeoff is that reads may return stale data temporarily. The upside is better performance and availability."
+    }
+  ]
+}

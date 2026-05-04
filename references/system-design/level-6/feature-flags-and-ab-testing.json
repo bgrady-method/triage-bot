@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "title": "6.8 Feature Flags and A/B Testing",
+    "description": "Remote configuration, gradual rollouts, A/B testing infrastructure, and experiment lifecycle.",
+    "level": "level-6",
+    "slug": "feature-flags-and-ab-testing",
+    "order": 8,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "You deploy a new checkout flow. It works in testing but causes a 5% drop in conversion in production. By the time you notice (3 days later), you have lost significant revenue. How could you have caught this faster and limited the damage?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Feature flags\n\nFeature flags decouple deployment from release. Deploy code anytime; enable features selectively.\n\n**Use cases:**\n- **Gradual rollout:** Enable for 1% \u2192 5% \u2192 25% \u2192 100% of users\n- **Kill switch:** Instantly disable a broken feature without deploying\n- **Beta testing:** Enable for internal users or beta testers only\n- **Operational flags:** Toggle expensive features during high load\n\n**Implementation options:**\n| Solution | Type | Differentiator |\n|---|---|---|\n| LaunchDarkly | SaaS | Real-time updates, targeting rules, analytics |\n| Unleash | Open-source | Self-hosted, feature-rich |\n| Flagsmith | Open-source/SaaS | Remote config + flags |\n| Homegrown | Database/config | Simple, full control, limited features |\n\n**Flag hygiene:** Every flag should have an owner and expiration date. Remove flags after full rollout. Stale flags create technical debt and confusing code paths.\n\n## A/B testing\n\n**Goal:** Measure the causal impact of a change by randomly assigning users to control (A) or treatment (B).\n\n**Infrastructure requirements:**\n1. **Random assignment:** Consistent hashing of user ID ensures same user always sees same variant\n2. **Event tracking:** Track conversions, clicks, revenue per variant\n3. **Statistical analysis:** Calculate significance (p-value < 0.05, typically)\n4. **Guardrail metrics:** Monitor for regressions (page load time, error rate) alongside target metric\n\n**Common mistakes:**\n- Ending experiments too early (peeking at results)\n- Not accounting for multiple comparisons\n- Testing too many variants simultaneously\n- Ignoring novelty effects (users react to change, not the feature)\n\n**Experiment lifecycle:** Hypothesis \u2192 Design \u2192 Implement (behind flag) \u2192 Run (minimum 1-2 weeks) \u2192 Analyze \u2192 Ship or kill \u2192 Clean up flag"
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "You are rolling out a new recommendation algorithm. After enabling it for 10% of users, you notice a 2% increase in click-through rate. Should you roll it out to 100%?",
+      "answer": "**Not yet.** A 2% increase at 10% traffic may not be statistically significant. Check: (1) Has the experiment run long enough? (minimum 1-2 weeks to account for day-of-week effects). (2) Is the sample size large enough for 2% to be significant? (use a power calculator). (3) Check guardrail metrics \u2014 is page load time worse? Are there more errors? A 2% CTR increase is meaningless if latency increased 500ms. (4) Look for segment effects \u2014 does it help power users but hurt new users? (5) If statistics confirm significance with no guardrail regressions, gradually increase: 10% \u2192 25% \u2192 50% \u2192 100%, monitoring at each step."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Feature flags decouple deployment from release \u2014 deploy anytime, enable selectively. A/B testing measures causal impact but requires statistical rigor: sufficient sample size, minimum duration, and guardrail metrics. Clean up flags after rollout to prevent technical debt."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 6.9 is the checkpoint \u2014 given a system, identify which components you need and justify your choices."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What do feature flags decouple?",
+      "options": [
+        "Frontend from backend",
+        "Deployment from release",
+        "Development from testing"
+      ],
+      "correctIndex": 1,
+      "explanation": "Feature flags decouple deployment from release \u2014 deploy code anytime, enable features selectively.",
+      "encourageCorrect": "Perfect! Deploy whenever you want, release when you are ready.",
+      "encourageIncorrect": "Feature flags decouple deployment from release. Deploy code to production, enable for specific users."
+    },
+    {
+      "question": "Why should you not immediately roll out after seeing a 2% improvement in A/B testing?",
+      "options": [
+        "2% is too small to matter",
+        "The result may not be statistically significant yet",
+        "A/B tests cannot measure that small"
+      ],
+      "correctIndex": 1,
+      "explanation": "A 2% improvement at small sample sizes may not be statistically significant.",
+      "encourageCorrect": "Right! Statistical significance matters \u2014 check sample size, duration, and guardrail metrics.",
+      "encourageIncorrect": "The 2% may not be statistically significant. You need sufficient sample size and minimum duration."
+    }
+  ]
+}

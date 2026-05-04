@@ -1,0 +1,65 @@
+{
+  "meta": {
+    "title": "13.2 Design a URL Shortener",
+    "description": "Design a URL shortening service like bit.ly \u2014 hashing strategies, storage, redirection at scale, and analytics.",
+    "level": "level-13",
+    "slug": "design-url-shortener",
+    "order": 2,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "If you need to generate a unique 7-character short URL for every long URL submitted, how many possible short URLs exist? How long until you run out if you create 1,000 URLs per second?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Requirements\n\n**Functional:**\n- Given a long URL, generate a short URL\n- Given a short URL, redirect to the original long URL\n- Users can optionally set custom short links\n- Links expire after a configurable TTL\n- Analytics: click count, referrers, geographic distribution\n\n**Non-functional:**\n- 100M new URLs per day (write-heavy for creation, but read-heavy for redirection)\n- Redirect latency under 50ms (p99)\n- 99.99% availability \u2014 broken redirects are unacceptable\n- Short URLs should not be guessable (no sequential IDs)\n\n## Estimation\n\n```\nWrite QPS: 100M / 86,400 ~ 1,160 URLs/sec (peak ~3,500/sec)\nRead QPS (assume 100:1 read:write): ~116,000 redirects/sec (peak ~350K/sec)\n\nStorage per URL:\n  short_url: 7 bytes\n  long_url: avg 200 bytes\n  created_at: 8 bytes\n  expiry: 8 bytes\n  user_id: 8 bytes\n  Total: ~250 bytes\n\nStorage/year: 100M/day x 365 x 250B ~ 9.1 TB/year\nStorage/5 years: ~45 TB\n```\n\nThis is comfortably within a sharded database. The challenge is read throughput at 350K QPS, not storage.\n\n## API Design\n\n```\nPOST /api/v1/urls\n  Request:  { \"long_url\": \"https://...\", \"custom_alias\": \"my-link\", \"ttl_days\": 30 }\n  Response: { \"short_url\": \"https://sho.rt/aB3x9Kz\", \"expires_at\": \"...\" }\n\nGET /{short_url_key}\n  Response: 301 Redirect (cacheable) or 302 (trackable)\n\nGET /api/v1/urls/{short_url_key}/stats\n  Response: { \"clicks\": 15432, \"referrers\": {...}, \"countries\": {...} }\n```\n\n**301 vs 302:** A 301 (permanent redirect) tells browsers and CDNs to cache the redirect, reducing load on your servers but losing analytics visibility. A 302 (temporary redirect) ensures every click hits your server so you can track it. Most URL shorteners use 302 for analytics, with CDN-level caching that respects short TTLs.\n\n## Data Model\n\n```\nurls:\n  id: bigint (internal, auto-increment)\n  short_key: varchar(7) UNIQUE INDEX\n  long_url: varchar(2048)\n  user_id: bigint (nullable)\n  created_at: timestamp\n  expires_at: timestamp (nullable)\n  INDEX(expires_at) -- for cleanup jobs\n\nanalytics_events:\n  short_key: varchar(7)\n  clicked_at: timestamp\n  referrer: varchar(512)\n  country: varchar(2)\n  user_agent: varchar(512)\n  -- Partitioned by clicked_at (daily partitions)\n```\n\n## Key Component: Short URL Generation\n\nThis is the core design decision. Three approaches:\n\n**Approach 1: Hash + Truncate**\nTake MD5 or SHA256 of the long URL, base62-encode the first 7 characters.\n- Pro: Deterministic \u2014 same URL always produces the same short link\n- Con: Hash collisions. With 7 chars of base62, you have 62^7 = 3.5 trillion possibilities, but birthday paradox means collisions start appearing around ~1.9M URLs. Solution: on collision, append a counter and rehash.\n\n**Approach 2: Pre-generated Key Service**\nA separate service pre-generates millions of unique 7-character keys and stores them in a key pool. When a new URL is created, pop a key from the pool.\n- Pro: No collision handling needed, very fast\n- Con: Need to manage the key pool, ensure keys are not reused\n- Implementation: Two tables \u2014 `unused_keys` and `used_keys`. A worker pre-generates keys in batches. App servers check out batches of 1,000 keys at a time into memory.\n\n**Approach 3: Counter-based with Base62**\nUse a distributed counter (like a Snowflake ID generator) and base62-encode it.\n- Pro: Guaranteed unique, no collision handling\n- Con: Sequential \u2014 short URLs are predictable (can enumerate them)\n- Fix: Use a bijective function to shuffle the counter space\n\n**Recommendation: Pre-generated key service** for most cases. It decouples key generation from URL creation, handles scale cleanly, and avoids both collisions and predictability.\n\n## High-Level Architecture\n\n```\n                          +----------------+\n  Client --> CDN/Edge --> | Load Balancer  |\n                          +-------+--------+\n                                  |\n                    +-------------+-------------+\n                    |                           |\n              +-----+-----+           +--------+-------+\n              | Write API |           | Read/Redirect  |\n              | Servers   |           | Servers        |\n              +-----+-----+           +--------+-------+\n                    |                           |\n              +-----+-----+           +--------+-------+\n              |Key Service|           | Redis Cache    |\n              +-----+-----+           | (hot URLs)     |\n                    |                 +--------+-------+\n                    |                           |\n                    +-----------+---------------+\n                                |\n                    +-----------+-----------+\n                    |   Database            |\n                    |  (sharded by          |\n                    |   short_key)          |\n                    +-----------------------+\n```\n\n**Read path (redirect):**\n1. Request hits CDN edge \u2014 if cached, redirect immediately\n2. If cache miss, hit Redis (hot URLs cache)\n3. If Redis miss, query database sharded by short_key\n4. Log analytics event asynchronously (push to Kafka)\n5. Return 302 redirect\n\n**Write path (create):**\n1. Validate long URL (check format, check for malicious content)\n2. Get a key from the pre-generated key service\n3. Write mapping to database\n4. Populate Redis cache (write-through)\n5. Return short URL\n\n## Analytics Pipeline\n\nDo not write analytics synchronously on the redirect path \u2014 it would add latency to every redirect.\n\n```\nRedirect Server -> Kafka topic -> Stream Processor -> Analytics DB\n                                  (aggregate clicks    (ClickHouse or\n                                   per minute)          TimescaleDB)\n```\n\nThe stream processor aggregates raw click events into per-minute, per-hour, and per-day rollups. Users query the analytics DB, not the raw event stream."
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "You chose a pre-generated key service for short URL generation. Your system creates 100M URLs per day. How large should the key pool be, and what happens if the key service goes down? How do you make it highly available?",
+      "answer": "**Pool size:** At 100M URLs/day, that is ~1,160 keys/second. You want enough buffer to survive a key generation outage. A pool of 100M pre-generated keys gives you roughly 1 day of buffer. In practice, keep 500M-1B unused keys available and have a background worker continuously replenishing the pool.\n\n**If the key service goes down:** App servers that already checked out batches of keys (say 1,000 each) can continue creating URLs from their local batch. With 100 app servers each holding 1,000 keys, you have 100K URLs of runway. After that, URL creation fails but redirects continue working.\n\n**High availability:** (1) Run multiple key service replicas. Each replica claims a non-overlapping range of keys from the pool using database row-level locking or atomic operations. (2) App servers cache a local batch, so they tolerate brief key service outages. (3) The key pool itself is stored in the database, which is already replicated. (4) If all else fails, fall back to hash-based generation with collision detection \u2014 slower but functional."
+    },
+    {
+      "type": "tryItYourself",
+      "title": "Extend this design to support link expiration. URLs should automatically stop working after their TTL expires. Consider: How do you handle a redirect request for an expired URL? How do you clean up expired URLs from the database and cache? What happens to analytics data for expired URLs?",
+      "solution": "**Redirect handling:** On every redirect, check `expires_at` before redirecting. If the URL is expired, return a 410 Gone response (not 404 \u2014 the URL existed but is no longer valid). This check adds negligible latency since expires_at is already in the cached record.\n\n**Database cleanup:** Run a background job (daily or hourly) that deletes expired URLs: `DELETE FROM urls WHERE expires_at < NOW() LIMIT 10000`. Use LIMIT to avoid long-running transactions. Partition the table by created_at month to make bulk deletion efficient (drop entire partitions for very old data).\n\n**Cache cleanup:** Two strategies: (1) Lazy \u2014 when a redirect hits a cached expired URL, delete it from cache and return 410. (2) Proactive \u2014 the cleanup job also invalidates cache entries. Lazy is simpler and sufficient since expired URLs get filtered on read anyway.\n\n**Analytics data:** Keep analytics data longer than the URL itself \u2014 users may want to see historical click data even after a link expires. Store analytics in a separate system (ClickHouse) with its own retention policy (e.g., 1 year)."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "A URL shortener is deceptively simple on the surface but touches key system design concepts: key generation and uniqueness guarantees, read-heavy caching strategies, async analytics pipelines, and the tradeoff between 301 (performance) vs 302 (observability) redirects. The pre-generated key service pattern reappears in any system that needs globally unique, non-sequential identifiers."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "The URL shortener is read-heavy with simple lookups. Next, you will tackle a system with a fundamentally different challenge: a chat system where messages must be delivered in real-time, in order, to multiple participants simultaneously."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "Why should short URLs not use sequential IDs?",
+      "options": [
+        "Sequential IDs are too long",
+        "Sequential IDs are guessable, allowing enumeration",
+        "Sequential IDs cause database conflicts"
+      ],
+      "correctIndex": 1,
+      "explanation": "Sequential IDs let anyone guess valid URLs by trying /1, /2, /3 \u2014 a privacy and security issue.",
+      "encourageCorrect": "Right! Guessable URLs would let anyone enumerate and discover all shortened links.",
+      "encourageIncorrect": "Sequential IDs are guessable \u2014 anyone could try /1, /2, /3 and discover all links."
+    },
+    {
+      "question": "What is the tradeoff between HTTP 301 and 302 redirects for a URL shortener?",
+      "options": [
+        "301 is cached by browsers (better performance) but you lose analytics; 302 always hits your server",
+        "301 is more secure; 302 is faster",
+        "301 works on mobile; 302 only works on desktop"
+      ],
+      "correctIndex": 0,
+      "explanation": "301 (permanent) is cached by browsers for performance. 302 (temporary) always hits your server, enabling tracking.",
+      "encourageCorrect": "Great! The 301 vs 302 choice is really a performance vs observability tradeoff.",
+      "encourageIncorrect": "301 is cached by browsers (better performance) but you lose click analytics. 302 always hits your server, enabling tracking."
+    }
+  ]
+}

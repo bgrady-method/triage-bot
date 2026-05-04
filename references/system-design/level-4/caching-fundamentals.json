@@ -1,0 +1,73 @@
+{
+  "meta": {
+    "title": "4.1 Caching Fundamentals",
+    "description": "Cache-aside, read-through, write-through, and write-behind patterns. When each is appropriate.",
+    "level": "level-4",
+    "slug": "caching-fundamentals",
+    "order": 1,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "You add a Redis cache in front of your database. Now you have two copies of data \u2014 one in the database, one in the cache. What can go wrong when they disagree? When should you update the cache, and when should you let it expire?"
+    },
+    {
+      "type": "markdown",
+      "content": "## The four caching patterns\n\n### Cache-Aside (Lazy Loading)\n\nThe application checks the cache first. On miss, reads from the database and writes the result to the cache.\n\n```\n1. App checks cache \u2192 MISS\n2. App reads from DB\n3. App writes result to cache\n4. App returns result\n\nNext request:\n1. App checks cache \u2192 HIT\n2. App returns cached result\n```\n\n**Pros:** Only requested data is cached (no wasted memory). Cache failures do not break the app (falls back to DB).\n**Cons:** First request is always slow (cache miss + DB + cache write). Stale data if DB is updated without invalidating cache.\n\n### Read-Through\n\nLike cache-aside, but the cache itself fetches from the database on a miss. The application only talks to the cache.\n\n**Pros:** Simpler application code. Cache manages its own loading.\n**Cons:** Cache library must know how to query your database. Less flexible.\n\n### Write-Through\n\nEvery write goes to both the cache and the database synchronously. The cache is always up-to-date.\n\n**Pros:** Cache is never stale. Reads are always fast.\n**Cons:** Write latency increases (write to two places). Caches data that may never be read.\n\n### Write-Behind (Write-Back)\n\nWrites go to the cache only. The cache asynchronously flushes to the database.\n\n**Pros:** Extremely fast writes. Can batch writes to reduce DB load.\n**Cons:** Data loss risk if the cache crashes before flushing. Complex failure handling.\n\n| Pattern | Read Speed | Write Speed | Consistency | Complexity |\n|---|---|---|---|---|\n| Cache-aside | Fast (after first) | Normal | May be stale | Simple |\n| Read-through | Fast (after first) | Normal | May be stale | Medium |\n| Write-through | Always fast | Slower | Always fresh | Medium |\n| Write-behind | Always fast | Very fast | Risk of loss | High |\n\n## Which pattern to use?\n\n**Most common:** Cache-aside. It is simple, flexible, and works for most read-heavy workloads.\n\n**Use write-through when:** Data freshness is critical and you can tolerate slower writes (user profiles, account balances).\n\n**Use write-behind when:** Write performance is critical and you can tolerate potential data loss (analytics counters, metrics, non-critical logs)."
+    },
+    {
+      "type": "practiceSet",
+      "title": "Caching Practice",
+      "problems": [
+        {
+          "id": "sd-4-1-1",
+          "question": "An e-commerce site caches product prices using cache-aside with a 1-hour TTL. A product manager changes a price in the admin panel. Customers see the old price for up to an hour. Which caching pattern would prevent this?",
+          "options": [
+            "A) Write-through \u2014 every price update writes to both the database and cache simultaneously",
+            "B) Write-behind \u2014 the cache asynchronously updates the database",
+            "C) Read-through \u2014 the cache automatically fetches from the database on miss"
+          ],
+          "correctAnswer": "A",
+          "explanation": "Write-through ensures the cache is updated on every write, so the new price is immediately available in the cache. Cache-aside would require explicit invalidation on price changes (which works but requires application code to know about the cache). Read-through (C) only helps on misses \u2014 it does not handle updates. Write-behind (B) writes to cache first but is designed for the opposite direction (cache \u2192 DB). The simplest solution is write-through for price updates combined with cache-aside for reads.",
+          "difficulty": "intermediate"
+        }
+      ]
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Cache-aside is the most common pattern: check cache, on miss read from DB and populate cache. Write-through keeps the cache always fresh but slows writes. Write-behind is fastest for writes but risks data loss. Choose based on your read/write ratio and consistency requirements."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "You know how to populate a cache. Module 4.2 covers the harder problem: cache invalidation \u2014 removing or updating cached data when the source changes."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "How does cache-aside (lazy loading) work?",
+      "options": [
+        "The database pushes updates to the cache",
+        "The app checks cache first; on miss, reads from DB and populates cache",
+        "The cache always has the latest data"
+      ],
+      "correctIndex": 1,
+      "explanation": "Cache-aside: check cache, on miss read from DB, write result to cache.",
+      "encourageCorrect": "Well done! Cache-aside is the most common caching pattern.",
+      "encourageIncorrect": "Cache-aside: the app checks the cache first, on miss reads from database and populates the cache."
+    },
+    {
+      "question": "What is the risk of write-behind (write-back) caching?",
+      "options": [
+        "Slower write performance",
+        "Data loss if the cache fails before flushing to the database",
+        "Higher memory usage"
+      ],
+      "correctIndex": 1,
+      "explanation": "Write-behind writes to cache first and flushes asynchronously. If the cache crashes, data is lost.",
+      "encourageCorrect": "That is the key tradeoff! Write-behind is fastest but risks data loss.",
+      "encourageIncorrect": "Write-behind caches writes and flushes asynchronously. If the cache crashes before flushing, writes are lost."
+    }
+  ]
+}

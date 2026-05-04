@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "title": "14.1 Cloud Cost Estimation",
+    "description": "Compute, storage, and network costs. Estimation techniques, reserved vs. on-demand pricing, and cost optimization strategies.",
+    "level": "level-14",
+    "slug": "cloud-cost-estimation",
+    "order": 1,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "Your team is migrating a monolithic application to AWS. The CTO asks you to estimate monthly cloud costs before writing any code. You know the app handles 10,000 RPS at peak, stores 5TB of data, and transfers 50TB/month outbound. How do you approach this?"
+    },
+    {
+      "type": "markdown",
+      "content": "## The Three Pillars of Cloud Cost\n\nEvery cloud bill breaks down into three categories: **compute**, **storage**, and **network**. Understanding these is essential for any architect.\n\n### Compute Costs\n\nCompute is typically the largest line item. The key variables:\n\n- **Instance type:** CPU, memory, GPU. Right-sizing is critical \u2014 most teams over-provision by 40-60%.\n- **Pricing model:** On-demand (full price), Reserved Instances (30-60% discount, 1-3 year commitment), Spot/Preemptible (60-90% discount, can be terminated).\n- **Utilization:** A server running at 10% utilization is 10x more expensive per unit of work than one running at 100%.\n\n```\nExample: 10,000 RPS peak, assume 2,000 RPS average\nEach request needs 10ms of CPU time\nCPU-seconds needed: 2,000 \u00d7 0.01 = 20 CPU-seconds/second = 20 vCPUs\nWith headroom (2x): 40 vCPUs\nc6i.xlarge (4 vCPU): 10 instances on-demand = ~$1,240/month\nWith reserved (1-yr): ~$780/month\nWith spot (for stateless workers): ~$370/month\n```\n\n### Storage Costs\n\nStorage is deceptively cheap until it is not:\n\n| Storage Type | Cost/GB/month | Use Case |\n|---|---|---|\n| S3 Standard | $0.023 | Active data |\n| S3 Infrequent Access | $0.0125 | Backups, older data |\n| S3 Glacier | $0.004 | Archives |\n| EBS (SSD) | $0.08 | Database volumes |\n| RDS (managed DB) | $0.115+ | Managed databases |\n\nFor 5TB of active data on S3: ~$115/month. Same 5TB on EBS: ~$400/month. Same on RDS: ~$575/month plus instance costs. **Storage tiering** (moving cold data to cheaper tiers) is the single biggest storage optimization.\n\n### Network Costs (The Hidden Killer)\n\nIngress is free. **Egress is not.** This is the cost most teams underestimate.\n\n- **Inter-AZ traffic:** $0.01/GB each way (adds up fast with microservices)\n- **Inter-region traffic:** $0.02/GB\n- **Internet egress:** $0.09/GB (first 10TB), decreasing with volume\n- **CloudFront egress:** $0.085/GB (cheaper than direct, plus caching)\n\n```\n50TB outbound/month:\nDirect internet egress: ~$4,350/month\nVia CloudFront (with 80% cache hit): ~$870/month for origin, ~$720 for CF = ~$1,590\nSavings: $2,760/month just from CDN caching\n```\n\n### Cost Optimization Strategies\n\n1. **Right-sizing:** Use AWS Compute Optimizer or similar tools. Most instances are over-provisioned.\n2. **Reserved capacity:** Commit to 1-3 year terms for predictable workloads (30-60% savings).\n3. **Spot instances:** Use for stateless, fault-tolerant workloads (batch processing, CI/CD).\n4. **Auto-scaling:** Scale down during off-peak hours. A 12-hour scale-down saves ~50%.\n5. **Storage tiering:** Move cold data to cheaper tiers automatically with lifecycle policies.\n6. **Data transfer optimization:** Use VPC endpoints, CDNs, and compression to reduce egress.\n7. **Serverless for spiky workloads:** Lambda costs nothing at zero traffic \u2014 ideal for unpredictable loads."
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "Your microservices architecture has 20 services, each making an average of 50 cross-service calls per request. Services are spread across 3 availability zones for redundancy. You handle 5,000 RPS with an average payload of 2KB. Estimate the monthly inter-AZ data transfer cost and propose a way to reduce it.",
+      "answer": "**Calculation:** Each inbound request triggers 50 cross-service calls. With 3 AZs, approximately 2/3 of calls cross AZ boundaries (33 out of 50). Data per cross-AZ call: 2KB request + 2KB response = 4KB. Cross-AZ data per request: 33 \u00d7 4KB = 132KB. At 5,000 RPS: 132KB \u00d7 5,000 = 660MB/second = ~1.7PB/month. At $0.01/GB each way ($0.02 round trip): ~$34,000/month just in inter-AZ transfer.\n\n**Reduction strategies:** (1) AZ-aware routing \u2014 prefer same-AZ instances for service-to-service calls (reduces cross-AZ by 60-70%). (2) Reduce chattiness \u2014 combine multiple calls into batch APIs or use gRPC streaming. (3) Add local caching \u2014 cache frequently-accessed cross-service data to avoid repeated calls. (4) Colocate tightly-coupled services \u2014 services that communicate heavily should run in the same AZ with cross-AZ replicas for failover only."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Cloud costs break down into compute, storage, and network. Compute is usually the largest cost but network egress is the most underestimated. Right-sizing, reserved instances, storage tiering, and CDN caching are the highest-impact optimizations. Always estimate costs before building \u2014 surprises at scale are expensive."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Now that you can estimate costs, Module 14.2 covers migration strategies \u2014 how to move existing systems to new architectures without downtime or data loss."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What are the three pillars of cloud cost?",
+      "options": [
+        "CPU, GPU, RAM",
+        "Compute, Storage, Network",
+        "Frontend, Backend, Database"
+      ],
+      "correctIndex": 1,
+      "explanation": "Every cloud bill breaks down into compute, storage, and network (egress) costs.",
+      "encourageCorrect": "Right! Compute, storage, and network cover every line item on a cloud bill.",
+      "encourageIncorrect": "The three pillars are Compute, Storage, and Network. Network egress is often the most underestimated."
+    },
+    {
+      "question": "Which cloud cost category is most commonly underestimated?",
+      "options": [
+        "Compute",
+        "Storage",
+        "Network egress"
+      ],
+      "correctIndex": 2,
+      "explanation": "Network egress costs are the most commonly underestimated \u2014 inter-AZ transfer adds up fast.",
+      "encourageCorrect": "Great recall! Network egress surprises teams constantly, especially with chatty microservices.",
+      "encourageIncorrect": "Network egress is most underestimated. Inter-AZ data transfer can cost thousands per month unexpectedly."
+    }
+  ]
+}

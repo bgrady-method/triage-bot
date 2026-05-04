@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "title": "14.5 Architecture Review",
+    "description": "Conducting and presenting architecture reviews. Structured evaluation, risk identification, and effective communication of technical decisions.",
+    "level": "level-14",
+    "slug": "architecture-review",
+    "order": 5,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "A junior engineer presents a system design for a new feature. The design has several issues, but the engineer is visibly nervous. How do you conduct the review to improve both the design and the engineer's growth?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Why Architecture Reviews Matter\n\nArchitecture reviews catch design flaws before they become expensive production problems. A $10,000 design change on a whiteboard becomes a $1,000,000 redesign after launch. But reviews are only effective when they are structured, respectful, and focused on outcomes.\n\n## Conducting a Review\n\n### Before the Review\n\n**The presenter should provide:**\n- A written design document (1-5 pages, not a novel)\n- System context diagram (what interacts with this system?)\n- Key requirements (functional and non-functional)\n- Alternatives considered and why they were rejected\n- Known risks and open questions\n\n**Reviewers should:**\n- Read the document before the meeting (this is non-negotiable)\n- Prepare specific questions, not vague concerns\n- Understand the constraints (timeline, team size, budget)\n\n### During the Review\n\n**Structure the discussion around these dimensions:**\n\n1. **Correctness:** Does the design meet the stated requirements?\n2. **Scalability:** What happens at 10x and 100x the expected load?\n3. **Reliability:** What are the failure modes? What is the blast radius?\n4. **Security:** What are the attack surfaces? How is data protected?\n5. **Operability:** Can we monitor, debug, and maintain this? What does on-call look like?\n6. **Cost:** Is this cost-effective? Are there cheaper alternatives that meet requirements?\n7. **Simplicity:** Is this the simplest design that could work? Can anything be removed?\n\n**The RAID framework for risks:**\n- **R**isks: What could go wrong?\n- **A**ssumptions: What are we assuming that might not be true?\n- **I**ssues: What problems exist right now?\n- **D**ependencies: What external systems or teams do we rely on?\n\n### Common Review Anti-Patterns\n\n- **Bikeshedding:** Spending 30 minutes debating a variable name while ignoring the database design. Keep discussions proportional to impact.\n- **Resume-driven criticism:** \"You should use Kubernetes\" when a single VM would work. Challenge complexity, do not add it.\n- **The ambush:** Raising a fundamental objection that could have been raised in pre-review. Write your concerns beforehand.\n- **Design by committee:** A review should improve a design, not redesign it. The presenter owns the final decision.\n- **No decision:** Ending the review without a clear outcome. Every review should conclude with: approved, approved with changes, or needs redesign.\n\n## Presenting Your Architecture\n\nAs the presenter, your job is to make the reviewers' job easy:\n\n**Start with context, not implementation:**\n1. What problem are we solving and for whom?\n2. What are the key constraints (time, money, team)?\n3. What does success look like (metrics)?\n\n**Then walk through the design:**\n4. High-level architecture (boxes and arrows, keep it simple)\n5. Data flow for the primary use case\n6. How the system handles failure\n7. What you are most uncertain about (invite feedback here)\n\n**The 5-minute rule:** If you cannot explain the core architecture in 5 minutes, it is either too complex or you do not understand it well enough. Both are problems.\n\n## Creating a Review Culture\n\nThe best engineering organizations make reviews a habit, not an event:\n\n- **Lightweight reviews for small changes:** 30-minute whiteboard session with 2 peers.\n- **Formal reviews for major changes:** 1-hour meeting with a written design doc, cross-team reviewers.\n- **Review the reviews:** Periodically check if past reviews caught real issues or missed problems that appeared in production. This calibrates the process."
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "You are reviewing a design where the architect proposes using a single global PostgreSQL database for a system that needs to serve users in North America, Europe, and Asia with sub-100ms latency. What questions do you ask and what alternatives do you suggest?",
+      "answer": "**Questions:** (1) What is the expected read/write ratio? If read-heavy, read replicas in each region could work. (2) What is the consistency requirement? Can users tolerate reading slightly stale data (eventual consistency)? (3) What data needs to be region-local vs. global? User profiles may be region-local while product catalog is global. (4) What is the expected write volume per region? Cross-region writes are the hardest problem.\n\n**The core issue:** Physics. Light-speed latency from US-East to Europe is ~80ms, to Asia ~150ms. A single database cannot serve sub-100ms globally because the network round trip alone exceeds the budget for distant regions.\n\n**Alternatives:** (1) Read replicas per region \u2014 writes go to primary (US), replicas in EU and Asia serve reads with ~100ms replication lag. Works if read-heavy and eventual consistency is acceptable. (2) CockroachDB or Spanner \u2014 distributed SQL with multi-region writes. Higher latency for writes (consensus across regions) but strong consistency. (3) Regional databases with CDC \u2014 each region has its own database. CDC synchronizes data between regions. Application routes to local region. Works well if data has natural regional affinity (user data stays in user's region). (4) CQRS with regional read models \u2014 writes to a single source of truth, but each region maintains its own read-optimized view."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Architecture reviews catch expensive mistakes early. Structure reviews around correctness, scalability, reliability, security, operability, cost, and simplicity. Avoid bikeshedding and design-by-committee. As a presenter, start with context and constraints, not implementation details. Every review should end with a clear decision."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "You have learned all the skills of the architect. Module 14.6 is the capstone \u2014 design a complete system from scratch, applying everything from this entire course."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "Why are architecture reviews important?",
+      "options": [
+        "They ensure code passes all tests",
+        "They catch design flaws before they become expensive production problems",
+        "They determine which team gets the project"
+      ],
+      "correctIndex": 1,
+      "explanation": "A design change on a whiteboard costs far less than a redesign after launch.",
+      "encourageCorrect": "Exactly! Catching a flaw on a whiteboard is orders of magnitude cheaper than fixing it in production.",
+      "encourageIncorrect": "Architecture reviews catch design flaws early \u2014 a $10,000 whiteboard change becomes a $1,000,000 redesign after launch."
+    },
+    {
+      "question": "What should a reviewer avoid during an architecture review?",
+      "options": [
+        "Asking about failure modes",
+        "Bikeshedding on minor details",
+        "Questioning scalability assumptions"
+      ],
+      "correctIndex": 1,
+      "explanation": "Bikeshedding (spending time on trivial details while ignoring major issues) is a major review anti-pattern.",
+      "encourageCorrect": "Well said! Focus on the big decisions, not minor naming choices.",
+      "encourageIncorrect": "Avoid bikeshedding \u2014 spending time on trivial details while ignoring major architectural decisions."
+    }
+  ]
+}

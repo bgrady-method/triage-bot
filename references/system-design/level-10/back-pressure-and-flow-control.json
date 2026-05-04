@@ -1,0 +1,55 @@
+{
+  "meta": {
+    "title": "10.3 Back-Pressure and Flow Control",
+    "description": "When downstream systems are overwhelmed: back-pressure, load shedding, and graceful degradation.",
+    "level": "level-10",
+    "slug": "back-pressure-and-flow-control",
+    "order": 3,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "Your message queue has 10 million messages waiting. Consumers process 1,000/second. At this rate, it takes 2.8 hours to clear the backlog. Meanwhile, new messages keep arriving. What do you do?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Back-pressure\n\nWhen a system cannot keep up, it signals upstream to slow down. Like water pressure building up in a pipe \u2014 if the pipe is blocked, pressure pushes back.\n\n**Strategies:**\n- **Reject new work:** Return HTTP 503 (Service Unavailable) or 429. The fastest way to shed load.\n- **Queue with limits:** Accept work into a bounded queue. When full, reject new requests.\n- **Slow down producers:** Consumer signals producer to reduce rate (TCP flow control does this naturally).\n\n## Load shedding\n\nDeliberately drop requests to protect the system. Prioritize important traffic.\n\n**Priority-based shedding:**\n1. Shed analytics and logging first\n2. Shed non-critical features (recommendations, social features)\n3. Protect core features last (authentication, checkout, data safety)\n\n**Cost-based shedding:** Estimate the cost of each request. Shed expensive requests first (complex queries, large file uploads).\n\n## Graceful degradation\n\nReturn a reduced but functional response instead of an error.\n\n| Component down | Degraded behavior |\n|---|---|\n| Recommendation engine | Show popular items |\n| Search service | Show category browsing |\n| User avatars | Show initials/default avatar |\n| Real-time prices | Show cached prices with disclaimer |\n| Reviews service | Hide reviews section |"
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Back-pressure signals upstream systems to slow down. Load shedding drops low-priority requests to protect critical ones. Graceful degradation returns reduced functionality instead of errors. All three are essential for systems that survive overload."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 10.4 covers observability \u2014 seeing what is happening inside your system so you can detect and respond to problems."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What is back-pressure in a distributed system?",
+      "options": [
+        "A way to speed up slow producers",
+        "A signal to upstream systems to slow down when the system is overloaded",
+        "A caching strategy for high traffic"
+      ],
+      "correctIndex": 1,
+      "explanation": "Back-pressure signals upstream systems to slow down when a downstream system cannot keep up, preventing overload.",
+      "encourageCorrect": "Right! Back-pressure prevents cascading failures by slowing things down before they break.",
+      "encourageIncorrect": "Back-pressure is when an overloaded system signals upstream to slow down \u2014 like water pressure building up in a blocked pipe."
+    },
+    {
+      "question": "What is load shedding?",
+      "options": [
+        "Distributing load evenly across servers",
+        "Deliberately dropping low-priority requests to protect critical ones",
+        "Adding more servers during peak traffic"
+      ],
+      "correctIndex": 1,
+      "explanation": "Load shedding deliberately drops requests to protect the system, prioritizing important traffic over less critical requests.",
+      "encourageCorrect": "Exactly! Sometimes dropping some requests is better than failing on all of them.",
+      "encourageIncorrect": "Load shedding means deliberately dropping low-priority requests to protect the system and keep critical traffic flowing."
+    }
+  ]
+}

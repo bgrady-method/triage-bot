@@ -1,0 +1,65 @@
+{
+  "meta": {
+    "title": "13.6 Design a Video Streaming Platform",
+    "description": "Design a video streaming service like YouTube or Netflix \u2014 upload pipeline, transcoding, adaptive bitrate streaming, and global CDN delivery.",
+    "level": "level-13",
+    "slug": "design-video-streaming",
+    "order": 6,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "When you upload a 4K video to YouTube, it becomes available in 360p, 720p, 1080p, and 4K. Each resolution also has multiple audio tracks. How many versions of your video does YouTube actually store? Why not just store the original and resize on the fly?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Requirements\n\n**Functional:**\n- Upload videos (up to 10 GB per file)\n- Transcode to multiple resolutions and formats\n- Stream videos with adaptive bitrate (quality adjusts to network conditions)\n- Video search and discovery (recommendations)\n- Comments, likes, view counts\n- Creator dashboard with analytics\n\n**Non-functional:**\n- 100M DAU, each watches 40 minutes/day\n- Upload: 500 hours of video per minute\n- Playback start latency under 2 seconds\n- Smooth playback with zero buffering on stable connections\n- Global availability with low latency everywhere\n- 99.99% availability for playback (uploads can tolerate slightly lower)\n\n## Estimation\n\n```\nViewing:\n  100M DAU x 40 min = 4 billion minutes/day\n  Concurrent viewers (peak): ~5M (assume 3x avg over 8 peak hours)\n  At avg 5 Mbps: 5M x 5 Mbps = 25 Tbps peak bandwidth\n\nUpload:\n  500 hours/minute = 30,000 hours/day\n  At avg 2 GB/hour raw: 60 TB/day uploaded\n  After transcoding (6 resolutions): ~200 TB/day stored\n  Yearly: ~73 PB\n\nStorage (5 years): ~365 PB\n  This is why YouTube/Netflix use massive object storage (S3-equivalent)\n```\n\n## High-Level Architecture\n\n```\n                    UPLOAD PATH                        VIEWING PATH\n\n  Creator --> Upload Service --> Object Store    User --> CDN Edge --> Origin\n                    |                (raw)           (cache hit?)    (cache miss)\n                    v                                     |              |\n              Transcode Queue                             v              v\n                    |                              Video Segments   Object Store\n                    v                              from edge cache  (transcoded)\n              Transcoding\n              Workers (GPU)\n                    |\n                    v\n              Object Store --> CDN Preload\n              (transcoded,     (popular videos\n               segmented)       pushed to edge)\n\n              +--------------------------------------------+\n              |         Metadata Service                   |\n              |  (video info, user data, comments,         |\n              |   recommendations, analytics)              |\n              +--------------------------------------------+\n```\n\n## Upload and Transcoding Pipeline\n\n**Upload flow:**\n1. Client requests upload URL (pre-signed S3 URL for direct upload)\n2. Client uploads video directly to object storage (bypasses app servers)\n3. Upload completion triggers event -> Transcoding Queue (Kafka/SQS)\n4. Transcoding workers pick up jobs\n\n**Transcoding:**\nConvert the original video into multiple resolution/bitrate combinations:\n\n```\nResolution    Bitrate    Use Case\n360p          0.5 Mbps   Mobile on poor connection\n480p          1.0 Mbps   Mobile on decent connection\n720p          2.5 Mbps   Desktop standard\n1080p         5.0 Mbps   Desktop HD\n1440p         8.0 Mbps   Desktop QHD\n2160p (4K)    16.0 Mbps  TV/large screen\n```\n\nEach resolution is encoded in multiple formats (H.264 for compatibility, VP9/AV1 for efficiency). A single video may produce 12-20 variants.\n\n**Segmentation:** Each variant is split into 2-10 second segments (chunks). This enables adaptive bitrate streaming \u2014 the player can switch quality at segment boundaries without rebuffering.\n\n```\nvideo_abc_720p_segment_001.ts\nvideo_abc_720p_segment_002.ts\n...\nvideo_abc_1080p_segment_001.ts\nvideo_abc_1080p_segment_002.ts\n```\n\n**Transcoding workers:** GPU-intensive. A 10-minute 4K video takes 15-30 minutes to transcode to all variants. Use spot/preemptible instances for cost savings (transcoding is retry-safe). Horizontally scalable \u2014 add workers when the queue backs up.\n\n## Adaptive Bitrate Streaming (ABR)\n\nThe player dynamically selects which quality level to download for each segment based on current network conditions.\n\n**Protocol: HLS (HTTP Live Streaming) or DASH**\n\n1. Player requests a **manifest file** (`.m3u8` for HLS) listing all available quality levels and segment URLs\n2. Player starts with a conservative quality (e.g., 720p)\n3. Player monitors download speed of each segment\n4. If bandwidth allows, switch up (720p -> 1080p) at the next segment\n5. If bandwidth drops, switch down immediately to avoid buffering\n\n```\nManifest file (simplified):\n#EXT-X-STREAM-INF:BANDWIDTH=500000,RESOLUTION=640x360\n/video/abc/360p/playlist.m3u8\n#EXT-X-STREAM-INF:BANDWIDTH=2500000,RESOLUTION=1280x720\n/video/abc/720p/playlist.m3u8\n#EXT-X-STREAM-INF:BANDWIDTH=5000000,RESOLUTION=1920x1080\n/video/abc/1080p/playlist.m3u8\n```\n\nAll segments are plain HTTP requests \u2014 this means CDNs cache them effectively.\n\n## CDN Strategy\n\n25 Tbps cannot be served from a single origin. CDN is not optional \u2014 it is the architecture.\n\n```\nTier 1: Edge PoPs (200+ locations worldwide)\n  - Cache hot video segments\n  - Serve 90%+ of requests\n  - 10-50ms from users\n\nTier 2: Regional caches (20-30 locations)\n  - Cache warm content\n  - Fill edge cache misses\n  - 50-100ms from users\n\nTier 3: Origin (2-3 locations)\n  - Object storage with all content\n  - Serves only cache misses (<1% of traffic)\n```\n\n**Preloading:** For new videos from popular creators, proactively push the first few segments to edge PoPs before users request them. This ensures the first seconds load instantly.\n\n**Long-tail optimization:** The top 1% of videos account for 80%+ of views and are always cached at the edge. The remaining 99% (long tail) may require origin fetches but are accessed infrequently enough that the latency is acceptable.\n\n## Data Model\n\n```\nvideos:\n  video_id: varchar(11) PK   -- YouTube uses 11-char IDs\n  creator_id: bigint\n  title: varchar(200)\n  description: text\n  upload_status: enum(UPLOADING, TRANSCODING, READY, FAILED)\n  duration_seconds: int\n  created_at: timestamp\n  view_count: bigint          -- eventually consistent counter\n  thumbnail_url: varchar\n\nvideo_variants:\n  video_id: varchar(11)\n  resolution: varchar(10)     -- '720p', '1080p'\n  codec: varchar(10)          -- 'h264', 'vp9'\n  bitrate_kbps: int\n  manifest_url: varchar\n  segment_count: int\n  PRIMARY KEY (video_id, resolution, codec)\n\nview_events (append-only, for analytics):\n  video_id: varchar(11)\n  user_id: bigint\n  watched_seconds: int\n  quality_changes: int\n  buffer_events: int\n  timestamp: timestamp\n  -- Partitioned by date, consumed by analytics pipeline\n```"
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "A popular creator uploads a video that goes viral. Within 10 minutes, 5 million users are trying to watch it. The video was just transcoded and is not yet cached at any CDN edge. What happens, and how do you prevent the origin from being overwhelmed?",
+      "answer": "**What happens without protection:** All 5M requests miss the CDN edge cache and cascade to the origin. The origin cannot serve 5M concurrent streams at 5 Mbps each (25 Tbps from a single origin), so it collapses \u2014 causing buffering for everyone and potentially affecting other videos.\n\n**Mitigations:** (1) **Request coalescing at the CDN:** When multiple users request the same segment simultaneously, the CDN edge makes only one request to the origin and serves the response to all waiting users. This turns 5M origin requests into a handful per segment per edge PoP. (2) **Proactive push:** When a video from a creator with >1M subscribers finishes transcoding, immediately push the first 30 seconds of segments to all Tier 1 edge PoPs before announcing the video. This ensures the critical first segments are pre-cached. (3) **Tiered caching:** Even if the edge misses, the regional cache (Tier 2) absorbs most of the load before it reaches the origin. (4) **Origin shield:** A single intermediate cache layer in front of the origin that coalesces all edge-to-origin requests. Only one copy of each segment is fetched from storage, regardless of how many edge PoPs need it. (5) **Rate limiting at origin:** If all else fails, the origin rate-limits requests and returns a 'try again' signal to the CDN, which retries with backoff."
+    },
+    {
+      "type": "tryItYourself",
+      "title": "Extend this design to support live streaming (not just pre-recorded video). Consider: How does the transcoding pipeline change? Can you still use segments and ABR? What about latency \u2014 how do you get from camera to viewer in under 5 seconds? What happens to the CDN caching strategy?",
+      "solution": "**Transcoding changes:** Instead of processing a complete file, the transcoding pipeline operates on a continuous stream. The ingest server receives the live stream (via RTMP or SRT protocol) and passes it to real-time transcoders that produce segments as the stream progresses. Each segment (2-4 seconds) is transcoded to all resolutions in parallel and uploaded to the CDN immediately.\n\n**ABR still works:** The manifest file is a 'live' manifest that updates as new segments become available. The player polls the manifest periodically (every segment duration) to discover new segments. HLS Live and DASH Live are standard protocols for this.\n\n**Latency:** Standard HLS has 15-30 second latency (buffering 3-5 segments). To achieve sub-5-second latency: (1) Use shorter segments (1-2 seconds instead of 6-10). (2) Use Low-Latency HLS (LL-HLS) or CMAF, which allow the player to start downloading a segment before the encoder finishes it (partial segments). (3) Keep the CDN cache TTL extremely short (equal to segment duration). (4) Use WebRTC for sub-second latency at the cost of scalability \u2014 only feasible for smaller audiences.\n\n**CDN caching changes:** Live segments have a very short useful life \u2014 each segment is relevant for only a few seconds. CDN caching still helps (100K viewers at one edge PoP still make one origin request), but the cache hit rate depends on request timing. The CDN must support 'miss-while-revalidate' to serve slightly stale segments while fetching the latest."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Video streaming is a storage and bandwidth problem at its core. The key architectural decisions are: pre-transcode into multiple quality levels (not on-the-fly), segment videos for adaptive bitrate streaming, and rely on a multi-tier CDN to serve 99%+ of traffic from edge locations. The upload path is async and GPU-intensive; the viewing path is simple HTTP requests that CDNs handle naturally."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Video streaming delivers content to users sitting still. The next system \u2014 ride-sharing \u2014 must track and match moving objects in real-time. Geospatial indexing and dynamic pricing introduce entirely new challenges."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What is adaptive bitrate streaming?",
+      "options": [
+        "Streaming video at a fixed quality level",
+        "Automatically adjusting video quality based on network conditions",
+        "Compressing video to the smallest possible size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Adaptive bitrate streaming adjusts quality in real-time based on network conditions.",
+      "encourageCorrect": "Exactly! Adaptive bitrate ensures smooth playback by matching quality to available bandwidth.",
+      "encourageIncorrect": "Adaptive bitrate streaming automatically adjusts video quality based on network conditions."
+    },
+    {
+      "question": "What percentage of video streaming traffic is typically served from CDN edge servers?",
+      "options": [
+        "About 50%",
+        "About 75%",
+        "Over 99%"
+      ],
+      "correctIndex": 2,
+      "explanation": "CDNs serve 99%+ of video streaming traffic from edge locations.",
+      "encourageCorrect": "That is right! CDNs handle virtually all streaming traffic.",
+      "encourageIncorrect": "CDNs serve over 99% of video traffic from edge locations."
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "meta": {
+    "title": "13.1 The Design Interview Framework",
+    "description": "A repeatable four-step process for tackling any system design problem: requirements, estimation, high-level design, deep dive, and tradeoff discussion.",
+    "level": "level-13",
+    "slug": "design-interview-framework",
+    "order": 1,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "You are in a 45-minute system design interview and the interviewer says: \"Design Twitter.\" What do you do in the first 5 minutes? What questions do you ask before drawing a single box?"
+    },
+    {
+      "type": "markdown",
+      "content": "## The Four-Step Framework\n\nEvery system design problem, no matter how different the domain, follows the same structure. Internalizing this framework means you never freeze when presented with an unfamiliar problem.\n\n### Step 1: Requirements Clarification (5 minutes)\n\nBefore designing anything, pin down what you are building. There are two categories:\n\n**Functional requirements** \u2014 What does the system do?\n- What are the core user-facing features?\n- Who are the users? How do they interact with the system?\n- What are the input/output contracts?\n\n**Non-functional requirements** \u2014 What qualities must the system have?\n- **Scale:** How many users? How many requests per second?\n- **Latency:** What response times are acceptable?\n- **Availability:** What uptime is required?\n- **Consistency:** Can we tolerate stale data? For how long?\n- **Durability:** Can we lose any data?\n\nAlways ask the interviewer. \"Should I focus on the write path or the read path?\" \"Do we need real-time or near-real-time?\" \"What is the expected scale?\" These questions demonstrate maturity.\n\n### Step 2: Back-of-Envelope Estimation (3-5 minutes)\n\nNumbers drive architecture decisions. A system serving 100 QPS has a fundamentally different architecture than one serving 100K QPS.\n\n```\nTemplate:\n- DAU: ?\n- Writes/user/day: ?\n- Reads/user/day: ?\n- Average write QPS: DAU x writes/user / 86,400\n- Peak write QPS: average x 3-5\n- Storage/day: write QPS x 86,400 x avg record size\n- Storage/year: daily x 365\n- Bandwidth: peak QPS x avg response size\n```\n\nState every assumption out loud. Interviewers care more about your reasoning process than the exact numbers.\n\n### Step 3: High-Level Design (10-15 minutes)\n\nDraw the major components and their interactions:\n\n```\nClient -> Load Balancer -> API Servers -> [Service Layer]\n                                            |\n                                     Database / Cache\n```\n\nFor each component, explain **why** it exists. Do not add a message queue just because you know about them \u2014 explain why async processing is needed for this specific problem.\n\nKey elements to include:\n- **API design** \u2014 What endpoints? What request/response format?\n- **Data model** \u2014 What tables/collections? What indexes? What relationships?\n- **Core algorithms** \u2014 What is the key computation or data flow?\n\n### Step 4: Deep Dive and Tradeoffs (15-20 minutes)\n\nThis is where you differentiate yourself. Pick the 2-3 most interesting or challenging aspects of the design and go deep:\n\n- How does the system handle the hardest scaling challenge?\n- What happens when a component fails?\n- Where are the bottlenecks and how do you mitigate them?\n- What are the consistency vs availability tradeoffs?\n\n## Common Mistakes\n\n| Mistake | Why it hurts | Fix |\n| :-- | :-- | :-- |\n| Jumping to solution immediately | Misses requirements, looks junior | Always start with questions |\n| Over-engineering | Adding components you cannot justify | Every box must earn its place |\n| Ignoring scale numbers | Architecture does not match the problem | Estimate before designing |\n| Only happy path | Systems fail constantly | Discuss failure modes proactively |\n| Not discussing tradeoffs | Design looks like memorization | For every decision, name the alternative |\n\n## Signal the Interviewer Looks For\n\nThe scoring is roughly:\n- **Requirements clarity** \u2014 Can you scope a vague problem?\n- **Estimation fluency** \u2014 Do the numbers come naturally?\n- **Architecture reasoning** \u2014 Can you justify every component?\n- **Depth on hard problems** \u2014 Can you go deep when needed?\n- **Tradeoff awareness** \u2014 Do you see both sides of every decision?"
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "An interviewer asks you to design a system and you immediately start drawing a load balancer, API servers, and a database. What are you signaling to the interviewer, and what should you do instead?",
+      "answer": "**You are signaling that you solve problems by pattern-matching rather than by reasoning.** Every system has those components, so drawing them immediately tells the interviewer nothing about your understanding of *this specific problem*. You should instead spend the first 5 minutes clarifying requirements: what exactly does the system do, who are the users, what is the expected scale, what are the latency and consistency requirements? Then estimate the numbers to determine if you need one server or a thousand. Only then should you draw components \u2014 and each one should be justified by a specific requirement or constraint you identified. The interviewer wants to see that your architecture is *driven by* the problem, not applied to it."
+    },
+    {
+      "type": "tryItYourself",
+      "title": "Practice the framework on an unfamiliar problem: Design a collaborative document editor (like Google Docs). Spend exactly 5 minutes on requirements and estimation BEFORE thinking about architecture. Write down your functional requirements, non-functional requirements, and scale estimates. Then sketch a high-level design. Notice how the requirements directly inform which components you need.",
+      "solution": "**Functional requirements:** Real-time collaborative editing, document CRUD, version history, sharing/permissions, comments.\n\n**Non-functional requirements:** Sub-200ms latency for keystrokes to appear on collaborators' screens. Strong consistency for document state (no lost edits). High availability \u2014 users expect it to always work. Support 100M+ documents, up to 50 concurrent editors per document.\n\n**Estimates:** 10M DAU, avg 5 edits/second per active user, 2M concurrent users at peak. Edit QPS: 2M x 5 = 10M operations/second. Document storage: avg 50KB x 100M docs = 5TB. Version history: 10x = 50TB.\n\n**High-level design:** The key insight is that real-time collaboration requires operational transformation (OT) or CRDTs \u2014 standard request/response will not work. You need: (1) WebSocket gateway for real-time sync, (2) OT/CRDT server per document session, (3) Document storage service, (4) Version history service with event sourcing, (5) Presence service for showing who is editing, (6) Permission service. The hard parts are conflict resolution and ensuring all clients converge to the same document state."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "The framework \u2014 clarify requirements, estimate scale, design high-level architecture, deep dive on the hard parts \u2014 works for every system design problem. The specific components change, but the process does not. Practice the process and the components will follow naturally from the requirements."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "You now have a repeatable process for any design problem. In the next seven modules, you will apply this framework to seven classic systems \u2014 starting with one of the most common interview questions: designing a URL shortener."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What should you do first in a system design interview?",
+      "options": [
+        "Draw a load balancer and database",
+        "Clarify requirements and estimate scale",
+        "Choose the tech stack"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always start by clarifying requirements, then estimate scale before drawing any components.",
+      "encourageCorrect": "Perfect! Requirements first, architecture second.",
+      "encourageIncorrect": "Start by clarifying requirements and estimating scale. Drawing components immediately signals pattern-matching rather than reasoning."
+    },
+    {
+      "question": "What are the four steps of the system design interview framework?",
+      "options": [
+        "Code, Test, Deploy, Monitor",
+        "Requirements, Estimation, High-Level Design, Deep Dive",
+        "Frontend, Backend, Database, Infrastructure"
+      ],
+      "correctIndex": 1,
+      "explanation": "Clarify requirements, estimate scale, design high-level architecture, then deep dive on the hard parts.",
+      "encourageCorrect": "Great recall! This framework works for every system design problem.",
+      "encourageIncorrect": "The four steps are: Requirements, Estimation, High-level design, and Deep dive on the hard parts."
+    }
+  ]
+}

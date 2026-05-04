@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "title": "6.7 Payment and Billing Systems",
+    "description": "Payment gateways, PCI compliance, idempotent charges, subscription billing, and ledger design.",
+    "level": "level-6",
+    "slug": "payment-and-billing",
+    "order": 7,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "A customer clicks 'Pay' and their browser times out. Did the charge go through? How do you prevent charging them twice? What if they click 'Pay' again?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Payment processing flow\n\n```\nClient \u2192 Your Server \u2192 Payment Gateway (Stripe/Adyen) \u2192 Card Network (Visa) \u2192 Issuing Bank\n```\n\n**Key principle:** Never handle raw card numbers. Use tokenization (Stripe.js, Adyen Drop-in) to convert card details into a token client-side. Your server only sees the token.\n\n### PCI compliance\n\n| Level | Requirement |\n|---|---|\n| SAQ-A (recommended) | Card data never touches your servers. Use hosted payment forms. |\n| SAQ-A-EP | Card data touches your servers via JavaScript redirect. |\n| SAQ-D (avoid) | You store/process card data. Full PCI audit required. |\n\n**Rule:** Use Stripe Elements, Adyen Drop-in, or similar. Stay at SAQ-A.\n\n### Idempotent charges\n\nThe most critical pattern in payments. Network timeouts mean you may not know if a charge succeeded.\n\n**Solution:** Send an idempotency key with every charge request.\n```\nPOST /v1/charges\nIdempotency-Key: order_abc123_charge_1\n```\nStripe stores the result. Retrying with the same key returns the original result without charging again.\n\n### Ledger design\n\nEvery payment system needs a ledger \u2014 an append-only record of all financial transactions.\n\n```\n| ID | Account | Type   | Amount  | Balance  | Timestamp |\n|----|---------|--------|---------|----------|-----------|\n| 1  | user123 | credit | +100.00 | 100.00   | 2024-01-15 |\n| 2  | user123 | debit  | -49.99  | 50.01    | 2024-01-16 |\n```\n\n**Rules:** Ledger entries are immutable (never update, only append). Corrections are new entries (credit + debit). Use decimal types for currency (never floating point). Store amounts in smallest unit (cents, not dollars).\n\n### Subscription billing\n\n- **Recurring charges:** Scheduled via the payment gateway (Stripe Subscriptions)\n- **Proration:** When upgrading/downgrading mid-cycle, calculate partial charges\n- **Dunning:** Failed payment \u2192 retry schedule \u2192 notify user \u2192 suspend \u2192 cancel\n- **Webhooks:** Payment events (succeeded, failed, disputed) trigger business logic"
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "A customer's monthly subscription charge fails because their card expired. What should happen next?",
+      "answer": "**Dunning flow:** (1) Retry the charge after 1 day (card networks sometimes resolve temporary failures). (2) If retry fails, send email: 'Please update your payment method.' (3) Retry after 3 days. (4) If still failing, send a more urgent email. (5) Retry after 7 days. (6) If still failing after 3-4 attempts over 2 weeks, suspend the account (restrict access but preserve data). (7) After 30 days suspended, cancel the subscription but keep data for reactivation. Never immediately cancel \u2014 most failed charges are recoverable with reminders. Stripe handles much of this automatically with Smart Retries."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Never handle raw card data \u2014 use tokenization and hosted payment forms. Idempotency keys prevent double charges. Ledgers are append-only with immutable entries. Store currency as integers (cents) using decimal types, never floats. Implement dunning for failed subscription payments."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 6.8 covers feature flags and A/B testing \u2014 controlling what users see and measuring the impact of changes."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "Why should you never handle raw credit card numbers?",
+      "options": [
+        "They are too long to store",
+        "It requires expensive PCI compliance audits and creates security liability",
+        "Credit card numbers change too frequently"
+      ],
+      "correctIndex": 1,
+      "explanation": "Handling raw card data requires full PCI SAQ-D compliance. Use tokenization instead.",
+      "encourageCorrect": "Right! Tokenization via hosted payment forms keeps card data off your servers.",
+      "encourageIncorrect": "Handling raw card numbers requires full PCI compliance audits. Use tokenization instead."
+    },
+    {
+      "question": "Why should you store currency amounts as integers (cents) instead of floats?",
+      "options": [
+        "Integers are faster to process",
+        "Floating point arithmetic causes rounding errors with money",
+        "Integers use less storage"
+      ],
+      "correctIndex": 1,
+      "explanation": "Floating point cannot represent all decimal values exactly \u2014 0.1 + 0.2 is not exactly 0.3.",
+      "encourageCorrect": "Exactly! Floating point rounding errors are unacceptable with money.",
+      "encourageIncorrect": "Floating point causes rounding errors. Store amounts as integer cents and use decimal types."
+    }
+  ]
+}

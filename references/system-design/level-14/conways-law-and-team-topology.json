@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "title": "14.3 Conway's Law and Team Topology",
+    "description": "How organizational structure shapes system architecture. Stream-aligned, platform, enabling, and complicated-subsystem teams.",
+    "level": "level-14",
+    "slug": "conways-law-and-team-topology",
+    "order": 3,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "A company has three teams: frontend, backend, and database. They are building a new product. What architecture will they most likely produce, and why?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Conway's Law\n\n> \"Any organization that designs a system will produce a design whose structure is a copy of the organization's communication structure.\" \u2014 Melvin Conway, 1967\n\nThis is not just an observation \u2014 it is a law of nature in software. A company with frontend, backend, and database teams will produce a three-tier architecture. A company with teams organized by business domain will produce a service-oriented architecture.\n\n**The Inverse Conway Maneuver:** If you want a specific architecture, organize your teams to match it. Want microservices? Create small, autonomous teams aligned to business capabilities. Want a monolith? Have everyone on one team.\n\n## Team Topologies\n\nMatthew Skelton and Manuel Pais identified four fundamental team types that produce effective software architectures:\n\n### 1. Stream-Aligned Teams\nThe primary team type. Aligned to a single stream of business value (a product, a feature set, a user journey). They own their services end-to-end: design, build, deploy, operate.\n\n**Characteristics:**\n- Cross-functional (frontend, backend, data, QA)\n- Can deliver value independently without waiting for other teams\n- Own their deployment pipeline and on-call rotation\n- Size: 5-9 people (two-pizza teams)\n\n**Example:** A \"Checkout Team\" that owns the entire checkout experience \u2014 UI, API, payment integration, order database.\n\n### 2. Platform Teams\nProvide internal services that reduce cognitive load for stream-aligned teams. They build self-service tools and infrastructure so stream-aligned teams do not have to.\n\n**What they provide:**\n- CI/CD pipelines and deployment tooling\n- Monitoring, logging, and alerting infrastructure\n- Database provisioning and management\n- Service mesh, API gateways, authentication\n\n**Key principle:** Platform teams treat stream-aligned teams as their customers. The platform should be self-service \u2014 if a stream-aligned team needs to file a ticket and wait, the platform has failed.\n\n### 3. Enabling Teams\nSpecialists who help stream-aligned teams adopt new technologies or practices. They do not build features \u2014 they build capabilities.\n\n**Examples:**\n- A team that helps other teams adopt Kubernetes\n- Security specialists who embed with teams to improve their security practices\n- Data engineering coaches who help teams build their own data pipelines\n\n**Key principle:** Enabling teams work themselves out of a job. They succeed when stream-aligned teams no longer need them for that capability.\n\n### 4. Complicated-Subsystem Teams\nOwn components that require deep specialist knowledge (video codec, ML model, real-time trading engine). These exist because the cognitive load is too high for a stream-aligned team to own alongside their business domain.\n\n## Interaction Modes\n\nTeams interact in three ways:\n\n- **Collaboration:** Two teams work closely together for a defined period (discovery phase, new integration). High bandwidth but expensive \u2014 use sparingly.\n- **X-as-a-Service:** One team provides a service that another consumes via a clear API or contract. Low overhead, scales well.\n- **Facilitating:** An enabling team coaches a stream-aligned team. Temporary by nature.\n\n## Cognitive Load\n\nThe central concept behind team topologies. Every team has a limited capacity for complexity. Three types:\n\n- **Intrinsic:** The complexity of the business domain itself.\n- **Extraneous:** The complexity of tools, processes, and infrastructure (should be minimized by platform teams).\n- **Germane:** The complexity of learning and improving (supported by enabling teams).\n\nWhen a team's cognitive load exceeds capacity, quality drops, delivery slows, and burnout increases. The solution is not more people \u2014 it is reducing extraneous load and splitting domains."
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "A company reorganizes from technology-layer teams (frontend, backend, database, infrastructure) to business-domain teams (payments, inventory, user accounts). What architectural changes will naturally follow, and what transitional challenges should they expect?",
+      "answer": "**Architectural changes:** The three-tier architecture will naturally evolve toward service-oriented or microservices architecture. Each domain team will build and own their full stack \u2014 their own APIs, databases, and UIs. Services will align to business boundaries (payments service, inventory service, accounts service). Teams will define clear API contracts between their services instead of sharing databases.\n\n**Transitional challenges:** (1) Shared database decomposition \u2014 the old shared database must be split, and this is the hardest part. Teams must agree on data ownership boundaries. (2) Skill gaps \u2014 former backend-only developers now need to learn some frontend, and vice versa. Enabling teams can help here. (3) Duplicated effort \u2014 each team may build similar infrastructure (logging, auth). A platform team should form to provide shared tooling. (4) Cross-cutting features \u2014 some features span multiple domains (a promotion that affects payments AND inventory). Teams need clear interaction protocols. (5) Political resistance \u2014 people identify with their technical specialty and may resist reorganization."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Conway's Law means your architecture will mirror your org chart whether you plan for it or not. Use the Inverse Conway Maneuver \u2014 organize teams to match your desired architecture. The four team types (stream-aligned, platform, enabling, complicated-subsystem) provide a framework for sustainable software delivery. Minimize extraneous cognitive load so teams can focus on their business domain."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Understanding team structure helps you make better decisions. Module 14.4 covers the formal frameworks for technology decision-making \u2014 ADRs, build vs. buy, and evaluation criteria."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What does Conway s Law say?",
+      "options": [
+        "Software complexity always increases over time",
+        "System design mirrors the organization s communication structure",
+        "The best architecture comes from small teams"
+      ],
+      "correctIndex": 1,
+      "explanation": "Conway s Law: any organization will produce a system design that mirrors its communication structure.",
+      "encourageCorrect": "Exactly! Your architecture will look like your org chart whether you plan for it or not.",
+      "encourageIncorrect": "Conway s Law says system design mirrors the organization s communication structure."
+    },
+    {
+      "question": "What is the Inverse Conway Maneuver?",
+      "options": [
+        "Reorganizing teams to match your desired architecture",
+        "Designing software to match your current org chart",
+        "Breaking up large teams into smaller ones"
+      ],
+      "correctIndex": 0,
+      "explanation": "If you want a specific architecture, organize your teams to match it \u2014 teams shape systems.",
+      "encourageCorrect": "That is right! If you want microservices, create small autonomous teams aligned to business domains.",
+      "encourageIncorrect": "The Inverse Conway Maneuver means organizing teams to match your desired architecture."
+    }
+  ]
+}

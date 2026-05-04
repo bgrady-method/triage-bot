@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "title": "12.4 Network Security and Zero Trust",
+    "description": "Network segmentation, mTLS, defense in depth, and zero trust architecture for distributed systems.",
+    "level": "level-12",
+    "slug": "network-security-and-zero-trust",
+    "order": 4,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "An attacker compromises a single container in your Kubernetes cluster. From there, they can reach every other service because all pods can communicate freely. How do you limit the blast radius?"
+    },
+    {
+      "type": "markdown",
+      "content": "## The perimeter is dead\n\nTraditional security trusted everything inside the corporate network. Once you were \"inside,\" you had access to everything. This model fails catastrophically in cloud-native systems where the network boundary is blurred, services are distributed, and a single compromised component can reach everything.\n\n## Zero Trust architecture\n\nCore principle: **never trust, always verify.** Every request is authenticated and authorized regardless of network location.\n\n### Zero Trust pillars\n\n1. **Verify identity explicitly.** Every service-to-service call presents a cryptographic identity (mTLS certificate, service token). No implicit trust based on IP or network segment.\n2. **Least privilege access.** Services can only reach the specific endpoints they need. Default deny everything.\n3. **Assume breach.** Design as if attackers are already inside. Minimize blast radius. Log everything. Detect anomalies.\n\n## Network segmentation\n\nDivide your network into isolated segments. Traffic between segments must pass through explicit policy enforcement.\n\n| Technique | Scope | Example |\n|---|---|---|\n| VPC / VNet | Cloud network isolation | Separate VPCs for production, staging, data |\n| Subnets (public/private) | Within a VPC | Web servers in public subnet, databases in private |\n| Security groups | Instance-level firewall | DB security group allows port 5432 only from app servers |\n| Network policies (K8s) | Pod-level in Kubernetes | Only the payment service can reach the payment DB |\n| Service mesh (Istio, Linkerd) | Application-level | mTLS + fine-grained traffic policies between services |\n\n## Mutual TLS (mTLS)\n\nIn standard TLS, only the server proves its identity to the client. In mTLS, both sides present certificates. This is the foundation of zero trust service-to-service communication.\n\n**How it works:** Each service gets a short-lived certificate from a Certificate Authority (CA) \u2014 often managed by a service mesh. On every request, both services verify each other's certificates. If either certificate is invalid, the connection is rejected.\n\n**Service mesh approach:** Istio and Linkerd inject sidecar proxies that handle mTLS automatically. Application code does not need to manage certificates. The mesh also provides traffic policies, observability, and retries.\n\n## Defense in depth\n\nLayer multiple security controls so that failure of any single layer does not compromise the system.\n\n```\nLayer 1: Edge \u2014 WAF, DDoS protection (Cloudflare, AWS Shield)\nLayer 2: Network \u2014 VPC segmentation, security groups, NACLs\nLayer 3: Transport \u2014 mTLS between all services\nLayer 4: Application \u2014 Authentication + authorization on every endpoint\nLayer 5: Data \u2014 Encryption at rest, field-level encryption\nLayer 6: Monitoring \u2014 Intrusion detection, anomaly detection, audit logs\n```\n\nEach layer catches what the previous layer missed. An attacker must defeat ALL layers, not just one. This is why security is not a single feature but a system property."
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "Your microservices architecture has 50 services in Kubernetes. You want to implement zero trust. What specific steps do you take, and what tools do you use?",
+      "answer": "**Step 1 \u2014 Service identity:** Deploy a service mesh (Istio). Istio's Citadel component automatically provisions X.509 certificates for every pod, creating cryptographic identities. Certificates are rotated automatically (typically every 24 hours).\n\n**Step 2 \u2014 mTLS everywhere:** Configure Istio's PeerAuthentication policy to STRICT mode cluster-wide. All service-to-service traffic is now encrypted and mutually authenticated. No plaintext communication.\n\n**Step 3 \u2014 Default deny:** Apply Kubernetes NetworkPolicies to deny all ingress/egress by default. Then create explicit allow rules: payment-service can reach payment-db on port 5432, API gateway can reach order-service on port 8080, etc.\n\n**Step 4 \u2014 Authorization policies:** Use Istio AuthorizationPolicy to define which services can call which endpoints. Example: only the order-service can call POST /charges on the payment-service. This is L7 (application-layer) policy enforcement.\n\n**Step 5 \u2014 Monitoring and detection:** Enable Istio's access logging and metrics. Feed into a SIEM (Splunk, Datadog). Alert on unexpected service-to-service communication patterns.\n\n**Result:** Even if an attacker compromises one pod, they cannot reach other services (NetworkPolicy), cannot impersonate another service (mTLS), and any unusual traffic is detected (monitoring)."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Zero trust means never trust, always verify \u2014 regardless of network location. Implement with mTLS for service identity, network policies for segmentation, and authorization policies for fine-grained access control. Layer defenses so no single failure compromises the system."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 12.5 covers secrets management \u2014 securing the credentials, keys, and tokens that your services depend on."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What is the core principle of Zero Trust architecture?",
+      "options": [
+        "Trust internal network traffic",
+        "Never trust, always verify",
+        "Block all external traffic"
+      ],
+      "correctIndex": 1,
+      "explanation": "Zero Trust means every request is authenticated and authorized regardless of network location.",
+      "encourageCorrect": "Spot on! Zero Trust treats every request as potentially hostile, regardless of origin.",
+      "encourageIncorrect": "The core principle is never trust, always verify \u2014 every request must be authenticated, even from inside the network."
+    },
+    {
+      "question": "What does mTLS provide in a Zero Trust environment?",
+      "options": [
+        "Encryption and mutual authentication between services",
+        "Load balancing across services",
+        "Automatic service discovery"
+      ],
+      "correctIndex": 0,
+      "explanation": "Mutual TLS ensures both services verify each other s identity with certificates.",
+      "encourageCorrect": "Right! mTLS ensures both sides of every connection prove their identity with certificates.",
+      "encourageIncorrect": "mTLS provides encryption and mutual authentication \u2014 both services verify each other s identity with certificates."
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "meta": {
+    "title": "1.7 Checkpoint",
+    "description": "Test your understanding of scalability, performance, availability, consistency, and estimation.",
+    "level": "level-1",
+    "slug": "checkpoint",
+    "order": 7,
+    "isCheckpoint": true,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "markdown",
+      "content": "## Level 1 Checkpoint\n\nThis checkpoint tests whether the fundamental mental models have landed. Answer without looking back at the modules."
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "A startup has a single server handling 1,000 requests/second. They expect 10x growth in 6 months. Their application stores user sessions in server memory. What is their most critical architectural change, and why?",
+      "answer": "**Most critical change: externalize session state.** Move sessions from in-memory on the application server to a shared store like Redis. Without this, they cannot horizontally scale — adding servers means users lose their sessions when routed to different machines, and server failures lose all active sessions. Once sessions are externalized, they can add servers behind a load balancer and scale linearly. This is more critical than the actual scaling mechanism because it is a prerequisite for any horizontal scaling strategy."
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "You are designing a system where the p99 latency is 3 seconds but the p50 is 50ms. Your team proposes adding a cache to fix this. Will caching likely solve the p99 problem? Why or why not?",
+      "answer": "**Caching might help, but probably will not fully solve the p99 problem.** If the p99 spike is caused by cache misses (1% of requests miss the cache and hit a slow database), then adding a cache with high hit rate would shift those requests from the p99 to a lower percentile. However, if the p99 is caused by garbage collection pauses, connection pool exhaustion, cold starts, or network timeouts, caching will not help. The 60x gap between p50 and p99 suggests a bimodal distribution — most requests are fast (cached) and some are very slow (some other issue). You need to profile the slow requests specifically before choosing a solution."
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "A system has three nines of availability (99.9%). The business asks for four nines (99.99%). Describe one specific architectural change required and explain why it cannot be achieved through code optimization alone.",
+      "answer": "**Required change: eliminate single points of failure through redundancy.** For example, deploy across multiple availability zones with automated failover. At 99.9%, you get 8.76 hours of downtime per year — enough for planned maintenance windows and the occasional server restart. At 99.99%, you get only 52.6 minutes per year — less than one maintenance window. This means every deployment, every hardware failure, and every software restart must happen with zero downtime. Code optimization cannot achieve this because even perfect code running on a single machine will have downtime for OS patches, hardware failures, and deployments. You need redundancy so that work continues while individual nodes go offline."
+    },
+    {
+      "type": "tryItYourself",
+      "title": "Back-of-envelope estimation: You are designing a video streaming service with 50M daily active users. Each user watches an average of 30 minutes per day. Video is served at 5 Mbps (standard quality). Estimate: (1) Peak concurrent viewers, (2) Peak bandwidth required, (3) Daily storage for new uploads assuming 500 hours of new video uploaded per minute at 5 Mbps.",
+      "solution": "**Peak concurrent viewers:** 50M DAU watching 30 min/day = 25M viewer-hours/day. Average concurrent = 25M/24 ≈ 1M. Peak (assume 3x average during prime time) ≈ 3M concurrent viewers.\n\n**Peak bandwidth:** 3M viewers × 5 Mbps = 15 Tbps. This is why YouTube and Netflix use extensive CDN infrastructure — no single origin could serve this.\n\n**Daily storage for uploads:** 500 hours/minute × 60 minutes × 24 hours = 720,000 hours of video per day. At 5 Mbps: 720,000 × 3600 seconds × 5 Mbps / 8 = 720,000 × 2.25 GB ≈ 1.62 PB/day. Plus multiple resolution encodings (typically 4-6 versions), so roughly 5-10 PB/day total. This is YouTube-scale — you need distributed object storage like S3 across multiple regions."
+    },
+    {
+      "type": "markdown",
+      "content": "## Ready for Level 2?\n\nIf you can confidently reason through scalability tradeoffs, estimate system requirements, and distinguish consistency models, you are ready. Level 2 dives into the network layer — DNS, CDNs, load balancers, and the infrastructure that moves data between users and servers."
+    }
+  ]
+}

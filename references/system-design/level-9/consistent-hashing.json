@@ -1,0 +1,55 @@
+{
+  "meta": {
+    "title": "9.6 Consistent Hashing",
+    "description": "How consistent hashing distributes load, virtual nodes, and why it matters for caches and databases.",
+    "level": "level-9",
+    "slug": "consistent-hashing",
+    "order": 6,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "You have 10 cache servers. Using hash(key) % 10 to assign keys works fine \u2014 until you add an 11th server. Now hash(key) % 11 reassigns almost every key. Is there a better approach?"
+    },
+    {
+      "type": "markdown",
+      "content": "## The problem with modulo hashing\n\n`server = hash(key) % N` works but adding or removing a server changes N, causing nearly all keys to be reassigned. For a cache, this means a mass cache miss (cache stampede).\n\n## Consistent hashing\n\nArrange the hash space as a ring (0 to 2^32). Place servers at positions on the ring (hash their address). To find a key's server, hash the key and walk clockwise to the first server.\n\n```\n       Server A\n      /         \\\n   Key1          Server B\n    |              |\n   Key2          Key3\n      \\         /\n       Server C\n```\n\n**Adding a server:** Only keys between the new server and its predecessor are reassigned. All other keys stay put.\n\n**Removing a server:** Only that server's keys move to the next server clockwise.\n\n### Virtual nodes\n\nWith few physical servers, distribution can be uneven. Solution: each physical server gets multiple virtual nodes (100-200) spread around the ring. This ensures even distribution.\n\n**Used by:** DynamoDB (partitioning), Cassandra, Memcached (client-side), Akamai CDN.\n\n### Impact\n\nWith N servers, adding/removing a server only reassigns ~1/N of keys (instead of nearly all with modulo hashing). For a 100-server cache cluster, that is 1% of keys instead of 99%."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Consistent hashing minimizes key redistribution when servers change \u2014 only ~1/N of keys move. Virtual nodes ensure even distribution. Used by virtually every distributed cache, database, and CDN for load distribution."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 9.7 covers gossip protocols \u2014 how nodes discover each other and share state without a central coordinator."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What problem does consistent hashing solve?",
+      "options": [
+        "Encrypting data at rest",
+        "Minimizing key redistribution when servers are added or removed",
+        "Faster hash computation"
+      ],
+      "correctIndex": 1,
+      "explanation": "Consistent hashing moves only about 1/N of keys when a server changes.",
+      "encourageCorrect": "Right! Only about 1/N of keys move \u2014 a massive improvement over modulo hashing.",
+      "encourageIncorrect": "Consistent hashing minimizes key redistribution. Only about 1/N of keys move when a server changes."
+    },
+    {
+      "question": "What are virtual nodes used for in consistent hashing?",
+      "options": [
+        "Adding redundancy",
+        "Ensuring even distribution of keys across servers",
+        "Creating backup copies of data"
+      ],
+      "correctIndex": 1,
+      "explanation": "Virtual nodes place each server at multiple ring positions for more even distribution.",
+      "encourageCorrect": "That is right! Virtual nodes prevent uneven distribution with few physical nodes.",
+      "encourageIncorrect": "Virtual nodes place each server at multiple positions on the hash ring for even key distribution."
+    }
+  ]
+}

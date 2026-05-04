@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "title": "9.1 CAP Theorem and PACELC",
+    "description": "The fundamental impossibility result in distributed systems and its practical implications.",
+    "level": "level-9",
+    "slug": "cap-theorem-and-pacelc",
+    "order": 1,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "A distributed database must handle network partitions (some nodes cannot communicate). During a partition, should the system continue serving requests (possibly with stale data) or refuse requests (to maintain correctness)?"
+    },
+    {
+      "type": "markdown",
+      "content": "## CAP Theorem\n\nIn a distributed system, you can only guarantee two of three properties:\n\n- **Consistency (C):** Every read receives the most recent write\n- **Availability (A):** Every request receives a response (not an error)\n- **Partition Tolerance (P):** The system works despite network failures between nodes\n\nSince network partitions are inevitable in distributed systems, you must choose between C and A during a partition:\n\n- **CP systems:** Refuse requests during partitions to maintain consistency. Examples: ZooKeeper, etcd, HBase, MongoDB (default config).\n- **AP systems:** Continue serving requests during partitions, accepting possibly stale data. Examples: Cassandra, DynamoDB, CouchDB.\n\n## PACELC: The complete picture\n\nCAP only describes behavior during partitions. PACELC extends it:\n\n**If Partition \u2192 choose A or C. Else (normal operation) \u2192 choose Latency or Consistency.**\n\n| System | During Partition | Normal Operation |\n|---|---|---|\n| DynamoDB | AP | EL (low latency, eventual consistency) |\n| Cassandra | AP | EL (tunable) |\n| MongoDB | CP | EC (consistent reads from primary) |\n| PostgreSQL (single) | CA (no partitions) | EC |\n| Spanner | CP | EC (TrueTime for global consistency) |\n\nPACELC reveals that even when the network is healthy, there is a latency-consistency tradeoff. Spanner achieves global consistency but at the cost of higher write latency (waits for TrueTime uncertainty window)."
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "DynamoDB is described as an AP system. Does this mean it never provides consistency?",
+      "answer": "**No.** AP means it prioritizes availability during partitions, accepting eventual consistency. During normal operation, DynamoDB offers tunable consistency: (1) Eventually consistent reads (default): fast, may return stale data. (2) Strongly consistent reads: slower, always returns the latest write. (3) Transactions: ACID-like transactions across items. The AP designation describes partition behavior, not everyday behavior. Most AP systems offer consistency options when the network is healthy. Similarly, CP systems are not unavailable all the time \u2014 they only sacrifice availability during partitions."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "CAP theorem: during a network partition, choose consistency or availability. PACELC extends this: even without partitions, choose between latency and consistency. Most real systems are tunable \u2014 they offer different consistency levels per operation."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "CAP tells you the limits. Module 9.2 covers consensus algorithms \u2014 how distributed systems actually agree on values within those limits."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "According to the CAP theorem, what must you choose between during a network partition?",
+      "options": [
+        "Speed and storage",
+        "Consistency and availability",
+        "Reliability and cost"
+      ],
+      "correctIndex": 1,
+      "explanation": "During a partition, choose consistency (refuse requests) or availability (serve possibly stale data).",
+      "encourageCorrect": "Well done! CAP means during a partition, pick consistency or availability.",
+      "encourageIncorrect": "During a partition, choose between consistency (refuse requests) and availability (serve possibly stale data)."
+    },
+    {
+      "question": "What does PACELC add to CAP?",
+      "options": [
+        "A fourth property: performance",
+        "Even without partitions, you must choose between latency and consistency",
+        "Network partition detection"
+      ],
+      "correctIndex": 1,
+      "explanation": "PACELC: during Partition choose A or C; Else choose Latency or Consistency.",
+      "encourageCorrect": "Right! PACELC captures the everyday tradeoff CAP misses.",
+      "encourageIncorrect": "PACELC extends CAP: even without partitions, you face a tradeoff between latency and consistency."
+    }
+  ]
+}

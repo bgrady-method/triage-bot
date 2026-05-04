@@ -1,0 +1,25 @@
+{
+  "meta": {
+    "title": "Level 1: The Fundamentals",
+    "description": "Master the core concepts every system design conversation depends on: scalability, latency, availability, consistency, and estimation.",
+    "level": "level-1",
+    "slug": "index",
+    "order": 0,
+    "isCheckpoint": false,
+    "isIndex": true
+  },
+  "blocks": [
+    {
+      "type": "markdown",
+      "content": "## Welcome to Level 1\n\nBefore you can design a URL shortener, a chat system, or a distributed cache, you need a shared vocabulary. Every system design interview and every architecture review assumes you can fluently discuss scalability, latency, availability, and consistency — not as abstract definitions, but as **tradeoffs you navigate**.\n\nLevel 1 builds that foundation. By the end, you will be able to look at any system and immediately reason about its scaling strategy, its performance characteristics, its failure modes, and its consistency guarantees.\n\n### What you will learn\n\n| Module | Topic | Core Idea |\n| :-- | :-- | :-- |\n| 1.1 | Scalability | Vertical vs horizontal scaling, stateless design, and why shared-nothing wins |\n| 1.2 | Latency and Throughput | The two dimensions of performance and why optimizing one can hurt the other |\n| 1.3 | Availability and SLAs | Nines of availability, SLOs, SLIs, and what 99.99% actually costs |\n| 1.4 | Consistency Models | Strong, eventual, and causal consistency — when each is the right choice |\n| 1.5 | Back-of-Envelope Estimation | The numbers every engineer should know and how to estimate anything in 2 minutes |\n| 1.6 | Anatomy of a Web Request | What actually happens between typing a URL and seeing a page |\n| 1.7 | Checkpoint | Prove your understanding of the fundamentals |\n\n### Why this matters in interviews\n\nInterviewers are not looking for perfect designs. They are looking for **structured reasoning about tradeoffs**. When you say \"we need strong consistency here because financial transactions require linearizability, and that means we accept higher latency on writes,\" you are demonstrating exactly the kind of thinking that separates senior engineers from everyone else.\n\nEvery module in this level gives you one more tool for that reasoning."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "System design is not about memorizing architectures — it is about reasoning through tradeoffs. Level 1 gives you the vocabulary and mental models to discuss scalability, performance, availability, and consistency fluently in any design conversation."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "As you work through Level 1, keep a running list of tradeoffs you encounter. Scalability vs simplicity, latency vs consistency, availability vs correctness — these tensions reappear in every system you will ever design."
+    }
+  ]
+}

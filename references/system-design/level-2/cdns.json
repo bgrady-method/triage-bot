@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "title": "2.2 Content Delivery Networks",
+    "description": "How CDNs work, push vs pull, cache invalidation at the edge, and when to use a CDN.",
+    "level": "level-2",
+    "slug": "cdns",
+    "order": 2,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "Netflix serves video to 250 million subscribers across 190 countries. Their video files are enormous. How do you think they deliver content to a user in rural Japan without every request going to a US data center?"
+    },
+    {
+      "type": "markdown",
+      "content": "## What a CDN does\n\nA Content Delivery Network is a geographically distributed network of servers that caches content closer to users. Instead of every request traveling to your origin server (potentially across the world), the CDN serves the content from a nearby edge server.\n\n**Without CDN:** User in Sydney \u2192 Origin in Virginia (180ms round trip) \u2192 360ms+ for content\n**With CDN:** User in Sydney \u2192 CDN edge in Sydney (5ms round trip) \u2192 10ms for content\n\n### Push vs Pull CDNs\n\n**Pull (origin-pull):** The CDN fetches content from your origin on the first request, then caches it. Subsequent requests are served from cache.\n- Pros: No extra work for you. Cache fills automatically.\n- Cons: First request to each edge is slow (cache miss). Origin must handle the pull traffic.\n- Best for: Websites, APIs, dynamic content with some cacheability.\n\n**Push:** You upload content to the CDN proactively. The CDN serves it without ever contacting your origin.\n- Pros: Guaranteed fast first request. Origin is never hit.\n- Cons: You manage uploads and invalidation. Storage costs.\n- Best for: Large static files (videos, software downloads), content that rarely changes.\n\n### Cache invalidation at the edge\n\nThe hardest problem in CDN management. When you update content, how do you ensure all edge servers serve the new version?\n\n**Strategies:**\n\n| Strategy | How it works | Tradeoff |\n|---|---|---|\n| TTL-based | Content expires after N seconds | Simple but stale content during TTL |\n| Purge/invalidate | API call to remove from all edges | Instant but costs per purge |\n| Versioned URLs | `/style.v2.css` or `/style.css?v=abc123` | Never stale, but requires URL changes |\n| Stale-while-revalidate | Serve stale, fetch fresh in background | Fast + fresh, slight staleness window |\n\n**Netflix's approach:** They use versioned URLs for all assets. A new deployment generates new asset hashes. Old versions remain cached (and still valid for users mid-session). No invalidation needed.\n\n### When to use a CDN\n\n**Always use for:** Static assets (images, CSS, JS, fonts), video/audio, downloadable files.\n\n**Consider for:** API responses that are cacheable (product catalogs, public data), HTML pages with short TTLs.\n\n**Not suitable for:** Highly personalized content (user dashboards), real-time data (stock prices), write operations.\n\n### Major CDN providers\n\n| Provider | Edge locations | Differentiator |\n|---|---|---|\n| CloudFront (AWS) | 400+ | Tight AWS integration |\n| Cloudflare | 300+ | Free tier, Workers (edge compute) |\n| Akamai | 4,000+ | Largest network, enterprise focus |\n| Fastly | 80+ | Instant purge, edge compute (Wasm) |"
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "Your e-commerce site serves product images via a CDN with a 1-hour TTL. A vendor uploads a corrected product image (the old one had wrong colors). Customers are seeing the old image. What are your options, ranked by speed of resolution?",
+      "answer": "**Fastest: Versioned URL.** If your system uses content-hashed URLs (e.g., `/images/product-abc123.jpg`), uploading the new image generates a new URL. Update the product page to reference the new URL. Instant for new page loads. Old image stays cached but no new requests go to it.\n\n**Fast: CDN purge.** Call the CDN's purge API to invalidate the specific URL across all edge servers. Most CDNs complete this in seconds to minutes. CloudFront takes 5-10 minutes; Fastly is near-instant.\n\n**Slow: Wait for TTL.** Do nothing and wait up to 1 hour for the cache to expire naturally. Unacceptable if the image is misleading customers.\n\n**The lesson:** Always design for cache invalidation from the start. Versioned URLs are the gold standard because they eliminate the invalidation problem entirely."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "CDNs reduce latency by serving content from edge servers close to users. Pull CDNs are simpler (automatic caching); push CDNs give you more control. Versioned URLs are the best cache invalidation strategy because they eliminate the problem entirely. Use CDNs for all static content and consider them for cacheable API responses."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "CDNs handle content distribution. But how does traffic get distributed across your application servers? Module 2.3 covers load balancing \u2014 the critical layer that keeps your servers healthy and your traffic evenly distributed."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What is the best cache invalidation strategy for CDN-cached content?",
+      "options": [
+        "Purging all caches manually",
+        "Using versioned URLs (content-hashed filenames)",
+        "Setting very short TTLs on everything"
+      ],
+      "correctIndex": 1,
+      "explanation": "Versioned URLs eliminate the invalidation problem \u2014 new content gets a new URL.",
+      "encourageCorrect": "Exactly! Versioned URLs make invalidation a non-problem.",
+      "encourageIncorrect": "Versioned URLs are the best strategy \u2014 new content gets a new URL, so old content stops being requested."
+    },
+    {
+      "question": "What is the difference between a push CDN and a pull CDN?",
+      "options": [
+        "Push CDNs are faster; pull CDNs are slower",
+        "Push CDNs have you upload content in advance; pull CDNs fetch from origin on first request",
+        "Push CDNs only work for video; pull CDNs work for all content"
+      ],
+      "correctIndex": 1,
+      "explanation": "Pull CDNs fetch content on first request and cache it. Push CDNs require you to upload in advance.",
+      "encourageCorrect": "Nice! Pull CDNs are simpler; push CDNs give you more control.",
+      "encourageIncorrect": "Pull CDNs automatically fetch and cache on first request. Push CDNs require you to upload in advance."
+    }
+  ]
+}

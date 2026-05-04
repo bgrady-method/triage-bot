@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "title": "12.1 Authentication at Scale",
+    "description": "JWT, OAuth 2.0, OpenID Connect, SSO, and session management for distributed systems.",
+    "level": "level-12",
+    "slug": "authentication-at-scale",
+    "order": 1,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "Your monolith used server-side sessions stored in memory. Now you have 20 microservices behind a load balancer. Users keep getting logged out when requests hit different servers. How do you fix authentication?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Authentication in distributed systems\n\nIn a monolith, authentication is simple: store a session ID in a cookie, look it up in server memory. In a distributed system, this breaks immediately \u2014 no single server holds all sessions.\n\n### JSON Web Tokens (JWT)\n\nJWTs are self-contained, signed tokens that carry identity claims. The server does not need to look anything up \u2014 it verifies the signature and reads the claims directly from the token.\n\n**Structure:** Header (algorithm) + Payload (claims: sub, exp, iat, roles) + Signature (HMAC or RSA).\n\n**Advantages:** Stateless \u2014 any service can verify the token independently. No shared session store needed. Scales horizontally without coordination.\n\n**Dangers:** Cannot be revoked once issued (until expiration). If a JWT is stolen, the attacker has access until it expires. Mitigation: short expiration (15 minutes) + refresh tokens.\n\n### OAuth 2.0\n\nOAuth 2.0 is a delegation protocol \u2014 it lets users grant third-party applications limited access to their resources without sharing passwords.\n\n**Key flows:**\n- **Authorization Code:** Most secure. Server-side apps. Redirect to auth server \u2192 user consents \u2192 auth code returned \u2192 exchanged for tokens server-side.\n- **Client Credentials:** Service-to-service. No user involved. The service authenticates directly with the auth server.\n- **PKCE (Proof Key for Code Exchange):** Authorization Code flow hardened for public clients (SPAs, mobile apps). Prevents authorization code interception.\n\n### OpenID Connect (OIDC)\n\nOIDC is an identity layer built on top of OAuth 2.0. OAuth tells you what a user can access. OIDC tells you who the user is. It adds an ID token (JWT) containing user identity claims (name, email, picture).\n\n### Single Sign-On (SSO)\n\nSSO lets users authenticate once and access multiple applications. Typically implemented with SAML 2.0 (enterprise, XML-based) or OIDC (modern, JSON-based). A centralized Identity Provider (IdP) \u2014 Okta, Auth0, Azure AD \u2014 manages authentication for all connected applications.\n\n### Session management at scale\n\n| Strategy | Tradeoff |\n|---|---|\n| Sticky sessions | Simple but breaks on server failure |\n| Centralized session store (Redis) | Consistent but adds a dependency and latency |\n| JWT (stateless) | Scalable but hard to revoke |\n| JWT + refresh token + blocklist | Best balance: short-lived access, revocable refresh |\n\n**Best practice:** Short-lived JWT access tokens (15 min) + long-lived refresh tokens stored securely (httpOnly cookie). Refresh tokens can be revoked by removing them from the store. This gives you stateless verification for most requests with the ability to revoke access."
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "A user's account is compromised. You need to immediately revoke their access. Your system uses JWTs with a 15-minute expiration and refresh tokens stored in Redis. What steps do you take, and what is the maximum window of unauthorized access?",
+      "answer": "**Immediate steps:** (1) Delete all of the user's refresh tokens from Redis \u2014 they cannot get new access tokens. (2) Optionally add the user's current JWT jti (token ID) to a short-lived blocklist in Redis, checked on each request.\n\n**Without blocklist:** Maximum 15 minutes of unauthorized access (until the current JWT expires). The attacker cannot refresh after that.\n\n**With blocklist:** Near-immediate revocation, but you lose the stateless benefit of JWTs for the revocation check. The blocklist only needs entries for unexpired tokens (max 15 min TTL), keeping it small.\n\n**Tradeoff:** Most systems accept the 15-minute window. High-security systems (banking) use the blocklist approach or shorter JWT expiration (5 min)."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "JWTs enable stateless authentication across distributed services but cannot be revoked mid-lifetime. Use short-lived JWTs (15 min) with revocable refresh tokens. OAuth 2.0 handles delegation, OIDC adds identity, and SSO centralizes authentication across applications."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 12.2 covers authorization patterns \u2014 now that you know WHO the user is, how do you decide WHAT they can do?"
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "Why cannot JWTs be revoked mid-lifetime?",
+      "options": [
+        "They are encrypted and cannot be modified",
+        "They are self-contained and verified without a server lookup",
+        "They are stored in the browser and cannot be deleted"
+      ],
+      "correctIndex": 1,
+      "explanation": "JWTs are self-contained \u2014 any service can verify them independently without checking a central store.",
+      "encourageCorrect": "That is right! The stateless nature of JWTs is both their strength and their limitation for revocation.",
+      "encourageIncorrect": "JWTs are self-contained and verified locally without a server lookup. There is no central place to revoke them."
+    },
+    {
+      "question": "What is a common JWT expiration strategy for security?",
+      "options": [
+        "Never expire JWTs",
+        "Short-lived JWTs (15 min) with revocable refresh tokens",
+        "Long-lived JWTs (30 days) with no refresh"
+      ],
+      "correctIndex": 1,
+      "explanation": "Short-lived JWTs (15 min) limit the window of exposure, and refresh tokens can be revoked instantly.",
+      "encourageCorrect": "Exactly! Short JWTs plus revocable refresh tokens give you the best of both worlds.",
+      "encourageIncorrect": "The standard approach is short-lived JWTs (15 min) with revocable refresh tokens stored server-side."
+    }
+  ]
+}

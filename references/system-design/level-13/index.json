@@ -1,0 +1,25 @@
+{
+  "meta": {
+    "title": "Level 13: The Design Interview",
+    "description": "Apply everything you have learned to complete system design interview problems, from requirements gathering through detailed component design.",
+    "level": "level-13",
+    "slug": "index",
+    "order": 0,
+    "isCheckpoint": false,
+    "isIndex": true
+  },
+  "blocks": [
+    {
+      "type": "markdown",
+      "content": "## Welcome to Level 13\n\nThis is where everything comes together. You have spent twelve levels building a deep toolkit of system design concepts — scalability, storage, caching, communication, architecture patterns, distributed systems, reliability, data pipelines, security, and ML infrastructure. Now you will apply all of it to the problems that actually appear in system design interviews.\n\nEach module in this level presents a classic design problem. You will work through each one using a structured framework: clarify requirements, estimate scale, propose a high-level architecture, then dive deep into the components that matter most. The goal is not to memorize solutions — it is to practice the **process** of systematic design reasoning.\n\n### What you will learn\n\n| Module | Topic | Core Challenge |\n| :-- | :-- | :-- |\n| 13.1 | The Design Interview Framework | A repeatable 4-step process for any design problem |\n| 13.2 | Design a URL Shortener | Hashing, storage, redirection at scale, analytics |\n| 13.3 | Design a Chat System | Real-time delivery, WebSockets, message ordering, presence |\n| 13.4 | Design a News Feed | Fan-out strategies, ranking algorithms, cache architecture |\n| 13.5 | Design a Search Engine | Web crawling, inverted indexes, relevance ranking |\n| 13.6 | Design a Video Streaming Platform | Transcoding pipelines, adaptive bitrate, global CDN |\n| 13.7 | Design a Ride-Sharing Service | Geospatial indexing, real-time matching, surge pricing |\n| 13.8 | Design a Notification System | Multi-channel delivery, prioritization, rate limiting |\n| 13.9 | Checkpoint | Mock interview combining multiple systems |\n\n### How to approach each module\n\nFor each design problem, resist the urge to jump straight to the architecture diagram. Instead:\n\n1. **Clarify** — What exactly are we building? What are the functional and non-functional requirements?\n2. **Estimate** — How many users? How much data? What QPS? These numbers drive every decision.\n3. **Design** — Start with the high-level components, then go deep on the hard parts.\n4. **Discuss** — What are the tradeoffs? What would you change at 10x or 100x scale?\n\nThis is the same process that interviewers reward. Candidates who follow a structured approach consistently outperform those who start drawing boxes on a whiteboard immediately."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "System design interviews test your ability to navigate ambiguity, make and justify decisions, and reason about tradeoffs — not your ability to recite architectures from memory. Level 13 gives you practice applying your entire toolkit to real problems using a structured, repeatable framework."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "As you work through each design problem, notice which concepts from earlier levels keep reappearing. The patterns you reach for most often — caching, sharding, message queues, CDNs — are the building blocks of nearly every large-scale system."
+    }
+  ]
+}

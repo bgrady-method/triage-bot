@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "title": "3.1 Relational Databases",
+    "description": "ACID properties, indexes, query optimization, connection pooling, and when relational is the right choice.",
+    "level": "level-3",
+    "slug": "relational-databases",
+    "order": 1,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "A banking system needs to transfer $100 from Account A to Account B. What could go wrong during this operation, and what guarantees does the database need to provide to prevent data corruption?"
+    },
+    {
+      "type": "markdown",
+      "content": "## ACID: The relational guarantee\n\n**Atomicity:** A transaction is all-or-nothing. The $100 debit and credit either both happen or neither does. If the system crashes mid-transaction, it rolls back.\n\n**Consistency:** The database moves from one valid state to another. Invariants (like total money in the system) are preserved. This is enforced by constraints (foreign keys, unique indexes, check constraints).\n\n**Isolation:** Concurrent transactions do not interfere with each other. The result is as if transactions ran sequentially.\n\n**Durability:** Once committed, the data survives crashes. Achieved through write-ahead logging (WAL) \u2014 changes are written to a log on disk before being applied.\n\n### Isolation levels\n\n| Level | Dirty Reads | Non-repeatable Reads | Phantom Reads | Performance |\n|---|---|---|---|---|\n| Read Uncommitted | Yes | Yes | Yes | Fastest |\n| Read Committed | No | Yes | Yes | Fast |\n| Repeatable Read | No | No | Yes | Medium |\n| Serializable | No | No | No | Slowest |\n\nPostgreSQL defaults to Read Committed. MySQL InnoDB defaults to Repeatable Read.\n\n## Indexes: the key to query performance\n\nWithout an index, the database scans every row (full table scan). With an index, it jumps directly to matching rows.\n\n**B-tree indexes** (default in most databases):\n- Sorted data structure. Excellent for range queries (`WHERE age > 25`), equality (`WHERE id = 5`), and ordering.\n- O(log n) lookup time. A table with 1 billion rows needs ~30 comparisons.\n\n**Composite indexes:** Index on multiple columns `(country, city, name)`. Supports queries on the leftmost prefix: `country` alone, `country + city`, or all three. Does NOT help with `city` alone.\n\n**Covering index:** Includes all columns needed by the query. The database reads only the index, never touching the table (index-only scan). Huge performance win for read-heavy queries.\n\n## Connection pooling\n\nEach database connection consumes memory (~10MB for PostgreSQL). Creating a connection takes 50-100ms. Connection pooling (PgBouncer, HikariCP) maintains a pool of reusable connections.\n\n**Without pooling:** 1,000 concurrent requests = 1,000 connections = 10GB RAM just for connections.\n**With pooling:** 1,000 concurrent requests share 50 pooled connections. Requests wait briefly for an available connection but total resource usage is manageable.\n\n## When to choose relational\n\n- Complex queries with JOINs across multiple tables\n- Strong consistency requirements (financial data, inventory)\n- Well-defined schema that changes infrequently\n- ACID transactions are required\n- Mature tooling and expertise available"
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "Your PostgreSQL query is slow: `SELECT * FROM orders WHERE customer_id = 123 AND status = 'pending' ORDER BY created_at DESC LIMIT 10`. The orders table has 50 million rows. What index would you create?",
+      "answer": "**Create a composite index:** `CREATE INDEX idx_orders_customer_status_created ON orders(customer_id, status, created_at DESC)`. This index supports all three operations: (1) equality filter on `customer_id`, (2) equality filter on `status`, (3) ordering by `created_at DESC`. The database can satisfy the entire query using only the index, scanning at most a few dozen entries. Without this index, PostgreSQL would scan millions of rows for customer_id=123 and sort them \u2014 potentially taking seconds. If you also add the columns referenced in `SELECT *` to the index (as INCLUDE columns), you get a covering index that avoids hitting the table entirely."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Relational databases provide ACID guarantees that are essential for data integrity. Indexes are the #1 performance tool \u2014 understand B-trees, composite indexes, and covering indexes. Connection pooling is essential at scale. Choose relational when you need complex queries, strong consistency, or ACID transactions."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Relational databases are powerful but not always the right fit. Module 3.2 explores the NoSQL landscape \u2014 document stores, key-value stores, wide-column stores, and graph databases \u2014 and when each outperforms SQL."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What does ACID stand for in database transactions?",
+      "options": [
+        "Asynchronous, Consistent, Isolated, Durable",
+        "Atomicity, Consistency, Isolation, Durability",
+        "Available, Consistent, Independent, Distributed"
+      ],
+      "correctIndex": 1,
+      "explanation": "ACID: Atomicity (all or nothing), Consistency (valid states), Isolation (no interference), Durability (survives crashes).",
+      "encourageCorrect": "Well done! ACID guarantees are what make relational databases reliable.",
+      "encourageIncorrect": "ACID stands for Atomicity, Consistency, Isolation, and Durability."
+    },
+    {
+      "question": "What is the number one performance tool for relational databases?",
+      "options": [
+        "Adding more RAM",
+        "Indexes",
+        "Connection pooling"
+      ],
+      "correctIndex": 1,
+      "explanation": "Indexes are the primary performance tool \u2014 proper indexing turns multi-second scans into millisecond lookups.",
+      "encourageCorrect": "Right! A well-designed index makes the difference between milliseconds and seconds.",
+      "encourageIncorrect": "Indexes are the #1 performance tool for relational databases."
+    }
+  ]
+}

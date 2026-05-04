@@ -1,0 +1,55 @@
+{
+  "meta": {
+    "title": "6.5 Notification Infrastructure",
+    "description": "Push notifications, email, SMS. Multi-channel orchestration, preference management, and throttling.",
+    "level": "level-6",
+    "slug": "notification-infrastructure",
+    "order": 5,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "Your app sends notifications via push, email, and SMS. A user gets the same notification on all three channels simultaneously. They unsubscribe from email but still want push. How do you manage this complexity at scale?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Notification channels\n\n| Channel | Provider | Latency | Cost | Best for |\n|---|---|---|---|---|\n| Push (mobile) | APNs (iOS), FCM (Android) | <1s | Free | Real-time alerts |\n| Email | SES, SendGrid, Postmark | Seconds-minutes | $0.10/1000 | Rich content, receipts |\n| SMS | Twilio, SNS | 1-5s | $0.01-0.05/msg | Critical alerts, 2FA |\n| In-app | Your own system | Instant | Free | Non-urgent updates |\n| WebSocket/SSE | Your own system | Instant | Free | Real-time web updates |\n\n## Architecture\n\n```\nEvent Source \u2192 Notification Service \u2192 Channel Router \u2192 Channel Adapters\n                    \u2193                      \u2193\n            Preference Check       Template Engine\n            Throttle Check         Delivery Tracking\n```\n\n**Key components:**\n- **Template engine:** Centralized templates with variable substitution. Supports localization.\n- **Preference management:** Per-user, per-channel, per-notification-type preferences.\n- **Throttling:** Limit notifications per user per time window (e.g., max 5 push/hour).\n- **Delivery tracking:** Track sent, delivered, opened, clicked for each notification.\n- **Priority levels:** Critical (payment failed) bypasses throttling; marketing respects quiet hours.\n\n## Multi-channel orchestration\n\nSend via the most appropriate channel based on context:\n1. Try push notification\n2. If not delivered in 5 minutes (user has not opened the app), send email\n3. If critical (e.g., fraud alert), also send SMS immediately\n\nThis requires tracking delivery status across channels and implementing escalation logic."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Notification infrastructure requires multi-channel delivery, preference management, throttling, and delivery tracking. Design for escalation (push \u2192 email \u2192 SMS) and respect user preferences. Template engines and centralized routing prevent notification chaos."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 6.6 covers logging and monitoring pipelines \u2014 how to observe your system's behavior at scale."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What is a notification escalation pattern?",
+      "options": [
+        "Sending louder notifications",
+        "Trying progressively more intrusive channels (push, then email, then SMS)",
+        "Sending to the user s manager"
+      ],
+      "correctIndex": 1,
+      "explanation": "Escalation tries channels in order of intrusiveness until acknowledged.",
+      "encourageCorrect": "That is right! Escalation ensures important notifications reach the user.",
+      "encourageIncorrect": "Escalation tries channels in order \u2014 push first, then email, then SMS \u2014 until the user responds."
+    },
+    {
+      "question": "Which notification channel is best for critical alerts like 2FA codes?",
+      "options": [
+        "Email",
+        "Push notification",
+        "SMS"
+      ],
+      "correctIndex": 2,
+      "explanation": "SMS works without internet, has near-universal reach, and is hard to miss.",
+      "encourageCorrect": "Right! SMS works even without internet and has the highest open rate.",
+      "encourageIncorrect": "SMS is best for critical alerts \u2014 it works without internet and reaches virtually everyone."
+    }
+  ]
+}

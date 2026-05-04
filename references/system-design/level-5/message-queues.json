@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "title": "5.4 Message Queues",
+    "description": "Kafka, RabbitMQ, SQS. Queue vs log semantics, ordering guarantees, consumer groups, and backpressure.",
+    "level": "level-5",
+    "slug": "message-queues",
+    "order": 4,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "Your e-commerce site processes 1,000 orders per second at peak. Each order triggers: inventory update, payment processing, email confirmation, and analytics tracking. Should the order service call each downstream service directly, or is there a better pattern?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Queue vs Log\n\n### Traditional Message Queue (RabbitMQ, SQS)\n\nMessages are consumed and deleted. Each message is processed by one consumer. Once consumed, it is gone.\n\n- **Delivery:** Each message goes to exactly one consumer (competing consumers pattern)\n- **Ordering:** Best-effort (RabbitMQ) or FIFO (SQS FIFO)\n- **Retention:** Messages are deleted after consumption\n- **Use case:** Task distribution, work queues, request-response patterns\n\n### Event Log (Kafka, Pulsar, Kinesis)\n\nMessages are appended to an immutable, ordered log. Consumers read from the log at their own pace. Messages are retained for a configurable period.\n\n- **Delivery:** Multiple consumer groups each read all messages independently\n- **Ordering:** Guaranteed within a partition\n- **Retention:** Configurable (hours to forever)\n- **Use case:** Event streaming, audit logs, data pipelines, event sourcing\n\n| Feature | Queue (RabbitMQ/SQS) | Log (Kafka) |\n|---|---|---|\n| Message lifecycle | Consumed \u2192 deleted | Retained for configured period |\n| Multiple consumers | No (one consumer per message) | Yes (consumer groups) |\n| Replay | No | Yes (reset offset) |\n| Ordering | Per-queue | Per-partition |\n| Throughput | Thousands/sec | Millions/sec |\n| Complexity | Low | High (partitions, offsets, replication) |\n\n## Kafka essentials\n\n**Topics:** Named streams of messages (e.g., `orders`, `user-events`)\n**Partitions:** Each topic is split into partitions for parallelism. Messages with the same key go to the same partition (ordering guarantee).\n**Consumer groups:** Each group reads all messages independently. Within a group, each partition is assigned to one consumer.\n**Offsets:** Each consumer tracks its position in the log. Can reset to replay events.\n\n```\nTopic: orders (3 partitions)\n\nPartition 0: [msg1] [msg4] [msg7] \u2192 Consumer A (group-1)\nPartition 1: [msg2] [msg5] [msg8] \u2192 Consumer B (group-1)\nPartition 2: [msg3] [msg6] [msg9] \u2192 Consumer C (group-1)\n\nAll messages also read by group-2 (analytics)\n```\n\n## Choosing a message broker\n\n| If you need... | Choose... |\n|---|---|\n| Simple task queue | SQS (managed) or RabbitMQ |\n| Event streaming + replay | Kafka or Pulsar |\n| Serverless, minimal ops | SQS (AWS) or Pub/Sub (GCP) |\n| Complex routing (topic/fanout) | RabbitMQ |\n| Highest throughput | Kafka |"
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "You use Kafka to process order events. A bug in your payment consumer caused it to charge some customers twice. You fix the bug. Can you re-process the affected events? How?",
+      "answer": "**Yes \u2014 this is Kafka's killer feature.** Reset the consumer group's offset to the timestamp before the bug was deployed. The payment consumer will re-read and re-process all events from that point. But you MUST ensure your consumer is idempotent \u2014 processing the same event twice should produce the same result (not charge twice). Implementation: use a processed-event table or idempotency keys to skip already-successfully-processed events. This replay capability is why event logs (Kafka) are preferred over traditional queues for critical business workflows \u2014 you cannot replay a message that was already deleted from RabbitMQ/SQS."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Traditional queues (RabbitMQ, SQS) are for task distribution \u2014 messages are consumed once and deleted. Event logs (Kafka) are for event streaming \u2014 messages are retained, ordered, and replayable. Choose Kafka when you need replay, multiple consumers, or high throughput."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Message queues decouple services. Module 5.5 covers the patterns built on top of them \u2014 sagas, outbox, and choreography vs orchestration for complex workflows."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What is the key difference between a traditional message queue and Kafka?",
+      "options": [
+        "Kafka is faster",
+        "In a queue, messages are deleted after consumption; in Kafka, they are retained and replayable",
+        "Queues support more consumers"
+      ],
+      "correctIndex": 1,
+      "explanation": "Traditional queues delete messages after consumption. Kafka retains them for replay and multiple consumers.",
+      "encourageCorrect": "Exactly! Kafka log retention and replay is its killer feature.",
+      "encourageIncorrect": "Traditional queues delete messages after consumption. Kafka retains them in an immutable, ordered log."
+    },
+    {
+      "question": "When would you choose Kafka over RabbitMQ?",
+      "options": [
+        "When you need simple task distribution",
+        "When you need event replay, multiple consumers, or high throughput",
+        "When you need low-latency request-response"
+      ],
+      "correctIndex": 1,
+      "explanation": "Choose Kafka for replay, multiple independent consumers, or very high throughput.",
+      "encourageCorrect": "That is right! Kafka excels at event streaming with replay and multiple consumers.",
+      "encourageIncorrect": "Choose Kafka when you need replay, multiple consumers, or high throughput. RabbitMQ is better for simple task queues."
+    }
+  ]
+}

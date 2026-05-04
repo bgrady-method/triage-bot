@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "title": "7.2 CQRS and Read/Write Separation",
+    "description": "Separate read and write models, materialized views, sync strategies, and when CQRS is overkill.",
+    "level": "level-7",
+    "slug": "cqrs-read-write-separation",
+    "order": 2,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "Your social media app writes posts to a normalized database (3 tables with JOINs). The home feed requires a complex 7-table JOIN that takes 2 seconds. Reads outnumber writes 100:1. Is there a way to optimize reads without compromising write integrity?"
+    },
+    {
+      "type": "markdown",
+      "content": "## CQRS: Command Query Responsibility Segregation\n\nSeparate the write model (commands) from the read model (queries). Each is optimized for its purpose.\n\n**Write model:** Normalized, ACID-compliant. Optimized for data integrity and consistency.\n**Read model:** Denormalized, pre-computed. Optimized for query speed.\n\n```\nWrites \u2192 Write DB (normalized)  \u2192 Event/CDC \u2192 Read DB (denormalized)\nReads  \u2192 Read DB (fast queries)\n```\n\n### When CQRS makes sense\n\n- Read and write patterns are fundamentally different\n- Reads vastly outnumber writes (100:1 or more)\n- Read queries require expensive JOINs or aggregations\n- You need different scaling for reads vs writes\n\n### When CQRS is overkill\n\n- Simple CRUD applications\n- Read and write patterns are similar\n- The team cannot handle the added complexity\n- Eventual consistency between read and write models is unacceptable\n\n### Sync strategies\n\n| Strategy | Latency | Complexity |\n|---|---|---|\n| Synchronous dual write | Immediate | High (consistency risk) |\n| CDC (Change Data Capture) | Seconds | Medium |\n| Event sourcing | Seconds | High |\n| Periodic refresh | Minutes | Low |\n\n**Most common:** CDC via Debezium. Changes in the write DB are captured from the transaction log and applied to the read DB.\n\n### Real-world example\n\nTwitter's home timeline:\n- **Write path:** User posts a tweet \u2192 stored in tweets table (normalized)\n- **Read path:** Pre-computed timelines stored in Redis (denormalized, per-user sorted list). When you open Twitter, your timeline is already assembled.\n- **Sync:** Fan-out service listens for new tweets and pushes them to followers' timelines in Redis."
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "Your CQRS system has a 3-second delay between write DB and read DB (CDC replication lag). A user creates a post and immediately views their profile page (served from read DB). They do not see their post. How do you fix this?",
+      "answer": "**Read-your-writes consistency for the author.** When the user who just wrote data reads, route their request to the write DB (or check a cache of recent writes) for a short window (e.g., 10 seconds). Other users can read from the eventually-consistent read DB without issue. Implementation: after a write, set a cookie/header with the write timestamp. On subsequent reads, if the timestamp is recent, query the write DB for that user's data. This gives the author immediate consistency while keeping the read model's performance benefits for everyone else."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "CQRS separates read and write models, optimizing each independently. Use it when reads vastly outnumber writes and read patterns are fundamentally different from write patterns. Sync via CDC. Handle read-your-writes consistency for authors. Do not use CQRS for simple CRUD."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 7.3 covers Domain-Driven Design \u2014 the methodology for finding the right service boundaries when decomposing systems."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What does CQRS stand for?",
+      "options": [
+        "Concurrent Query Routing System",
+        "Command Query Responsibility Segregation",
+        "Centralized Query Response Service"
+      ],
+      "correctIndex": 1,
+      "explanation": "CQRS separates the write model (commands) from the read model (queries).",
+      "encourageCorrect": "Great! CQRS lets you optimize reads and writes independently.",
+      "encourageIncorrect": "CQRS stands for Command Query Responsibility Segregation \u2014 separate models for reads and writes."
+    },
+    {
+      "question": "How do you solve the read-your-writes problem in CQRS?",
+      "options": [
+        "Make all reads go to the write database",
+        "Route the author s reads to the write DB for a short window after writing",
+        "Increase the replication speed"
+      ],
+      "correctIndex": 1,
+      "explanation": "After a write, route that user s reads to the write DB briefly. Other users read from the read DB.",
+      "encourageCorrect": "That is the elegant solution! The author gets consistency while others enjoy the fast read model.",
+      "encourageIncorrect": "Route the author s reads to the write DB for a short window. Others continue reading from the read model."
+    }
+  ]
+}

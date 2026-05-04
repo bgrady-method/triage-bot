@@ -1,0 +1,55 @@
+{
+  "meta": {
+    "title": "7.4 Clean and Hexagonal Architecture",
+    "description": "Ports and adapters, dependency inversion at the system level, and testing boundaries.",
+    "level": "level-7",
+    "slug": "clean-and-hexagonal",
+    "order": 4,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "Your service uses PostgreSQL today. Next quarter, you need to switch to DynamoDB. How much of your code needs to change? If the answer is 'most of it,' what went wrong in your architecture?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Hexagonal Architecture (Ports and Adapters)\n\nThe core business logic is at the center, surrounded by ports (interfaces) and adapters (implementations).\n\n```\n     \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n     \u2502      Adapters         \u2502\n     \u2502  (REST API, CLI, UI)  \u2502\n     \u2502         \u2193 Port         \u2502\n     \u2502  \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510     \u2502\n     \u2502  \u2502  Core Domain  \u2502     \u2502\n     \u2502  \u2502  (Business    \u2502     \u2502\n     \u2502  \u2502   Logic)      \u2502     \u2502\n     \u2502  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518     \u2502\n     \u2502         \u2193 Port         \u2502\n     \u2502  (DB, Queue, API)     \u2502\n     \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n```\n\n**Port:** An interface that the core defines. \"I need to save an order\" (not \"I need PostgreSQL\").\n**Adapter:** An implementation of a port. PostgresOrderRepository implements OrderRepository.\n\n### Dependency Rule\n\nDependencies point inward. The core knows nothing about adapters. Adapters depend on the core.\n\n- Core defines: `interface OrderRepository { save(order): void }`\n- Adapter implements: `class PostgresOrderRepository implements OrderRepository`\n- Switching to DynamoDB: write `class DynamoOrderRepository implements OrderRepository`. Core unchanged.\n\n### Testing boundaries\n\nWith ports and adapters, testing is natural:\n- **Unit tests:** Test core logic with mock adapters (in-memory repositories)\n- **Integration tests:** Test adapters against real infrastructure (test database)\n- **End-to-end tests:** Test through the API adapter\n\n### When layered architecture is fine\n\nFor simple CRUD services, hexagonal architecture adds unnecessary abstraction. A three-layer architecture (controller \u2192 service \u2192 repository) is sufficient when the service is simple and unlikely to change its infrastructure."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Hexagonal architecture isolates business logic from infrastructure through ports (interfaces) and adapters (implementations). Dependencies point inward. This enables easy testing with mocks and painless infrastructure changes. Use it for complex services; simple layered architecture is fine for CRUD."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 7.5 covers deployment patterns \u2014 how to release changes safely with strangler fig, blue-green, and canary deployments."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "In hexagonal architecture, what are ports and adapters?",
+      "options": [
+        "Network ports and protocol adapters",
+        "Interfaces (ports) that the core defines and implementations (adapters) that connect to infrastructure",
+        "Input ports for requests and output adapters for responses"
+      ],
+      "correctIndex": 1,
+      "explanation": "Ports are interfaces the business logic defines. Adapters connect to real infrastructure.",
+      "encourageCorrect": "Perfect! Ports define what the core needs; adapters provide the how.",
+      "encourageIncorrect": "Ports are interfaces defined by the core. Adapters are implementations connecting to databases, APIs, etc."
+    },
+    {
+      "question": "What is the main benefit of hexagonal architecture?",
+      "options": [
+        "Faster runtime performance",
+        "Easy testing and painless infrastructure changes because business logic is isolated",
+        "Reduced code size"
+      ],
+      "correctIndex": 1,
+      "explanation": "Isolating business logic from infrastructure means you can test with mocks and swap infrastructure easily.",
+      "encourageCorrect": "Exactly! You can test the core with mocks and swap infrastructure without touching business logic.",
+      "encourageIncorrect": "The main benefit is isolated business logic, enabling easy testing with mocks and painless infrastructure swaps."
+    }
+  ]
+}

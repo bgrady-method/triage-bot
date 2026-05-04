@@ -1,0 +1,72 @@
+{
+  "meta": {
+    "title": "1.6 Anatomy of a Web Request",
+    "description": "What happens when you type a URL and press Enter. DNS, TCP, TLS, HTTP, server processing, and the response.",
+    "level": "level-1",
+    "slug": "anatomy-of-web-request",
+    "order": 6,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "You type 'https://amazon.com' and press Enter. How many separate systems and network hops are involved before you see the page? List every step you can think of."
+    },
+    {
+      "type": "markdown",
+      "content": "## The journey of a request\n\nEvery system design builds on top of this fundamental flow. Understanding each step helps you identify bottlenecks, failure points, and optimization opportunities.\n\n### Step 1: DNS Resolution (~1-100ms)\n\nThe browser needs to convert `amazon.com` to an IP address.\n\n1. Check browser DNS cache\n2. Check OS DNS cache\n3. Query configured DNS resolver (e.g., ISP or 8.8.8.8)\n4. Resolver queries root nameservers \u2192 .com TLD \u2192 amazon.com authoritative nameserver\n5. Return IP address (may be a CDN edge node, load balancer, or direct server)\n\n### Step 2: TCP Connection (~1-3 round trips)\n\nEstablish a reliable connection via the three-way handshake:\n```\nClient \u2192 SYN \u2192 Server\nClient \u2190 SYN-ACK \u2190 Server\nClient \u2192 ACK \u2192 Server\n```\nOne round trip. At 50ms cross-continent latency, that is 50ms before any data flows.\n\n### Step 3: TLS Handshake (~1-2 additional round trips)\n\nFor HTTPS, negotiate encryption:\n```\nClient \u2192 ClientHello (supported ciphers) \u2192 Server\nClient \u2190 ServerHello + Certificate \u2190 Server\nClient \u2192 Key Exchange + Finished \u2192 Server\nClient \u2190 Finished \u2190 Server\n```\nTLS 1.3 reduces this to 1 round trip (or 0 with resumption). TLS 1.2 takes 2 round trips.\n\n### Step 4: HTTP Request\n\nThe browser sends the request:\n```\nGET / HTTP/2\nHost: amazon.com\nUser-Agent: Chrome/...\nAccept: text/html\nCookie: session=abc123\n```\n\n### Step 5: Server Processing\n\nThe request hits Amazon's infrastructure:\n1. **Load balancer** routes to an application server\n2. **Application server** processes the request\n3. Checks **cache** (Redis/Memcached) for the page\n4. On cache miss, queries **database(s)** for user data, recommendations, prices\n5. **Assembles the HTML** response\n6. Returns response through the load balancer\n\n### Step 6: Response\n\n```\nHTTP/2 200 OK\nContent-Type: text/html\nContent-Encoding: gzip\nCache-Control: max-age=60\n\n<!DOCTYPE html>...\n```\n\n### Step 7: Browser Rendering\n\n1. Parse HTML \u2192 build DOM\n2. Discover CSS, JS, images \u2192 fire parallel requests\n3. Parse CSS \u2192 build CSSOM\n4. Execute JavaScript\n5. Layout, paint, composite \u2192 pixels on screen\n\nEach sub-resource (CSS, JS, images) may come from a CDN edge server, avoiding the full round trip to the origin.\n\n## Where the time goes\n\n| Step | Typical Time | Optimization |\n|---|---|---|\n| DNS | 1-100ms | DNS caching, pre-resolution |\n| TCP + TLS | 50-200ms | Connection reuse (HTTP/2), TLS 1.3 |\n| Server processing | 10-500ms | Caching, query optimization |\n| Content transfer | 10-500ms | Compression, CDN |\n| Browser rendering | 50-500ms | Critical CSS, lazy loading |\n| **Total** | **~120ms-1800ms** | |\n\nFor a cross-continent request, the physics of light in fiber (~200ms round trip) is often the dominant factor. This is why CDNs exist \u2014 move the content closer to the user."
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "A user in Tokyo is loading a page served from a data center in Virginia (US East). The page makes 3 sequential API calls during server processing, each taking 50ms. Network round trip is 180ms. Assuming TLS 1.3 and HTTP/2, estimate the total time to first byte (TTFB).",
+      "answer": "**DNS:** ~50ms (assuming some caching)\n**TCP handshake:** 1 round trip = 180ms\n**TLS 1.3:** 1 round trip = 180ms (piggybacks on TCP in some cases, but conservatively 180ms)\n**HTTP request + server processing:** 1 round trip for the request (180ms) + 3 sequential API calls (150ms) = 330ms\n\n**Total TTFB:** ~50 + 180 + 180 + 330 = **~740ms**\n\nThis is why edge computing and CDNs matter. If the content were served from a CDN edge in Tokyo (5ms round trip), TTFB drops to ~50 + 5 + 5 + 155 = **~215ms** \u2014 a 3.4x improvement. For dynamic content, you would still need the origin server, but caching and edge computing can eliminate many round trips."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "A single web request involves DNS resolution, TCP connection, TLS handshake, HTTP request/response, server processing (potentially hitting caches and databases), and browser rendering. Network latency is often the dominant factor \u2014 CDNs, connection reuse, and edge computing exist to minimize round trips."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "You now have the complete Level 1 toolkit: scalability, latency, throughput, availability, consistency, estimation, and the anatomy of a request. Module 1.7 is the checkpoint \u2014 test your understanding before moving to Level 2."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What is the first step when you type a URL in the browser?",
+      "options": [
+        "TCP handshake",
+        "DNS resolution",
+        "TLS handshake"
+      ],
+      "correctIndex": 1,
+      "explanation": "DNS resolution converts the domain name to an IP address before any connection is established.",
+      "encourageCorrect": "Exactly right! DNS is always the first step in the journey of a web request.",
+      "encourageIncorrect": "Not quite \u2014 DNS resolution comes first, converting the domain name to an IP address before the browser can connect."
+    },
+    {
+      "question": "How many round trips does TLS 1.3 require for a handshake?",
+      "options": [
+        "0 round trips",
+        "1 round trip",
+        "3 round trips"
+      ],
+      "correctIndex": 1,
+      "explanation": "TLS 1.3 reduces the handshake to just 1 round trip (or 0 with session resumption), down from 2 in TLS 1.2.",
+      "encourageCorrect": "Nice work! TLS 1.3 was a big improvement, cutting the handshake to a single round trip.",
+      "encourageIncorrect": "Close! TLS 1.3 needs just 1 round trip (and can do 0 with session resumption). TLS 1.2 needed 2."
+    },
+    {
+      "question": "Why do CDNs improve web request performance?",
+      "options": [
+        "They compress all data automatically",
+        "They serve content from edge servers closer to users",
+        "They eliminate the need for DNS lookups"
+      ],
+      "correctIndex": 1,
+      "explanation": "CDNs reduce latency by serving content from nearby edge servers, minimizing the physical distance data must travel.",
+      "encourageCorrect": "Spot on! CDNs fight the physics of distance by moving content closer to users.",
+      "encourageIncorrect": "Not exactly \u2014 CDNs primarily help by serving content from edge servers physically closer to users, reducing network round-trip time."
+    }
+  ]
+}

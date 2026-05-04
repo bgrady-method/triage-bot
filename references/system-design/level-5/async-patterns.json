@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "title": "5.5 Async Patterns",
+    "description": "Saga pattern, transactional outbox, choreography vs orchestration, and eventual consistency in practice.",
+    "level": "level-5",
+    "slug": "async-patterns",
+    "order": 5,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "An order requires: (1) reserve inventory, (2) charge payment, (3) send confirmation email. If payment fails after inventory is reserved, how do you undo the reservation? You cannot use a single database transaction because these are different services."
+    },
+    {
+      "type": "markdown",
+      "content": "## The distributed transaction problem\n\nIn a monolith, you wrap everything in one database transaction. In microservices, each service has its own database. You cannot use a single ACID transaction across services. You need patterns.\n\n## Saga pattern\n\nA saga is a sequence of local transactions. Each step has a compensating action that undoes it if a later step fails.\n\n```\nOrder created\n \u2192 Reserve inventory (compensate: release inventory)\n   \u2192 Charge payment (compensate: refund payment)\n     \u2192 Send confirmation (no compensation needed)\n\nIf payment fails:\n \u2192 Run compensation: release inventory\n \u2192 Mark order as failed\n```\n\n### Choreography vs Orchestration\n\n**Choreography:** Each service listens for events and decides what to do. No central coordinator.\n\n```\nOrderService \u2192 publishes OrderCreated\nInventoryService \u2192 listens, reserves, publishes InventoryReserved\nPaymentService \u2192 listens, charges, publishes PaymentCharged\nEmailService \u2192 listens, sends confirmation\n```\n\n**Pros:** Loosely coupled, no single point of failure.\n**Cons:** Hard to understand the full flow, difficult to debug, no central place to see saga state.\n\n**Orchestration:** A central orchestrator coordinates the steps.\n\n```\nOrderOrchestrator:\n  1. Call InventoryService.reserve()\n  2. Call PaymentService.charge()\n  3. Call EmailService.send()\n  On failure at step 2:\n    Call InventoryService.release()\n```\n\n**Pros:** Easy to understand, debug, and monitor. Saga state is centralized.\n**Cons:** Orchestrator is a single point of failure. Tighter coupling to the orchestrator.\n\n## Transactional outbox\n\nThe problem: you need to update a database AND publish an event atomically. If you update the DB but crash before publishing, the event is lost.\n\n**Solution:** Write the event to an \"outbox\" table in the same database transaction as the data change. A background process reads the outbox and publishes events to the message broker.\n\n```\nBEGIN TRANSACTION;\n  UPDATE orders SET status = 'confirmed' WHERE id = 123;\n  INSERT INTO outbox (event_type, payload) VALUES ('OrderConfirmed', '{...}');\nCOMMIT;\n\n-- Background: poll outbox, publish to Kafka, delete from outbox\n```\n\n**Guarantees:** At-least-once delivery (the event will eventually be published). Consumers must be idempotent."
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "Your e-commerce saga uses choreography. The flow is: OrderCreated \u2192 InventoryReserved \u2192 PaymentCharged \u2192 EmailSent. The payment service is down for 30 minutes. What happens to orders during this time?",
+      "answer": "**Inventory is reserved but payment never processes.** Orders pile up with reserved inventory that is never charged. When the payment service recovers, it processes the backlog. But during the outage: (1) inventory is locked \u2014 other customers may see 'out of stock' for items that are reserved but not purchased, (2) if there is no timeout on reservations, inventory could be permanently locked. **Fix:** Implement reservation timeouts \u2014 if payment is not confirmed within 10 minutes, automatically release the inventory (a compensation action on a timer). This is called a 'saga timeout.' The orchestration approach makes this easier because the orchestrator can track saga state and trigger timeouts centrally."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Sagas coordinate distributed transactions through a sequence of local transactions with compensating actions. Choreography is loosely coupled but hard to debug; orchestration is centralized and easier to reason about. The transactional outbox pattern ensures atomicity between database updates and event publishing."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Async patterns enable resilient workflows. But what happens when communication itself fails? Module 5.6 covers retries, exponential backoff, dead letter queues, and designing for failure."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What is the Saga pattern used for?",
+      "options": [
+        "Compressing large data transfers",
+        "Coordinating distributed transactions across microservices",
+        "Encrypting inter-service communication"
+      ],
+      "correctIndex": 1,
+      "explanation": "A saga is a sequence of local transactions with compensating actions for cross-service coordination.",
+      "encourageCorrect": "Right! Sagas solve the distributed transaction problem with local transactions and compensating actions.",
+      "encourageIncorrect": "The Saga pattern coordinates distributed transactions using local transactions with compensating actions."
+    },
+    {
+      "question": "What is the difference between saga choreography and orchestration?",
+      "options": [
+        "Choreography uses a central coordinator; orchestration is event-driven",
+        "Choreography is event-driven with no coordinator; orchestration uses a central coordinator",
+        "They are the same thing with different names"
+      ],
+      "correctIndex": 1,
+      "explanation": "Choreography: services react to events independently. Orchestration: a central orchestrator directs each step.",
+      "encourageCorrect": "Exactly! Choreography is decoupled but hard to debug; orchestration is centralized but easier to reason about.",
+      "encourageIncorrect": "Choreography has no central coordinator \u2014 services react to events. Orchestration has a central coordinator."
+    }
+  ]
+}

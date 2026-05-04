@@ -1,0 +1,55 @@
+{
+  "meta": {
+    "title": "8.4 Service Mesh and Sidecars",
+    "description": "Istio, Linkerd, Envoy. What a service mesh does, when you need one, and the operational cost.",
+    "level": "level-8",
+    "slug": "service-mesh-and-sidecars",
+    "order": 4,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "You have 50 microservices. Each needs: mTLS, retries, circuit breaking, distributed tracing, and traffic management. Do you implement this in every service or centralize it somehow?"
+    },
+    {
+      "type": "markdown",
+      "content": "## What a service mesh does\n\nA service mesh injects a sidecar proxy (Envoy) alongside every service. All inter-service traffic flows through the proxy, which handles networking concerns transparently.\n\n**Capabilities:**\n- **mTLS everywhere:** Automatic encryption between services\n- **Retries and timeouts:** Configurable per-route policies\n- **Circuit breaking:** Stop calling failing services\n- **Load balancing:** Intelligent routing (least requests, locality-aware)\n- **Observability:** Automatic metrics, traces, and access logs\n- **Traffic management:** Canary deployments, A/B testing, fault injection\n\n### Popular service meshes\n\n| Mesh | Proxy | Complexity | Best for |\n|---|---|---|---|\n| Istio | Envoy | High | Full-featured, large deployments |\n| Linkerd | linkerd2-proxy | Medium | Simpler, Kubernetes-native |\n| Consul Connect | Envoy | Medium | HashiCorp ecosystem |\n\n### When you DO NOT need a service mesh\n\n- Fewer than 10-15 services\n- Team does not have strong Kubernetes expertise\n- Simple networking needs (basic load balancing, no mTLS requirement)\n- The operational overhead exceeds the benefit\n\n**The cost:** Service meshes add latency (~1ms per hop), resource overhead (sidecar per pod), and significant operational complexity. They solve real problems but only justify the cost at scale."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Service meshes (Istio, Linkerd) add networking capabilities (mTLS, retries, observability) to all services via sidecar proxies. They solve real problems at scale but add latency, resource overhead, and operational complexity. Do not adopt one until you have 10+ services and Kubernetes expertise."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 8.5 covers serverless \u2014 an architectural style where you do not manage servers at all."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What is a service mesh?",
+      "options": [
+        "A network of microservices connected directly",
+        "A layer of sidecar proxies that handle networking concerns transparently",
+        "A type of message queue"
+      ],
+      "correctIndex": 1,
+      "explanation": "A service mesh injects sidecar proxies alongside every service for networking features.",
+      "encourageCorrect": "Right! The mesh handles networking complexity so your services do not have to.",
+      "encourageIncorrect": "A service mesh deploys sidecar proxies alongside every service for mTLS, retries, and observability."
+    },
+    {
+      "question": "When should you adopt a service mesh?",
+      "options": [
+        "As soon as you have 2 services",
+        "When you have 10+ services and Kubernetes expertise",
+        "Before building any microservices"
+      ],
+      "correctIndex": 1,
+      "explanation": "Service meshes add overhead. They are worth it at scale with the right expertise.",
+      "encourageCorrect": "Exactly! Service meshes solve real problems at scale but are overkill for small deployments.",
+      "encourageIncorrect": "Wait until you have 10+ services and Kubernetes expertise."
+    }
+  ]
+}

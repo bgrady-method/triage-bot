@@ -1,0 +1,55 @@
+{
+  "meta": {
+    "title": "6.4 Task Queues and Job Scheduling",
+    "description": "Background jobs, cron at scale, retry strategies, dead letter queues, and distributed cron.",
+    "level": "level-6",
+    "slug": "task-queues-and-scheduling",
+    "order": 4,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "Your web app needs to: resize uploaded images, send welcome emails, generate PDF reports, and run a nightly data cleanup. Should the web server do these tasks during the request, or handle them differently?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Background jobs\n\nTasks that should not block the user's request: image processing, email sending, PDF generation, data exports, webhook delivery.\n\n**Pattern:** Web server enqueues a job \u2192 Worker picks it up and processes it asynchronously.\n\n### Popular frameworks\n\n| Framework | Language | Backend | Differentiator |\n|---|---|---|---|\n| Sidekiq | Ruby | Redis | Fast, battle-tested |\n| Celery | Python | Redis/RabbitMQ | Flexible, widely used |\n| BullMQ | Node.js | Redis | Modern, TypeScript |\n| AWS SQS + Lambda | Any | Managed | Serverless, auto-scaling |\n\n### Key design principles\n\n**Idempotent workers:** Jobs may be delivered twice (at-least-once delivery). Processing the same job twice must produce the same result.\n\n**Retry strategies:** Exponential backoff with max retries. After max retries, move to dead letter queue.\n\n**Priority queues:** Critical jobs (payment processing) get higher priority than non-critical (analytics). Use separate queues with different worker allocations.\n\n**Job timeouts:** Set maximum execution time. Kill stuck jobs and retry.\n\n## Cron at scale\n\nSingle-server cron does not work in a distributed system \u2014 if the server is down, the job does not run. If you have 10 servers, the job runs 10 times.\n\n**Distributed cron solutions:**\n- **Leader election:** One node is elected leader and runs scheduled jobs. If leader fails, another takes over. (etcd, ZooKeeper)\n- **Managed services:** AWS EventBridge Scheduler, GCP Cloud Scheduler \u2014 managed, reliable, no infrastructure.\n- **Database-backed:** Store scheduled jobs in a database. Workers poll for due jobs with SELECT FOR UPDATE (pessimistic locking) to prevent duplicates.\n\n**Dead letter queues:** After all retries exhausted, failed jobs land in a DLQ for manual inspection and replay."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Background jobs keep web requests fast by deferring expensive work. Workers must be idempotent (same job processed twice = same result). Use dead letter queues for failed jobs. Distributed cron requires leader election or managed services to avoid duplicate execution."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 6.5 covers notification infrastructure \u2014 delivering push notifications, emails, and SMS reliably at scale."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "Why must background job workers be idempotent?",
+      "options": [
+        "To reduce memory usage",
+        "Because the same job might be processed more than once due to retries",
+        "To improve processing speed"
+      ],
+      "correctIndex": 1,
+      "explanation": "Workers must handle the same job multiple times safely due to failures and retries.",
+      "encourageCorrect": "Exactly! Same input, same result, no extra side effects \u2014 the golden rule.",
+      "encourageIncorrect": "Workers must be idempotent because jobs can be delivered multiple times due to retries."
+    },
+    {
+      "question": "What is a dead letter queue used for?",
+      "options": [
+        "Storing completed jobs for audit",
+        "Capturing jobs that repeatedly fail so they can be investigated",
+        "Archiving old messages"
+      ],
+      "correctIndex": 1,
+      "explanation": "Dead letter queues capture messages that fail after multiple retries for investigation.",
+      "encourageCorrect": "That is right! Dead letter queues prevent failed jobs from blocking the main queue.",
+      "encourageIncorrect": "A dead letter queue captures repeatedly failing jobs for investigation without blocking the main queue."
+    }
+  ]
+}

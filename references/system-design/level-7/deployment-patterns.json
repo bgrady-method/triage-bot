@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "title": "7.5 Deployment Patterns",
+    "description": "Strangler fig, blue-green deployments, canary releases, shadow traffic, and database migration patterns.",
+    "level": "level-7",
+    "slug": "deployment-patterns",
+    "order": 5,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "You need to replace a legacy monolith with a new microservices architecture. The monolith serves 10 million users. You cannot afford downtime or data loss. How do you migrate incrementally?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Strangler Fig Pattern\n\nGradually replace a legacy system by routing traffic to new services one feature at a time. Named after strangler fig trees that grow around host trees.\n\n```\nPhase 1: 100% \u2192 Legacy\nPhase 2: /users \u2192 New UserService, rest \u2192 Legacy\nPhase 3: /users, /orders \u2192 New services, rest \u2192 Legacy\nPhase N: 100% \u2192 New services. Legacy decommissioned.\n```\n\n**Key:** Both old and new systems run simultaneously. A routing layer (API gateway) directs traffic. Migrate one bounded context at a time.\n\n## Blue-Green Deployment\n\nMaintain two identical environments. Blue is live, Green is the new version.\n\n1. Deploy new version to Green\n2. Test Green thoroughly\n3. Switch router from Blue to Green (instant cutover)\n4. If problems arise, switch back to Blue\n\n**Pros:** Zero downtime, instant rollback.\n**Cons:** Requires double infrastructure. Database schema changes are tricky (both versions must work with the same DB).\n\n## Canary Release\n\nRoute a small percentage of traffic to the new version. Monitor for errors. Gradually increase.\n\n```\n1% \u2192 new version (canary) for 1 hour \u2192 monitor\n5% \u2192 new version for 1 hour \u2192 monitor\n25% \u2192 new version for 1 hour \u2192 monitor\n100% \u2192 new version\n```\n\n**Advantage over blue-green:** Problems affect only a small percentage of users.\n\n## Database migration: Expand-Contract\n\n```\n1. Expand: Add new column/table (backward compatible)\n2. Migrate: Backfill data, dual-write to old and new\n3. Contract: Remove old column/table after all code uses the new one\n```\n\nNever make breaking schema changes in a single step. Always ensure both old and new code can work with the database during migration."
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "You are doing a blue-green deployment. Your new version adds a column to the database. You deploy to Green and switch traffic. Then a critical bug is found and you need to roll back to Blue. What is the problem?",
+      "answer": "**Blue does not know about the new column.** If the Green version wrote data using the new column, Blue might fail on those rows (unknown column errors) or lose data (new column values are invisible). **Prevention:** Use the expand-contract pattern. (1) First deploy: add the new column with a default value (expand). Deploy to both Blue and Green. Both versions work. (2) Second deploy: start writing to the new column. (3) Only after both environments support the new column: switch Green to use it. Now rollback to Blue is safe because Blue also handles the column. Never couple schema changes with code changes in the same deployment."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Strangler fig enables incremental migration from legacy to new systems. Blue-green gives zero-downtime deployment with instant rollback. Canary limits blast radius by testing with a small percentage of traffic. Database migrations use expand-contract to ensure backward compatibility."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 7.6 covers infrastructure patterns \u2014 sidecar, ambassador, and adapter \u2014 that solve cross-cutting concerns in microservices."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What is a blue-green deployment?",
+      "options": [
+        "Deploying to two data centers simultaneously",
+        "Maintaining two identical environments and switching traffic for zero-downtime deploys",
+        "Using two different technology stacks"
+      ],
+      "correctIndex": 1,
+      "explanation": "Blue-green keeps two identical environments. Deploy to the inactive one, then switch traffic.",
+      "encourageCorrect": "Exactly! Instant rollback is the killer feature \u2014 just switch traffic back.",
+      "encourageIncorrect": "Blue-green maintains two identical environments. Deploy to the inactive one, switch traffic. Rollback is instant."
+    },
+    {
+      "question": "What is the expand-contract pattern for database migrations?",
+      "options": [
+        "Adding and removing database servers",
+        "First add the new column (expand), then start using it, then remove the old (contract)",
+        "Expanding the database storage before contracting it"
+      ],
+      "correctIndex": 1,
+      "explanation": "Expand-contract ensures backward compatibility at every step.",
+      "encourageCorrect": "Right! This ensures you can always roll back safely.",
+      "encourageIncorrect": "Expand-contract: add new column (expand), start using it, then remove old column (contract)."
+    }
+  ]
+}

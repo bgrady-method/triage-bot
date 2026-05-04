@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "title": "5.6 Designing for Communication Failure",
+    "description": "Retries, exponential backoff, dead letter queues, idempotency keys, and graceful degradation.",
+    "level": "level-5",
+    "slug": "communication-failure",
+    "order": 6,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "Your service calls a downstream payment API. The call times out after 5 seconds. Did the payment succeed or fail? You do not know. What do you do?"
+    },
+    {
+      "type": "markdown",
+      "content": "## The network is unreliable\n\nIn distributed systems, three things can happen with a network call:\n1. **Success:** You get a response. Great.\n2. **Failure:** You get an error. You know it failed.\n3. **Timeout:** You get nothing. **You do not know if it succeeded or failed.** This is the hardest case.\n\n## Retry strategies\n\n### Immediate retry\nRetry immediately. Only useful for transient failures (connection reset). Dangerous for overloaded services \u2014 you make the overload worse.\n\n### Exponential backoff\nWait 1s, 2s, 4s, 8s, 16s... between retries. Gives the downstream service time to recover.\n\n### Exponential backoff with jitter\nAdd randomness to the backoff: `wait = base * 2^attempt + random(0, base)`. Without jitter, all clients retry at the same time (thundering herd).\n\n```\nAttempt 1: wait 1s + random(0, 1s)\nAttempt 2: wait 2s + random(0, 1s)\nAttempt 3: wait 4s + random(0, 1s)\n```\n\n### Retry budget\nLimit retries to N attempts or a percentage of total requests (e.g., \"retry at most 10% of calls\"). Prevents retry amplification where retries cause more load than original requests.\n\n## Idempotency\n\nSince retries can cause duplicate processing, every retryable operation must be idempotent.\n\n**Idempotency key pattern:**\n1. Client generates a UUID for each logical operation\n2. Sends it with every request (including retries): `Idempotency-Key: uuid-here`\n3. Server checks if this key was already processed\n4. If yes, return the stored result. If no, process and store the result.\n\n## Dead Letter Queue (DLQ)\n\nAfter all retries are exhausted, the message goes to a DLQ \u2014 a separate queue for failed messages. Benefits:\n- Failed messages are not lost\n- Operators can inspect, fix the root cause, and replay\n- The main queue is not blocked by poison messages\n\n## Graceful degradation\n\nWhen a downstream service is unavailable, degrade gracefully instead of failing entirely:\n\n| Scenario | Degradation |\n|---|---|\n| Recommendation service down | Show popular items instead |\n| Payment service slow | Queue the charge, confirm later |\n| Search service down | Show category browsing instead |\n| Profile picture service down | Show default avatar |"
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "Your service retries failed calls with exponential backoff. During a downstream outage, you notice your service's request rate to the downstream doubles instead of decreasing. What is happening?",
+      "answer": "**Retry amplification.** Each original request generates 1 original + N retries. If retry count is high and many original requests are failing, the retry traffic exceeds original traffic. Example: 1,000 req/s with 3 retries each = 4,000 req/s hitting the downstream. This makes the outage worse. Fix: (1) Implement a retry budget \u2014 allow retries for at most 10% of requests. (2) Use a circuit breaker \u2014 after detecting the downstream is failing, stop sending requests entirely for a cool-down period. (3) Add jitter to prevent synchronized retry waves. (4) Set a maximum retry count of 2-3 attempts."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "The network is unreliable \u2014 design for timeouts, retries, and duplicates. Use exponential backoff with jitter for retries, idempotency keys for duplicate prevention, dead letter queues for failed messages, and graceful degradation when services are unavailable."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 5.7 is the checkpoint \u2014 design the complete communication layer for an order processing system."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What is exponential backoff with jitter?",
+      "options": [
+        "Retrying immediately multiple times",
+        "Waiting increasingly longer between retries with randomization to prevent synchronized storms",
+        "Sending requests to multiple servers simultaneously"
+      ],
+      "correctIndex": 1,
+      "explanation": "Exponential backoff (1s, 2s, 4s, 8s) with jitter prevents all clients from retrying at the same time.",
+      "encourageCorrect": "Perfect! The jitter is key \u2014 without it, all clients retry at the same moment.",
+      "encourageIncorrect": "Exponential backoff waits longer between retries. Jitter adds randomization so clients do not all retry together."
+    },
+    {
+      "question": "What is an idempotency key used for?",
+      "options": [
+        "Encrypting API requests",
+        "Preventing duplicate operations when retrying requests",
+        "Authenticating service-to-service calls"
+      ],
+      "correctIndex": 1,
+      "explanation": "An idempotency key lets the server detect retries and return the original result without processing twice.",
+      "encourageCorrect": "That is right! Idempotency keys ensure retries do not create duplicate side effects.",
+      "encourageIncorrect": "Idempotency keys prevent duplicate operations. The server stores the key and returns the stored result on retry."
+    }
+  ]
+}

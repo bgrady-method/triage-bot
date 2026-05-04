@@ -1,0 +1,55 @@
+{
+  "meta": {
+    "title": "9.7 Gossip Protocols",
+    "description": "How nodes discover each other, share state, and detect failures without a central coordinator.",
+    "level": "level-9",
+    "slug": "gossip-protocols",
+    "order": 7,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "You have 1,000 nodes in a cluster. Each needs to know the health status of every other node. Centralized health checking creates a bottleneck. How can nodes share health information peer-to-peer?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Gossip (epidemic) protocols\n\nInspired by how rumors spread. Each node periodically picks a random peer and exchanges state information. Information propagates exponentially \u2014 reaching all N nodes in O(log N) rounds.\n\n### How it works\n\n1. Node A picks random peer B\n2. A sends its state to B (or they exchange states)\n3. B merges A's state with its own\n4. Both A and B now have combined knowledge\n5. Repeat every T seconds (typically 1-3 seconds)\n\nAfter log2(N) rounds, all nodes have converged. For 1,000 nodes: ~10 rounds = ~10-30 seconds.\n\n### Applications\n\n**Failure detection:** Each node maintains a heartbeat counter. Gossip spreads heartbeats. If a node's heartbeat stops incrementing, it is suspected failed. Multiple nodes must agree before marking it dead (prevents false positives from network issues).\n\n**Membership:** New nodes announce themselves via gossip. Leaving nodes gossip their departure. The membership list eventually converges across all nodes.\n\n**State dissemination:** Distribute configuration changes, schema updates, or feature flags via gossip. Eventually consistent but requires no central coordinator.\n\n### Used by\n\n- **Cassandra:** Cluster membership, failure detection, schema propagation\n- **Consul:** Service discovery, health checking\n- **Amazon S3:** Node discovery within storage clusters\n- **SWIM:** Scalable Weakly-consistent Infection-style Membership protocol\n\n### Tradeoffs\n\n| Advantage | Disadvantage |\n|---|---|\n| No single point of failure | Eventually consistent (not instant) |\n| Scales to thousands of nodes | Bandwidth overhead (periodic messages) |\n| Tolerates network partitions | Detecting failures takes multiple rounds |\n| Simple to implement | Difficult to debug convergence issues |"
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Gossip protocols spread information peer-to-peer in O(log N) rounds without a central coordinator. Used for failure detection, membership management, and state dissemination in large clusters. Eventually consistent but highly resilient and scalable."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 9.8 is the checkpoint \u2014 apply distributed systems theory to real design problems."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "How many rounds does it take for gossip to reach all N nodes?",
+      "options": [
+        "N rounds",
+        "O(log N) rounds",
+        "O(N squared) rounds"
+      ],
+      "correctIndex": 1,
+      "explanation": "Gossip spreads exponentially \u2014 reaching all N nodes in O(log N) rounds.",
+      "encourageCorrect": "Right! Exponential spread means even 1,000 nodes converge in about 10 rounds.",
+      "encourageIncorrect": "Gossip reaches all N nodes in O(log N) rounds due to exponential spread."
+    },
+    {
+      "question": "Why are gossip protocols highly resilient?",
+      "options": [
+        "They use encryption",
+        "They are peer-to-peer with no central coordinator that could fail",
+        "They store data redundantly"
+      ],
+      "correctIndex": 1,
+      "explanation": "Gossip is decentralized \u2014 no single point of failure.",
+      "encourageCorrect": "That is it! No central coordinator means no single point of failure.",
+      "encourageIncorrect": "Gossip protocols are peer-to-peer with no central coordinator. Any node can fail and information still spreads."
+    }
+  ]
+}

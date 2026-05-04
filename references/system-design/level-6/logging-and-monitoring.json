@@ -1,0 +1,55 @@
+{
+  "meta": {
+    "title": "6.6 Logging and Monitoring Pipelines",
+    "description": "ELK stack, structured logging, metrics collection, alerting, and log retention at scale.",
+    "level": "level-6",
+    "slug": "logging-and-monitoring",
+    "order": 6,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "Your microservices generate 10GB of logs per hour. A customer reports a bug. How do you find the relevant logs across 50 services? How long do you keep logs, and what does storage cost?"
+    },
+    {
+      "type": "markdown",
+      "content": "## The three pillars of observability\n\n**Logs:** Discrete events with context. \"User 123 failed login at 14:23:05 \u2014 invalid password.\"\n**Metrics:** Numeric measurements over time. \"Request latency p99 = 200ms. Error rate = 0.5%.\"\n**Traces:** End-to-end request flow across services. \"Request abc123 \u2192 API Gateway (5ms) \u2192 UserService (20ms) \u2192 Database (15ms).\"\n\n### Logging at scale\n\n**Structured logging:** JSON format instead of plain text. Enables parsing and querying.\n```json\n{\"timestamp\":\"2024-01-15T14:23:05Z\",\"level\":\"error\",\"service\":\"auth\",\"user_id\":123,\"event\":\"login_failed\",\"reason\":\"invalid_password\"}\n```\n\n**Log aggregation pipeline:**\n```\nApps \u2192 Log Shipper (Fluentd/Filebeat) \u2192 Message Queue (Kafka) \u2192 Indexer (Elasticsearch/Loki) \u2192 Dashboard (Kibana/Grafana)\n```\n\n**Retention strategy:** Hot (7 days, fast search), warm (30 days, slower), cold (1 year, cheapest). Auto-rotate using index lifecycle management.\n\n### Metrics collection\n\n| System | Model | Best for |\n|---|---|---|\n| Prometheus | Pull-based (scrapes targets) | Kubernetes, cloud-native |\n| StatsD + Graphite | Push-based (apps push metrics) | Simple, lightweight |\n| Datadog | SaaS, agent-based | Managed, all-in-one |\n\n**Key metrics to track:**\n- **RED method (request-focused):** Rate, Errors, Duration\n- **USE method (resource-focused):** Utilization, Saturation, Errors\n\n### Alerting\n\nGood alerts are actionable, not noisy. Alert on symptoms (high error rate) not causes (CPU usage). Use severity levels: page (wake someone up), ticket (fix tomorrow), log (investigate when convenient)."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Observability requires structured logs, time-series metrics, and distributed traces. Use the RED method for request metrics and USE method for resource metrics. Alert on symptoms, not causes. Manage log retention with hot/warm/cold tiers to control costs."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 6.7 covers payment and billing systems \u2014 one of the most error-intolerant components in any application."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What format should logs use at scale?",
+      "options": [
+        "Plain text for readability",
+        "Structured JSON for parsing and querying",
+        "CSV for spreadsheet compatibility"
+      ],
+      "correctIndex": 1,
+      "explanation": "Structured JSON logs enable automated parsing, searching, and querying at scale.",
+      "encourageCorrect": "That is right! Structured logging makes logs searchable at any scale.",
+      "encourageIncorrect": "Use structured JSON logging at scale for automated parsing and querying."
+    },
+    {
+      "question": "What does the USE method measure?",
+      "options": [
+        "Utilization, Saturation, Errors for infrastructure resources",
+        "User, System, Environment metrics",
+        "Uptime, Speed, Efficiency of services"
+      ],
+      "correctIndex": 0,
+      "explanation": "USE: Utilization, Saturation, Errors \u2014 for monitoring infrastructure resources.",
+      "encourageCorrect": "Exactly! USE for infrastructure, RED for services.",
+      "encourageIncorrect": "USE stands for Utilization, Saturation, and Errors \u2014 for infrastructure resources."
+    }
+  ]
+}

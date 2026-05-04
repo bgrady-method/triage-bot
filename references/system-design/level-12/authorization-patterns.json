@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "title": "12.2 Authorization Patterns",
+    "description": "RBAC, ABAC, ReBAC, and policy engines for access control in distributed systems.",
+    "level": "level-12",
+    "slug": "authorization-patterns",
+    "order": 2,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "Your SaaS platform has admins, editors, and viewers. An editor should be able to edit only documents in their own team's workspace \u2014 not other teams' documents. Simple role checks (isEditor) are not enough. What do you need?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Authorization models\n\nAuthentication answers \"who are you?\" Authorization answers \"what can you do?\" In distributed systems, authorization must be fast, consistent, and expressive enough to model real-world access rules.\n\n### Role-Based Access Control (RBAC)\n\nAssign permissions to roles, assign roles to users.\n\n```\nRoles: admin, editor, viewer\nPermissions: admin \u2192 [read, write, delete, manage_users]\n             editor \u2192 [read, write]\n             viewer \u2192 [read]\nUser Alice \u2192 role: editor \u2192 can read and write\n```\n\n**Strengths:** Simple to understand, easy to audit, works well for coarse-grained access. **Weaknesses:** Role explosion \u2014 when you need editor-of-project-X, editor-of-project-Y, you create hundreds of roles. Cannot express contextual rules (time of day, IP address, resource ownership).\n\n### Attribute-Based Access Control (ABAC)\n\nDecisions based on attributes of the user, resource, action, and environment.\n\n```\nPolicy: ALLOW if user.department == resource.department\n              AND action == \"read\"\n              AND environment.time in business_hours\n```\n\n**Strengths:** Extremely flexible. No role explosion. Can express any policy. **Weaknesses:** Hard to audit (\"who can access what?\" requires evaluating all attribute combinations). Policies can become complex and difficult to debug.\n\n### Relationship-Based Access Control (ReBAC)\n\nAccess based on the relationship graph between users and resources. Made popular by Google's Zanzibar paper.\n\n```\nDocument:budget#owner@User:alice\nFolder:finance#viewer@Team:accounting\nDocument:budget#parent@Folder:finance\n\u2192 Members of Team:accounting can view Document:budget (inherited through folder)\n```\n\n**Strengths:** Natural for hierarchical and collaborative systems (Google Drive, GitHub). Handles ownership, sharing, and inheritance elegantly. **Weaknesses:** Requires a relationship graph store. Latency of graph traversal.\n\n### Comparison\n\n| Model | Best for | Complexity | Flexibility |\n|---|---|---|---|\n| RBAC | Simple apps, coarse permissions | Low | Low |\n| ABAC | Context-dependent rules, compliance | High | Very high |\n| ReBAC | Collaborative apps, resource hierarchies | Medium | High |\n| Hybrid (RBAC + ABAC) | Most production systems | Medium | High |\n\n### Policy engines\n\nExternalize authorization logic from application code into a dedicated policy engine.\n\n- **Open Policy Agent (OPA):** General-purpose. Policies written in Rego. Used for API authorization, Kubernetes admission control, and infrastructure policies.\n- **Cedar (AWS):** Purpose-built for application authorization. Used by AWS Verified Permissions.\n- **SpiceDB / Authzed:** Open-source ReBAC engine inspired by Google Zanzibar.\n\n**Why externalize?** Consistent enforcement across services. Policy changes without code deploys. Auditable. Testable. Separates business logic from access logic."
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "You are building a healthcare platform. Doctors should see only their own patients' records. Nurses on a specific ward should see records of patients currently on that ward. Admins can see everything. A doctor covering for another doctor should temporarily see the other doctor's patients. Which authorization model(s) would you use and why?",
+      "answer": "**Hybrid ReBAC + ABAC approach.** ReBAC models the core relationships: Doctor\u2192Patient (treating relationship), Nurse\u2192Ward\u2192Patient (ward assignment), Admin\u2192Organization (global access). The temporary coverage scenario is modeled as a time-bounded relationship: Doctor:Bob#covering@Doctor:Alice with a start/end time attribute (ABAC element).\n\n**Implementation:** Use a ReBAC engine (SpiceDB) for relationship-based checks. Add ABAC-style attributes for time-bounded and contextual rules. A policy engine (OPA or Cedar) evaluates composite policies that combine relationship checks with attribute conditions.\n\n**Why not pure RBAC?** Role explosion \u2014 you would need a role per doctor-patient pair. **Why not pure ABAC?** The relationship model (doctor treats patient, patient is on ward) is naturally a graph, not a set of attribute comparisons. **ReBAC alone** does not handle the time-bounded coverage scenario cleanly without attribute support."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "RBAC is simple but limited. ABAC is flexible but hard to audit. ReBAC naturally models ownership and hierarchies. Most production systems use a hybrid approach with an externalized policy engine (OPA, Cedar, SpiceDB) for consistent, auditable, and testable authorization."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 12.3 covers encryption and data protection \u2014 securing the data that authorized users access."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What does RBAC stand for?",
+      "options": [
+        "Resource-Based Access Control",
+        "Role-Based Access Control",
+        "Rule-Based Access Control"
+      ],
+      "correctIndex": 1,
+      "explanation": "Role-Based Access Control assigns permissions to roles, and roles to users.",
+      "encourageCorrect": "Perfect! RBAC is the simplest and most widely understood authorization model.",
+      "encourageIncorrect": "RBAC stands for Role-Based Access Control \u2014 permissions are assigned to roles, and roles to users."
+    },
+    {
+      "question": "Which authorization model is best for modeling ownership and hierarchies?",
+      "options": [
+        "RBAC",
+        "ABAC",
+        "ReBAC (Relationship-Based Access Control)"
+      ],
+      "correctIndex": 2,
+      "explanation": "ReBAC naturally models relationships like doctor treats patient or user owns document.",
+      "encourageCorrect": "Nice! ReBAC excels at modeling real-world relationships like ownership and team membership.",
+      "encourageIncorrect": "ReBAC is best for ownership and hierarchies \u2014 it naturally models relationships like doctor treats patient."
+    }
+  ]
+}

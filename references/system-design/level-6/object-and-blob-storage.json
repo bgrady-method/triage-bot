@@ -1,0 +1,55 @@
+{
+  "meta": {
+    "title": "6.2 Object and Blob Storage",
+    "description": "S3, GCS, Azure Blob. Storage classes, lifecycle policies, pre-signed URLs, and cost optimization.",
+    "level": "level-6",
+    "slug": "object-and-blob-storage",
+    "order": 2,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "Your app stores user-uploaded photos. You expect 10 million photos growing by 100K/day. Should you store them in a database, on a file server, or somewhere else? What about photos uploaded 2 years ago that nobody looks at?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Object storage fundamentals\n\nObject storage (S3, GCS, Azure Blob) stores unstructured data as objects in flat namespaces (buckets). Each object has a key (path), data (bytes), and metadata.\n\n**Key characteristics:**\n- Virtually unlimited storage capacity\n- 99.999999999% (11 nines) durability\n- Pay per GB stored + per request\n- HTTP API (PUT, GET, DELETE)\n- No file system hierarchy (flat namespace, / in keys is cosmetic)\n\n### Storage classes and cost optimization\n\n| Class (S3) | Access | Cost/GB/mo | Use case |\n|---|---|---|---|\n| Standard | Instant | $0.023 | Frequently accessed |\n| Intelligent-Tiering | Auto | $0.023-0.004 | Unpredictable access |\n| Standard-IA | Instant (min 30 days) | $0.0125 | Infrequent, fast access needed |\n| Glacier Instant | Instant (min 90 days) | $0.004 | Archive, rare access |\n| Glacier Deep Archive | 12 hours | $0.00099 | Compliance, never accessed |\n\n**Lifecycle policies:** Automatically transition objects between classes. Example: after 30 days \u2192 Standard-IA, after 90 days \u2192 Glacier, after 7 years \u2192 delete.\n\n### Pre-signed URLs\n\nGrant temporary access to private objects without exposing credentials.\n\n```\nGET https://bucket.s3.amazonaws.com/photo.jpg?X-Amz-Signature=...&X-Amz-Expires=3600\n```\n\n**Upload flow:** Client requests a pre-signed upload URL from your server \u2192 Client uploads directly to S3 \u2192 S3 notifies your server via event. Your server never handles the file bytes.\n\n### Multipart upload\n\nFor files >100MB, upload in parallel parts. If one part fails, retry only that part. S3 assembles the parts server-side."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Object storage (S3) provides virtually unlimited, highly durable storage at low cost. Use storage classes and lifecycle policies to optimize costs. Pre-signed URLs enable direct client uploads without proxying through your servers."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 6.3 covers search infrastructure \u2014 how to make your data findable with Elasticsearch, inverted indexes, and relevance tuning."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What is the durability guarantee of Amazon S3?",
+      "options": [
+        "99.9% (three nines)",
+        "99.99% (four nines)",
+        "99.999999999% (eleven nines)"
+      ],
+      "correctIndex": 2,
+      "explanation": "S3 provides 99.999999999% (11 nines) durability.",
+      "encourageCorrect": "That is right! 11 nines of durability means your data is essentially never lost.",
+      "encourageIncorrect": "S3 provides 11 nines (99.999999999%) durability \u2014 an incredibly strong guarantee."
+    },
+    {
+      "question": "What are pre-signed URLs used for?",
+      "options": [
+        "Encrypting files before upload",
+        "Allowing clients to upload directly to object storage without proxying through your server",
+        "Compressing large files automatically"
+      ],
+      "correctIndex": 1,
+      "explanation": "Pre-signed URLs let clients upload directly to S3, bypassing your server.",
+      "encourageCorrect": "Exactly! Pre-signed URLs are essential for efficient file uploads at scale.",
+      "encourageIncorrect": "Pre-signed URLs enable direct client uploads to object storage, avoiding proxy through your server."
+    }
+  ]
+}

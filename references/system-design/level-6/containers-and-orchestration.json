@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "title": "6.1 Containers and Orchestration",
+    "description": "Docker, Kubernetes, pods, services, auto-scaling, and when K8s is overkill.",
+    "level": "level-6",
+    "slug": "containers-and-orchestration",
+    "order": 1,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "Your team deploys 20 microservices. Each needs different dependencies, auto-scaling, health checks, and rolling updates. How do you manage this without going insane?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Containers\n\nA container packages an application with all its dependencies into a single, portable unit. Unlike VMs, containers share the host OS kernel \u2014 they start in seconds and use minimal overhead.\n\n**Docker** is the standard container runtime. A Dockerfile defines the image:\n```dockerfile\nFROM node:20-alpine\nCOPY package*.json ./\nRUN npm ci --production\nCOPY . .\nEXPOSE 3000\nCMD [\"node\", \"server.js\"]\n```\n\n## Kubernetes (K8s)\n\nK8s orchestrates containers at scale: scheduling, scaling, networking, and self-healing.\n\n**Core concepts:**\n- **Pod:** Smallest deployable unit. One or more containers that share networking and storage.\n- **Deployment:** Manages pod replicas with rolling updates and rollbacks.\n- **Service:** Stable network endpoint that load-balances across pods.\n- **Ingress:** HTTP routing from external traffic to services.\n- **ConfigMap/Secret:** External configuration and sensitive data.\n\n**Auto-scaling:**\n- **HPA (Horizontal Pod Autoscaler):** Scale pods based on CPU, memory, or custom metrics.\n- **VPA (Vertical Pod Autoscaler):** Adjust pod resource requests based on actual usage.\n- **Cluster Autoscaler:** Add/remove nodes based on pending pods.\n\n## When Kubernetes is overkill\n\n| Scenario | Better alternative |\n|---|---|\n| 1-5 services, small team | Docker Compose, ECS, or PaaS (Heroku, Railway) |\n| Serverless workloads | Lambda, Cloud Functions |\n| Static sites | Vercel, Netlify, S3+CloudFront |\n| Batch processing | AWS Batch, GCP Cloud Run Jobs |\n\n**K8s is worth it when:** You have 10+ services, need fine-grained scaling policies, require multi-cloud portability, or your team has K8s expertise."
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "Your K8s deployment has 3 replicas of a service. During a rolling update, the new version has a bug that causes it to crash on startup. What happens?",
+      "answer": "**K8s rolling update protects you.** By default, K8s updates one pod at a time (maxSurge=1, maxUnavailable=0). It starts one new pod, waits for it to pass readiness checks, then terminates one old pod. If the new pod crashes (fails readiness), K8s does not proceed \u2014 the old pods continue serving traffic. The deployment is stuck but not broken. You can `kubectl rollout undo` to revert. If you set `maxUnavailable=1`, K8s would terminate an old pod before the new one is ready, causing brief capacity reduction. Best practice: always set readiness probes and use `maxUnavailable=0` for zero-downtime deployments."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Containers (Docker) package applications portably. Kubernetes orchestrates containers at scale with auto-scaling, rolling updates, and self-healing. But K8s has significant operational overhead \u2014 use simpler alternatives for small deployments."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 6.2 covers another foundational component: object and blob storage \u2014 where files, images, and backups live at scale."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "How do containers differ from virtual machines?",
+      "options": [
+        "Containers are larger and more isolated",
+        "Containers share the host OS kernel, starting in seconds with minimal overhead",
+        "Containers require dedicated hardware"
+      ],
+      "correctIndex": 1,
+      "explanation": "Containers share the host OS kernel, making them lightweight and fast to start.",
+      "encourageCorrect": "That is right! Shared kernel means fast start times and minimal overhead.",
+      "encourageIncorrect": "Containers share the host OS kernel, starting in seconds. VMs each run a full OS copy."
+    },
+    {
+      "question": "What happens during a Kubernetes rolling update if the new version fails readiness checks?",
+      "options": [
+        "All old pods are terminated immediately",
+        "K8s stops the rollout and old pods continue serving traffic",
+        "The cluster shuts down"
+      ],
+      "correctIndex": 1,
+      "explanation": "K8s does not proceed if new pods fail readiness checks \u2014 old pods continue serving.",
+      "encourageCorrect": "Exactly! Rolling updates with readiness probes protect against deploying broken versions.",
+      "encourageIncorrect": "K8s stops the rollout if new pods fail readiness checks. Old pods keep serving traffic."
+    }
+  ]
+}

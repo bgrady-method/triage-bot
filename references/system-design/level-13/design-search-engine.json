@@ -1,0 +1,65 @@
+{
+  "meta": {
+    "title": "13.5 Design a Search Engine",
+    "description": "Design a web search engine \u2014 crawling, indexing, inverted indexes, and relevance ranking at scale.",
+    "level": "level-13",
+    "slug": "design-search-engine",
+    "order": 5,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "Google serves 8.5 billion searches per day across an index of hundreds of billions of web pages. When you type a query and get results in 200ms, what data structures and systems make that speed possible? Why can you not just use a SQL database with LIKE queries?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Requirements\n\n**Functional:**\n- Crawl the web and build a searchable index\n- Given a text query, return the most relevant web pages ranked by relevance\n- Support phrase queries, boolean operators, and spelling correction\n- Autocomplete/query suggestions\n- Results include title, snippet, and URL\n\n**Non-functional:**\n- Index 10 billion web pages\n- Search latency under 200ms (p99)\n- 100K search QPS (peak)\n- Index freshness: popular pages re-crawled within hours, others within weeks\n- 99.99% availability\n\n## Estimation\n\n```\nIndex size:\n  10 billion pages x avg 50 KB per page = 500 TB raw content\n  Inverted index (compressed): ~10-20% of raw = 50-100 TB\n  Forward index (doc metadata): ~10B x 500 bytes = 5 TB\n  Total index: ~60-110 TB\n\nCrawl rate:\n  Re-crawl 10B pages every 2 weeks avg = 10B / 14 / 86,400 ~ 8,300 pages/sec\n  At 50 KB/page: 415 MB/sec outbound crawl bandwidth\n\nSearch QPS: 100K peak\n  At 10 KB avg response: 1 GB/sec serving bandwidth\n```\n\n## Three-Phase Architecture\n\n### Phase 1: Crawling\n\n```\n+--------------+    +---------------+    +---------------+\n| URL Frontier |-->| Crawler        |-->| Raw Page       |\n| (priority    |    | (distributed  |    | Store          |\n|  queue)      |<--| workers)      |    | (S3/HDFS)      |\n|              |    |               |    |                |\n+--------------+    +---------------+    +---------------+\n        ^                 |\n        |                 v\n        |          +---------------+\n        +----------| URL Extractor |\n                   | (find new     |\n                   |  links)       |\n                   +---------------+\n```\n\n**URL Frontier:** A priority queue of URLs to crawl. Priority based on: page importance (PageRank), freshness requirements, and politeness (do not overwhelm any single domain). Implemented as multiple queues \u2014 one per domain to enforce crawl rate limits.\n\n**Crawl politeness:** Respect robots.txt. Limit to 1 request/second per domain. Distribute crawl workers across many IPs to avoid being blocked.\n\n**Deduplication:** Before storing a crawled page, compute a content fingerprint (SimHash or MinHash) to detect near-duplicate pages. If the fingerprint matches an existing page, skip indexing.\n\n### Phase 2: Indexing\n\n```\nRaw Pages -> Document Processor -> Inverted Index Builder -> Index Shards\n                |\n                +-- Tokenize (split into words)\n                +-- Normalize (lowercase, stem, remove stop words)\n                +-- Extract metadata (title, headers, links)\n                +-- Compute document features (word frequency, position)\n```\n\n**The Inverted Index** is the core data structure:\n\n```\nTraditional index (book):\n  Page 1 -> [words on page 1]\n  Page 2 -> [words on page 2]\n\nInverted index:\n  \"database\"  -> [doc_42, doc_198, doc_7031, ...]\n  \"design\"    -> [doc_42, doc_55, doc_198, ...]\n  \"system\"    -> [doc_42, doc_198, doc_301, ...]\n```\n\nEach entry is a **posting list**: a sorted list of document IDs containing that term, along with metadata (term frequency, positions for phrase matching).\n\n```\nPosting list for \"database\":\n  doc_42:   freq=5, positions=[12, 45, 89, 112, 203]\n  doc_198:  freq=2, positions=[3, 67]\n  doc_7031: freq=1, positions=[156]\n```\n\n**Compression:** Posting lists are compressed using delta encoding + variable-byte encoding. Instead of storing [42, 198, 7031], store gaps [42, 156, 6833] and encode each gap with minimal bytes.\n\n### Phase 3: Serving\n\n```\n        Query                   +------------------+\n  User -------> Query Parser -->| Search Broker    |\n                                | (scatter-gather) |\n                                +--------+---------+\n                           +-------------+-------------+\n                           v             v             v\n                      +---------+  +---------+  +---------+\n                      | Shard 1 |  | Shard 2 |  | Shard N |\n                      | (A-F)   |  | (G-M)   |  | (T-Z)   |\n                      +----+----+  +----+----+  +----+----+\n                           |             |             |\n                           +-------------+-------------+\n                                         v\n                                   Merge + Re-rank\n                                         |\n                                         v\n                                   Top 10 Results\n```\n\n**Search flow:**\n1. Parse query: tokenize, normalize, expand (spelling correction, synonyms)\n2. Scatter: send query to all index shards in parallel\n3. Each shard: intersect posting lists for query terms, score documents, return top K\n4. Gather: merge results from all shards, re-rank globally, return top 10\n\n**Sharding strategy:** Two approaches:\n- **Document-partitioned:** Each shard holds a subset of documents (all terms for those docs). Query must hit every shard. Better for throughput.\n- **Term-partitioned:** Each shard holds a subset of terms (all docs for those terms). Query hits only relevant shards. Better for latency but harder to balance.\n\nMost search engines use **document-partitioned** with replication for throughput.\n\n## Ranking\n\n**TF-IDF (baseline):**\n```\nscore(query, doc) = SUM( tf(term, doc) x idf(term) )\n\ntf  = term frequency in document (how often the word appears)\nidf = inverse document frequency (rare words score higher)\n    = log(N / df), where df = number of docs containing the term\n```\n\n**BM25 (industry standard):** An improved version of TF-IDF that handles term saturation (the 10th occurrence of a word matters less than the 1st) and document length normalization.\n\n**PageRank (link analysis):** A page linked to by many important pages is itself important. Computed offline as a batch job over the entire web graph. Used as a query-independent quality signal.\n\n**Modern ranking:** Two-stage pipeline:\n1. **Retrieval:** BM25 over inverted index -> top 1,000 candidates (fast, simple)\n2. **Re-ranking:** ML model (learning-to-rank or transformer) over candidates -> top 10 (slow, accurate)\n\n## Data Model\n\n```\ndocuments (forward index):\n  doc_id: bigint PK\n  url: varchar\n  title: varchar\n  snippet: text (pre-computed)\n  pagerank: float\n  last_crawled: timestamp\n  content_hash: bigint  -- for dedup\n\ninverted_index:\n  term: varchar\n  posting_list: compressed binary  -- list of (doc_id, freq, positions)\n  df: int  -- document frequency\n\nurl_frontier:\n  url_hash: bigint PK\n  url: varchar\n  priority: float\n  last_crawled: timestamp\n  next_crawl: timestamp\n  domain: varchar INDEX\n```"
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "Your search engine indexes 10 billion pages across 1,000 shards. A user searches for 'system design interview'. The query must hit all 1,000 shards in parallel. What is the tail latency problem here, and how do you keep p99 under 200ms when any one of 1,000 shards could be slow?",
+      "answer": "**The tail latency problem:** With scatter-gather across 1,000 shards, the overall latency equals the slowest shard's response. If each shard has p99 = 50ms, the probability that at least one shard exceeds 50ms in a 1,000-shard fan-out is 1 - (0.99)^1000 which is approximately 99.99%. You are virtually guaranteed to hit a slow shard every single query.\n\n**Mitigations:** (1) **Replicas + hedged requests:** Each shard has 3+ replicas. Send the query to one replica, and if no response within 20ms, send a duplicate request to another replica. Take whichever responds first. This dramatically cuts tail latency. (2) **Timeout and degrade:** Set a hard timeout of 150ms per shard. If a shard does not respond, return results from the other 999 shards \u2014 users will not notice a slightly incomplete result set. (3) **Caching:** Cache posting lists for popular terms in memory. The top 10,000 query terms cover a large fraction of searches. (4) **Tiered index:** Keep the most important documents (by PageRank) in a small, fast tier that always responds quickly. Fall back to the full index only if the fast tier does not find enough results. (5) **Shard-level SLOs:** Monitor per-shard latency and route traffic away from consistently slow shards."
+    },
+    {
+      "type": "tryItYourself",
+      "title": "Extend this design to support autocomplete (query suggestions as the user types). Consider: What data structure would you use? How do you rank suggestions? How do you keep suggestions fresh as trending queries change? What latency target makes sense?",
+      "solution": "**Data structure:** A trie (prefix tree) maps prefixes to the top-K most popular completions. For example, 'sys' -> ['system design', 'system of a down', 'system requirements']. Store in memory for speed. At 10M unique query prefixes with top-10 completions each: ~10M x 10 x 50 bytes = 5 GB \u2014 fits in RAM on a single server.\n\n**Ranking suggestions:** Score by: (1) query frequency (how often this query is searched), (2) recency-weighted frequency (trending queries score higher), (3) personalization (user's search history). Precompute top-K for each prefix offline. For trending queries, update the trie incrementally every few minutes using a streaming aggregator over the query log.\n\n**Freshness:** Run a MapReduce job hourly over the query log to rebuild the trie. For real-time trending topics (e.g., breaking news), use a stream processor (Flink/Kafka Streams) that counts query frequency in sliding windows and injects trending completions into the trie within minutes.\n\n**Latency target:** Under 50ms \u2014 users expect instant results as they type. The trie lookup itself is microseconds; the bottleneck is network latency to the user, so serve from edge locations or CDN. Return suggestions after the user has typed at least 2-3 characters to reduce the fan-out of possible completions."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "A search engine is a three-phase system: crawl (discover and fetch pages), index (build inverted indexes for fast term lookup), and serve (scatter-gather across shards, score, and rank). The inverted index is the critical data structure \u2014 it turns a query for terms into a list of matching documents in milliseconds. The hardest operational challenge is tail latency across thousands of shards."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Search engines deal with text. The next system \u2014 a video streaming platform \u2014 deals with massive binary data that must be transcoded, stored, and delivered globally with adaptive quality. The CDN and storage challenges are an order of magnitude larger."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What data structure is fundamental to how search engines work?",
+      "options": [
+        "B-tree",
+        "Inverted index",
+        "Hash table"
+      ],
+      "correctIndex": 1,
+      "explanation": "An inverted index maps terms to the documents containing them, enabling fast lookups.",
+      "encourageCorrect": "Exactly! The inverted index is the core data structure that makes search fast.",
+      "encourageIncorrect": "The inverted index maps terms to documents, turning a search query into fast document lookups."
+    },
+    {
+      "question": "What is the three-phase pipeline of a search engine?",
+      "options": [
+        "Parse, Execute, Return",
+        "Crawl, Index, Serve",
+        "Read, Process, Write"
+      ],
+      "correctIndex": 1,
+      "explanation": "Search engines crawl (discover pages), index (build inverted indexes), and serve (query and rank).",
+      "encourageCorrect": "Well done! Crawl, index, serve is the fundamental pipeline of every search engine.",
+      "encourageIncorrect": "The three phases are: Crawl (discover pages), Index (build inverted indexes), and Serve (query, score, rank)."
+    }
+  ]
+}

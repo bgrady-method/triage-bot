@@ -1,0 +1,73 @@
+{
+  "meta": {
+    "title": "5.2 GraphQL and gRPC",
+    "description": "When REST is not enough. GraphQL for flexible queries, gRPC for high-performance service-to-service calls.",
+    "level": "level-5",
+    "slug": "graphql-and-grpc",
+    "order": 2,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "A mobile app needs to display a user's profile with their name, avatar, 3 most recent posts, and follower count. With REST, this might require 3 API calls. Is there a better way?"
+    },
+    {
+      "type": "markdown",
+      "content": "## GraphQL\n\nA query language for APIs. Clients specify exactly what data they need in a single request.\n\n```graphql\nquery {\n  user(id: 123) {\n    name\n    avatar\n    posts(limit: 3) { title, createdAt }\n    followerCount\n  }\n}\n```\n\n**Solves:** Over-fetching (REST returns entire objects), under-fetching (need multiple REST calls), and the N+1 problem for related data.\n\n**Tradeoffs:**\n- Caching is harder (queries are dynamic, not URL-based)\n- Rate limiting is complex (one query can be cheap or expensive)\n- Backend complexity increases (resolver chains, N+1 in resolvers)\n- Monitoring is harder (all requests go to one endpoint)\n\n**Best for:** Mobile apps (bandwidth-sensitive), frontend teams that need flexibility, APIs with complex relational data.\n\n## gRPC\n\nGoogle's RPC framework using HTTP/2 and Protocol Buffers.\n\n```protobuf\nservice UserService {\n  rpc GetUser(GetUserRequest) returns (User);\n  rpc ListUsers(ListUsersRequest) returns (stream User);\n}\n```\n\n**Advantages over REST:**\n- 2-10x smaller payloads (binary Protobuf vs JSON)\n- Code generation for type-safe clients in any language\n- Streaming support (server, client, bidirectional)\n- HTTP/2 multiplexing built-in\n\n**Tradeoffs:**\n- Browser support requires gRPC-Web proxy\n- Not human-readable (binary format)\n- Harder to debug with curl\n\n**Best for:** Internal service-to-service calls, mobile clients (bandwidth efficiency), streaming use cases.\n\n## When to use what\n\n| Scenario | Best Choice | Why |\n|---|---|---|\n| Public-facing API | REST | Universal, well-understood, cacheable |\n| Mobile app with complex data | GraphQL | Flexible queries, minimal bandwidth |\n| Service-to-service (internal) | gRPC | Fast, typed, streaming |\n| Browser real-time | WebSockets/SSE | Bidirectional or server push |\n| Simple CRUD with few clients | REST | Simplicity wins |"
+    },
+    {
+      "type": "practiceSet",
+      "title": "API Protocol Practice",
+      "problems": [
+        {
+          "id": "sd-5-2-1",
+          "question": "A microservices platform has 50 internal services that communicate heavily. Each service team maintains its own API contracts. Services are written in Go, Java, and Python. Which API technology would provide the most benefit for internal communication?",
+          "options": [
+            "A) REST with OpenAPI specifications for documentation",
+            "B) gRPC with Protocol Buffers for type-safe, language-agnostic contracts",
+            "C) GraphQL with a federated schema across all services"
+          ],
+          "correctAnswer": "B",
+          "explanation": "gRPC with Protobuf is ideal for internal service-to-service communication across multiple languages. It provides: (1) type-safe code generation in Go, Java, and Python from shared .proto files, (2) 2-10x better performance than JSON/REST (binary serialization, HTTP/2), (3) streaming support for real-time data, (4) backward-compatible schema evolution. REST with OpenAPI (A) would work but lacks code generation quality and performance. GraphQL (C) is designed for client-facing flexibility, not service-to-service \u2014 it adds unnecessary complexity for internal calls.",
+          "difficulty": "intermediate"
+        }
+      ]
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "GraphQL lets clients request exactly the data they need \u2014 ideal for mobile and complex UIs. gRPC provides high-performance, type-safe service-to-service communication with code generation. REST remains the default for public APIs. Choose based on your use case, not hype."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "APIs are synchronous: call and wait. Module 5.3 introduces asynchronous patterns \u2014 webhooks and event-driven APIs where the server pushes data when ready."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What problem does GraphQL solve compared to REST?",
+      "options": [
+        "Faster database queries",
+        "Over-fetching and under-fetching of data",
+        "Better security"
+      ],
+      "correctIndex": 1,
+      "explanation": "GraphQL lets clients request exactly the data they need, avoiding REST over-fetching and under-fetching.",
+      "encourageCorrect": "Exactly! One flexible query replaces multiple REST endpoints.",
+      "encourageIncorrect": "GraphQL solves over-fetching (too much data) and under-fetching (too many calls) problems of REST."
+    },
+    {
+      "question": "What makes gRPC well-suited for service-to-service communication?",
+      "options": [
+        "It uses JSON for easy debugging",
+        "It uses Protocol Buffers for efficient binary serialization and code generation",
+        "It requires no schema definition"
+      ],
+      "correctIndex": 1,
+      "explanation": "gRPC uses Protocol Buffers for compact binary serialization and generates client/server code.",
+      "encourageCorrect": "Right! Protocol Buffers + code generation make gRPC fast and type-safe.",
+      "encourageIncorrect": "gRPC uses Protocol Buffers for efficient binary serialization and generates client/server code automatically."
+    }
+  ]
+}

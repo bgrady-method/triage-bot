@@ -1,0 +1,65 @@
+{
+  "meta": {
+    "title": "13.3 Design a Chat System",
+    "description": "Design a real-time chat system like WhatsApp or Slack \u2014 WebSocket connections, message storage, delivery guarantees, and presence.",
+    "level": "level-13",
+    "slug": "design-chat-system",
+    "order": 3,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "When you send a message on WhatsApp and see two blue checkmarks, what had to happen on the backend? Think about the journey of that message through multiple servers. How does the system guarantee the message was not lost even if a server crashes mid-delivery?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Requirements\n\n**Functional:**\n- 1:1 messaging between users\n- Group chats (up to 500 members)\n- Sent/delivered/read receipts\n- Online/offline presence indicators\n- Message history and search\n- Push notifications for offline users\n- Media sharing (images, files)\n\n**Non-functional:**\n- Message delivery latency under 200ms for online users\n- Messages must never be lost (durability)\n- Messages must be delivered in order within a conversation\n- Support 50M concurrent connected users\n- 99.99% availability\n\n## Estimation\n\n```\nDAU: 500M users\nConcurrent connections: 50M (10% of DAU online at any time)\nMessages/user/day: 40\nTotal messages/day: 500M x 40 = 20 billion\nMessage QPS: 20B / 86,400 ~ 230K msg/sec (peak ~700K/sec)\n\nAvg message size: 200 bytes text + 100 bytes metadata = 300 bytes\nStorage/day: 20B x 300B = 6 TB/day\nStorage/year: ~2.2 PB\n\nConcurrent WebSocket connections: 50M\nAt ~10KB memory per connection: 50M x 10KB = 500 GB RAM for connections\nWith 32GB usable RAM per server: ~16 servers minimum just for connections\n(In practice, 50-100 servers for headroom)\n```\n\n## API Design\n\n**REST endpoints:**\n```\nPOST /api/v1/auth/connect    -> Returns WebSocket ticket\nGET  /api/v1/conversations    -> List user's conversations\nGET  /api/v1/conversations/{id}/messages?before={cursor}&limit=50\nPOST /api/v1/conversations/{id}/media/upload\n```\n\n**WebSocket protocol (bidirectional):**\n```\nClient -> Server:\n  { \"type\": \"send\", \"conv_id\": \"c123\", \"msg_id\": \"m456\",\n    \"text\": \"Hello\", \"timestamp\": 1710000000 }\n  { \"type\": \"ack\", \"msg_id\": \"m456\" }     // delivery receipt\n  { \"type\": \"read\", \"conv_id\": \"c123\", \"up_to\": \"m456\" }\n\nServer -> Client:\n  { \"type\": \"message\", \"conv_id\": \"c123\", \"msg_id\": \"m789\",\n    \"from\": \"user1\", \"text\": \"Hi!\", \"timestamp\": 1710000001 }\n  { \"type\": \"sent\", \"msg_id\": \"m456\" }    // server received it\n  { \"type\": \"delivered\", \"msg_id\": \"m456\" } // recipient got it\n  { \"type\": \"presence\", \"user_id\": \"u1\", \"status\": \"online\" }\n```\n\n## Data Model\n\n```\nusers:\n  user_id: bigint PK\n  username: varchar\n  last_seen: timestamp\n\nconversations:\n  conv_id: bigint PK\n  type: enum(DIRECT, GROUP)\n  created_at: timestamp\n\nconversation_members:\n  conv_id: bigint\n  user_id: bigint\n  joined_at: timestamp\n  last_read_msg_id: bigint\n  PRIMARY KEY (conv_id, user_id)\n  INDEX (user_id)  -- find all conversations for a user\n\nmessages:\n  msg_id: bigint (Snowflake ID -- encodes timestamp + ordering)\n  conv_id: bigint\n  sender_id: bigint\n  content: text\n  content_type: enum(TEXT, IMAGE, FILE)\n  media_url: varchar (nullable)\n  created_at: timestamp\n  PRIMARY KEY (conv_id, msg_id)  -- messages clustered by conversation\n```\n\nSharding strategy: shard the `messages` table by `conv_id`. All messages in a conversation live on the same shard, so fetching conversation history is a single-shard query.\n\n## High-Level Architecture\n\n```\n                                 +--------------------+\n   Mobile/Web <--WebSocket-->    | WebSocket Gateway  |\n   Clients                       | (stateful, holds   |\n                                 |  connections)       |\n                                 +---------+----------+\n                                           |\n                                 +---------+----------+\n                                 |  Chat Service       |\n                                 |  (stateless,        |\n                                 |   message routing)  |\n                                 +---+-----+-----+----+\n                                     |     |     |\n                    +----------------+     |     +----------------+\n                    |                      |                      |\n           +--------+--------+   +--------+--------+   +---------+--------+\n           | Message Store   |   | Presence Service |   | Push Service     |\n           | (Cassandra,     |   | (Redis, pub/sub) |   | (APNs, FCM)      |\n           |  sharded by     |   |                  |   |                  |\n           |  conv_id)       |   |                  |   |                  |\n           +-----------------+   +------------------+   +------------------+\n```\n\n## Message Delivery Flow\n\n**User A sends a message to User B:**\n\n1. A's client sends message over WebSocket to Gateway Server G1\n2. G1 forwards to Chat Service\n3. Chat Service writes message to Message Store (durable)\n4. Chat Service sends `sent` receipt back to A via G1\n5. Chat Service looks up B's connection: which Gateway Server is B connected to?\n   - Check **Session Registry** (Redis hash: user_id -> gateway_server_id)\n6. If B is online on G2: forward message to G2 -> G2 pushes to B over WebSocket\n7. B's client sends `ack` -> Chat Service sends `delivered` receipt to A\n8. If B is offline: enqueue push notification via Push Service\n\n**The Session Registry is critical.** It maps each online user to the Gateway Server holding their WebSocket connection. Implementation: Redis hash with TTL. Gateway servers heartbeat to keep entries alive. On disconnect, entry is removed.\n\n## Delivery Guarantees\n\n**At-least-once delivery:** Messages are persisted before acknowledging to the sender. If a server crashes after persisting but before delivering, a background job scans for undelivered messages and retries. Clients deduplicate using `msg_id`.\n\n**Ordering within a conversation:** Snowflake IDs encode timestamps and guarantee ordering. Messages within a conversation are stored sorted by msg_id. Clients display messages in msg_id order.\n\n**Ordering across conversations:** Not guaranteed and not needed. Each conversation is an independent ordered stream.\n\n## Group Chat Delivery\n\nFor a group of N members, sending a message means delivering to N-1 recipients. Two approaches:\n\n**Small groups (under 500):** Fan-out on write. The Chat Service iterates through group members, checks each member's Gateway Server, and delivers individually. At 500 members, this is 500 lookups \u2014 fast enough.\n\n**Very large groups (thousands, like a broadcast channel):** Use pub/sub. Each group is a Redis pub/sub channel. Gateway Servers subscribe to channels for their connected users. A single publish fans out to all subscribed Gateway Servers.\n\n## Presence Service\n\nPresence (online/offline/typing) is high-frequency and ephemeral \u2014 you do not need durability.\n\n- Store presence in Redis with short TTL (30 seconds)\n- Clients send heartbeats every 10 seconds to refresh TTL\n- When TTL expires, user transitions to offline\n- Presence changes are broadcast only to users who are in active conversations with the changed user (not to all contacts \u2014 that does not scale)"
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "Your chat system has 50M concurrent WebSocket connections spread across 100 Gateway Servers. A Gateway Server crashes, dropping 500K connections. What happens to in-flight messages, and how do clients recover?",
+      "answer": "**In-flight messages are safe** because messages are persisted to the Message Store *before* delivery is attempted. The sender already received a `sent` receipt. Messages that were persisted but not yet delivered to recipients on the crashed Gateway Server are effectively in a 'pending delivery' state.\n\n**Client recovery process:** (1) Clients detect the broken WebSocket and reconnect \u2014 load balancer routes them to a healthy Gateway Server. (2) On reconnect, the client sends its `last_received_msg_id` for each active conversation. (3) The Chat Service queries the Message Store for any messages with msg_id > last_received_msg_id and delivers them. (4) The Session Registry is updated to point the user's ID to the new Gateway Server.\n\n**Key insight:** Reconnect storms are dangerous. 500K clients reconnecting simultaneously will overload remaining Gateway Servers and the Session Registry. Mitigate with: (1) exponential backoff with jitter on client reconnects, (2) over-provisioning Gateway Servers so 100 can absorb the load of 99, (3) circuit breakers on the Session Registry to shed load gracefully."
+    },
+    {
+      "type": "tryItYourself",
+      "title": "Extend this design to support end-to-end encryption (E2EE) like Signal/WhatsApp. Consider: Where are encryption keys stored? Can the server read messages? How does a new device get message history? What changes in the architecture?",
+      "solution": "**With E2EE, the server cannot read message content.** Each user has a public/private key pair. The private key lives only on the user's device, never on the server. Messages are encrypted with the recipient's public key before leaving the sender's device. The server stores and forwards ciphertext it cannot decrypt.\n\n**Key distribution:** The server maintains a public key registry. When User A wants to message User B, A fetches B's public key from the registry and encrypts locally. For group chats, the sender encrypts the message once with a shared group key, and the group key itself is encrypted per-member with each member's public key.\n\n**New device challenge:** Since the server has only ciphertext, a new device cannot fetch readable history from the server. Solutions: (1) The user transfers history from their old device over a local connection (WhatsApp approach). (2) The user backs up an encrypted copy of their history to cloud storage, encrypted with a user-chosen passphrase.\n\n**Architecture changes:** (1) Message Store stores ciphertext \u2014 no change to storage architecture. (2) Server-side search is impossible \u2014 search must happen on-device. (3) Push notification previews must be sent as a separate, device-decryptable payload. (4) You need a Key Distribution Service to manage public keys, and a protocol to handle key rotation when devices change."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "A chat system's core challenge is maintaining millions of persistent connections and routing messages between them with low latency and guaranteed delivery. The key architectural decisions are: stateful WebSocket Gateways (with a Session Registry for routing), write-ahead persistence (persist before delivering to guarantee durability), and conversation-based sharding for the message store."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "A chat system delivers messages to specific recipients. The next system \u2014 a news feed \u2014 has the opposite challenge: one piece of content must reach thousands or millions of followers. The fan-out problem becomes the central design decision."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What protocol is typically used for real-time chat message delivery?",
+      "options": [
+        "HTTP polling",
+        "WebSockets",
+        "SMTP"
+      ],
+      "correctIndex": 1,
+      "explanation": "WebSockets provide persistent, bidirectional connections needed for real-time message delivery.",
+      "encourageCorrect": "Right! WebSockets maintain a persistent connection for instant bidirectional messaging.",
+      "encourageIncorrect": "WebSockets are the standard \u2014 they provide persistent, bidirectional connections essential for real-time chat."
+    },
+    {
+      "question": "When should messages be persisted in a chat system?",
+      "options": [
+        "After delivery to the recipient",
+        "Before attempting delivery",
+        "Only when the recipient is offline"
+      ],
+      "correctIndex": 1,
+      "explanation": "Messages are persisted before delivery (write-ahead) to guarantee durability.",
+      "encourageCorrect": "Exactly! Write-ahead persistence ensures messages are never lost, even if a server crashes.",
+      "encourageIncorrect": "Messages should be persisted before delivery (write-ahead) to guarantee durability."
+    }
+  ]
+}

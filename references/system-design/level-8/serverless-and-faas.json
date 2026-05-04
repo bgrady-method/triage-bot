@@ -1,0 +1,55 @@
+{
+  "meta": {
+    "title": "8.5 Serverless and FaaS",
+    "description": "Lambda, Cloud Functions, edge functions. Cold starts, execution limits, and serverless design patterns.",
+    "level": "level-8",
+    "slug": "serverless-and-faas",
+    "order": 5,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "You have an API that handles 10 requests/second on average but spikes to 10,000/second during sales events. You pay for servers 24/7 but only need capacity for minutes per day. Is there a better model?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Serverless: pay per invocation\n\nServerless platforms run your code on-demand, scaling automatically from zero to thousands of concurrent executions.\n\n| Platform | Provider | Runtime limit | Cold start |\n|---|---|---|---|\n| Lambda | AWS | 15 minutes | 100ms-2s |\n| Cloud Functions | GCP | 9 minutes | 100ms-1s |\n| Azure Functions | Azure | 10 minutes | 100ms-2s |\n| Cloudflare Workers | Cloudflare | 30s (free) | <1ms (V8 isolates) |\n\n### Cold starts\n\nWhen no instances are running, the first request must: provision a container, load your code, and initialize the runtime. This adds 100ms-2s latency.\n\n**Mitigation:** Provisioned concurrency (keep N instances warm), smaller deployment packages, choose faster runtimes (Go, Rust over Java).\n\n### Serverless design patterns\n\n**API + Lambda:** API Gateway \u2192 Lambda \u2192 DynamoDB. No servers to manage.\n**Event processing:** S3 upload \u2192 Lambda \u2192 process image \u2192 save to S3.\n**Scheduled tasks:** CloudWatch Events \u2192 Lambda. Cron without servers.\n**Stream processing:** Kafka/Kinesis \u2192 Lambda. Auto-scaling consumers.\n\n### When serverless fits\n\n- Spiky, unpredictable traffic (pay nothing during quiet periods)\n- Event-driven processing (file uploads, webhooks, queue consumers)\n- APIs with low-medium traffic (<1000 RPS)\n- Rapid prototyping (no infrastructure to set up)\n\n### When serverless does NOT fit\n\n- Consistent high traffic (always-on servers are cheaper)\n- Long-running processes (>15 minute limit)\n- Stateful workloads (WebSocket connections, in-memory caches)\n- Sub-10ms latency requirements (cold starts)"
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Serverless (Lambda, Cloud Functions) scales automatically and charges per invocation \u2014 ideal for spiky traffic and event processing. Cold starts add latency (100ms-2s). Not suitable for high-throughput steady-state workloads or long-running processes."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 8.6 covers the cross-cutting concerns that every production system needs regardless of architecture: observability, configuration, and service discovery."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What is a cold start in serverless computing?",
+      "options": [
+        "When the server runs out of memory",
+        "The delay when a new instance must be provisioned, code loaded, and runtime initialized",
+        "When the function times out"
+      ],
+      "correctIndex": 1,
+      "explanation": "A cold start adds 100ms-2s when no instances are running and one must be spun up.",
+      "encourageCorrect": "That is right! Cold starts are the primary latency concern with serverless.",
+      "encourageIncorrect": "A cold start is the delay (100ms-2s) when a new instance must be provisioned and initialized."
+    },
+    {
+      "question": "What is serverless best suited for?",
+      "options": [
+        "High-throughput steady-state workloads",
+        "Spiky traffic and event-driven processing",
+        "Long-running background processes"
+      ],
+      "correctIndex": 1,
+      "explanation": "Serverless excels at spiky, event-driven workloads with automatic scaling.",
+      "encourageCorrect": "Exactly! Pay only when code runs, and scale from zero automatically.",
+      "encourageIncorrect": "Serverless is ideal for spiky traffic and event-driven processing \u2014 scales from zero, pay per invocation."
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "title": "3.2 NoSQL Taxonomy",
+    "description": "Document stores, key-value stores, wide-column stores, and graph databases. What each solves and when to choose each.",
+    "level": "level-3",
+    "slug": "nosql-taxonomy",
+    "order": 2,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "You need to store user profiles that vary wildly in structure \u2014 some users have 5 fields, others have 50. Some have nested arrays of addresses. Would you force this into a rigid SQL schema or use something else?"
+    },
+    {
+      "type": "markdown",
+      "content": "## The NoSQL landscape\n\nNoSQL is not one thing \u2014 it is four distinct database categories, each optimized for different access patterns.\n\n### Key-Value Stores\n\nThe simplest model: a hash map at scale. Store and retrieve values by key.\n\n| Database | Use Case | Differentiator |\n|---|---|---|\n| Redis | Caching, sessions, leaderboards | In-memory, data structures (lists, sets, sorted sets) |\n| DynamoDB | Serverless apps, gaming | Managed, auto-scaling, single-digit ms at any scale |\n| etcd | Config, service discovery | Strong consistency, used by Kubernetes |\n\n**Best for:** Caching, session storage, simple lookups where you always access by primary key.\n**Worst for:** Complex queries, joins, relationships between entities.\n\n### Document Stores\n\nStore semi-structured documents (JSON/BSON). Each document can have a different structure.\n\n| Database | Use Case | Differentiator |\n|---|---|---|\n| MongoDB | General purpose, content management | Flexible schema, rich query language |\n| CouchDB | Offline-first, sync | Multi-master replication, conflict resolution |\n| Firestore | Mobile/web apps | Real-time listeners, offline support |\n\n**Best for:** Varied schemas, nested data, content management, rapid prototyping.\n**Worst for:** Highly relational data, complex transactions across documents.\n\n### Wide-Column Stores\n\nRows with dynamic columns grouped into column families. Optimized for massive datasets with predictable query patterns.\n\n| Database | Use Case | Differentiator |\n|---|---|---|\n| Cassandra | Time-series, IoT, messaging | Masterless, linear scalability, tunable consistency |\n| HBase | Hadoop ecosystem, analytics | Strong consistency, Hadoop integration |\n| ScyllaDB | High-throughput, low-latency | C++ rewrite of Cassandra, 10x performance |\n\n**Best for:** Write-heavy workloads, time-series data, very large datasets (100TB+).\n**Worst for:** Ad-hoc queries, frequent schema changes, small datasets.\n\n### Graph Databases\n\nStore nodes and edges (relationships) as first-class citizens. Traverse relationships in O(1) per hop.\n\n| Database | Use Case | Differentiator |\n|---|---|---|\n| Neo4j | Social networks, recommendations | Cypher query language, ACID |\n| Amazon Neptune | Knowledge graphs, fraud detection | Managed, supports Gremlin and SPARQL |\n| Dgraph | Distributed graph | GraphQL-native, horizontal scaling |\n\n**Best for:** Social graphs, recommendation engines, fraud detection, knowledge graphs.\n**Worst for:** Simple CRUD, tabular data, bulk analytics.\n\n## Decision framework\n\n| If you need... | Choose... |\n|---|---|\n| Flexible schemas, nested documents | Document store |\n| Ultra-fast lookups by key | Key-value store |\n| Massive write throughput, time-series | Wide-column store |\n| Relationship traversal | Graph database |\n| Complex queries, JOINs, ACID | Relational (SQL) |"
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "A social media platform needs to store user posts (text, images, reactions), user relationships (follows, blocks), and a real-time activity feed. Would you use one database or multiple? Which types?",
+      "answer": "**Use multiple databases (polyglot persistence):**\n\n1. **Document store (MongoDB)** for posts \u2014 posts have variable structure (text, images, polls, links), nested data (reactions, comments), and are typically accessed individually or as a list.\n\n2. **Graph database (Neo4j)** for relationships \u2014 \"who follows whom,\" friend-of-friend queries, and recommendations all require efficient relationship traversal. A SQL JOIN across millions of relationships is prohibitively slow.\n\n3. **Key-value store (Redis)** for the activity feed \u2014 pre-computed feeds stored as sorted lists, with millisecond access times. Redis sorted sets naturally handle \"most recent N items.\"\n\n4. **Relational database (PostgreSQL)** for user accounts, authentication, and billing \u2014 these need ACID transactions and strong consistency.\n\nThis is a classic polyglot persistence architecture where each database handles what it does best."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "NoSQL is four categories: key-value (simple lookups), document (flexible schemas), wide-column (massive writes), and graph (relationships). Each solves a different problem. The right answer is often multiple databases, each handling what it does best."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "You have chosen your database. Now how do you handle growth? Module 3.3 covers replication \u2014 keeping copies of your data across multiple machines for availability and read scaling."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What are the four categories of NoSQL databases?",
+      "options": [
+        "SQL, NoSQL, NewSQL, Graph",
+        "Key-Value, Document, Wide-Column, Graph",
+        "Redis, MongoDB, Cassandra, Neo4j"
+      ],
+      "correctIndex": 1,
+      "explanation": "NoSQL has four categories: key-value, document, wide-column, and graph.",
+      "encourageCorrect": "Perfect! Each category is optimized for a different access pattern.",
+      "encourageIncorrect": "The four categories are Key-Value, Document, Wide-Column, and Graph."
+    },
+    {
+      "question": "Which NoSQL category is best for relationship-heavy queries?",
+      "options": [
+        "Key-value store",
+        "Document store",
+        "Graph database"
+      ],
+      "correctIndex": 2,
+      "explanation": "Graph databases are purpose-built for traversing relationships efficiently.",
+      "encourageCorrect": "That is right! Graph databases make relationship traversals trivially fast.",
+      "encourageIncorrect": "Graph databases are best for relationships \u2014 they traverse connections efficiently."
+    }
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "meta": {
+    "title": "7.1 Event-Driven Architecture",
+    "description": "Events vs commands, event bus, choreography vs orchestration, and eventual consistency as a feature.",
+    "level": "level-7",
+    "slug": "event-driven-architecture",
+    "order": 1,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "In a traditional architecture, the OrderService directly calls InventoryService, PaymentService, and EmailService. What happens when you need to add a 4th service (AnalyticsService)? And a 5th? How does this coupling grow over time?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Events vs Commands vs Queries\n\n**Command:** \"Do this.\" Directed at a specific recipient. `CreateOrder`, `SendEmail`. Imperative.\n**Event:** \"This happened.\" Broadcast to anyone interested. `OrderCreated`, `PaymentFailed`. Past tense.\n**Query:** \"Tell me this.\" Request for information. `GetUser`, `ListOrders`. No side effects.\n\nThe key insight: **commands create coupling** (sender knows the receiver). **Events create decoupling** (sender does not know or care who listens).\n\n## Event-Driven Architecture (EDA)\n\nServices communicate by producing and consuming events through a message broker (Kafka, EventBridge).\n\n```\nOrderService \u2192 publishes OrderCreated event\n  \u2192 InventoryService listens, reserves stock\n  \u2192 PaymentService listens, charges customer\n  \u2192 EmailService listens, sends confirmation\n  \u2192 AnalyticsService listens, records metrics\n```\n\nAdding AnalyticsService required zero changes to OrderService. This is the power of EDA.\n\n### Event sourcing vs event-driven\n\nThese are different concepts that are often confused:\n\n- **Event-driven:** Services communicate via events. State is stored normally (current state in DB).\n- **Event sourcing:** State IS the event log. Current state is derived by replaying events.\n\nYou can use event-driven architecture without event sourcing (most common), event sourcing without event-driven communication (rare), or both together.\n\n### Eventual consistency as a feature\n\nIn EDA, services process events asynchronously. The system is eventually consistent. This is not a bug \u2014 it is a design choice that enables:\n- **Loose coupling:** Services evolve independently\n- **Resilience:** One service being down does not block others\n- **Scalability:** Each service scales independently\n\n**Real-world example:** When you place an Amazon order, you immediately see 'Order Placed.' Inventory reservation, payment processing, and warehouse notification happen asynchronously. The order page updates as each step completes."
+    },
+    {
+      "type": "practiceSet",
+      "title": "EDA Practice",
+      "problems": [
+        {
+          "id": "sd-7-1-1",
+          "question": "A monolithic e-commerce application is being decomposed into microservices. The order creation flow currently calls inventory, payment, and notification functions directly in a single transaction. Which approach best preserves reliability while enabling service independence?",
+          "options": [
+            "A) Replace direct function calls with synchronous HTTP calls between services",
+            "B) Publish an OrderCreated event to a message broker and let each service react independently",
+            "C) Use a distributed transaction (2PC) across all three services"
+          ],
+          "correctAnswer": "B",
+          "explanation": "Publishing an OrderCreated event (B) enables service independence \u2014 each service subscribes to the event and processes it at its own pace. This is the core EDA pattern. Option A replaces in-process coupling with network coupling (worse \u2014 now you have network failures). Option C (2PC) is technically possible but creates tight coupling, reduces availability, and is operationally complex. The tradeoff with events is eventual consistency \u2014 the order is created before payment is confirmed \u2014 but this matches real-world business processes (orders are placed, then fulfilled).",
+          "difficulty": "intermediate"
+        }
+      ]
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Event-driven architecture decouples services through asynchronous events. Commands create coupling; events create freedom. Eventual consistency is a feature, not a bug \u2014 it enables loose coupling, resilience, and independent scalability."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 7.2 covers CQRS \u2014 separating read and write models when they have fundamentally different needs."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What is the key difference between a command and an event?",
+      "options": [
+        "Commands are faster than events",
+        "Commands are directed at a specific recipient; events are broadcast to anyone interested",
+        "Events are more secure than commands"
+      ],
+      "correctIndex": 1,
+      "explanation": "Commands create coupling. Events create decoupling \u2014 the sender does not know who listens.",
+      "encourageCorrect": "Exactly! Events decouple services \u2014 the publisher does not care who consumes.",
+      "encourageIncorrect": "Commands are directed (creating coupling). Events are broadcast (creating decoupling)."
+    },
+    {
+      "question": "What naming convention do events typically use?",
+      "options": [
+        "Imperative mood like CreateOrder",
+        "Past tense like OrderCreated",
+        "Present tense like OrderCreating"
+      ],
+      "correctIndex": 1,
+      "explanation": "Events describe something that already happened, so they use past tense.",
+      "encourageCorrect": "Right! Events describe things that already happened \u2014 past tense is the convention.",
+      "encourageIncorrect": "Events use past tense (OrderCreated, PaymentFailed) because they describe things that already happened."
+    }
+  ]
+}

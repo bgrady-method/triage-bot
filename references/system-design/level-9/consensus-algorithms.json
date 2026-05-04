@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "title": "9.2 Consensus Algorithms",
+    "description": "Raft and Paxos. How distributed systems agree on values. Leader election, log replication, and safety guarantees.",
+    "level": "level-9",
+    "slug": "consensus-algorithms",
+    "order": 2,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "Five servers need to agree on who is the leader. Two servers cannot communicate with the other three (network partition). How do the remaining three safely elect a new leader without risking two leaders?"
+    },
+    {
+      "type": "markdown",
+      "content": "## The consensus problem\n\nMultiple nodes must agree on a value (e.g., the next entry in a replicated log) even if some nodes fail or are unreachable. Requirements: (1) **Agreement:** All non-faulty nodes agree on the same value. (2) **Validity:** The agreed value was proposed by some node. (3) **Termination:** Non-faulty nodes eventually decide.\n\n## Raft: consensus made understandable\n\nRaft separates consensus into three sub-problems:\n\n### 1. Leader election\n- Nodes are in one of three states: follower, candidate, leader\n- Followers become candidates if they do not hear from the leader (election timeout)\n- Candidate requests votes from all nodes. Wins if it gets majority.\n- Only one leader per term (terms are monotonically increasing integers)\n\n### 2. Log replication\n- Leader receives client requests, appends to its log\n- Replicates log entries to followers\n- Entry is committed when majority acknowledges\n- Leader notifies followers of committed entries\n\n### 3. Safety\n- A candidate cannot win an election if its log is behind other nodes\n- Committed entries are never lost (guaranteed by majority overlap)\n\n**Why majority matters:** With 5 nodes, any two majorities (3 nodes each) share at least one member. This member has the committed entry, ensuring it is not lost.\n\n## Raft vs Paxos\n\n| | Raft | Paxos |\n|---|---|---|\n| Understandability | Designed to be understandable | Notoriously difficult |\n| Leader | Strong leader model | Multi-decree; leader is optimization |\n| Used by | etcd, Consul, CockroachDB | Google Chubby, Spanner |\n| Implementation | Many open-source implementations | Fewer; often custom variants |\n\n**For interviews:** Understand Raft deeply. Mention Paxos as the theoretical predecessor. Know that both guarantee safety (never disagree) and liveness (eventually decide, if majority is available)."
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "A 5-node Raft cluster loses 2 nodes. Can it still process requests? What about 3 nodes lost?",
+      "answer": "**2 nodes lost: Yes.** The remaining 3 nodes form a majority (3/5). The leader (or a newly elected one) can still commit entries because majority agreement is achievable. **3 nodes lost: No.** The remaining 2 nodes cannot form a majority (need 3/5). The cluster cannot elect a leader or commit new entries. It is unavailable until at least one more node recovers. This is the CP tradeoff \u2014 the cluster sacrifices availability to prevent inconsistency (split brain). **Design implication:** Use 3 nodes (tolerates 1 failure) or 5 nodes (tolerates 2 failures). Even numbers are bad \u2014 4 nodes still only tolerates 1 failure (need 3/4 majority) with more overhead."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Raft provides consensus through leader election, log replication, and majority-based commits. A cluster of N nodes tolerates (N-1)/2 failures. Use odd numbers of nodes (3 or 5). Raft is the preferred choice for new systems; Paxos is the theoretical foundation."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Consensus tells nodes what happened. Module 9.3 covers distributed clocks \u2014 how nodes agree on WHEN things happened."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "How many node failures can a 5-node Raft cluster tolerate?",
+      "options": [
+        "1",
+        "2",
+        "3"
+      ],
+      "correctIndex": 1,
+      "explanation": "A 5-node cluster tolerates (5-1)/2 = 2 failures. 3 remaining nodes form a majority.",
+      "encourageCorrect": "Exactly! 3 out of 5 nodes form a majority, so the cluster keeps working.",
+      "encourageIncorrect": "A 5-node cluster tolerates 2 failures. The formula is (N-1)/2."
+    },
+    {
+      "question": "Why should Raft clusters use an odd number of nodes?",
+      "options": [
+        "Odd numbers are faster",
+        "Even numbers waste a node \u2014 4 nodes tolerates only 1 failure, same as 3",
+        "The algorithm requires odd numbers"
+      ],
+      "correctIndex": 1,
+      "explanation": "4 nodes needs 3 for majority, tolerating only 1 failure \u2014 same as 3 nodes.",
+      "encourageCorrect": "Well reasoned! The 4th node adds cost without improving fault tolerance.",
+      "encourageIncorrect": "Even numbers waste resources \u2014 4 nodes tolerates 1 failure, same as 3 nodes."
+    }
+  ]
+}

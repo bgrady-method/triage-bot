@@ -1,0 +1,55 @@
+{
+  "meta": {
+    "title": "11.3 Event Sourcing and CQRS",
+    "description": "Storing events instead of state. Event stores, projections, snapshots, and combining with CQRS.",
+    "level": "level-11",
+    "slug": "event-sourcing-and-cqrs",
+    "order": 3,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "A traditional database stores current state: account balance = $500. You cannot tell how it got there. What if you could replay every transaction that led to that balance?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Event sourcing\n\nInstead of storing current state, store a sequence of events. Current state is derived by replaying events.\n\n```\nTraditional: accounts SET balance = 500 WHERE id = 123\n\nEvent sourced:\n  AccountCreated(id=123, balance=0)\n  MoneyDeposited(id=123, amount=1000)\n  MoneyWithdrawn(id=123, amount=300)\n  MoneyWithdrawn(id=123, amount=200)\n  \u2192 Replay: 0 + 1000 - 300 - 200 = $500\n```\n\n### Benefits\n- **Complete audit trail:** Every change is recorded\n- **Time travel:** Rebuild state at any point in time\n- **Debugging:** Replay events to reproduce bugs\n- **New projections:** Build new read models from existing events\n\n### Challenges\n- **Event schema evolution:** Old events must remain valid as schema changes\n- **Replay performance:** Replaying millions of events is slow \u2192 use snapshots\n- **Eventual consistency:** Read models are built asynchronously\n- **Complexity:** Significantly more complex than CRUD\n\n### Snapshots\nPeriodically save the current state. Replay only events after the snapshot.\n\n### Combining with CQRS\nEvent sourcing naturally pairs with CQRS: events are the write model, projections (materialized views) are the read models. Each read model subscribes to events and builds its optimized view.\n\n### When to use event sourcing\n- Audit requirements (finance, healthcare, legal)\n- Complex domain logic that benefits from event replay\n- Systems where different views of the same data are needed\n\n### When NOT to use\n- Simple CRUD applications\n- When the team lacks experience with eventual consistency\n- When audit requirements can be met with simpler approaches (CDC, audit tables)"
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Event sourcing stores events as the source of truth \u2014 current state is derived by replaying them. Provides complete audit trail, time travel, and flexible projections. Use snapshots for performance. Pairs naturally with CQRS. Significantly more complex than CRUD \u2014 use only when the benefits justify the cost."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 11.4 covers Change Data Capture \u2014 a lighter-weight alternative to event sourcing for keeping systems in sync."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "In event sourcing, what is the source of truth?",
+      "options": [
+        "The current state in the database",
+        "The sequence of events",
+        "The latest snapshot"
+      ],
+      "correctIndex": 1,
+      "explanation": "Event sourcing stores events as the source of truth \u2014 current state is derived by replaying the sequence of events.",
+      "encourageCorrect": "Perfect! Events are immutable facts, and current state is just a projection of those events.",
+      "encourageIncorrect": "In event sourcing, the sequence of events is the source of truth. Current state is derived by replaying those events."
+    },
+    {
+      "question": "Why are snapshots used in event sourcing?",
+      "options": [
+        "To reduce storage costs",
+        "To speed up state reconstruction by avoiding replaying all events",
+        "To enable real-time queries"
+      ],
+      "correctIndex": 1,
+      "explanation": "Snapshots store the state at a point in time, so you only replay events after the snapshot.",
+      "encourageCorrect": "Exactly! Snapshots are a performance optimization \u2014 replay from the snapshot instead of the very beginning.",
+      "encourageIncorrect": "Snapshots speed up state reconstruction \u2014 load the snapshot and replay only recent events."
+    }
+  ]
+}

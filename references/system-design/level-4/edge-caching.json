@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "title": "4.5 Edge Caching",
+    "description": "Caching at the CDN edge, stale-while-revalidate, edge compute, and personalized content at the edge.",
+    "level": "level-4",
+    "slug": "edge-caching",
+    "order": 5,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "A product page on an e-commerce site is 90% identical for all users but 10% personalized (cart count, recommended products). Can you cache this page at the CDN edge? How would you handle the personalized parts?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Edge caching strategies\n\n### Cache-Control headers\n\nThe primary mechanism for controlling CDN caching:\n\n```\nCache-Control: public, max-age=3600          # Cache for 1 hour\nCache-Control: private, no-cache              # Don't cache at CDN\nCache-Control: public, s-maxage=60            # CDN caches 60s, browser different\nCache-Control: public, stale-while-revalidate=300  # Serve stale for 5min while refreshing\n```\n\n### Stale-while-revalidate\n\nThe most powerful edge caching strategy. When the cached content expires:\n1. Serve the stale content immediately (fast!)\n2. In the background, fetch fresh content from origin\n3. Update the cache for subsequent requests\n\n**Result:** Users never wait for origin. Content is at most one TTL period stale. Perfect for content that changes periodically but does not need real-time freshness.\n\n### Edge-Side Includes (ESI)\n\nAssemble pages at the edge from cacheable fragments. The page template is cached; dynamic fragments are fetched separately.\n\n```html\n<div class=\"header\">\n  <esi:include src=\"/api/cart-count\" />\n</div>\n<div class=\"product\">\n  <!-- cached product content -->\n</div>\n```\n\nCache the product content for hours. Fetch cart-count fresh (or cache with short TTL per user).\n\n### Personalization at the edge\n\n**Strategy 1: Client-side personalization.** Cache the generic page at the edge. Use JavaScript to fetch and render personalized elements after page load.\n\n**Strategy 2: Edge compute.** Run code at the CDN edge (Cloudflare Workers, Lambda@Edge) to inject personalized content based on cookies or geolocation.\n\n**Strategy 3: Vary header.** Cache different versions based on request characteristics: `Vary: Accept-Language` caches one version per language.\n\n### What NOT to cache at the edge\n\n- Authenticated API responses (unless using Vary on auth token \u2014 creates too many variants)\n- Real-time data (stock prices, live scores)\n- Write operations (POST, PUT, DELETE)\n- Content with high cardinality personalization (unique per user)"
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "Your marketing team launches a flash sale and product prices change. 200 CDN edge servers worldwide have the old prices cached with a 1-hour TTL. What is your fastest response?",
+      "answer": "**Fastest: Instant purge + stale-while-revalidate.** (1) Call the CDN's purge API to invalidate all product page caches globally. Fastly purges in <150ms; CloudFront in 5-10 minutes. (2) If you use stale-while-revalidate, users get the old price only until the background refresh completes (seconds). (3) Long-term fix: use versioned URLs for price-sensitive content, or reduce TTL for product pages to 60 seconds with stale-while-revalidate=3600 (serve stale for up to an hour, but refresh every 60s). This gives near-instant freshness with the resilience of long caching."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Stale-while-revalidate is the most powerful edge caching strategy \u2014 users never wait for origin. Handle personalization via client-side rendering, edge compute, or ESI fragments. Cache generic content aggressively and fetch personalized elements separately."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 4.6 is the checkpoint \u2014 design a complete caching strategy for an e-commerce product catalog, combining all levels from in-process to edge."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What does the stale-while-revalidate Cache-Control directive do?",
+      "options": [
+        "Forces the CDN to never serve stale content",
+        "Serves expired content immediately while fetching fresh content in the background",
+        "Caches content only at the browser level"
+      ],
+      "correctIndex": 1,
+      "explanation": "Stale-while-revalidate serves expired content instantly while refreshing in the background.",
+      "encourageCorrect": "Perfect! Users get instant responses while fresh content loads behind the scenes.",
+      "encourageIncorrect": "Stale-while-revalidate serves expired content to users while a background request fetches fresh data."
+    },
+    {
+      "question": "How should you handle personalized content with edge caching?",
+      "options": [
+        "Cache personalized pages with unique keys per user",
+        "Cache generic content aggressively and fetch personalized elements separately",
+        "Disable caching for all pages with any personalization"
+      ],
+      "correctIndex": 1,
+      "explanation": "Cache the generic shell at the edge and use client-side JS or ESI for personalized elements.",
+      "encourageCorrect": "That is right! Separate cacheable generic content from personalized bits.",
+      "encourageIncorrect": "Cache generic content aggressively at the edge and fetch personalized elements separately."
+    }
+  ]
+}

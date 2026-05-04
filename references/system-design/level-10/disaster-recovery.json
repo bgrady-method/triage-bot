@@ -1,0 +1,55 @@
+{
+  "meta": {
+    "title": "10.6 Disaster Recovery and Multi-Region",
+    "description": "RPO, RTO, active-active, active-passive, failover strategies, and multi-region data replication.",
+    "level": "level-10",
+    "slug": "disaster-recovery",
+    "order": 6,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "Your entire us-east-1 region goes down (this has happened). All your servers, databases, and caches are unavailable. How long can your business survive? What is your plan?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Key metrics\n\n**RPO (Recovery Point Objective):** How much data can you afford to lose? RPO=0 means no data loss. RPO=1hr means up to 1 hour of data loss is acceptable.\n\n**RTO (Recovery Time Objective):** How long can you be down? RTO=0 means no downtime. RTO=4hr means recovery within 4 hours.\n\n## Multi-region strategies\n\n### Active-Passive\nOne primary region handles all traffic. Standby region has replicated data. On failure, failover to standby.\n\n- **RTO:** Minutes to hours (depends on automation)\n- **RPO:** Seconds to minutes (depends on replication lag)\n- **Cost:** ~1.5x single region (standby runs minimal compute)\n\n### Active-Active\nBoth regions handle traffic simultaneously. Data is replicated bidirectionally.\n\n- **RTO:** Near zero (traffic automatically routes to surviving region)\n- **RPO:** Near zero (if synchronous replication) or seconds (if async)\n- **Cost:** 2x single region\n- **Complexity:** Much higher \u2014 conflict resolution, data consistency\n\n### Pilot Light\nMinimal standby environment (database replicas only). On failure, scale up compute in the standby region.\n\n- **RTO:** 15-60 minutes (time to scale up)\n- **RPO:** Seconds (database replication)\n- **Cost:** ~1.2x single region\n\n## Data replication\n\n| Strategy | RPO | Latency impact | Complexity |\n|---|---|---|---|\n| Synchronous replication | 0 | High (every write waits) | Medium |\n| Asynchronous replication | Seconds-minutes | None | Medium |\n| Semi-synchronous | Near-zero | Moderate | Medium |\n| Backup + restore | Hours | None | Low |\n\n## Failover testing\n\nA disaster recovery plan that has never been tested is not a plan \u2014 it is a hope. Test failover quarterly. Automate everything possible. Document manual steps with runbooks."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "RPO defines acceptable data loss; RTO defines acceptable downtime. Active-active provides the best RTO/RPO but at highest cost and complexity. Active-passive is the most common production setup. Test failover regularly \u2014 an untested DR plan is not a plan."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 10.7 is the checkpoint \u2014 design the resilience layer for a system that cannot afford downtime."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What does RPO (Recovery Point Objective) define?",
+      "options": [
+        "How long the system can be down",
+        "How much data loss is acceptable",
+        "How many servers must survive"
+      ],
+      "correctIndex": 1,
+      "explanation": "RPO defines the acceptable amount of data loss \u2014 RPO=0 means no data loss, RPO=1hr means up to 1 hour of data loss.",
+      "encourageCorrect": "Spot on! RPO is about data loss tolerance, while RTO is about downtime tolerance.",
+      "encourageIncorrect": "RPO defines acceptable data loss. RTO is the one about downtime."
+    },
+    {
+      "question": "What is the most common production DR strategy?",
+      "options": [
+        "Active-active",
+        "Active-passive",
+        "Cold backup"
+      ],
+      "correctIndex": 1,
+      "explanation": "Active-passive is the most common \u2014 one primary region handles traffic, a standby region has replicated data ready for failover.",
+      "encourageCorrect": "Right! Active-passive gives good protection at reasonable cost and complexity.",
+      "encourageIncorrect": "Active-passive is most common \u2014 one primary region serves traffic while a standby region has replicated data ready for failover."
+    }
+  ]
+}

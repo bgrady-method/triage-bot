@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "title": "7.7 Distributed Transaction Patterns",
+    "description": "Saga (orchestration and choreography), transactional outbox, compensating actions, and idempotency keys.",
+    "level": "level-7",
+    "slug": "distributed-transaction-patterns",
+    "order": 7,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "A travel booking requires: reserve flight, reserve hotel, charge payment. If the hotel is fully booked after the flight is reserved, how do you undo the flight reservation? There is no global ACID transaction across these three external services."
+    },
+    {
+      "type": "markdown",
+      "content": "## The saga pattern (deep dive)\n\nA saga is a sequence of local transactions coordinated through messages/events, where each step has a compensating action for rollback.\n\n### Orchestration Saga\n\nA central orchestrator directs each step:\n\n```\nBookingOrchestrator:\n  1. ReserveFlightService.reserve() \u2192 Success\n  2. ReserveHotelService.reserve() \u2192 FAILS\n  3. Compensate: ReserveFlightService.cancel()\n  4. Mark booking as failed\n```\n\n**Advantages:** Easy to understand the flow. Centralized state tracking. Easy to add monitoring and timeouts.\n**Disadvantages:** Orchestrator is a single point of complexity. Services are coupled to the orchestrator's protocol.\n\n### Choreography Saga\n\nEach service listens for events and publishes its own:\n\n```\nFlightService: reserves \u2192 publishes FlightReserved\nHotelService: listens for FlightReserved \u2192 reserves \u2192 publishes HotelReservationFailed\nFlightService: listens for HotelReservationFailed \u2192 cancels reservation\n```\n\n**Advantages:** No central coordinator. Services are loosely coupled.\n**Disadvantages:** Hard to track overall saga state. Debugging requires correlating events across services.\n\n## Transactional outbox\n\nGuarantees that database changes and event publishing happen atomically:\n\n```sql\nBEGIN TRANSACTION;\n  INSERT INTO bookings (id, status) VALUES (1, 'pending');\n  INSERT INTO outbox (id, event_type, payload) VALUES (uuid, 'BookingCreated', '{...}');\nCOMMIT;\n```\n\nA separate process (CDC or poller) reads the outbox and publishes to Kafka. If the process crashes, it retries from the last unpublished event.\n\n## Compensating actions\n\nNot all actions can be truly 'undone.' Compensation is a best-effort reversal:\n\n| Forward Action | Compensation |\n|---|---|\n| Reserve inventory | Release reservation |\n| Charge payment | Issue refund |\n| Send email | Send correction email |\n| Ship package | Cannot undo (contact carrier) |\n\n**Key principle:** Design forward actions to be reversible when possible. For irreversible actions (sending an email), consider delaying until the saga is confirmed successful.\n\n## Idempotency everywhere\n\nSagas involve retries and redelivery. Every step must be idempotent. Use idempotency keys (unique per saga step) to prevent duplicate processing."
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "In a choreography saga, Service A publishes EventX, Service B processes it and publishes EventY, Service C processes EventY. Service B crashes after processing EventX but before publishing EventY. What happens?",
+      "answer": "**The saga gets stuck.** Service A has completed, Service B processed the event but did not publish its result. Service C is waiting forever. This is the 'lost event' problem in choreography. Solutions: (1) **Transactional outbox in Service B:** Process EventX and write EventY to the outbox in the same transaction. If B crashes, the outbox message survives and is published on recovery. (2) **Saga timeout:** The orchestrator (or a monitoring system) detects that the saga has been stuck for too long and triggers compensation. (3) **At-least-once delivery from the broker:** Kafka retains EventX. When Service B restarts, it re-reads from its last committed offset and reprocesses. Combined with idempotent processing, this recovers the saga automatically."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Sagas coordinate distributed workflows through local transactions and compensating actions. Orchestration is easier to reason about; choreography is more decoupled. The transactional outbox ensures atomic database changes + event publishing. Make every step idempotent \u2014 sagas involve retries by nature."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 7.8 is the checkpoint \u2014 match real-world scenarios to the right patterns and justify your choices."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What is the transactional outbox pattern?",
+      "options": [
+        "Writing to two databases in the same transaction",
+        "Writing both data change and event to the same database atomically, then publishing separately",
+        "Using a distributed lock across services"
+      ],
+      "correctIndex": 1,
+      "explanation": "The outbox pattern writes data and an outbox event in the same local transaction.",
+      "encourageCorrect": "That is it! The outbox pattern solves atomicity between database changes and event publishing.",
+      "encourageIncorrect": "The outbox writes both data and event to the same database in one transaction. A background process publishes the event."
+    },
+    {
+      "question": "Why must every saga step be idempotent?",
+      "options": [
+        "To improve performance",
+        "Because retries are inherent in sagas and steps may execute more than once",
+        "To simplify the code"
+      ],
+      "correctIndex": 1,
+      "explanation": "Sagas involve retries \u2014 if a step fails and is retried, it must produce the same result.",
+      "encourageCorrect": "Right! Retries are fundamental in saga execution.",
+      "encourageIncorrect": "Sagas involve retries by nature. Each step must safely handle being executed more than once."
+    }
+  ]
+}

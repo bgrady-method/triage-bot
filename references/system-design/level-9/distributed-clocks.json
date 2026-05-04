@@ -1,0 +1,55 @@
+{
+  "meta": {
+    "title": "9.3 Distributed Clocks and Ordering",
+    "description": "Logical clocks, vector clocks, Lamport timestamps, and why wall-clock time is unreliable in distributed systems.",
+    "level": "level-9",
+    "slug": "distributed-clocks",
+    "order": 3,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "Two servers each record an event at '14:23:05.123'. Did these events happen at the same time? Can you trust wall clocks across machines to be synchronized within milliseconds?"
+    },
+    {
+      "type": "markdown",
+      "content": "## The clock problem\n\nWall clocks on different machines drift. NTP synchronization is accurate to ~10ms at best, often worse. In a distributed system, you cannot rely on wall-clock time to order events.\n\n## Lamport timestamps\n\nA logical clock that establishes a partial ordering. Each node maintains a counter. On local event: counter++. On send: attach counter. On receive: counter = max(local, received) + 1.\n\n**Guarantee:** If event A happened before B (causal relationship), then timestamp(A) < timestamp(B). But if timestamp(A) < timestamp(B), A did NOT necessarily happen before B (concurrent events may have any ordering).\n\n## Vector clocks\n\nEach node maintains a vector of counters (one per node). A vector clock captures full causal history.\n\n```\nNode A: [A:2, B:1, C:0]\nNode B: [A:1, B:3, C:1]\n```\n\nIf all entries in V1 <= V2 and at least one is less, then V1 happened before V2. If neither dominates, the events are concurrent (potential conflict).\n\n**Used by:** Amazon Dynamo (DynamoDB), Riak for conflict detection.\n\n## Google's TrueTime\n\nGoogle Spanner uses GPS and atomic clocks for globally synchronized time with bounded uncertainty: `[earliest, latest]`. Wait out the uncertainty window before committing. Achieves external consistency (linearizability) across datacenters at the cost of commit latency (~7ms)."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Wall clocks are unreliable across machines. Lamport timestamps provide partial ordering (causal). Vector clocks detect concurrent events (for conflict resolution). Google TrueTime achieves global time synchronization with bounded uncertainty using specialized hardware."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 9.4 covers distributed transactions \u2014 what happens when you need atomicity across multiple machines."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "Why cannot distributed systems rely on wall-clock time for ordering events?",
+      "options": [
+        "Wall clocks are too expensive",
+        "Clocks on different machines drift, even with NTP synchronization",
+        "Wall clocks do not work in the cloud"
+      ],
+      "correctIndex": 1,
+      "explanation": "Clock drift between machines is inevitable. NTP is only accurate to about 10ms.",
+      "encourageCorrect": "That is right! Clock drift means you cannot trust timestamps across machines.",
+      "encourageIncorrect": "Wall clocks drift between machines. NTP is only accurate to about 10ms \u2014 too imprecise for ordering."
+    },
+    {
+      "question": "What do vector clocks detect that Lamport timestamps cannot?",
+      "options": [
+        "Network latency",
+        "Concurrent events (events with no causal relationship)",
+        "Hardware failures"
+      ],
+      "correctIndex": 1,
+      "explanation": "Vector clocks detect when two events are concurrent \u2014 neither caused the other.",
+      "encourageCorrect": "Exactly! Detecting concurrency is crucial for conflict resolution.",
+      "encourageIncorrect": "Vector clocks detect concurrent events. Lamport timestamps only give partial ordering."
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "meta": {
+    "title": "8.6 Cross-Cutting Concerns",
+    "description": "Observability, feature flags, service discovery, configuration management, and distributed tracing.",
+    "level": "level-8",
+    "slug": "cross-cutting-concerns",
+    "order": 6,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "A request to your API is slow. It passes through an API gateway, 3 microservices, 2 databases, and a cache. How do you find which component is causing the slowness?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Distributed tracing\n\nAssign a unique trace ID to each request at the edge. Every service propagates this ID. You can reconstruct the full request path.\n\n```\nTrace ID: abc-123\n  \u2192 API Gateway: 2ms\n    \u2192 UserService: 15ms\n      \u2192 PostgreSQL: 10ms\n    \u2192 OrderService: 200ms  \u2190 bottleneck!\n      \u2192 Redis: 1ms\n      \u2192 PaymentAPI: 195ms  \u2190 root cause\n```\n\n**Tools:** Jaeger, Zipkin, Datadog APM, AWS X-Ray, OpenTelemetry (standard).\n\n## Service discovery\n\nHow does Service A find Service B's address?\n\n**Client-side discovery:** Service queries a registry (Consul, etcd) and load-balances itself.\n**Server-side discovery:** Service calls a load balancer/DNS that routes to healthy instances. (Kubernetes Services do this natively.)\n\n**In Kubernetes:** Service discovery is built-in. `http://order-service:8080` resolves to healthy pods automatically.\n\n## Configuration management\n\nExternalize configuration from code:\n\n| Approach | Best for |\n|---|---|\n| Environment variables | Simple, 12-factor apps |\n| ConfigMaps (K8s) | Kubernetes deployments |\n| Consul/etcd | Dynamic config, service discovery |\n| AWS Parameter Store | Managed, with secrets |\n| Feature flag service | Runtime toggles |\n\n**Principle:** Config changes should not require redeployment. Sensitive config (API keys, passwords) should use a secrets manager, not environment variables in plain text.\n\n## Health checks\n\nEvery service should expose:\n- **Liveness:** `/health/live` \u2014 is the process running? (restart if not)\n- **Readiness:** `/health/ready` \u2014 can it handle traffic? (remove from LB if not)\n- **Startup:** `/health/startup` \u2014 has initialization completed?"
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Cross-cutting concerns \u2014 tracing, service discovery, configuration, health checks \u2014 are essential infrastructure for any distributed system. Use OpenTelemetry for standard tracing, Kubernetes for service discovery, and externalized configuration that does not require redeployment."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 8.7 is the checkpoint \u2014 decompose a monolithic application and defend your architectural decisions."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What is a trace ID used for in distributed systems?",
+      "options": [
+        "Authenticating requests",
+        "Tracking a request s full path across all services for debugging",
+        "Encrypting inter-service communication"
+      ],
+      "correctIndex": 1,
+      "explanation": "A unique trace ID follows the request through every service, enabling end-to-end debugging.",
+      "encourageCorrect": "Exactly! Trace IDs let you reconstruct the full request journey.",
+      "encourageIncorrect": "A trace ID is assigned at the edge and propagated through every service for debugging."
+    },
+    {
+      "question": "What is the standard for distributed tracing instrumentation?",
+      "options": [
+        "Prometheus",
+        "OpenTelemetry",
+        "StatsD"
+      ],
+      "correctIndex": 1,
+      "explanation": "OpenTelemetry is the standard for traces, metrics, and logs instrumentation.",
+      "encourageCorrect": "Right! OpenTelemetry is the vendor-neutral standard.",
+      "encourageIncorrect": "OpenTelemetry is the industry standard for distributed tracing."
+    }
+  ]
+}

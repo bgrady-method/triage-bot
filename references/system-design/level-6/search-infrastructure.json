@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "title": "6.3 Search Infrastructure",
+    "description": "Elasticsearch, inverted indexes, analyzers, search relevance, and choosing a search solution.",
+    "level": "level-6",
+    "slug": "search-infrastructure",
+    "order": 3,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "A user searches for 'running shoes' on your e-commerce site. How do you return relevant results in under 100ms across 10 million products? A SQL LIKE query would take minutes."
+    },
+    {
+      "type": "markdown",
+      "content": "## Inverted indexes\n\nThe foundation of all search engines. Instead of mapping documents to words, map words to documents.\n\n```\nForward index:\n  Doc 1: \"red running shoes\" \u2192 [red, running, shoes]\n  Doc 2: \"blue hiking boots\" \u2192 [blue, hiking, boots]\n\nInverted index:\n  red \u2192 [Doc 1]\n  running \u2192 [Doc 1]\n  shoes \u2192 [Doc 1]\n  blue \u2192 [Doc 2]\n  hiking \u2192 [Doc 2]\n  boots \u2192 [Doc 2]\n```\n\nSearching for \"running shoes\" \u2192 intersect posting lists: running \u2229 shoes = [Doc 1]. O(1) per term lookup.\n\n## Elasticsearch essentials\n\nElasticsearch is the dominant open-source search engine (built on Apache Lucene).\n\n**Key concepts:**\n- **Index:** A collection of documents (like a database table)\n- **Document:** A JSON object stored and indexed\n- **Mapping:** Schema definition (field types, analyzers)\n- **Analyzer:** Pipeline that processes text: character filters \u2192 tokenizer \u2192 token filters\n\n**Analyzer example for 'Running Shoes!':**\n1. Lowercase filter: 'running shoes!'\n2. Remove punctuation: 'running shoes'\n3. Tokenize: ['running', 'shoes']\n4. Stemming: ['run', 'shoe']\n\nNow searching for 'run' matches 'running', 'runner', 'ran'.\n\n### Search relevance\n\n**TF-IDF / BM25:** Score documents by how relevant they are to the query. Terms that appear frequently in a document (TF) but rarely across all documents (IDF) score higher.\n\n**Boosting:** Weight certain fields higher. Title match > description match > category match.\n\n### Choosing a search solution\n\n| Solution | Best for | Tradeoff |\n|---|---|---|\n| Elasticsearch | Full-text search, analytics | Operationally complex, resource hungry |\n| Meilisearch | Typo-tolerant, easy setup | Less scalable |\n| Typesense | Simple search, low ops | Fewer features |\n| Algolia | Hosted, instant search | Expensive at scale |\n| PostgreSQL full-text | Simple search in existing DB | Limited relevance tuning |"
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "Your Elasticsearch cluster indexes 5 million products. Search latency is 500ms. Users expect <100ms. What are your top optimization strategies?",
+      "answer": "**1. Reduce index size:** Use keyword fields instead of text for exact-match fields. Disable indexing on fields you never search. Use doc_values: false for fields you never sort/aggregate on.\n**2. Optimize queries:** Use filter context (cached, no scoring) for exact matches. Use bool queries with minimum_should_match. Avoid wildcard queries on large fields.\n**3. Add replicas:** More replica shards = more read throughput. Each replica can serve searches independently.\n**4. Caching:** Enable query result cache for frequent queries. Use request cache for aggregations.\n**5. Hardware:** Ensure the index fits in memory (OS file system cache). Use SSDs. Increase heap (but keep under 50% of RAM for file system cache)."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Search engines use inverted indexes for O(1) term lookups across millions of documents. Analyzers (tokenization, stemming, lowercasing) determine what matches what. Elasticsearch is the standard for full-text search; simpler alternatives exist for smaller scale."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 6.4 covers task queues and job scheduling \u2014 running background work reliably at scale."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What is an inverted index?",
+      "options": [
+        "An index sorted in reverse order",
+        "A mapping from terms to the documents that contain them",
+        "A backup copy of the primary index"
+      ],
+      "correctIndex": 1,
+      "explanation": "An inverted index maps words to documents, enabling O(1) per-term lookups.",
+      "encourageCorrect": "That is it! The inverted index is the foundation of all search engines.",
+      "encourageIncorrect": "An inverted index maps terms to documents \u2014 enabling instant lookups across millions of documents."
+    },
+    {
+      "question": "What is the dominant open-source search engine?",
+      "options": [
+        "Apache Solr",
+        "Elasticsearch",
+        "MongoDB text search"
+      ],
+      "correctIndex": 1,
+      "explanation": "Elasticsearch (built on Apache Lucene) is the dominant open-source search engine.",
+      "encourageCorrect": "Right! Elasticsearch powers search for a huge number of production systems.",
+      "encourageIncorrect": "Elasticsearch is the dominant open-source search engine, built on Apache Lucene."
+    }
+  ]
+}

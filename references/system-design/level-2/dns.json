@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "title": "2.1 DNS",
+    "description": "How domain names resolve to IP addresses, DNS record types, TTL, and DNS as a load balancing tool.",
+    "level": "level-2",
+    "slug": "dns",
+    "order": 1,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "When you type 'google.com' into your browser, how does your computer figure out which server to talk to? How many steps do you think are involved, and who are the participants?"
+    },
+    {
+      "type": "markdown",
+      "content": "## DNS: The internet's phone book\n\nThe Domain Name System translates human-readable names (google.com) to machine-readable IP addresses (142.250.80.46). It is one of the most critical pieces of internet infrastructure.\n\n### The resolution chain\n\n```\nBrowser cache \u2192 OS cache \u2192 Resolver \u2192 Root \u2192 TLD \u2192 Authoritative\n```\n\n1. **Browser DNS cache:** Chrome, Firefox, etc. cache recent lookups\n2. **OS DNS cache:** The operating system maintains its own cache\n3. **Recursive resolver:** Your ISP's DNS server (or 8.8.8.8, 1.1.1.1) does the heavy lifting\n4. **Root nameservers:** 13 clusters worldwide. They say \"for .com, ask these TLD servers\"\n5. **TLD nameservers:** .com, .org, .io servers. They say \"for google.com, ask these authoritative servers\"\n6. **Authoritative nameserver:** The final answer. Controlled by the domain owner.\n\n### Record types every engineer should know\n\n| Record | Purpose | Example |\n|---|---|---|\n| A | Maps name to IPv4 address | google.com \u2192 142.250.80.46 |\n| AAAA | Maps name to IPv6 address | google.com \u2192 2607:f8b0:4004:800::200e |\n| CNAME | Alias to another name | www.example.com \u2192 example.com |\n| MX | Mail server for domain | example.com \u2192 mail.example.com |\n| NS | Authoritative nameserver | example.com \u2192 ns1.provider.com |\n| TXT | Arbitrary text (verification, SPF) | example.com \u2192 \"v=spf1 include:...\" |\n| SRV | Service location (host + port) | _sip._tcp.example.com \u2192 ... |\n\n### TTL: Time to Live\n\nEvery DNS record has a TTL \u2014 how long caches should keep the record before re-querying. Typical values:\n\n- **Short TTL (60-300s):** Allows fast changes. Used for services that need quick failover.\n- **Long TTL (3600-86400s):** Reduces DNS query load. Used for stable services.\n\n**Tradeoff:** Short TTLs give you agility (change DNS, traffic moves in minutes). Long TTLs give you resilience (if your authoritative DNS goes down, caches still work for hours).\n\n### DNS as a load balancing tool\n\n**Round-robin DNS:** Return multiple A records. Clients pick one (usually the first). Simple but no health checking \u2014 if a server is down, some clients still try it.\n\n**Weighted DNS:** Route a percentage of traffic to different servers. Useful for gradual migrations or A/B testing.\n\n**Latency-based DNS:** Route users to the nearest healthy server. AWS Route 53 and Cloudflare do this. User in Tokyo \u2192 Tokyo server. User in London \u2192 London server.\n\n**Failover DNS:** Health checks on servers. If primary fails, DNS automatically returns the backup IP. Recovery depends on TTL \u2014 clients with cached responses still hit the failed server until their cache expires."
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "You are migrating a service from old servers (IP: 1.2.3.4) to new servers (IP: 5.6.7.8). Your DNS TTL is currently set to 24 hours. What should you do before the migration, and what risks remain?",
+      "answer": "**Before migration:** Lower the TTL to 60 seconds several days in advance (you need to wait for the old 24-hour TTL to expire from all caches first). Then on migration day, update the A record from 1.2.3.4 to 5.6.7.8. Within 60 seconds, most clients will pick up the new address.\n\n**Risks that remain:** (1) Some resolvers and clients ignore TTL and cache for longer than specified. Corporate proxies are notorious for this. (2) During the transition, some users hit old servers and some hit new \u2014 you need both running. (3) If the new servers have issues, rolling back means another DNS change and another 60-second wait. (4) Applications that cache DNS internally (Java's default DNS cache, some connection pools) may hold onto old IPs regardless of TTL. **Mitigation:** Run both old and new servers in parallel for at least 48 hours after the switch."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "DNS is the first step in every request and a powerful tool for traffic management. Know the record types (A, CNAME, MX, NS), understand TTL tradeoffs (agility vs resilience), and recognize that DNS-based load balancing is simple but lacks health awareness compared to dedicated load balancers."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "DNS gets users to the right region. Module 2.2 covers CDNs \u2014 how to serve content from locations even closer to users, reducing latency by 10-100x for static and cacheable content."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What is the DNS resolution chain order?",
+      "options": [
+        "Root, TLD, Authoritative, Resolver",
+        "Browser cache, OS cache, Resolver, Root, TLD, Authoritative",
+        "Authoritative, TLD, Root, Browser"
+      ],
+      "correctIndex": 1,
+      "explanation": "DNS checks local caches first, then the resolver queries root, TLD, and authoritative nameservers.",
+      "encourageCorrect": "Perfect! The chain goes from local caches up to root and back down to the authoritative server.",
+      "encourageIncorrect": "The chain is: Browser cache, OS cache, Resolver, Root, TLD, then Authoritative nameserver."
+    },
+    {
+      "question": "What should you do to DNS TTL before a server migration?",
+      "options": [
+        "Increase it to reduce DNS load",
+        "Lower it to 60 seconds several days in advance",
+        "Remove all DNS records"
+      ],
+      "correctIndex": 1,
+      "explanation": "Lower the TTL days before migration so clients pick up the new IP quickly.",
+      "encourageCorrect": "That is right! Lower the TTL early so caches expire before migration day.",
+      "encourageIncorrect": "Lower the TTL to about 60 seconds several days before migration."
+    }
+  ]
+}

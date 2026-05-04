@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "title": "3.5 Indexing Strategies",
+    "description": "B-tree vs LSM-tree, secondary indexes, composite indexes, covering indexes, and full-text search.",
+    "level": "level-3",
+    "slug": "indexing-strategies",
+    "order": 5,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "A database has 100 million rows. A query without an index takes 30 seconds. With the right index, it takes 5ms. How can an index make a query 6,000x faster? What data structure makes this possible?"
+    },
+    {
+      "type": "markdown",
+      "content": "## B-tree vs LSM-tree\n\nThe two fundamental index structures used by modern databases.\n\n### B-tree (PostgreSQL, MySQL InnoDB, SQL Server)\n\nA balanced tree where each node contains sorted keys and pointers. Reads are fast (O(log n)). Writes update the tree in-place.\n\n**Characteristics:**\n- Read-optimized: lookups, range scans, and ordering are fast\n- Write amplification: each write may update multiple pages\n- Best for: read-heavy workloads, OLTP with balanced read/write\n\n### LSM-tree (Cassandra, RocksDB, LevelDB, HBase)\n\nWrites go to an in-memory buffer (memtable). When full, flushed to sorted files on disk (SSTables). Background compaction merges files.\n\n**Characteristics:**\n- Write-optimized: sequential writes are fast\n- Read amplification: may need to check multiple SSTables\n- Best for: write-heavy workloads, time-series, logging\n\n| Feature | B-tree | LSM-tree |\n|---|---|---|\n| Read speed | Fast | Moderate (check multiple levels) |\n| Write speed | Moderate (random I/O) | Fast (sequential I/O) |\n| Space efficiency | Moderate (page fragmentation) | Good (compaction removes duplicates) |\n| Write amplification | Moderate | Higher (compaction rewrites) |\n| Use case | OLTP, read-heavy | Write-heavy, time-series |\n\n## Secondary indexes\n\nThe primary index is on the primary key. Secondary indexes enable fast lookups on other columns.\n\n**Example:** Users table with primary key `user_id`. Secondary index on `email` enables `WHERE email = 'user@example.com'` without scanning all rows.\n\n**Cost:** Every write must update all secondary indexes. More indexes = slower writes.\n\n**Rule of thumb:** Index columns you query frequently. Do not index columns you rarely filter on. Monitor slow query logs to find missing indexes.\n\n## Advanced indexing\n\n**Partial indexes:** Index only rows matching a condition. `CREATE INDEX ON orders(created_at) WHERE status = 'pending'` \u2014 smaller, faster, focused.\n\n**Expression indexes:** Index computed values. `CREATE INDEX ON users(LOWER(email))` \u2014 enables case-insensitive lookups.\n\n**Full-text search indexes:** Inverted indexes that map words to documents. PostgreSQL `tsvector`/`tsquery`, or dedicated search engines (Elasticsearch)."
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "You are designing a logging system that ingests 100,000 events per second. Queries are relatively infrequent \u2014 mainly searching recent logs by timestamp. Should you use a B-tree or LSM-tree based storage engine? Why?",
+      "answer": "**LSM-tree.** The workload is heavily write-dominated (100K writes/sec vs infrequent reads). LSM-trees excel here because writes go to an in-memory buffer and are flushed as sequential disk writes \u2014 much faster than B-tree's random I/O page updates. The read amplification cost of LSM-trees (checking multiple SSTables) is acceptable because reads are infrequent. Additionally, time-series data is naturally sorted by timestamp, which means SSTables are already partially ordered, making range queries on recent data efficient. This is exactly why Cassandra (LSM-tree) is popular for logging and time-series workloads."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "B-trees optimize for reads (balanced tree, O(log n) lookups); LSM-trees optimize for writes (sequential I/O, buffered writes). Choose based on your read/write ratio. Secondary indexes speed up queries but slow down writes. Index what you query; do not over-index."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Indexes make individual queries fast. Module 3.6 covers data modeling for scale \u2014 how to design your schemas so that your most common queries are efficient by default."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "Which index type is optimized for write-heavy workloads?",
+      "options": [
+        "B-tree",
+        "LSM-tree",
+        "Hash index"
+      ],
+      "correctIndex": 1,
+      "explanation": "LSM-trees buffer writes in memory and flush as sequential disk I/O, much faster for writes.",
+      "encourageCorrect": "Right! LSM-trees are the go-to for write-heavy workloads like logging.",
+      "encourageIncorrect": "LSM-trees are optimized for writes \u2014 they buffer in memory and flush sequentially to disk."
+    },
+    {
+      "question": "What is the read/write tradeoff of adding database indexes?",
+      "options": [
+        "Indexes speed up both reads and writes",
+        "Indexes speed up reads but slow down writes",
+        "Indexes only help with full table scans"
+      ],
+      "correctIndex": 1,
+      "explanation": "Indexes speed up queries but slow down writes because every insert/update must also update the index.",
+      "encourageCorrect": "Exactly! Every index you add costs write performance. Index what you query.",
+      "encourageIncorrect": "Indexes speed up reads but slow down writes \u2014 every write must also maintain the index."
+    }
+  ]
+}

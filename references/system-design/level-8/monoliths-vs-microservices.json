@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "title": "8.1 Monoliths vs Microservices",
+    "description": "The spectrum from monolith to microservices. Modular monoliths, when to split, and the costs of distribution.",
+    "level": "level-8",
+    "slug": "monoliths-vs-microservices",
+    "order": 1,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "A startup with 3 engineers is building an MVP. A senior advisor recommends microservices 'so they can scale later.' Is this good advice? Why or why not?"
+    },
+    {
+      "type": "markdown",
+      "content": "## The spectrum\n\n```\nMonolith \u2192 Modular Monolith \u2192 Macro-services \u2192 Microservices \u2192 Serverless Functions\n\u2190\u2500\u2500 Simpler operations \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 More flexibility \u2500\u2500\u2192\n\u2190\u2500\u2500 Easier debugging \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 Independent scaling \u2500\u2500\u2192\n\u2190\u2500\u2500 Less network overhead \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 Team autonomy \u2500\u2500\u2192\n```\n\n### Monolith\n\nSingle deployable unit. All code in one repository, one process, one database.\n\n**Advantages:** Simple deployment, easy debugging (one process), no network calls between modules, transactional consistency.\n\n**Disadvantages:** Scaling means scaling everything. One team's bad code affects everyone. Deploys take longer as codebase grows.\n\n### Modular monolith\n\nA monolith organized into well-defined modules with explicit boundaries and interfaces. Modules cannot directly access each other's database tables.\n\n**This is often the sweet spot.** You get clean boundaries and the option to extract services later, without the operational overhead of distribution.\n\n### Microservices\n\nIndependently deployable services, each with its own database. Communicate via APIs/events.\n\n**Advantages:** Independent deployment, independent scaling, technology diversity, team autonomy.\n\n**Costs (often underestimated):**\n- Network failures, latency, partial failures\n- Distributed transactions (sagas instead of ACID)\n- Operational complexity (monitoring, tracing, deployment orchestration)\n- Data consistency challenges\n- Service discovery, load balancing, circuit breaking\n\n### When to choose microservices\n\n| Condition | Monolith | Microservices |\n|---|---|---|\n| Team size | <20 engineers | 50+ engineers |\n| Domain complexity | Low-medium | High (many bounded contexts) |\n| Deployment frequency | Weekly | Multiple times daily per service |\n| Scaling needs | Uniform | Different components scale differently |\n| Operational maturity | Low | High (CI/CD, monitoring, on-call) |"
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "A company with 200 engineers and a 5-year-old monolith reports: deploys take 2 hours, one team's changes often break another team's features, and the search feature needs 10x more compute than other features but they must scale the entire monolith. Is it time for microservices?",
+      "answer": "**Yes, but incrementally.** All three symptoms indicate the monolith has outgrown the team: (1) 2-hour deploys block everyone \u2014 independent deployable services would let teams ship independently. (2) Cross-team breakage indicates insufficient module boundaries \u2014 bounded contexts should be separated. (3) Different scaling needs (search vs rest) is a textbook reason for extraction. **Approach:** Do NOT do a big-bang rewrite. Use the strangler fig pattern. Start by extracting Search (clearest scaling need) and the module with the most cross-team conflicts. Invest in modular monolith patterns for the remaining code to enable future extraction."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Start with a monolith (ideally modular). Move to microservices when team size, deployment frequency, or scaling needs demand it. The costs of distribution (network failures, eventual consistency, operational complexity) are real and often underestimated. Modular monolith is the underrated sweet spot."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 8.2 covers service decomposition \u2014 using DDD principles to find the right boundaries when you do split."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "When should you start with a monolith instead of microservices?",
+      "options": [
+        "Never \u2014 microservices are always better",
+        "When you have a small team and are still discovering your domain boundaries",
+        "Only for prototypes"
+      ],
+      "correctIndex": 1,
+      "explanation": "A monolith is simpler to develop, deploy, and debug. Extract services when needed.",
+      "encourageCorrect": "Great insight! The monolith-first approach lets you discover boundaries before committing.",
+      "encourageIncorrect": "Start with a monolith when you have a small team and are discovering boundaries."
+    },
+    {
+      "question": "What is the underrated sweet spot between monoliths and microservices?",
+      "options": [
+        "Serverless functions",
+        "Modular monolith",
+        "Macro-services"
+      ],
+      "correctIndex": 1,
+      "explanation": "A modular monolith gives clear boundaries without distributed systems complexity.",
+      "encourageCorrect": "Exactly! A modular monolith gives most benefits with far less operational overhead.",
+      "encourageIncorrect": "The modular monolith is the underrated sweet spot \u2014 clear boundaries without distributed complexity."
+    }
+  ]
+}

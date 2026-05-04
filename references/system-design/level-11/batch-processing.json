@@ -1,0 +1,55 @@
+{
+  "meta": {
+    "title": "11.1 Batch Processing",
+    "description": "MapReduce, Spark, and the batch processing paradigm. When batch is the right tool.",
+    "level": "level-11",
+    "slug": "batch-processing",
+    "order": 1,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "You need to analyze 1 year of web server logs (50TB) to find the top 100 most visited pages. A single machine would take days. How do you parallelize this?"
+    },
+    {
+      "type": "markdown",
+      "content": "## MapReduce\n\nThe foundational batch processing paradigm. Split work across many machines.\n\n**Map phase:** Each machine processes a chunk of data independently, emitting key-value pairs.\n**Shuffle phase:** Group all values by key across machines.\n**Reduce phase:** Each machine aggregates values for its assigned keys.\n\n```\nInput: 50TB of log files across 1000 machines\n\nMap: Each machine extracts (page_url, 1) from its logs\nShuffle: Group by page_url\nReduce: Sum counts per page_url \u2192 (page_url, total_visits)\n```\n\n## Apache Spark\n\nSuccessor to MapReduce. Keeps data in memory between operations (10-100x faster).\n\n**Key concepts:**\n- **RDD (Resilient Distributed Dataset):** Immutable, partitioned collection\n- **DataFrame:** Structured data with schema (like a distributed table)\n- **Lazy evaluation:** Transformations are planned, not executed until an action is called\n\n## When to use batch processing\n\n- Data is bounded (finite dataset: logs, database dumps)\n- Latency tolerance is hours (daily reports, monthly analytics)\n- Complex transformations (ML training, graph processing)\n- Reprocessing historical data\n\n## When NOT to use batch\n\n- Real-time requirements (use stream processing)\n- Small data that fits on one machine (use pandas/SQL)\n- Simple aggregations (use your database directly)"
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Batch processing (MapReduce, Spark) parallelizes computation across many machines for bounded datasets. Spark is 10-100x faster than MapReduce by keeping data in memory. Use batch for large historical analysis; use streaming for real-time."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 11.2 covers stream processing \u2014 handling unbounded, real-time data."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What are the three phases of MapReduce?",
+      "options": [
+        "Read, Process, Write",
+        "Map, Shuffle, Reduce",
+        "Input, Transform, Output"
+      ],
+      "correctIndex": 1,
+      "explanation": "MapReduce: Map (process data chunks), Shuffle (group by key), Reduce (aggregate values per key).",
+      "encourageCorrect": "You got it! Map, Shuffle, Reduce is the foundational batch processing paradigm.",
+      "encourageIncorrect": "MapReduce has three phases: Map (process chunks independently), Shuffle (group by key), and Reduce (aggregate per key)."
+    },
+    {
+      "question": "Why is Apache Spark faster than MapReduce?",
+      "options": [
+        "It uses more CPUs",
+        "It keeps data in memory between operations",
+        "It compresses data better"
+      ],
+      "correctIndex": 1,
+      "explanation": "Spark is 10-100x faster because it keeps intermediate data in memory instead of writing to disk between steps.",
+      "encourageCorrect": "Exactly! In-memory processing is the key to Spark s 10-100x speed advantage.",
+      "encourageIncorrect": "Spark keeps data in memory between operations, avoiding expensive disk I/O. This makes it 10-100x faster."
+    }
+  ]
+}

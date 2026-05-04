@@ -1,0 +1,55 @@
+{
+  "meta": {
+    "title": "11.4 Change Data Capture",
+    "description": "Capturing database changes as events. Debezium, log-based CDC, and keeping systems in sync.",
+    "level": "level-11",
+    "slug": "change-data-capture",
+    "order": 4,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "Your PostgreSQL database is the source of truth. Elasticsearch needs to stay in sync for search. Redis needs to stay in sync for caching. How do you propagate changes reliably?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Change Data Capture (CDC)\n\nCapture changes from a databases transaction log and stream them as events.\n\n```\nPostgreSQL \u2192 WAL \u2192 Debezium \u2192 Kafka \u2192 Elasticsearch\n                                     \u2192 Redis\n                                     \u2192 Analytics DB\n```\n\n### How it works\n\n**Log-based CDC (preferred):** Read the databases write-ahead log (WAL/binlog). Every INSERT, UPDATE, DELETE is captured without modifying the application.\n\n**Trigger-based CDC:** Database triggers write changes to an outbox table. More portable but adds overhead.\n\n**Timestamp-based CDC:** Query for rows modified since last check. Misses deletes. Not reliable.\n\n### Debezium\n\nThe standard open-source CDC tool. Supports PostgreSQL, MySQL, MongoDB, SQL Server. Runs as a Kafka Connect connector.\n\n**Events include:** Before/after state, operation type (insert/update/delete), timestamp, transaction ID.\n\n### Use cases\n\n- **Search indexing:** Database \u2192 Elasticsearch\n- **Cache invalidation:** Database \u2192 Redis (invalidate on change)\n- **Analytics:** OLTP database \u2192 analytics warehouse\n- **Microservice sync:** One services database \u2192 another services read model\n- **Event-driven architecture:** Turn database changes into domain events\n\n### CDC vs dual writes\n\n| | CDC | Dual writes |\n|---|---|---|\n| Consistency | Guaranteed (single source) | Risk of partial failure |\n| Application changes | None (reads DB log) | Must modify write code |\n| Latency | Seconds | Immediate |\n| Complexity | Kafka + Debezium infra | Code complexity |"
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "CDC captures database changes from the transaction log and streams them as events \u2014 no application changes needed. Debezium + Kafka is the standard stack. Use CDC instead of dual writes to keep multiple systems in sync reliably."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 11.5 covers data architectures \u2014 Lambda, Kappa, and data mesh \u2014 for organizing data processing at scale."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What is the preferred method of Change Data Capture?",
+      "options": [
+        "Trigger-based CDC",
+        "Log-based CDC",
+        "Timestamp-based CDC"
+      ],
+      "correctIndex": 1,
+      "explanation": "Log-based CDC reads the database write-ahead log (WAL/binlog), capturing every change without modifying the application.",
+      "encourageCorrect": "That is right! Log-based CDC is non-invasive and captures every change reliably.",
+      "encourageIncorrect": "Log-based CDC is preferred \u2014 it reads the database write-ahead log directly, requiring no application changes."
+    },
+    {
+      "question": "What is the standard CDC stack used in most production systems?",
+      "options": [
+        "Debezium + Kafka",
+        "Logstash + Redis",
+        "Flume + HDFS"
+      ],
+      "correctIndex": 0,
+      "explanation": "Debezium captures changes from the database log and streams them to Kafka for consumption by downstream systems.",
+      "encourageCorrect": "Nice! Debezium + Kafka is the industry standard for change data capture.",
+      "encourageIncorrect": "Debezium + Kafka is the standard stack \u2014 Debezium reads the transaction log and publishes changes to Kafka topics."
+    }
+  ]
+}

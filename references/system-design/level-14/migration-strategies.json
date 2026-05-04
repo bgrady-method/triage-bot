@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "title": "14.2 Migration Strategies",
+    "description": "Strangler fig pattern, data migration approaches, rollback strategies, and managing risk during large-scale migrations.",
+    "level": "level-14",
+    "slug": "migration-strategies",
+    "order": 2,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "You have a 10-year-old monolithic e-commerce application handling $50M/year in revenue. The CEO wants to move to microservices. You cannot afford downtime or data loss. How do you approach this migration?"
+    },
+    {
+      "type": "markdown",
+      "content": "## The Strangler Fig Pattern\n\nNamed after the tropical fig tree that gradually wraps around and replaces its host tree. This is the gold standard for incremental migration.\n\n**How it works:**\n1. Place a routing layer (API gateway, reverse proxy) in front of the old system.\n2. Build new functionality in the new system.\n3. Route traffic for migrated features to the new system.\n4. Gradually expand until the old system handles nothing.\n5. Decommission the old system.\n\n```\nPhase 1: [Client] \u2192 [Router] \u2192 [Monolith (100% traffic)]\nPhase 2: [Client] \u2192 [Router] \u2192 [Monolith (90%)] + [New Service (10%)]\nPhase 3: [Client] \u2192 [Router] \u2192 [Monolith (30%)] + [New Services (70%)]\nPhase 4: [Client] \u2192 [Router] \u2192 [New Services (100%)]\n```\n\n**Key principle:** At every phase, you can roll back by changing the routing rules. The old system remains fully operational until you are confident in the new one.\n\n### Choosing What to Migrate First\n\nNot all parts of the monolith are equal. Prioritize migration by:\n- **Business value:** Features with the most revenue impact or growth potential.\n- **Change frequency:** Components that change often benefit most from independent deployment.\n- **Coupling:** Start with loosely-coupled components that have clear boundaries.\n- **Risk:** Start with lower-risk features to build confidence and tooling.\n\n## Data Migration Strategies\n\nData migration is where most migrations fail. Three approaches:\n\n### 1. Dual-Write\nWrite to both old and new databases simultaneously. Simple but dangerous \u2014 what happens when one write succeeds and the other fails? You get data inconsistency. Use only for short transition periods with reconciliation.\n\n### 2. Change Data Capture (CDC)\nCapture changes from the old database's transaction log and replay them to the new database. Reliable, real-time, and does not modify the application. Tools: Debezium, AWS DMS, GoldenGate.\n\n```\n[Old DB] \u2192 [CDC (Debezium)] \u2192 [Kafka] \u2192 [Consumer] \u2192 [New DB]\n```\n\n### 3. ETL with Cutover\nExtract all data, transform it, load into the new system. Then cut over. Works for smaller datasets or when the schema changes dramatically. Requires a maintenance window.\n\n## Rollback Strategies\n\nEvery migration plan needs a rollback plan. The question is not \"will something go wrong\" but \"when something goes wrong, how fast can we recover?\"\n\n- **Feature flags:** Toggle between old and new code paths instantly. No deployment needed.\n- **Blue-green deployment:** Keep the old system running. Switch DNS or load balancer back.\n- **Canary rollback:** If the canary (small % of traffic) shows errors, route back to old system.\n- **Data rollback:** This is the hard part. If the new system has written data in a new schema, you need reverse transformation. Plan this before starting.\n\n### The Migration Checklist\n\n1. Can you run old and new systems in parallel?\n2. Can you verify data consistency between systems?\n3. Can you roll back at any point without data loss?\n4. Do you have monitoring that catches regressions within minutes?\n5. Have you communicated the plan to all stakeholders?"
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "You are migrating a payment processing system from a monolith to a microservice. During migration, you discover that the new service processes 0.1% of transactions differently due to a subtle business rule the original developer never documented. How do you handle this?",
+      "answer": "**Immediate response:** Route payment traffic back to the monolith (rollback). The 0.1% discrepancy in a payment system could mean real money differences.\n\n**Investigation:** Run both systems in parallel (shadow mode) \u2014 the new service processes every transaction but its results are compared against the monolith without being used. Log every discrepancy. Analyze the 0.1% to understand the undocumented business rule.\n\n**Resolution:** Document the business rule. Determine with the business team which behavior is correct (the old system may have a bug that people have worked around). Implement the correct behavior in the new service. Run shadow mode again until discrepancy rate is 0%. Only then re-route live traffic.\n\n**Lesson:** Payment systems and other financial flows require shadow testing with 100% traffic comparison before cutover. A 0.1% error rate at scale means thousands of incorrect transactions."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "The strangler fig pattern enables incremental migration with rollback at every step. Data migration is the hardest part \u2014 use CDC for real-time synchronization, dual-write only for short transitions. Every migration plan must include a rollback strategy, especially for data. Run systems in parallel and verify consistency before cutting over."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Migration is not just a technical problem \u2014 it depends on how teams are organized. Module 14.3 explores Conway's Law and how team topology shapes architecture."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What is the Strangler Fig pattern?",
+      "options": [
+        "Replacing an entire system at once",
+        "Gradually routing traffic from old system to new, feature by feature",
+        "Running two systems in parallel permanently"
+      ],
+      "correctIndex": 1,
+      "explanation": "The Strangler Fig pattern places a routing layer in front of the old system and gradually migrates features.",
+      "encourageCorrect": "Exactly! Just like the fig tree, the new system gradually wraps around and replaces the old one.",
+      "encourageIncorrect": "The Strangler Fig pattern gradually routes traffic from old to new, one feature at a time."
+    },
+    {
+      "question": "What is the hardest part of most system migrations?",
+      "options": [
+        "Rewriting the business logic",
+        "Data migration",
+        "Updating the frontend"
+      ],
+      "correctIndex": 1,
+      "explanation": "Data migration is hardest because you must keep both systems in sync during the transition.",
+      "encourageCorrect": "Right! Data migration requires keeping systems in sync \u2014 much harder than rewriting code.",
+      "encourageIncorrect": "Data migration is the hardest part \u2014 keeping old and new systems in sync with rollback capability."
+    }
+  ]
+}

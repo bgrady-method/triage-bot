@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "title": "12.3 Encryption and Data Protection",
+    "description": "Encryption at rest, in transit, key management, and data protection strategies for distributed systems.",
+    "level": "level-12",
+    "slug": "encryption-and-data-protection",
+    "order": 3,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "Your database stores credit card numbers. A disgruntled employee with database access exports all records. Even though they bypassed your application's authorization, the credit card numbers are useless to them. How?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Encryption at rest\n\nProtects data stored on disk \u2014 databases, file systems, backups. Even if storage media is stolen or accessed without authorization, data remains unreadable.\n\n### Approaches\n\n- **Full-disk encryption (FDE):** Encrypts entire disk. Transparent to applications. Protects against physical theft but NOT against a logged-in attacker with OS-level access.\n- **Database-level encryption (TDE):** Transparent Data Encryption. Database encrypts/decrypts data files automatically. Protects against stolen backups or disk images.\n- **Application-level encryption:** Application encrypts specific fields before writing to the database. The database never sees plaintext. Strongest protection \u2014 even a DBA cannot read encrypted fields.\n\n| Level | Protects against | Does NOT protect against |\n|---|---|---|\n| Full-disk (FDE) | Physical theft, decommissioned drives | Logged-in OS user, DB admin |\n| Database (TDE) | Stolen backups, raw file access | DB admin with query access |\n| Application-level | DB admin, SQL injection reading data | Compromised application server |\n\n**Best practice:** Layer all three. FDE for baseline. TDE for database files. Application-level for sensitive fields (SSN, credit cards, health records).\n\n## Encryption in transit\n\nProtects data moving between services, clients, and databases.\n\n- **TLS 1.3:** Standard for client-to-server. Encrypts HTTP traffic (HTTPS). Mandatory \u2014 there is no valid reason to skip TLS in production.\n- **mTLS (mutual TLS):** Both client and server present certificates. Used for service-to-service communication. Proves identity of both parties, not just the server.\n- **Database connections:** Always use TLS for database connections (e.g., `sslmode=require` in PostgreSQL). A common mistake is encrypting HTTP traffic but leaving database connections unencrypted on the internal network.\n\n## Key management\n\nEncryption is only as strong as key management. If keys are compromised, encryption is worthless.\n\n### Envelope encryption\n\nThe standard pattern used by AWS KMS, Google Cloud KMS, and Azure Key Vault.\n\n```\nData Encryption Key (DEK) \u2192 encrypts your data (fast, symmetric, AES-256)\nKey Encryption Key (KEK) \u2192 encrypts the DEK (stored in KMS, never leaves HSM)\n```\n\nTo encrypt: Generate a DEK \u2192 encrypt data with DEK \u2192 encrypt DEK with KEK \u2192 store encrypted DEK alongside encrypted data. To decrypt: Retrieve encrypted DEK \u2192 decrypt DEK using KEK (KMS call) \u2192 decrypt data with DEK.\n\n**Why?** The KEK never leaves the Hardware Security Module (HSM). You can rotate KEKs without re-encrypting all data \u2014 just re-encrypt the DEKs. Limits blast radius: each piece of data has its own DEK.\n\n### Key rotation\n\nRegularly rotate encryption keys. Old keys decrypt existing data; new keys encrypt new data. Automate rotation (AWS KMS supports automatic annual rotation). Keep old key versions available for decryption until all data is re-encrypted."
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "Your company stores user passwords and credit card numbers in the same PostgreSQL database. An attacker gains read access to the database through a SQL injection vulnerability. Which data is safe and which is compromised, assuming you followed best practices?",
+      "answer": "**Passwords are safe.** Best practice is to hash passwords with bcrypt/scrypt/argon2 (one-way function, not encryption). The attacker gets hashes, which are computationally infeasible to reverse with a strong algorithm and unique salts.\n\n**Credit card numbers depend on your encryption layer.** If only TDE is used, the attacker gets plaintext \u2014 TDE protects files, not query results. If application-level encryption is used, the attacker gets ciphertext \u2014 they would also need to compromise the application server to get the DEK. **This is why application-level encryption matters for sensitive fields.**\n\n**Key insight:** Passwords should NEVER be encrypted (reversible) \u2014 always hashed (irreversible). Credit card numbers must be encrypted (you need to retrieve them) using application-level encryption with envelope encryption and proper key management."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Layer encryption: FDE for disks, TDE for databases, application-level for sensitive fields. Use envelope encryption for key management \u2014 DEKs encrypt data, KEKs encrypt DEKs and never leave the HSM. Always encrypt in transit with TLS. Hash passwords, encrypt credit cards."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 12.4 covers network security and zero trust \u2014 protecting the network paths between your services."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What is envelope encryption?",
+      "options": [
+        "Encrypting data twice with the same key",
+        "Using a DEK to encrypt data and a KEK to encrypt the DEK",
+        "Encrypting only the headers of network packets"
+      ],
+      "correctIndex": 1,
+      "explanation": "Envelope encryption uses DEKs to encrypt data and KEKs to encrypt the DEKs. The KEK never leaves the HSM.",
+      "encourageCorrect": "That is right! The two-tier key approach keeps the master key safe in the HSM at all times.",
+      "encourageIncorrect": "Envelope encryption uses DEKs to encrypt data and KEKs to encrypt the DEKs. The KEK stays safely in the HSM."
+    },
+    {
+      "question": "Should passwords be encrypted or hashed?",
+      "options": [
+        "Encrypted with AES",
+        "Hashed with bcrypt/scrypt/argon2",
+        "Stored in plaintext with access controls"
+      ],
+      "correctIndex": 1,
+      "explanation": "Passwords should be hashed (one-way function), not encrypted.",
+      "encourageCorrect": "Exactly! Hashing is a one-way function \u2014 even if the hash is stolen, the password cannot be recovered.",
+      "encourageIncorrect": "Passwords should be hashed, not encrypted. Hashing with bcrypt/scrypt/argon2 is a one-way function."
+    }
+  ]
+}

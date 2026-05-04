@@ -1,0 +1,59 @@
+{
+  "meta": {
+    "title": "3.6 Data Modeling for Scale",
+    "description": "Denormalization, materialized views, time-series data, and designing schemas that scale with your access patterns.",
+    "level": "level-3",
+    "slug": "data-modeling-for-scale",
+    "order": 6,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "A normalized database has Users, Posts, and Comments in separate tables. Displaying a post with its author name and comment count requires 3 JOINs. At 100M posts, this query takes 500ms. What can you do?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Normalization vs denormalization\n\n**Normalization** eliminates data duplication. Each fact is stored once. Changes only need to happen in one place. Great for data integrity; expensive for complex reads.\n\n**Denormalization** deliberately duplicates data to avoid joins. Store the author name directly on the post record. Reads are fast (single lookup); writes are more complex (must update all copies).\n\n### When to denormalize\n\n- Read-heavy workloads (100:1 read-to-write ratio)\n- Joins across shards are prohibitively expensive\n- You need sub-millisecond response times\n- The duplicated data changes infrequently\n\n### Denormalization strategies\n\n**Embedding:** Store related data in the same document/row.\n```json\n{\"post_id\": 123, \"title\": \"...\", \"author_name\": \"Alice\", \"comment_count\": 42}\n```\n\n**Pre-computed aggregates:** Store counts, sums, averages alongside the data.\n```sql\n-- Instead of COUNT(*) FROM comments WHERE post_id = 123\n-- Store comment_count on the posts table and increment on each new comment\n```\n\n**Materialized views:** Database-maintained denormalized tables that auto-refresh.\n```sql\nCREATE MATERIALIZED VIEW post_summaries AS\n  SELECT p.id, p.title, u.name, COUNT(c.id) as comments\n  FROM posts p JOIN users u ON p.user_id = u.id\n  LEFT JOIN comments c ON c.post_id = p.id\n  GROUP BY p.id, p.title, u.name;\n```\n\n## Access-pattern-driven design\n\nIn traditional SQL design, you normalize first and optimize later. At scale, you **design your schema around your queries**.\n\n**Process:**\n1. List your access patterns (queries your application runs)\n2. Design tables/documents to serve each pattern efficiently\n3. Accept duplication as the cost of read performance\n\n**Example \u2014 Chat application:**\n- Access pattern 1: Show messages in a conversation \u2192 Table: messages, partitioned by conversation_id, sorted by timestamp\n- Access pattern 2: Show unread count per conversation \u2192 Denormalized counter on conversations table\n- Access pattern 3: Search messages by keyword \u2192 Separate search index (Elasticsearch)\n\n## Time-series data\n\nSpecial considerations for timestamped data (metrics, logs, events):\n\n- **Partition by time:** One partition per day/week. Drop old partitions instead of DELETE (instant vs hours).\n- **Compression:** Time-series data compresses well because adjacent values are similar.\n- **Retention policies:** Automatically downsample old data (per-second \u2192 per-minute \u2192 per-hour).\n- **Specialized databases:** InfluxDB, TimescaleDB, Prometheus \u2014 optimized for time-series patterns."
+    },
+    {
+      "type": "explainBack",
+      "prompt": "Explain to a colleague why 'normalize everything' is the wrong default at scale. When should you denormalize, and what maintenance burden does it create?"
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "At scale, design your data model around access patterns, not normalization theory. Denormalization trades write complexity for read performance. Materialized views automate denormalization. Time-series data needs special treatment \u2014 partition by time, compress, and use retention policies."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Sometimes one database is not enough. Module 3.7 covers polyglot persistence \u2014 using the right database for each job and managing consistency across multiple data stores."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "When should you denormalize your data model?",
+      "options": [
+        "Always, for simpler queries",
+        "When you have a read-heavy workload and need fast single-lookup reads",
+        "When you want to reduce storage costs"
+      ],
+      "correctIndex": 1,
+      "explanation": "Denormalization trades write complexity for read performance \u2014 ideal for read-heavy workloads.",
+      "encourageCorrect": "That is right! Denormalization shines when reads vastly outnumber writes.",
+      "encourageIncorrect": "Denormalize when you have a read-heavy workload. It trades write complexity for fast reads."
+    },
+    {
+      "question": "What is a materialized view?",
+      "options": [
+        "A database cache that expires after a TTL",
+        "A pre-computed, stored query result that automates denormalization",
+        "A virtual table that runs a query on each access"
+      ],
+      "correctIndex": 1,
+      "explanation": "A materialized view stores the result of a query physically, automating denormalization.",
+      "encourageCorrect": "Exactly! Materialized views automate denormalization \u2014 the database keeps them up to date.",
+      "encourageIncorrect": "A materialized view is a pre-computed, physically stored query result that the database maintains."
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "meta": {
+    "title": "10.4 Observability",
+    "description": "Logs, metrics, traces. The RED and USE methods. Distributed tracing. Building dashboards that matter.",
+    "level": "level-10",
+    "slug": "observability",
+    "order": 4,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "Your service is slow but CPU and memory look fine. How do you find the bottleneck? What should you measure, and what tools do you need?"
+    },
+    {
+      "type": "markdown",
+      "content": "## The three pillars\n\n**Logs:** What happened. Discrete events. `{\"level\":\"error\",\"msg\":\"payment failed\",\"user_id\":123}`\n**Metrics:** How much. Numeric aggregates over time. `request_duration_p99 = 200ms`\n**Traces:** Where. End-to-end request flow. `Request \u2192 Gateway(5ms) \u2192 UserSvc(20ms) \u2192 DB(150ms)`\n\n## RED Method (request-focused)\n\nFor services that handle requests:\n- **Rate:** Requests per second\n- **Errors:** Failed requests per second\n- **Duration:** Distribution of request latency (p50, p95, p99)\n\n## USE Method (resource-focused)\n\nFor infrastructure (CPU, memory, network, disk):\n- **Utilization:** Percentage of resource in use\n- **Saturation:** Queue depth (work waiting)\n- **Errors:** Error events per second\n\n## Building useful dashboards\n\n**Tier 1 (on-call glanceable):** Overall request rate, error rate, p99 latency. One screen, answers 'is the system healthy?'\n\n**Tier 2 (debugging):** Per-service breakdown, dependency latency, queue depths, cache hit rates.\n\n**Tier 3 (investigation):** Individual traces, log search, profiling data.\n\n**Alerting rules:** Alert on symptoms (error rate > 1%, p99 > 500ms) not causes (CPU > 80%). Symptoms tell you users are affected; causes are often misleading."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "RED (Rate, Errors, Duration) for services. USE (Utilization, Saturation, Errors) for infrastructure. Alert on symptoms, not causes. Distributed tracing is essential for debugging latency in microservices."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 10.5 covers chaos engineering \u2014 proactively finding weaknesses before they find you."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What does the RED method measure?",
+      "options": [
+        "Rate, Errors, Duration",
+        "Reads, Executions, Disk",
+        "Retries, Exceptions, Dependencies"
+      ],
+      "correctIndex": 0,
+      "explanation": "RED stands for Rate (requests/sec), Errors (failed requests/sec), and Duration (latency distribution).",
+      "encourageCorrect": "Nice! RED is perfect for monitoring request-based services.",
+      "encourageIncorrect": "RED stands for Rate, Errors, and Duration \u2014 the three key metrics for any request-handling service."
+    },
+    {
+      "question": "What are the three pillars of observability?",
+      "options": [
+        "CPU, Memory, Disk",
+        "Logs, Metrics, Traces",
+        "Alerts, Dashboards, Reports"
+      ],
+      "correctIndex": 1,
+      "explanation": "Logs (what happened), Metrics (how much), and Traces (where) form the three pillars of observability.",
+      "encourageCorrect": "Exactly! Logs, metrics, and traces each give you a different lens on system behavior.",
+      "encourageIncorrect": "The three pillars are Logs (what happened), Metrics (how much), and Traces (where the request went)."
+    }
+  ]
+}

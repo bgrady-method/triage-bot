@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "title": "4.4 Multi-Level Cache Architecture",
+    "description": "L1 (in-process), L2 (distributed), L3 (CDN). Designing cache hierarchies and managing coherence.",
+    "level": "level-4",
+    "slug": "multi-level-cache",
+    "order": 4,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "A request to your API first checks a local in-memory cache (1ms), then a Redis cache (5ms), then the database (50ms). What percentage of requests need to reach each level for the overall p50 latency to be under 2ms?"
+    },
+    {
+      "type": "markdown",
+      "content": "## The cache hierarchy\n\nJust like CPU caches (L1, L2, L3), application caches work in layers:\n\n```\n\u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n\u2502 L1: In-Process Cache            \u2502 \u2190 ~100ns, per-instance\n\u2502 (Caffeine, Guava, Map)          \u2502\n\u251c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2524\n\u2502 L2: Distributed Cache           \u2502 \u2190 ~1-5ms, shared\n\u2502 (Redis, Memcached)              \u2502\n\u251c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2524\n\u2502 L3: CDN / Edge Cache            \u2502 \u2190 ~5-50ms, global\n\u2502 (CloudFront, Cloudflare)        \u2502\n\u251c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2524\n\u2502 Origin: Database                \u2502 \u2190 ~10-500ms\n\u2502 (PostgreSQL, DynamoDB)          \u2502\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n```\n\n### L1: In-Process Cache\n- **Speed:** Nanoseconds (memory access)\n- **Size:** Limited by instance RAM (typically 100MB-1GB)\n- **Scope:** Per-instance (not shared)\n- **Use for:** Hot data, config, frequently accessed immutable data\n- **Challenge:** Cache coherence \u2014 each instance has its own copy. After a write, other instances serve stale data until their TTL expires.\n\n### L2: Distributed Cache\n- **Speed:** 1-5ms (network hop)\n- **Size:** Hundreds of GB across cluster\n- **Scope:** Shared across all instances\n- **Use for:** Session data, computed results, database query results\n- **Challenge:** Network latency, availability (what if Redis is down?)\n\n### L3: CDN Edge Cache\n- **Speed:** 5-50ms (nearest edge)\n- **Size:** Effectively unlimited\n- **Scope:** Global\n- **Use for:** Static assets, API responses with Cache-Control headers\n- **Challenge:** Invalidation (purging globally takes seconds to minutes)\n\n## Managing coherence across levels\n\nWhen data changes, you need to invalidate all cache levels:\n\n1. **Database is updated**\n2. **Invalidate L2 (Redis):** Delete the key. Immediate.\n3. **L1 auto-expires:** Short TTL (30-60s) means instances converge quickly.\n4. **L3 (CDN):** Purge API or versioned URLs.\n\n**The tradeoff:** Shorter L1 TTLs mean better coherence but more L2 hits. Longer L1 TTLs mean less L2 load but more staleness. Typical: L1 TTL of 30-60 seconds works for most applications."
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "Your L1 cache has a 95% hit rate, L2 has a 99% hit rate for L1 misses, and the database handles L2 misses. With 10,000 requests/second, how many hit each level?",
+      "answer": "**L1:** 10,000 \u00d7 95% = 9,500 requests served from in-process cache (~100ns each).\n**L2:** 10,000 \u00d7 5% = 500 L1 misses \u2192 500 \u00d7 99% = 495 served from Redis (~3ms each).\n**Database:** 500 \u00d7 1% = 5 requests reach the database (~50ms each).\n\nThe database handles only 5 requests/second instead of 10,000 \u2014 a 2,000x reduction. The overall p50 latency is dominated by L1 hits, so it is well under 1ms. The p99 depends on how often a single user misses both caches (rare). This is why multi-level caching is so powerful."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Multi-level caching (L1 in-process, L2 distributed, L3 CDN) reduces database load by orders of magnitude. Each level trades size and freshness for speed. Short L1 TTLs (30-60s) balance coherence and performance. The database should only handle a tiny fraction of total traffic."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 4.5 covers the outermost layer \u2014 edge caching at CDN locations, stale-while-revalidate, and caching personalized content at the edge."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What are the typical levels in a multi-level cache architecture?",
+      "options": [
+        "Fast cache and slow cache",
+        "L1 in-process, L2 distributed (Redis), L3 CDN/edge",
+        "Primary and secondary cache"
+      ],
+      "correctIndex": 1,
+      "explanation": "The hierarchy: L1 in-process (~100ns), L2 distributed (~1-5ms), L3 CDN/edge (~5-50ms).",
+      "encourageCorrect": "Exactly! Each level trades size and freshness for speed.",
+      "encourageIncorrect": "The levels are: L1 in-process (~100ns), L2 distributed/Redis (~1-5ms), L3 CDN/edge (~5-50ms)."
+    },
+    {
+      "question": "With a 95% L1 hit rate and 99% L2 hit rate, how many requests out of 10,000 reach the database?",
+      "options": [
+        "500",
+        "50",
+        "5"
+      ],
+      "correctIndex": 2,
+      "explanation": "10,000 x 5% = 500 L1 misses, then 500 x 1% = 5 reach the database. A 2,000x reduction!",
+      "encourageCorrect": "Well done! Multi-level caching reduces database load by orders of magnitude.",
+      "encourageIncorrect": "Only 5! 10,000 x 5% = 500 to L2, then 500 x 1% = 5 reach the database."
+    }
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "meta": {
+    "title": "3.3 Replication",
+    "description": "Leader-follower, multi-leader, and leaderless replication. Sync vs async. Replication lag and its consequences.",
+    "level": "level-3",
+    "slug": "replication",
+    "order": 3,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "You have a database with one server. If it dies, you lose everything. You add a second server that copies all data from the first. Now what problems have you solved, and what new problems have you created?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Why replicate?\n\n1. **High availability:** If one node fails, others serve traffic\n2. **Read scaling:** Distribute read load across replicas\n3. **Latency:** Place replicas closer to users geographically\n\n## Leader-follower (primary-replica)\n\nThe most common pattern. One leader accepts writes. Followers replicate the leader's changes and serve reads.\n\n```\nWrites \u2192 Leader \u2192 Replication \u2192 Follower 1 (reads)\n                              \u2192 Follower 2 (reads)\n                              \u2192 Follower 3 (reads)\n```\n\n**Synchronous replication:** Leader waits for follower confirmation before acknowledging the write. Guarantees no data loss but slower writes (every write waits for network round trip to follower).\n\n**Asynchronous replication:** Leader acknowledges the write immediately, sends to followers in the background. Faster writes but risk of data loss if leader crashes before replication completes.\n\n**Semi-synchronous:** One follower is synchronous (guaranteed up-to-date), others are asynchronous. Common compromise (PostgreSQL supports this).\n\n### Replication lag\n\nWith async replication, followers may be seconds behind the leader. This causes:\n\n- **Read-after-write inconsistency:** User writes data, reads from a follower, does not see their write.\n- **Monotonic read violation:** User reads from Follower A (up-to-date), then Follower B (behind) \u2014 data appears to go backward.\n\n**Solutions:** Read-your-writes consistency (route user's reads to the leader for recently written data), monotonic reads (sticky sessions to one follower).\n\n## Multi-leader replication\n\nMultiple nodes accept writes. Each leader replicates to others.\n\n**Use cases:** Multi-region deployment (leader per region), offline-capable apps (each device is a leader).\n\n**The problem:** Write conflicts. Two leaders modify the same data simultaneously.\n\n**Conflict resolution strategies:**\n- Last-writer-wins (LWW): Timestamp-based. Simple but loses data.\n- Merge: Application-specific logic combines both changes.\n- CRDT: Data structures designed for automatic conflict resolution.\n\n## Leaderless replication\n\nNo designated leader. Any node accepts reads and writes. Uses quorum-based consistency.\n\n**Quorum formula:** With N replicas, write to W nodes, read from R nodes. If W + R > N, reads are guaranteed to see the latest write.\n\nCommon configuration with N=3: W=2, R=2 (majority quorum).\n\n**Used by:** Cassandra, DynamoDB, Riak.\n\n| Strategy | Write latency | Consistency | Conflict handling | Example |\n|---|---|---|---|---|\n| Leader-follower | Medium | Strong (from leader) | No conflicts | PostgreSQL, MySQL |\n| Multi-leader | Low (local writes) | Eventual | Must resolve conflicts | CouchDB |\n| Leaderless | Low | Tunable | Must resolve conflicts | Cassandra, DynamoDB |"
+    },
+    {
+      "type": "practiceSet",
+      "title": "Replication Practice",
+      "problems": [
+        {
+          "id": "sd-3-3-1",
+          "question": "A user updates their profile name in a system using async leader-follower replication. Immediately after the update, they refresh the page and see their OLD name. What is this problem called, and what is the simplest fix?",
+          "options": [
+            "A) Phantom read \u2014 fix by upgrading to serializable isolation",
+            "B) Read-after-write inconsistency \u2014 fix by routing the user's reads to the leader for recently-written data",
+            "C) Split brain \u2014 fix by implementing leader election"
+          ],
+          "correctAnswer": "B",
+          "explanation": "This is a classic read-after-write inconsistency. The user wrote to the leader, but their subsequent read was served by a follower that has not yet received the replication update. The simplest fix: for a short window after a write (e.g., 10 seconds), route that user's reads for the affected data to the leader instead of a follower. This can be tracked with a client-side timestamp of the last write. Option A (phantom reads) is a different isolation-level issue. Option C (split brain) involves multiple nodes thinking they are the leader.",
+          "difficulty": "intermediate"
+        }
+      ]
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Leader-follower is the default replication strategy \u2014 simple and well-understood. Async replication introduces lag that causes read-after-write inconsistency. Multi-leader enables multi-region writes but requires conflict resolution. Leaderless uses quorums for tunable consistency. Choose based on your latency, consistency, and availability requirements."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Replication copies data for availability and read scaling. But what when one machine cannot hold all the data? Module 3.4 covers partitioning and sharding \u2014 splitting data across multiple machines."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What is the most common replication pattern?",
+      "options": [
+        "Multi-leader replication",
+        "Leader-follower (primary-replica)",
+        "Leaderless replication"
+      ],
+      "correctIndex": 1,
+      "explanation": "Leader-follower is the default \u2014 one leader accepts writes, followers serve reads.",
+      "encourageCorrect": "Exactly! Leader-follower is simple, well-understood, and right for most systems.",
+      "encourageIncorrect": "Leader-follower is most common \u2014 one leader handles writes, followers replicate and serve reads."
+    },
+    {
+      "question": "What problem does asynchronous replication introduce?",
+      "options": [
+        "Higher write latency",
+        "Read-after-write inconsistency due to replication lag",
+        "Data corruption"
+      ],
+      "correctIndex": 1,
+      "explanation": "With async replication, followers may be behind \u2014 a user writes then reads stale data from a follower.",
+      "encourageCorrect": "That is right! The lag means you might read stale data right after writing.",
+      "encourageIncorrect": "Async replication causes read-after-write inconsistency due to lag between leader and follower."
+    }
+  ]
+}

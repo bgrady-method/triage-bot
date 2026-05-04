@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "title": "14.4 Technology Decision-Making",
+    "description": "Architecture Decision Records, build vs. buy analysis, technology evaluation frameworks, and managing technical debt.",
+    "level": "level-14",
+    "slug": "technology-decision-making",
+    "order": 4,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "Your team is choosing between building a custom authentication system and using Auth0 (a managed service). Auth0 costs $25,000/year. Your team estimates 3 months to build a custom solution. How do you make this decision?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Architecture Decision Records (ADRs)\n\nAn ADR is a document that captures an important architectural decision along with its context and consequences. They create a decision log that future team members can reference to understand *why* things are the way they are.\n\n**ADR Template:**\n\n```\n# ADR-001: Use PostgreSQL for primary data store\n\n## Status: Accepted\n\n## Context\nWe need a primary database for our e-commerce platform.\nWe expect 10,000 RPS read, 1,000 RPS write.\nOur team has strong SQL experience.\nWe need ACID transactions for order processing.\n\n## Decision\nWe will use PostgreSQL with read replicas.\n\n## Consequences\n- (+) Strong consistency for transactions\n- (+) Team expertise reduces onboarding time\n- (+) Rich ecosystem (PostGIS, full-text search, JSONB)\n- (-) Horizontal write scaling requires sharding (complex)\n- (-) Schema migrations require careful planning\n- (-) May need to add Redis for caching hot paths\n\n## Alternatives Considered\n- MongoDB: Better write scaling but weaker consistency\n- CockroachDB: Distributed SQL but less mature ecosystem\n```\n\n**Key principles:**\n- Write ADRs for decisions that are hard to reverse or have significant impact.\n- ADRs are immutable \u2014 if a decision is reversed, write a new ADR that supersedes the old one.\n- Include alternatives considered \u2014 this shows the decision was thoughtful, not arbitrary.\n\n## Build vs. Buy\n\nThe most common technology decision. A framework for evaluating:\n\n### Build When:\n- The capability is your **core differentiator** (e.g., Google building its own search engine)\n- No existing solution fits your specific requirements\n- You need deep customization that a vendor cannot provide\n- The long-term cost of vendor lock-in exceeds the build cost\n\n### Buy When:\n- The capability is **commodity** (auth, email, payments, monitoring)\n- Time-to-market is critical and building delays launch\n- The vendor has domain expertise your team lacks (security, compliance)\n- Total cost of ownership (including maintenance, on-call, upgrades) favors buying\n\n### The True Cost of Building\n\nTeams consistently underestimate the cost of building. A 3-month build estimate means:\n\n```\nDevelopment: 3 months \u00d7 2 engineers \u00d7 $15,000/month = $90,000\nMaintenance: 20% of build cost per year = $18,000/year\nOn-call burden: Priceless (but real)\nOpportunity cost: What else could those engineers have built?\nSecurity patches, upgrades, compliance: Ongoing forever\n\nYear 1 total: ~$108,000\nYear 3 total: ~$144,000\n5-year TCO: ~$180,000 vs. Auth0 at $125,000\n```\n\nThe build option often looks cheaper initially but the compounding maintenance cost makes buying cheaper over 3-5 years for commodity capabilities.\n\n## Technology Evaluation Framework\n\nWhen choosing between technologies, use a structured evaluation:\n\n**1. Define requirements** (weighted by importance):\n- Performance needs (latency, throughput)\n- Scalability ceiling\n- Team expertise and learning curve\n- Community and ecosystem maturity\n- Operational complexity\n- Cost (license, infrastructure, personnel)\n- Vendor lock-in risk\n\n**2. Proof of concept:** Build a small POC that tests your top 2-3 requirements. Do not evaluate more than 3 options \u2014 decision paralysis is real.\n\n**3. Production readiness checklist:**\n- Can we monitor it?\n- Can we debug it at 3 AM?\n- Can we hire people who know it?\n- What happens when the primary maintainer leaves?\n- Is there a migration path if we need to switch later?\n\n## Managing Technical Debt\n\nTechnical debt is not inherently bad \u2014 it is a tool. Like financial debt, it can be strategic (ship faster now, pay down later) or reckless (ignore quality because you do not care).\n\n**Categorize debt:**\n- **Deliberate-prudent:** \"We know this is not ideal, but shipping now is worth it. We will refactor in Q2.\"\n- **Deliberate-reckless:** \"We do not have time for design.\" (This is the dangerous kind.)\n- **Inadvertent-prudent:** \"Now we know how we should have built it.\" (Inevitable with learning.)\n\nTrack debt in your backlog with clear cost estimates. Pay it down when the interest (slowed development, increased bugs) exceeds the repayment cost."
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "Your startup is choosing a message queue. The options are Kafka, RabbitMQ, and AWS SQS. You have a team of 4 engineers, expect 10,000 messages/second, and need at-least-once delivery. You are running on AWS. Write a brief ADR for your recommendation.",
+      "answer": "**ADR: Use AWS SQS for message queuing.**\n\n**Context:** 4-person team, 10K msg/sec, at-least-once delivery, AWS infrastructure. Team has no Kafka or RabbitMQ operational experience.\n\n**Decision:** AWS SQS (Standard queues).\n\n**Consequences:** (+) Zero operational overhead \u2014 fully managed, no clusters to maintain. (+) Handles 10K msg/sec easily (scales to near-unlimited). (+) Native AWS integration (IAM, CloudWatch, Lambda triggers). (+) At-least-once delivery built in. (+) Cost: ~$4/month at this volume. (-) No message ordering guarantees in Standard mode (FIFO available at lower throughput). (-) No replay/reprocessing \u2014 messages are deleted after consumption. (-) Vendor lock-in to AWS.\n\n**Alternatives:** Kafka \u2014 powerful but requires 3+ broker nodes, ZooKeeper (or KRaft), and operational expertise the team lacks. Operational cost alone exceeds SQS cost 100x. Overkill for current needs. RabbitMQ \u2014 requires cluster management, less native AWS integration. Better for complex routing patterns we do not need.\n\n**Revisit when:** Volume exceeds 100K msg/sec, we need event replay, or we need cross-cloud portability."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "ADRs create a decision log that explains why, not just what. Build vs. buy decisions should use total cost of ownership over 3-5 years, not initial development estimates. Evaluate no more than 3 technology options using weighted criteria and POCs. Technical debt is a tool \u2014 track it, categorize it, and pay it down strategically."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Making good decisions is only half the battle \u2014 you also need to communicate and defend them. Module 14.5 covers architecture reviews."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What is an ADR (Architecture Decision Record)?",
+      "options": [
+        "A performance benchmark report",
+        "A document capturing an architectural decision with its context and consequences",
+        "A list of approved technologies"
+      ],
+      "correctIndex": 1,
+      "explanation": "ADRs capture the why behind architectural decisions, creating a decision log.",
+      "encourageCorrect": "Great! ADRs explain why decisions were made \u2014 invaluable for future team members.",
+      "encourageIncorrect": "An ADR captures an architectural decision with its context and consequences."
+    },
+    {
+      "question": "When evaluating technology options, how many should you seriously consider?",
+      "options": [
+        "1 \u2014 go with what you know",
+        "No more than 3",
+        "At least 5 for thorough comparison"
+      ],
+      "correctIndex": 1,
+      "explanation": "Evaluate no more than 3 options \u2014 more leads to analysis paralysis.",
+      "encourageCorrect": "Exactly! Three options provides enough comparison without analysis paralysis.",
+      "encourageIncorrect": "Limit to no more than 3 options. More leads to analysis paralysis."
+    }
+  ]
+}

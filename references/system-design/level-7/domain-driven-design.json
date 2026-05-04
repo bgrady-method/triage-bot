@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "title": "7.3 Domain-Driven Design for System Design",
+    "description": "Bounded contexts as service boundaries, aggregates, context mapping, and anti-corruption layers.",
+    "level": "level-7",
+    "slug": "domain-driven-design",
+    "order": 3,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "You are splitting a monolith into microservices. How do you decide where to draw the boundaries? If you get it wrong, you end up with a 'distributed monolith' \u2014 all the complexity of microservices with none of the benefits."
+    },
+    {
+      "type": "markdown",
+      "content": "## DDD as a decomposition tool\n\nDomain-Driven Design provides a methodology for finding natural service boundaries based on the business domain, not technical layers.\n\n### Bounded Context\n\nA bounded context is a boundary within which a specific domain model is defined and applicable. The same concept (e.g., 'Product') may mean different things in different contexts:\n\n- **Catalog context:** Product has name, description, images, categories\n- **Inventory context:** Product has SKU, quantity, warehouse location\n- **Pricing context:** Product has base price, discounts, tax rules\n- **Shipping context:** Product has weight, dimensions, handling requirements\n\nEach bounded context becomes a microservice candidate. Each has its own database and its own definition of Product.\n\n### Aggregates\n\nAn aggregate is a cluster of objects treated as a single unit for data consistency. The aggregate root enforces invariants.\n\n**Example: Order aggregate**\n- Order (root): order ID, customer ID, status\n- OrderItems: product, quantity, price\n- Invariant: total must equal sum of item prices \u00d7 quantities\n\n**Rule:** Transactions should not cross aggregate boundaries. If you find yourself needing a transaction across two aggregates, either merge them or use eventual consistency (saga).\n\n### Context mapping\n\nHow bounded contexts relate to each other:\n\n| Relationship | Description |\n|---|---|\n| Shared Kernel | Two contexts share some model. Tight coupling. |\n| Customer-Supplier | Upstream supplies, downstream consumes. |\n| Conformist | Downstream adopts upstream's model as-is. |\n| Anti-Corruption Layer | Downstream translates upstream's model to its own. |\n| Published Language | Shared API contract / event schema. |\n\n### Anti-Corruption Layer (ACL)\n\nA translation layer that prevents one context's model from leaking into another. Essential when integrating with legacy systems or third-party APIs.\n\n```\nYour Service \u2192 ACL (translates) \u2192 Legacy System\n```\n\nThe ACL maps between your clean domain model and the external system's model. If the external system changes, only the ACL needs updating."
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "A team splits their monolith into microservices by technical layer: a 'database service,' a 'business logic service,' and a 'UI service.' Why will this fail?",
+      "answer": "**This creates a distributed monolith.** Every feature requires changes to all three services and coordination between three teams. A single user request traverses all three layers over the network, adding latency and failure points. This is the 'horizontal split' anti-pattern. The correct approach is a vertical split by bounded context: UserService (owns user data + logic + API), OrderService (owns order data + logic + API), CatalogService, etc. Each service owns its full stack from API to database. Changes to user features only require changing UserService. This is the key insight of DDD for microservices: decompose by business capability, not by technical layer."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "DDD provides the methodology for finding service boundaries: bounded contexts define where one model ends and another begins. Aggregates define consistency boundaries within a service. Anti-corruption layers protect your model from external systems. Decompose by business capability, never by technical layer."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 7.4 covers clean and hexagonal architecture \u2014 how to structure code within each service for testability and independence."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What is a bounded context in DDD?",
+      "options": [
+        "A limit on how many services can exist",
+        "A boundary within which a specific domain model is defined and applicable",
+        "A security perimeter around a service"
+      ],
+      "correctIndex": 1,
+      "explanation": "A bounded context defines where one model ends and another begins.",
+      "encourageCorrect": "Exactly! Bounded contexts give you natural service boundaries.",
+      "encourageIncorrect": "A bounded context is a boundary where a specific domain model applies."
+    },
+    {
+      "question": "Why should you decompose by business capability instead of technical layer?",
+      "options": [
+        "Technical layers are harder to code",
+        "Splitting by technical layer creates a distributed monolith",
+        "Business capabilities are simpler"
+      ],
+      "correctIndex": 1,
+      "explanation": "Technical layers mean every feature crosses all services \u2014 a distributed monolith.",
+      "encourageCorrect": "That is the key insight! Vertical splits by business domain let teams work independently.",
+      "encourageIncorrect": "Splitting by technical layer creates a distributed monolith. Split by business capability instead."
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "title": "5.1 REST API Design",
+    "description": "Resource modeling, HTTP methods, status codes, pagination, versioning, and HATEOAS.",
+    "level": "level-5",
+    "slug": "rest-api-design",
+    "order": 1,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "You are designing an API for a bookstore. How would you structure the URLs for: listing all books, getting a specific book, adding a book to a user's cart, and searching for books by author?"
+    },
+    {
+      "type": "markdown",
+      "content": "## REST principles\n\nREST (Representational State Transfer) models your API around **resources** (nouns, not verbs) accessed via standard HTTP methods.\n\n### Resource design\n\n```\nGET    /books              \u2192 List all books\nGET    /books/123           \u2192 Get book 123\nPOST   /books               \u2192 Create a new book\nPUT    /books/123           \u2192 Replace book 123\nPATCH  /books/123           \u2192 Partially update book 123\nDELETE /books/123           \u2192 Delete book 123\nGET    /books/123/reviews   \u2192 List reviews for book 123\n```\n\n**Anti-pattern:** `/getBooks`, `/createBook`, `/deleteBook/123` \u2014 verbs in URLs.\n\n### Status codes that matter\n\n| Code | Meaning | When to use |\n|---|---|---|\n| 200 | OK | Successful GET, PUT, PATCH |\n| 201 | Created | Successful POST (return Location header) |\n| 204 | No Content | Successful DELETE |\n| 400 | Bad Request | Invalid input (validation error) |\n| 401 | Unauthorized | Missing or invalid authentication |\n| 403 | Forbidden | Authenticated but not authorized |\n| 404 | Not Found | Resource does not exist |\n| 409 | Conflict | Resource state conflict (duplicate, version mismatch) |\n| 429 | Too Many Requests | Rate limit exceeded |\n| 500 | Internal Server Error | Unhandled server error |\n\n### Pagination\n\n**Offset-based:** `GET /books?offset=20&limit=10` \u2014 Simple but slow for large offsets (database skips rows).\n\n**Cursor-based:** `GET /books?cursor=eyJpZCI6MTAwfQ&limit=10` \u2014 Encode the last seen item. Fast regardless of position. Cannot jump to page N.\n\n**Use cursor-based** for feeds, timelines, and large datasets. Use offset-based for admin UIs where page jumping matters.\n\n### Versioning\n\n- **URL path:** `/v1/books`, `/v2/books` \u2014 Most common, clearest\n- **Header:** `Accept: application/vnd.api.v2+json` \u2014 Cleaner URLs, harder to discover\n- **Query param:** `/books?version=2` \u2014 Simple, not RESTful\n\n### Idempotency\n\nGET, PUT, DELETE should be idempotent (calling them multiple times produces the same result). POST is not idempotent by default \u2014 use an idempotency key header to prevent duplicate creation."
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "Your API endpoint POST /orders creates a new order. Due to a network timeout, the client retries the request. Now the customer has two identical orders. How do you prevent this?",
+      "answer": "**Use an idempotency key.** The client generates a unique key (UUID) and sends it with every request: `Idempotency-Key: 550e8400-e29b-41d4-a716-446655440000`. The server stores the key and the result. On retry with the same key, the server returns the stored result without creating a new order. Implementation: store the idempotency key in Redis with a TTL (24 hours) or in a database table. Before processing, check if the key exists. This is how Stripe, PayPal, and most payment APIs handle exactly this problem."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "REST models APIs around resources (nouns) with HTTP methods (verbs). Use cursor-based pagination for large datasets, URL-path versioning for clarity, and idempotency keys for POST operations that must not be duplicated."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "REST is the default, but not always the best fit. Module 5.2 covers GraphQL (for flexible queries) and gRPC (for high-performance service-to-service calls)."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "In REST API design, should endpoints use nouns or verbs?",
+      "options": [
+        "Verbs like /getBooks and /createBook",
+        "Nouns like /books with HTTP methods",
+        "A mix of both"
+      ],
+      "correctIndex": 1,
+      "explanation": "REST models APIs around resources (nouns). HTTP methods provide the verbs.",
+      "encourageCorrect": "Right! The HTTP method is the verb, the URL is the noun.",
+      "encourageIncorrect": "REST uses nouns for endpoints (/books) and HTTP methods for actions. Verbs in URLs are an anti-pattern."
+    },
+    {
+      "question": "How do you prevent duplicate orders when a client retries a POST /orders request?",
+      "options": [
+        "Use a unique order number from the database",
+        "Use an idempotency key sent by the client",
+        "Block retries at the load balancer"
+      ],
+      "correctIndex": 1,
+      "explanation": "An idempotency key lets the server detect retries and return the original result.",
+      "encourageCorrect": "That is the standard pattern! Stripe and PayPal use idempotency keys.",
+      "encourageIncorrect": "Use an idempotency key \u2014 a UUID the client sends. The server stores it and returns the stored result on retries."
+    }
+  ]
+}

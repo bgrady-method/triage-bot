@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "title": "3.7 Polyglot Persistence",
+    "description": "Using multiple databases in one system. When to combine SQL and NoSQL, managing consistency across stores.",
+    "level": "level-3",
+    "slug": "polyglot-persistence",
+    "order": 7,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "Your application uses PostgreSQL for everything: user accounts, product catalog, search, caching, real-time analytics, and session storage. Which of these might be better served by a different database, and why?"
+    },
+    {
+      "type": "markdown",
+      "content": "## What is polyglot persistence?\n\nUsing multiple database technologies within a single application, each chosen for the access patterns it serves best.\n\n### A typical polyglot stack\n\n| Data | Database | Why |\n|---|---|---|\n| User accounts, billing | PostgreSQL | ACID transactions, complex queries |\n| Product catalog | MongoDB | Flexible schema, nested attributes |\n| Search | Elasticsearch | Full-text search, faceted filtering |\n| Sessions | Redis | Sub-millisecond access, auto-expiry |\n| Activity feed | Redis (sorted sets) | Pre-computed, ordered by time |\n| Analytics | ClickHouse | Columnar, optimized for aggregations |\n| Relationships | Neo4j | Friend-of-friend, recommendations |\n\n### The consistency challenge\n\nWith multiple databases, keeping them in sync is the hardest problem.\n\n**Dual writes (naive approach):** Write to both databases in application code. Problem: if one write succeeds and the other fails, you have inconsistency.\n\n**Change Data Capture (CDC):** Capture changes from the primary database's transaction log and propagate them to secondary databases. Tools: Debezium (Kafka-based), AWS DMS.\n\n```\nPostgreSQL \u2192 WAL \u2192 Debezium \u2192 Kafka \u2192 Elasticsearch\n                                     \u2192 Redis\n                                     \u2192 Analytics DB\n```\n\n**Advantages of CDC:** Single source of truth (PostgreSQL), asynchronous propagation, fault tolerant (Kafka retries), maintains ordering.\n\n**Event sourcing:** Instead of updating state, record events. Each secondary database builds its own view from the event stream.\n\n### When NOT to use polyglot persistence\n\n- Small applications \u2014 one database is simpler and easier to maintain\n- When the team lacks expertise in multiple databases\n- When consistency requirements are strict across all data (single database with ACID is safer)\n- When the operational overhead of multiple databases exceeds the benefit\n\n**Rule of thumb:** Start with one database. Add specialized databases when you have a proven need and the operational maturity to manage them."
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "Your application writes user data to both PostgreSQL and Elasticsearch (for search). The Elasticsearch write fails but the PostgreSQL write succeeds. Now the databases are inconsistent. How do you prevent this?",
+      "answer": "**Use Change Data Capture (CDC) instead of dual writes.** Write only to PostgreSQL (your source of truth). Use Debezium to capture changes from PostgreSQL's write-ahead log and stream them to Elasticsearch via Kafka. If the Elasticsearch write fails, the event remains in Kafka and is retried automatically. The databases are eventually consistent but never silently divergent. Alternative: Use the transactional outbox pattern \u2014 write both the data and an 'outbox' event to PostgreSQL in the same transaction. A background process reads the outbox and sends to Elasticsearch. If the process crashes, it retries from the outbox. Never perform dual writes in application code without a coordination mechanism."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Polyglot persistence uses the right database for each access pattern. The main challenge is keeping multiple databases consistent \u2014 use Change Data Capture or event sourcing instead of dual writes. Start with one database; add others only when you have a proven need."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 3.8 is the checkpoint. You will design the complete data layer for a social media platform with 100M users \u2014 choosing databases, designing schemas, and planning for scale."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What is polyglot persistence?",
+      "options": [
+        "Using one database for all data",
+        "Using multiple database types, each chosen for specific access patterns",
+        "Running the same database in multiple regions"
+      ],
+      "correctIndex": 1,
+      "explanation": "Polyglot persistence uses the right database for each job.",
+      "encourageCorrect": "That is it! Use the right tool for each job rather than forcing one database to do everything.",
+      "encourageIncorrect": "Polyglot persistence means using multiple database technologies, each for the access patterns it serves best."
+    },
+    {
+      "question": "Why should you use CDC instead of dual writes to keep databases in sync?",
+      "options": [
+        "CDC is faster",
+        "Dual writes can fail silently, leaving databases inconsistent",
+        "CDC uses less storage"
+      ],
+      "correctIndex": 1,
+      "explanation": "Dual writes can fail on one database but succeed on the other, creating silent inconsistency.",
+      "encourageCorrect": "Exactly! CDC from a single source of truth prevents silent divergence.",
+      "encourageIncorrect": "Dual writes are dangerous \u2014 one can fail while the other succeeds. CDC reads from the source-of-truth log reliably."
+    }
+  ]
+}

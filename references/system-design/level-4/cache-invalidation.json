@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "title": "4.2 Cache Invalidation",
+    "description": "TTL, event-driven invalidation, cache stampede prevention, and why invalidation is the hardest problem in CS.",
+    "level": "level-4",
+    "slug": "cache-invalidation",
+    "order": 2,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "Phil Karlton famously said: 'There are only two hard things in Computer Science: cache invalidation and naming things.' Why is cache invalidation so hard? What happens if you get it wrong?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Why invalidation is hard\n\nThe cache and database are separate systems. When data changes in the database, the cache does not know. You must explicitly tell it. Get this wrong and you serve stale data. Get it too aggressive and you lose the performance benefit.\n\n## Invalidation strategies\n\n### TTL (Time-to-Live)\n\nSet an expiration time on cached data. After TTL expires, the next request fetches fresh data.\n\n- **Short TTL (1-60s):** Data is nearly fresh. Higher DB load from frequent refreshes.\n- **Long TTL (1hr-24hr):** Lower DB load. Potentially stale data.\n\n**When to use:** Data that changes unpredictably and where some staleness is acceptable.\n\n### Event-driven invalidation\n\nWhen data changes, explicitly delete or update the cache entry.\n\n```\n1. User updates profile in DB\n2. Application deletes cache key 'user:123'\n3. Next read triggers cache-aside: fetch from DB, write to cache\n```\n\n**When to use:** Data changes are known and controllable. You need freshness.\n\n### Versioned keys\n\nInclude a version number in the cache key. When data changes, increment the version. Old keys naturally expire via TTL.\n\n```\ncache.get('product:456:v7') \u2192 miss (v7 is new)\ncache.get('product:456:v6') \u2192 hit (old version, will expire)\n```\n\n## Cache stampede (thundering herd)\n\nWhen a popular cache key expires, hundreds of concurrent requests all miss the cache and hit the database simultaneously.\n\n**Prevention strategies:**\n\n1. **Locking (mutex):** First request acquires a lock and refreshes the cache. Other requests wait or serve stale data.\n2. **Stale-while-revalidate:** Serve the expired value while refreshing in the background. No user waits.\n3. **Probabilistic early expiration:** Each request has a small random chance of refreshing before TTL expires, spreading the load.\n4. **Pre-warming:** Refresh popular keys before they expire using a background job.\n\n## Delete vs update?\n\nWhen data changes, should you delete the cache key or update it?\n\n**Delete (preferred):** Simpler. The next read triggers a cache-aside reload with fresh data. Avoids race conditions where two concurrent updates fight over the cache value.\n\n**Update:** Lower latency for the next read (no cache miss). But if two updates happen concurrently, the cache might end up with the older value (race condition)."
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "Your API returns product search results cached with a 5-minute TTL. A popular search term is queried 10,000 times per minute. When the cache entry expires, what happens? How do you prevent it?",
+      "answer": "**What happens:** Cache stampede. When the TTL expires, the next 10,000 requests (within a fraction of a second) all see a cache miss and all query the database simultaneously. The database is overwhelmed, potentially causing cascading failures.\n\n**Prevention:** (1) **Stale-while-revalidate:** Configure the cache to serve the expired entry while one background request refreshes it. Users get slightly stale data for a few milliseconds instead of waiting. (2) **Locking:** Use a distributed lock (Redis SETNX). The first request that finds a miss acquires the lock, refreshes the cache, and releases. Other requests either wait briefly or return stale data. (3) **Pre-warming:** A background job refreshes this popular key every 4 minutes (before the 5-minute TTL expires). The key never actually expires for users."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Cache invalidation requires choosing between TTL (simple, some staleness), event-driven deletion (fresh, more complex), or versioned keys (elegant, natural expiration). Cache stampedes are the most dangerous failure mode \u2014 prevent them with locking, stale-while-revalidate, or pre-warming."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Single-server caches are simple. Module 4.3 covers distributed caching \u2014 Redis vs Memcached, clustering, and the challenges of caching across multiple nodes."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What is a cache stampede?",
+      "options": [
+        "When the cache runs out of memory",
+        "When many requests simultaneously miss the cache and overwhelm the database",
+        "When cached data becomes corrupted"
+      ],
+      "correctIndex": 1,
+      "explanation": "A cache stampede happens when a popular entry expires and thousands of requests hit the database at once.",
+      "encourageCorrect": "Right! Cache stampedes are the most dangerous cache failure mode.",
+      "encourageIncorrect": "A cache stampede occurs when a popular entry expires and many requests simultaneously hit the database."
+    },
+    {
+      "question": "How does stale-while-revalidate prevent cache stampedes?",
+      "options": [
+        "It keeps entries forever",
+        "It serves the expired entry while one background request refreshes the cache",
+        "It pre-loads all entries at startup"
+      ],
+      "correctIndex": 1,
+      "explanation": "Stale-while-revalidate serves expired entries immediately while refreshing in the background.",
+      "encourageCorrect": "Exactly! Users get slightly stale data briefly, but the database is protected.",
+      "encourageIncorrect": "Stale-while-revalidate serves the old entry while one background request fetches fresh data."
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "meta": {
+    "title": "Level 2: The Network",
+    "description": "How data moves between systems: DNS, CDNs, load balancers, proxies, and protocols.",
+    "level": "level-2",
+    "slug": "index",
+    "order": 0,
+    "isCheckpoint": false,
+    "isIndex": true
+  },
+  "blocks": [
+    {
+      "type": "markdown",
+      "content": "## Welcome to Level 2\n\nEvery distributed system is built on top of a network. Understanding the building blocks of network infrastructure — DNS, CDNs, load balancers, proxies, and protocols — gives you the vocabulary to reason about how requests travel from users to servers and back.\n\n### What you will learn\n\n| Module | Topic | Core Idea |\n| :-- | :-- | :-- |\n| 2.1 | DNS | How domain names resolve to IP addresses and DNS as infrastructure |\n| 2.2 | Content Delivery Networks | Moving content to the edge for speed and scale |\n| 2.3 | Load Balancing | Distributing traffic across servers — L4 vs L7, algorithms |\n| 2.4 | Reverse Proxies and API Gateways | The middlemen that add reliability, security, and routing |\n| 2.5 | Protocols | HTTP/2, HTTP/3, WebSockets, SSE, gRPC — choosing the right protocol |\n| 2.6 | Global Delivery Design | Anycast, multi-region, and edge computing for worldwide users |\n| 2.7 | Checkpoint | Design the network layer for a global application |\n\nThe network layer is where many system design interviews begin: 'How does a request get from the user to your service?' Understanding this layer lets you draw the first boxes in any architecture diagram with confidence."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "The network layer is the foundation of every distributed system. DNS resolves names, CDNs cache content at the edge, load balancers distribute traffic, and the right protocol choice can make or break performance."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Start with Module 2.1: DNS. It is the first thing that happens in every web request and one of the most commonly overlooked components in system design discussions."
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "title": "2.4 Reverse Proxies and API Gateways",
+    "description": "What reverse proxies do, API gateway patterns, rate limiting, authentication, and request routing.",
+    "level": "level-2",
+    "slug": "reverse-proxies-api-gateways",
+    "order": 4,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "In a microservices architecture, should each service handle its own authentication, rate limiting, and SSL termination? Or should something else handle it? What are the tradeoffs?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Reverse proxy\n\nA reverse proxy sits between clients and your backend servers. Clients talk to the proxy; the proxy talks to your servers. Clients never communicate directly with backend servers.\n\n**What it provides:**\n- **SSL termination:** Handle HTTPS at the proxy, send plain HTTP internally\n- **Compression:** Gzip/Brotli responses before sending to clients\n- **Static file serving:** Serve CSS, JS, images without hitting app servers\n- **Caching:** Cache responses to reduce backend load\n- **Security:** Hide backend server IPs, protect against DDoS\n- **Load balancing:** Distribute traffic (most reverse proxies include a load balancer)\n\nPopular reverse proxies: **Nginx**, **HAProxy**, **Caddy**, **Traefik**.\n\n## API Gateway\n\nAn API gateway is a reverse proxy specialized for APIs, especially in microservices architectures. It is the single entry point for all client requests.\n\n**Additional capabilities beyond a reverse proxy:**\n\n| Capability | What it does |\n|---|---|\n| Request routing | Route `/users/*` to User Service, `/orders/*` to Order Service |\n| Authentication | Verify JWT tokens, API keys before requests reach services |\n| Rate limiting | Throttle requests per client/API key |\n| Request/response transformation | Add headers, rewrite paths, aggregate responses |\n| API versioning | Route v1 and v2 to different service versions |\n| Circuit breaking | Stop sending traffic to failing services |\n| Logging/metrics | Centralized request logging and monitoring |\n\n**Popular API gateways:** Kong, AWS API Gateway, Apigee, Envoy, Traefik.\n\n### The Gateway pattern in microservices\n\n```\n                    \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n   Clients \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2192\u2502 API Gateway \u2502\n                    \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n                    \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n                    \u25bc      \u25bc      \u25bc\n               \u250c\u2500\u2500\u2500\u2500\u2510 \u250c\u2500\u2500\u2500\u2500\u2510 \u250c\u2500\u2500\u2500\u2500\u2510\n               \u2502User\u2502 \u2502Order\u2502 \u2502Search\u2502\n               \u2502Svc \u2502 \u2502 Svc\u2502 \u2502 Svc \u2502\n               \u2514\u2500\u2500\u2500\u2500\u2518 \u2514\u2500\u2500\u2500\u2500\u2518 \u2514\u2500\u2500\u2500\u2500\u2500\u2518\n```\n\n**Benefits:** Single point for cross-cutting concerns (auth, rate limiting, logging). Services focus on business logic. Clients have one endpoint to talk to.\n\n**Risks:** Single point of failure (must be highly available). Can become a bottleneck. Teams may add too much logic to the gateway (it should be thin).\n\n### Rate limiting at the gateway\n\nThe gateway is the natural place for rate limiting because it sees all traffic before it reaches services.\n\nCommon strategies:\n- **Per-client:** 100 requests/minute per API key\n- **Per-endpoint:** `/search` gets more generous limits than `/checkout`\n- **Global:** Total system capacity protection\n\nRate limit responses use HTTP 429 (Too Many Requests) with a `Retry-After` header."
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "Your team debates: should we use a thin API gateway (just routing + auth) or a fat gateway (routing + auth + request aggregation + response transformation + business logic)? What is the right answer?",
+      "answer": "**Thin gateway is almost always correct.** The gateway should handle cross-cutting infrastructure concerns: routing, authentication, rate limiting, SSL termination, logging. It should NOT contain business logic, data transformation, or request aggregation \u2014 these belong in the services themselves or in a Backend-for-Frontend (BFF) layer. A fat gateway becomes a monolith in disguise \u2014 every service change requires a gateway change, the gateway team becomes a bottleneck, and testing becomes complex. The anti-pattern is called 'smart pipes, dumb endpoints' \u2014 the opposite of what microservices should be ('dumb pipes, smart endpoints')."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Reverse proxies handle SSL, compression, caching, and security. API gateways add routing, auth, rate limiting, and observability for microservices. Keep gateways thin \u2014 cross-cutting infrastructure concerns only. Business logic belongs in services."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "The gateway routes requests using HTTP. But is HTTP always the right protocol? Module 2.5 explores the protocol landscape \u2014 HTTP/2, HTTP/3, WebSockets, SSE, and gRPC \u2014 and when to choose each."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "Should an API gateway contain business logic?",
+      "options": [
+        "Yes, it centralizes logic",
+        "No, keep gateways thin with only cross-cutting infrastructure concerns",
+        "Only for authentication logic"
+      ],
+      "correctIndex": 1,
+      "explanation": "A fat gateway becomes a monolith in disguise. Keep it thin \u2014 routing, auth, rate limiting only.",
+      "encourageCorrect": "Exactly! Thin gateways prevent the smart pipes, dumb endpoints anti-pattern.",
+      "encourageIncorrect": "Keep gateways thin \u2014 only cross-cutting concerns. Business logic belongs in the services."
+    },
+    {
+      "question": "What is SSL termination?",
+      "options": [
+        "Disabling SSL entirely",
+        "Handling HTTPS at the reverse proxy and sending plain HTTP internally",
+        "Encrypting traffic between internal services"
+      ],
+      "correctIndex": 1,
+      "explanation": "SSL termination means the reverse proxy handles HTTPS and forwards plain HTTP to backends.",
+      "encourageCorrect": "Right! This offloads encryption overhead from your application servers.",
+      "encourageIncorrect": "SSL termination means the reverse proxy handles HTTPS decryption and forwards plain HTTP to backend servers."
+    }
+  ]
+}

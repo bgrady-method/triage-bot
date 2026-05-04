@@ -1,0 +1,36 @@
+{
+  "meta": {
+    "title": "2.7 Checkpoint",
+    "description": "Design the network layer for a global web application from DNS to server.",
+    "level": "level-2",
+    "slug": "checkpoint",
+    "order": 7,
+    "isCheckpoint": true,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "markdown",
+      "content": "## Level 2 Checkpoint\n\nDesign the network infrastructure for a global web application. Answer without looking back at the modules."
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "A request from a user in Brazil arrives at your global infrastructure. Trace the path from the user's browser to your application server, naming each network component involved and what it does.",
+      "answer": "1. **DNS resolver** resolves the domain to an IP. Latency-based DNS (Route 53) returns the IP of the nearest CDN edge or regional endpoint.\n2. **CDN edge server** (e.g., Cloudflare PoP in Sao Paulo) handles the request. For static content, it serves from cache. For dynamic content, it forwards to the origin.\n3. **API Gateway / Reverse Proxy** (in the nearest region, e.g., sa-east-1) terminates SSL, validates authentication tokens, applies rate limiting, and routes the request based on URL path.\n4. **L7 Load Balancer** distributes the request across healthy application servers using least-connections algorithm.\n5. **Application server** processes the business logic, queries the database/cache, and returns the response.\n6. The response travels back through the load balancer → gateway → CDN edge (which may cache it) → user."
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "You need to choose between WebSockets and SSE for a real-time notification system. Notifications flow from server to clients only. What do you choose and why?",
+      "answer": "**Choose SSE.** Notifications are unidirectional (server → client), which is exactly SSE's model. SSE advantages: uses standard HTTP (works with existing proxies, CDNs, and load balancers without special configuration), has built-in reconnection with event ID tracking, is simpler to implement and debug. WebSockets would work but is overkill — you are paying the complexity cost of bidirectional communication (persistent connections, special load balancer configuration, no automatic reconnection) for a feature you do not need. The only reason to prefer WebSockets here is if you anticipate needing client-to-server real-time communication in the future."
+    },
+    {
+      "type": "tryItYourself",
+      "title": "Design the network layer for a video streaming platform (like YouTube) with users in North America, Europe, and Asia. Address: (1) How video content is distributed globally, (2) How live streams are handled differently from on-demand, (3) What happens when a CDN edge does not have the requested video.",
+      "solution": "**On-demand video distribution:** Videos are transcoded into multiple resolutions and stored in object storage (S3). A push CDN distributes popular content to edge servers worldwide. The CDN uses consistent hashing to determine which edge servers cache which videos, maximizing cache hit rates.\n\n**CDN miss handling:** When an edge server does not have the video, it pulls from a mid-tier cache (regional origin shield) before going to the primary origin. This reduces origin load: Edge → Regional Shield → Origin. The origin shield absorbs duplicate requests from multiple edges.\n\n**Live streams:** Unlike on-demand, live streams cannot be pre-distributed. The encoder sends the stream to an origin server, which pushes segments to edge servers in real-time. Low-latency protocols (WebRTC for ultra-low, CMAF for standard) deliver segments. Edge servers cache recent segments for viewers who are slightly behind live.\n\n**Architecture:** Anycast DNS routes viewers to the nearest CDN edge. Multiple origin regions (US, EU, Asia) each handle live stream ingestion for their region. On-demand content is replicated across all regional origins. Adaptive bitrate streaming (HLS/DASH) lets clients switch quality based on bandwidth."
+    },
+    {
+      "type": "markdown",
+      "content": "## Ready for Level 3?\n\nIf you can confidently trace a request through DNS → CDN → load balancer → application server, choose appropriate protocols, and design for global delivery, you are ready. Level 3 dives into the data layer — where the hardest problems in system design live."
+    }
+  ]
+}

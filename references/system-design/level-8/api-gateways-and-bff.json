@@ -1,0 +1,55 @@
+{
+  "meta": {
+    "title": "8.3 API Gateways and BFF",
+    "description": "Backend-for-frontend pattern, API composition, request routing, and gateway responsibilities.",
+    "level": "level-8",
+    "slug": "api-gateways-and-bff",
+    "order": 3,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "Your mobile app needs data from 5 microservices to render the home screen. Should the app make 5 API calls, or should something aggregate the data?"
+    },
+    {
+      "type": "markdown",
+      "content": "## The BFF (Backend-for-Frontend) pattern\n\nCreate a dedicated backend for each frontend type. The BFF aggregates data from multiple microservices and returns exactly what the frontend needs.\n\n```\nMobile App \u2192 Mobile BFF \u2192 UserService, OrderService, RecommendationService\nWeb App \u2192 Web BFF \u2192 UserService, OrderService, RecommendationService\nAdmin \u2192 Admin BFF \u2192 UserService, OrderService, AnalyticsService\n```\n\n**Why per-frontend:** Mobile needs minimal data (bandwidth), web needs richer data, admin needs different data entirely. One API cannot serve all optimally.\n\n### API composition at the gateway\n\nThe gateway aggregates responses from multiple services into one:\n\n```\nGET /home-screen\n  \u2192 parallel: GET /users/me, GET /orders/recent, GET /recommendations\n  \u2192 merge responses\n  \u2192 return single payload\n```\n\n**Keep composition simple.** The gateway should merge responses, not contain business logic. If composition gets complex, extract it into a dedicated BFF service.\n\n### Gateway responsibilities (right vs wrong)\n\n**Right:** Routing, authentication, rate limiting, SSL termination, request logging, simple response aggregation.\n\n**Wrong:** Business logic, data transformation, database queries, complex workflow orchestration.\n\n**Evolving approach:** Start with a single API gateway. When different frontends diverge significantly, introduce BFFs. This avoids premature complexity."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "BFF creates dedicated backends for each frontend type, returning exactly the data each needs. API gateways handle routing and cross-cutting concerns. Keep gateways thin \u2014 business logic belongs in services, not gateways."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 8.4 covers service meshes \u2014 how sidecars handle networking concerns like mTLS, retries, and observability across all services."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What is the BFF (Backend-for-Frontend) pattern?",
+      "options": [
+        "A single API that serves all clients",
+        "A dedicated backend for each frontend type that returns exactly the data it needs",
+        "A frontend caching layer"
+      ],
+      "correctIndex": 1,
+      "explanation": "BFF creates separate backends for mobile, web, admin, etc.",
+      "encourageCorrect": "Perfect! Each frontend gets a tailored API.",
+      "encourageIncorrect": "BFF creates a dedicated backend per frontend type."
+    },
+    {
+      "question": "Why do different frontends need different backends?",
+      "options": [
+        "Different programming languages",
+        "Mobile needs minimal data for bandwidth, web needs richer data, admin needs different data entirely",
+        "Security requirements differ"
+      ],
+      "correctIndex": 1,
+      "explanation": "Mobile needs compact payloads, web needs richer data, admin needs different data.",
+      "encourageCorrect": "That is right! One API trying to serve all clients serves none well.",
+      "encourageIncorrect": "Each frontend has different needs: mobile needs minimal data, web needs richer data, admin needs different data."
+    }
+  ]
+}

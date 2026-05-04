@@ -1,0 +1,55 @@
+{
+  "meta": {
+    "title": "7.6 Infrastructure Patterns",
+    "description": "Sidecar, ambassador, and adapter patterns. How service meshes use these. Init containers.",
+    "level": "level-7",
+    "slug": "infrastructure-patterns",
+    "order": 6,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "Every microservice needs: logging, metrics, mTLS, retry logic, and circuit breaking. Do you implement these in every service (in every language), or is there a better way?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Sidecar Pattern\n\nDeploy a helper container alongside your application container. The sidecar handles cross-cutting concerns so the application does not have to.\n\n```\n\u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n\u2502         Pod              \u2502\n\u2502  \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510 \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510 \u2502\n\u2502  \u2502  App    \u2502 \u2502Sidecar \u2502 \u2502\n\u2502  \u2502Container\u2502 \u2502(Envoy) \u2502 \u2502\n\u2502  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518 \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518 \u2502\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n```\n\n**The sidecar handles:** Service discovery, load balancing, mTLS, retries, circuit breaking, observability (metrics, traces, logs). The application just makes plain HTTP calls to localhost.\n\n**Used by service meshes:** Istio injects an Envoy sidecar into every pod. All inter-service traffic flows through Envoy, which enforces policies without application changes.\n\n## Ambassador Pattern\n\nA sidecar specifically for outbound communication. The ambassador handles connection pooling, retries, and protocol translation for external services.\n\n**Example:** Your service talks to a legacy API that uses SOAP. The ambassador translates REST \u2192 SOAP, handles retries, and manages the connection pool.\n\n## Adapter Pattern\n\nA sidecar that normalizes the application's output to a standard interface. Multiple applications with different log formats \u2192 adapter containers that convert to a common JSON format \u2192 centralized logging.\n\n## Init Containers\n\nContainers that run before the main application starts. Used for setup tasks: database migrations, config loading, waiting for dependencies.\n\n```yaml\ninitContainers:\n  - name: wait-for-db\n    image: busybox\n    command: ['sh', '-c', 'until nc -z db 5432; do sleep 1; done']\n```"
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Sidecar, ambassador, and adapter patterns extract cross-cutting concerns into separate containers. Service meshes (Istio, Linkerd) use sidecars to add networking features without application changes. Init containers handle pre-startup tasks."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 7.7 revisits distributed transaction patterns with full depth \u2014 sagas, outbox, and compensation strategies."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What does a sidecar container handle?",
+      "options": [
+        "The main application logic",
+        "Cross-cutting concerns like mTLS, retries, and observability",
+        "Database connections only"
+      ],
+      "correctIndex": 1,
+      "explanation": "Sidecars handle cross-cutting concerns so the application does not have to.",
+      "encourageCorrect": "That is right! The sidecar handles infrastructure concerns, letting the app focus on business logic.",
+      "encourageIncorrect": "Sidecar containers handle cross-cutting concerns like mTLS, retries, and observability."
+    },
+    {
+      "question": "What is the most common use of the sidecar pattern?",
+      "options": [
+        "Database proxying",
+        "Service meshes (Istio, Linkerd)",
+        "Log file rotation"
+      ],
+      "correctIndex": 1,
+      "explanation": "Service meshes deploy Envoy proxy sidecars alongside every service.",
+      "encourageCorrect": "Exactly! Service meshes are the most prominent use of the sidecar pattern.",
+      "encourageIncorrect": "Service meshes (Istio, Linkerd) deploy Envoy proxy sidecars alongside every service."
+    }
+  ]
+}

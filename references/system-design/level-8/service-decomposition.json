@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "title": "8.2 Service Decomposition",
+    "description": "Using domain-driven design to find service boundaries. Aggregates, bounded contexts, and avoiding distributed monoliths.",
+    "level": "level-8",
+    "slug": "service-decomposition",
+    "order": 2,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "Your team splits the monolith into 12 microservices. Six months later, every feature requires changing 4+ services simultaneously and deploying them in a specific order. What went wrong?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Finding the right boundaries\n\n### Signs of good boundaries\n- Service can be developed, deployed, and scaled independently\n- Changes to one service rarely require changes to others\n- Each service has a clear, cohesive responsibility\n- Data owned by a service is only accessed through its API\n\n### Signs of bad boundaries (distributed monolith)\n- Every feature requires coordinated changes across services\n- Services share a database (even 'just for reads')\n- Services call each other in long synchronous chains\n- Deploy order matters (Service A must deploy before Service B)\n\n### Decomposition strategies\n\n**By business capability:** Order Management, Payment Processing, Inventory, Shipping. Each maps to a DDD bounded context.\n\n**By subdomain:** Core domain (competitive advantage), supporting (necessary but not differentiating), generic (commodity \u2014 use off-the-shelf).\n\n**By data ownership:** Each service owns its data exclusively. No shared databases. If another service needs data, it requests it via API or subscribes to events.\n\n### The database-per-service rule\n\nEach service has its own database that no other service accesses directly. This is the hardest rule to follow and the most important.\n\n**How to handle cross-service queries:**\n1. API composition: Service A calls Service B's API\n2. Event-driven data replication: Service B publishes events, Service A maintains a local read model\n3. Shared search index: Both services publish to Elasticsearch for cross-cutting queries"
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "Two services \u2014 OrderService and InventoryService \u2014 both need to know product prices. Should they share a products table?",
+      "answer": "**No. Never share a database between services.** Sharing a database creates tight coupling \u2014 schema changes in one service break the other, and you cannot independently scale or deploy. Solutions: (1) **PricingService API:** Both services call PricingService.getPrice(). Simple but adds a synchronous dependency. (2) **Event replication:** PricingService publishes PriceChanged events. OrderService and InventoryService each maintain a local cache of current prices. Slightly stale (eventual consistency) but fully decoupled. (3) **Include price in events:** When an order is created, include the price at that moment in the OrderCreated event. The price is frozen at order time, which is often the correct business behavior anyway."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Decompose by business capability (bounded contexts), not by technical layer. Each service owns its data exclusively \u2014 no shared databases. If every feature requires changing multiple services, your boundaries are wrong. A distributed monolith is worse than a regular monolith."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 8.3 covers API gateways and the Backend-for-Frontend pattern \u2014 how clients access your microservices."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What is the biggest sign of a distributed monolith?",
+      "options": [
+        "Services use different languages",
+        "Every feature requires coordinated changes across multiple services",
+        "Services are on different servers"
+      ],
+      "correctIndex": 1,
+      "explanation": "Coordinated changes across services means your boundaries are wrong.",
+      "encourageCorrect": "Spot on! Coordinated changes is the telltale sign of bad boundaries.",
+      "encourageIncorrect": "If every feature requires coordinated changes across services, your boundaries are wrong."
+    },
+    {
+      "question": "Should microservices share a database?",
+      "options": [
+        "Yes, for consistency",
+        "No, each service should own its data exclusively",
+        "Only for read operations"
+      ],
+      "correctIndex": 1,
+      "explanation": "Sharing creates tight coupling. Each service owns its data through its API.",
+      "encourageCorrect": "That is the golden rule! Data ownership through APIs is fundamental.",
+      "encourageIncorrect": "Never share a database between services. Each service owns its data exclusively."
+    }
+  ]
+}

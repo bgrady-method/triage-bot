@@ -1,0 +1,68 @@
+{
+  "meta": {
+    "title": "1.5 Back-of-Envelope Estimation",
+    "description": "The numbers every engineer should know, and how to estimate storage, bandwidth, and compute for any system.",
+    "level": "level-1",
+    "slug": "back-of-envelope",
+    "order": 5,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "How much storage would you need to store every tweet sent in a day? Don't look anything up — just estimate. How many tweets per day? How big is each tweet? What is the total?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Why estimation matters\n\nIn system design interviews and real architecture decisions, you need to quickly determine if a design is feasible. Can we store this data on one machine? Do we need 10 servers or 10,000? Is the bandwidth requirement realistic? Back-of-envelope estimation answers these questions in minutes.\n\n## The numbers you must know\n\n### Powers of 2\n\n| Power | Value | Approx |\n|---|---|---|\n| 2^10 | 1,024 | ~1 thousand (1 KB) |\n| 2^20 | 1,048,576 | ~1 million (1 MB) |\n| 2^30 | 1,073,741,824 | ~1 billion (1 GB) |\n| 2^40 | | ~1 trillion (1 TB) |\n\n### Time conversions\n\n| Period | Seconds |\n|---|---|\n| 1 day | 86,400 (~10^5) |\n| 1 month | 2,592,000 (~2.5 × 10^6) |\n| 1 year | 31,536,000 (~3 × 10^7) |\n\n### Scale reference points\n\n| Metric | Approximate value |\n|---|---|\n| World population | 8 billion |\n| Internet users | 5 billion |\n| Smartphone users | 4 billion |\n| Daily active users (large app) | 100M-1B |\n| QPS for a busy service | 10K-100K |\n| QPS for a very busy service | 1M+ |\n\n## The estimation framework\n\n**Step 1: Clarify the scope.** What are we estimating? Storage? QPS? Bandwidth?\n\n**Step 2: State your assumptions.** Write them down. \"Assume 500M DAU, each user sends 2 messages/day, average message is 200 bytes.\"\n\n**Step 3: Do the math.** Round aggressively. 500M × 2 × 200B = 200GB/day.\n\n**Step 4: Sanity check.** Does the number make sense? 200GB/day is about 2.3 MB/s — easily handled by one database server.\n\n## Worked example: Twitter storage\n\n**Assumptions:**\n- 500M tweets per day\n- Average tweet: 280 characters ≈ 280 bytes text\n- Metadata (user ID, timestamp, etc.): ~200 bytes\n- Total per tweet: ~500 bytes\n\n**Daily storage:** 500M × 500B = 250 GB/day\n**Yearly storage:** 250 GB × 365 = ~91 TB/year\n**5-year storage:** ~455 TB\n\nThat is a lot but entirely manageable with distributed storage. A single modern server can hold 100+ TB. The challenge is not raw storage — it is serving reads at millions of QPS.\n\n## Common estimation patterns\n\n**QPS estimation:**\n```\nDaily active users × actions per user per day\n÷ seconds per day (86,400)\n= average QPS\n\nPeak QPS ≈ 2-5x average QPS\n```\n\n**Storage estimation:**\n```\nDaily new records × bytes per record × retention period\n```\n\n**Bandwidth estimation:**\n```\nQPS × average response size = bytes/second\n```"
+    },
+    {
+      "type": "tryItYourself",
+      "title": "Estimate the storage and bandwidth requirements for a photo-sharing app with 100M daily active users. Assume each user uploads 1 photo per week (average 2MB), and each user views 50 photos per day. How much new storage per day? What peak bandwidth is needed for photo serving?",
+      "solution": "**Storage:**\n- Uploads per day: 100M users × (1/7 photo/day) = ~14.3M photos/day\n- Storage per day: 14.3M × 2MB = ~28.6 TB/day\n- Yearly: ~10.4 PB/year\n\n**Bandwidth for serving:**\n- Photo views per day: 100M × 50 = 5 billion views/day\n- Average QPS: 5B / 86,400 ≈ 58,000 QPS\n- Peak QPS (3x): ~174,000 QPS\n- Bandwidth: 174,000 × 2MB = 348 GB/s peak\n\nThat is an enormous bandwidth requirement — you absolutely need a CDN. With 90% cache hit rate at the CDN edge, origin servers handle ~17,400 QPS, which is much more manageable. This is why every photo-sharing app uses extensive CDN and caching infrastructure."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Back-of-envelope estimation is about getting to the right order of magnitude, not the exact number. Know the key numbers (powers of 2, seconds in a day, scale reference points), state assumptions explicitly, round aggressively, and sanity-check the result. If your design needs 100 TB of storage, that is a different architecture than one that needs 100 GB."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "You can now estimate any system's resource requirements. Module 1.6 ties everything together by walking through the complete lifecycle of a single web request — from DNS resolution to the rendered page."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "Approximately how many seconds are in a day?",
+      "options": ["~1,000 (10^3)", "~86,400 (10^5)", "~1,000,000 (10^6)"],
+      "correctIndex": 1,
+      "explanation": "There are 86,400 seconds in a day. Engineers round this to 10^5 for quick estimation.",
+      "encourageCorrect": "Nailed it! That number will come in handy for every QPS estimation.",
+      "encourageIncorrect": "Not quite — it's about 86,400 (roughly 10^5). A handy number to memorize!"
+    },
+    {
+      "question": "What's the rough number of daily active users (DAU) for a large app?",
+      "options": ["~100 thousand - 1 million", "~100 million - 1 billion", "~1 billion - 10 billion"],
+      "correctIndex": 1,
+      "explanation": "Large apps like Twitter, Instagram, or WhatsApp typically have 100M-1B daily active users. This is the starting number for most system design estimations.",
+      "encourageCorrect": "Spot on! 100M-1B DAU is the range you'll use as a starting point for most large-scale system design problems.",
+      "encourageIncorrect": "Not quite — large apps typically have 100M-1B daily active users. Memorize this range; it's your starting point for estimation."
+    },
+    {
+      "question": "How do you estimate average QPS from daily active users?",
+      "options": ["DAU x actions per user x 86,400", "DAU x actions per user / 86,400", "DAU / actions per user / 86,400"],
+      "correctIndex": 1,
+      "explanation": "Average QPS = (DAU x actions per user per day) / 86,400 seconds per day. For example, 500M users x 2 actions / 86,400 = ~11,500 QPS. Peak QPS is typically 2-5x average.",
+      "encourageCorrect": "Perfect! Divide total daily actions by 86,400 seconds to get average QPS — and remember peak is 2-5x that.",
+      "encourageIncorrect": "Remember: you divide by seconds in a day, not multiply. QPS = (DAU x actions/day) / 86,400. The 86,400 converts daily totals to per-second rates."
+    },
+    {
+      "question": "How many internet users are there worldwide (approximately)?",
+      "options": ["~500 million", "~2 billion", "~5 billion"],
+      "correctIndex": 2,
+      "explanation": "There are approximately 5 billion internet users worldwide — a key scale reference point for estimating maximum possible reach.",
+      "encourageCorrect": "That's right! 5 billion is the upper bound for global-scale systems.",
+      "encourageIncorrect": "It's actually about 5 billion — more than half the world's population is online now."
+    }
+  ]
+}

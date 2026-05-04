@@ -1,0 +1,25 @@
+{
+  "meta": {
+    "title": "Level 6: The Component Catalog",
+    "description": "The infrastructure building blocks every senior engineer should be able to reason about and evaluate.",
+    "level": "level-6",
+    "slug": "index",
+    "order": 0,
+    "isCheckpoint": false,
+    "isIndex": true
+  },
+  "blocks": [
+    {
+      "type": "markdown",
+      "content": "## Welcome to Level 6\n\nSenior engineers do not just know databases and caches. They know the full catalog of infrastructure components that modern systems are built from. Each module in this level is a deep dive into one component category.\n\n### What you will learn\n\n| Module | Topic |\n| :-- | :-- |\n| 6.1 | Containers and Orchestration (Docker, Kubernetes) |\n| 6.2 | Object and Blob Storage (S3, GCS) |\n| 6.3 | Search Infrastructure (Elasticsearch) |\n| 6.4 | Task Queues and Job Scheduling |\n| 6.5 | Notification Infrastructure |\n| 6.6 | Logging and Monitoring Pipelines |\n| 6.7 | Payment and Billing Systems |\n| 6.8 | Feature Flags and A/B Testing |\n| 6.9 | Checkpoint |"
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Knowing the component catalog lets you quickly assemble architectures from proven building blocks instead of reinventing solutions. Each component has established patterns, common pitfalls, and decision criteria."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Start with Module 6.1: Containers and Orchestration — the deployment foundation of modern systems."
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "meta": {
+    "title": "13.4 Design a News Feed",
+    "description": "Design a social media news feed like Facebook or Twitter \u2014 fan-out strategies, ranking algorithms, and cache architecture.",
+    "level": "level-13",
+    "slug": "design-news-feed",
+    "order": 4,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "A celebrity with 50 million followers posts an update. If you pre-compute the feed for every follower at write time, how long would that take? What if you compute feeds at read time instead? Which approach is better, and does the answer depend on who is posting?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Requirements\n\n**Functional:**\n- Users create posts (text, images, videos)\n- Users follow other users\n- Each user sees a personalized feed of posts from people they follow\n- Feed is ranked by relevance, not just chronological\n- Support likes, comments, and shares\n- Real-time: new posts from followed users appear within seconds\n\n**Non-functional:**\n- 500M DAU, each user checks feed ~10 times/day\n- Feed load latency under 300ms (p99)\n- 99.99% availability\n- Near-real-time \u2014 new posts appear within 5-10 seconds\n\n## Estimation\n\n```\nFeed reads: 500M x 10 = 5 billion/day\nRead QPS: 5B / 86,400 ~ 58K QPS (peak ~175K QPS)\n\nNew posts: 500M users x 0.5 posts/day = 250M posts/day\nWrite QPS: 250M / 86,400 ~ 2,900/sec (peak ~9K/sec)\n\nRead:write ratio ~ 20,000:1 \u2014 massively read-heavy\n\nAvg post size: 1 KB text + metadata\nStorage/day: 250M x 1KB = 250 GB/day\nStorage/year: ~91 TB\n\nAvg followers per user: 200 (but highly skewed)\nMedian: 50, Mean: 200, Top 1%: 100K+, Top 0.01%: 10M+\n```\n\n## The Core Problem: Fan-Out\n\nWhen User A posts, how does that post reach all of A's followers' feeds? This is the defining design decision.\n\n### Fan-Out on Write (Push Model)\n\nWhen a user publishes a post, immediately write it to every follower's feed cache.\n\n```\nUser posts -> Post Service -> Fan-out Service\n                                  |\n                    For each follower:\n                    write post_id to follower's\n                    pre-computed feed list in cache\n```\n\n**Pros:**\n- Feed reads are instant \u2014 just read the pre-computed list\n- Simple read path: `GET feed_cache[user_id] -> list of post_ids`\n\n**Cons:**\n- Celebrity problem: a user with 50M followers means 50M writes per post\n- 50M writes at 1 microsecond each = 50 seconds of fan-out time\n- Wasted work for inactive users who never check their feed\n- High write amplification\n\n### Fan-Out on Read (Pull Model)\n\nWhen a user opens their feed, query all followed users' posts and merge/rank in real-time.\n\n```\nUser opens feed -> Feed Service\n                      |\n         For each followed user:\n         fetch recent posts, merge, rank, return top N\n```\n\n**Pros:**\n- No write amplification\n- Celebrity posts are not a problem \u2014 just one write\n- No wasted work for inactive users\n\n**Cons:**\n- Slow: if you follow 500 users, that is 500 queries to merge\n- Feed load latency can be high (hundreds of ms)\n- Hard to rank well in real-time\n\n### Hybrid Approach (The Real Answer)\n\n**Use fan-out on write for normal users, fan-out on read for celebrities.**\n\n```\nUser posts -> Is user a celebrity (>100K followers)?\n  |                          |\n  No                         Yes\n  |                          |\n  Fan-out on write           Store post in celebrity\n  to all followers'          posts table only\n  feed caches\n\nUser reads feed -> Fetch pre-computed feed from cache\n                  + Fetch recent posts from followed celebrities\n                  -> Merge and rank -> Return top N\n```\n\nThreshold: users with >100K followers are treated as celebrities (roughly the top 1%). This covers 99% of write fan-out volume with minimal read-time cost (merging 5-10 celebrity feeds is fast).\n\n## API Design\n\n```\nGET  /api/v1/feed?cursor={timestamp}&limit=20\n  Response: { \"posts\": [...], \"next_cursor\": \"...\" }\n\nPOST /api/v1/posts\n  Request: { \"text\": \"...\", \"media_ids\": [...] }\n\nGET  /api/v1/posts/{id}\nPOST /api/v1/posts/{id}/like\nPOST /api/v1/posts/{id}/comment\n```\n\nUse cursor-based pagination (not offset-based) because the feed is constantly changing.\n\n## Data Model\n\n```\nposts:\n  post_id: bigint (Snowflake ID)\n  author_id: bigint\n  content: text\n  media_urls: jsonb\n  created_at: timestamp\n  like_count: int\n  comment_count: int\n  share_count: int\n  PRIMARY KEY (post_id)\n  INDEX (author_id, created_at DESC)\n\nfollows:\n  follower_id: bigint\n  followee_id: bigint\n  created_at: timestamp\n  PRIMARY KEY (follower_id, followee_id)\n  INDEX (followee_id)  -- find all followers of a user\n\nfeed_cache (Redis sorted set per user):\n  Key: feed:{user_id}\n  Members: post_ids\n  Scores: ranking_score (combines recency + relevance)\n  TTL: 24 hours\n  Max size: 1000 posts (older ones evicted)\n```\n\n## Ranking\n\nChronological feeds are easy but produce poor engagement. A ranking function scores each post:\n\n```\nscore = f(recency, affinity, engagement, content_type)\n\nWhere:\n  recency     = decay(hours_since_posted)      // exponential decay\n  affinity    = interaction_history(viewer, author) // how often viewer\n                                                     engages with author\n  engagement  = normalize(likes + 2*comments + 3*shares)\n  content_type = boost(video > image > text)   // platform-specific weights\n```\n\nFor fan-out on write: compute score at fan-out time using the viewer-author affinity and initial engagement signals. Update periodically as engagement accumulates.\n\nFor celebrity posts merged at read time: compute score in real-time during the merge step.\n\n## High-Level Architecture\n\n```\n                         +----------------+\n   Client ----------->   | API Gateway    |\n                         +-------+--------+\n                    +------------+--------------+\n                    |                           |\n           +--------+--------+        +--------+----------+\n           | Post Service    |        | Feed Service       |\n           | (create posts)  |        | (read/rank feeds)  |\n           +--------+--------+        +--------+----------+\n                    |                          |\n           +--------+--------+        +--------+----------+\n           | Fan-out Service |        | Feed Cache         |\n           | (async, Kafka)  |        | (Redis sorted      |\n           +--------+--------+        |  sets per user)    |\n                    |                 +--------+----------+\n                    |                          |\n           +--------+--------------------------+----------+\n           |              Posts Database                   |\n           |         (sharded by post_id)                  |\n           +----------------------------------------------+\n```\n\n**Fan-out Service:** Consumes post-created events from Kafka. For each new post by a non-celebrity user, fetches follower list and writes post_id to each follower's Redis sorted set. Runs as a horizontally scalable consumer group."
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "Your hybrid fan-out system uses 100K followers as the celebrity threshold. A user at 99K followers posts frequently \u2014 fan-out on write for 99K followers every time. Then they go viral and gain 10M followers overnight. What breaks and how do you handle the transition?",
+      "answer": "**What breaks:** Suddenly, every post from this user triggers 10M cache writes instead of 99K. The fan-out service queue backs up massively, delaying feed updates for all users. Memory usage in Redis spikes as 10M feed caches are updated per post.\n\n**Handling the transition:** (1) The celebrity threshold should not be a hard cutoff \u2014 use a dynamic system that monitors fan-out cost. When a user's follower count crosses the threshold, transition them asynchronously: stop fan-out on write for new posts and mark them as a celebrity in a configuration table. (2) Do not retroactively remove old posts from follower caches \u2014 let them age out naturally via TTL. (3) For the transitional period where the queue is backed up, add fan-out workers (horizontal scaling) and prioritize fan-out for smaller accounts so the majority of users are not affected. (4) Consider a sliding window: if fan-out for a single post takes more than X seconds, auto-classify that user as a celebrity mid-fan-out and abort the remaining writes."
+    },
+    {
+      "type": "tryItYourself",
+      "title": "Extend this design to support a 'Stories' feature \u2014 ephemeral posts that disappear after 24 hours, displayed in a separate horizontal carousel. How does the fan-out strategy differ? How do you efficiently handle expiration? What changes in the data model and cache?",
+      "solution": "**Fan-out strategy change:** Stories are viewed less frequently than the main feed (users check stories once per session, not continuously scrolling). Fan-out on write is even more wasteful here because many followers will never view the story before it expires. **Use fan-out on read** for stories: when a user opens the stories carousel, fetch recent stories from followed users in real-time.\n\n**Efficient expiration:** Stories have a fixed 24-hour TTL. Use Redis sorted sets with score = expiration_timestamp. On read, filter out expired stories (score < now). Run a background cleanup job hourly to remove expired entries. In the database, use a TTL column with a daily partition-drop strategy.\n\n**Data model changes:**\n```\nstories:\n  story_id: bigint\n  author_id: bigint\n  media_url: varchar\n  created_at: timestamp\n  expires_at: timestamp  -- created_at + 24h\n  INDEX (author_id, expires_at DESC)\n\nstory_views:\n  story_id: bigint\n  viewer_id: bigint\n  viewed_at: timestamp\n  PRIMARY KEY (story_id, viewer_id)\n```\n\n**Cache:** `stories:{user_id}` sorted set keyed by author_id with story metadata. This cache is smaller and shorter-lived than the feed cache. The carousel shows one entry per author (their latest unviewed story), so the read query is: for each followed user, get their most recent non-expired story that viewer has not seen."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "The news feed's central design decision is the fan-out strategy. Fan-out on write gives fast reads but suffers from the celebrity problem. Fan-out on read avoids write amplification but has slow reads. The hybrid approach \u2014 push for normal users, pull for celebrities \u2014 is how real systems like Twitter and Facebook solve this at scale."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "The news feed ranks content for consumption. The next system \u2014 a search engine \u2014 faces an even harder ranking problem: given a query, find the most relevant results from billions of documents in under 200 milliseconds."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What is the celebrity problem in news feed design?",
+      "options": [
+        "Celebrities post too frequently",
+        "Fan-out on write is too expensive for users with millions of followers",
+        "Celebrity content needs special moderation"
+      ],
+      "correctIndex": 1,
+      "explanation": "A user with millions of followers causes massive write amplification with fan-out on write.",
+      "encourageCorrect": "That is it! A single celebrity post triggering millions of cache writes is the classic scaling problem.",
+      "encourageIncorrect": "The celebrity problem is that fan-out on write is too expensive for users with millions of followers."
+    },
+    {
+      "question": "How do real systems like Twitter solve the celebrity problem?",
+      "options": [
+        "Limit how many followers a user can have",
+        "Use a hybrid approach: push for normal users, pull for celebrities",
+        "Cache all celebrity posts on every server"
+      ],
+      "correctIndex": 1,
+      "explanation": "The hybrid approach uses fan-out on write for normal users and fan-out on read for celebrities.",
+      "encourageCorrect": "Exactly! The hybrid fan-out approach is how real-world systems handle this at scale.",
+      "encourageIncorrect": "Real systems use a hybrid: fan-out on write for normal users and fan-out on read for celebrities."
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "meta": {
+    "title": "10.2 Circuit Breakers and Bulkheads",
+    "description": "Preventing cascade failures with circuit breakers, bulkhead isolation, and timeout policies.",
+    "level": "level-10",
+    "slug": "circuit-breakers-and-bulkheads",
+    "order": 2,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "Service A calls Service B. Service B is slow (5s responses instead of 50ms). Service A's thread pool fills up waiting for B. Now Service A cannot handle any requests \u2014 even those that do not need Service B. How do you prevent this cascade?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Circuit Breaker\n\nLike an electrical circuit breaker. When failures exceed a threshold, the circuit 'opens' and stops calling the failing service. After a cool-down, it 'half-opens' to test if the service has recovered.\n\n**States:**\n- **Closed:** Normal operation. Failures are counted.\n- **Open:** Requests fail immediately (fast fail). No calls to downstream.\n- **Half-Open:** Allow one test request. If it succeeds, close. If it fails, reopen.\n\n```\nClosed \u2192 failure threshold exceeded \u2192 Open\nOpen \u2192 timeout expires \u2192 Half-Open\nHalf-Open \u2192 test succeeds \u2192 Closed\nHalf-Open \u2192 test fails \u2192 Open\n```\n\n**Benefit:** Fast failure instead of slow failure. A 5-second timeout becomes a 5ms rejection. Your service stays responsive.\n\n## Bulkhead Pattern\n\nIsolate components so one failure does not consume all resources. Named after ship bulkheads that prevent a hull breach from flooding the entire ship.\n\n**Thread pool bulkhead:** Separate thread pools for each downstream service. If Service B's pool is exhausted, Service A still has threads for other requests.\n\n**Connection pool bulkhead:** Separate connection pools for each database/service.\n\n**Semaphore bulkhead:** Limit concurrent calls to each downstream. Simpler than thread pools.\n\n## Timeout policies\n\nEvery external call needs a timeout. Without one, a hung service blocks your threads forever.\n\n- **Connection timeout:** How long to wait for TCP connection (100-500ms)\n- **Read timeout:** How long to wait for response (1-5s typically)\n- **Total timeout:** Maximum wall-clock time for the entire operation\n\n**Rule:** Set timeouts on every external call. No exceptions."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Circuit breakers convert slow failures to fast failures, preventing cascade. Bulkheads isolate failure domains so one bad dependency does not consume all resources. Set timeouts on every external call \u2014 a missing timeout is a ticking time bomb."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Module 10.3 covers back-pressure \u2014 what to do when the system is overwhelmed from the inside."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What are the three states of a circuit breaker?",
+      "options": [
+        "Open, Closed, Half-Open",
+        "Active, Inactive, Standby",
+        "Running, Stopped, Paused"
+      ],
+      "correctIndex": 0,
+      "explanation": "A circuit breaker transitions between Closed (normal), Open (fail fast), and Half-Open (testing recovery).",
+      "encourageCorrect": "Perfect! Closed means normal flow, Open means fail fast, and Half-Open tests if the downstream is back.",
+      "encourageIncorrect": "The three states are Closed (normal operation), Open (requests fail immediately), and Half-Open (test one request to check recovery)."
+    },
+    {
+      "question": "What do bulkheads prevent?",
+      "options": [
+        "Data loss during failover",
+        "One failing dependency from consuming all resources",
+        "Unauthorized access to services"
+      ],
+      "correctIndex": 1,
+      "explanation": "Bulkheads isolate failure domains, like compartments in a ship, so one bad dependency cannot take down the whole system.",
+      "encourageCorrect": "That is it! Bulkheads isolate failures, just like compartments in a ship prevent total flooding.",
+      "encourageIncorrect": "Bulkheads isolate failure domains so one failing dependency cannot consume all resources and bring down everything else."
+    }
+  ]
+}

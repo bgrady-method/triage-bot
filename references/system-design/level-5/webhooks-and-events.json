@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "title": "5.3 Webhooks and Event-Driven APIs",
+    "description": "Push vs pull, webhook reliability patterns, idempotency, and event notification design.",
+    "level": "level-5",
+    "slug": "webhooks-and-events",
+    "order": 3,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "You integrate with a payment provider (like Stripe). After a charge succeeds, you need to update the order status. Should you poll Stripe every second to check, or should Stripe notify you? What are the reliability concerns with each?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Push vs Pull\n\n**Polling (Pull):** Client repeatedly asks \"any updates?\" Wasteful when updates are rare; can miss updates between polls.\n\n**Webhooks (Push):** Server calls a client-provided URL when something happens. Efficient, near-real-time, but the client must be available to receive.\n\n## Webhook design patterns\n\n### Reliability\n\nWebhooks are HTTP calls \u2014 they can fail. A robust webhook system needs:\n\n1. **Retry with exponential backoff:** If delivery fails, retry at increasing intervals (1s, 5s, 30s, 5min, 1hr). Stripe retries for up to 3 days.\n\n2. **Idempotency:** The receiver must handle duplicate deliveries. Every webhook should have a unique event ID. The receiver records processed IDs and skips duplicates.\n\n3. **Signature verification:** Sign the webhook payload with a shared secret (HMAC-SHA256). The receiver verifies the signature to prevent spoofing.\n\n4. **Acknowledge quickly:** Return 200 within 5-30 seconds. Process the event asynchronously (write to a queue, process later).\n\n### Event design\n\n**Thin events (notification):** Contain only the event type and resource ID. The receiver fetches full details via API.\n```json\n{\"event\": \"order.completed\", \"order_id\": \"ord_123\"}\n```\n\n**Fat events (full payload):** Contain the complete resource state. No additional API call needed.\n```json\n{\"event\": \"order.completed\", \"order\": {\"id\": \"ord_123\", \"total\": 49.99, \"items\": [...]}}\n```\n\n**Tradeoff:** Thin events are smaller and always fresh (you fetch current state). Fat events are self-contained but may be stale if the resource changed between event creation and delivery.\n\n### Dead Letter Queue\n\nAfter all retries are exhausted, undeliverable events go to a dead letter queue (DLQ). Operators can inspect, fix, and replay failed events manually."
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "Your webhook endpoint processes payment confirmations from Stripe. Due to a deployment, your endpoint was down for 30 minutes. Stripe retried and all events eventually delivered. But now some orders were processed twice \u2014 the same payment confirmation was handled multiple times. What went wrong?",
+      "answer": "**Missing idempotency handling.** The endpoint processed duplicate events because it did not check if the event had already been handled. When Stripe retried after your downtime, some events that were received (but not acknowledged due to the crash) were delivered again. Fix: Before processing, check if the event ID exists in your processed-events table. If it does, return 200 without processing. Store the event ID atomically with the order update in the same database transaction. This ensures exactly-once processing semantics even with at-least-once delivery."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Webhooks enable push-based notifications \u2014 more efficient than polling. Build reliability with retries, exponential backoff, idempotency (deduplicate by event ID), signature verification, and dead letter queues. Acknowledge quickly and process asynchronously."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Webhooks are point-to-point. Module 5.4 introduces message queues \u2014 infrastructure for decoupled, reliable asynchronous communication between services."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "Why are webhooks more efficient than polling?",
+      "options": [
+        "Webhooks use less bandwidth per message",
+        "The server pushes events only when something happens, avoiding wasted requests",
+        "Webhooks are encrypted by default"
+      ],
+      "correctIndex": 1,
+      "explanation": "Polling wastes requests. Webhooks push events only when they occur.",
+      "encourageCorrect": "Exactly! Push beats pull when updates are sporadic.",
+      "encourageIncorrect": "Webhooks push events only when something happens, while polling wastes requests asking repeatedly."
+    },
+    {
+      "question": "How should a webhook receiver handle duplicate event deliveries?",
+      "options": [
+        "Reject duplicates with an error",
+        "Check the event ID against a processed-events table and skip already-handled events",
+        "Process every delivery regardless"
+      ],
+      "correctIndex": 1,
+      "explanation": "Deduplicate by event ID \u2014 check if already handled before processing.",
+      "encourageCorrect": "Right! Idempotent handling with event ID deduplication ensures exactly-once processing.",
+      "encourageIncorrect": "Check the event ID in your processed-events table. If already handled, return 200 without reprocessing."
+    }
+  ]
+}

@@ -1,0 +1,1181 @@
+{
+  "levels": [
+    {
+      "level": 1,
+      "title": "The Fundamentals",
+      "subtitle": "First principles of system design",
+      "color": "#3b82f6",
+      "description": "Before you can design systems, you need to reason about them. This level builds the mental models that every system design conversation assumes: scalability, latency, throughput, availability, consistency, and estimation. These are the lenses through which every architecture decision is evaluated.",
+      "moduleCount": 7
+    },
+    {
+      "level": 2,
+      "title": "The Network",
+      "subtitle": "How data moves between systems",
+      "color": "#8b5cf6",
+      "description": "Every distributed system is built on top of a network. Understanding DNS, CDNs, load balancers, reverse proxies, and modern protocols gives you the vocabulary to reason about how requests travel from users to servers and back. This level covers the infrastructure that makes the internet work.",
+      "moduleCount": 7
+    },
+    {
+      "level": 3,
+      "title": "The Data Layer",
+      "subtitle": "Where state lives",
+      "color": "#06b6d4",
+      "description": "The hardest problems in system design are data problems. Choosing the right database, designing schemas for scale, understanding replication and partitioning — these decisions shape everything downstream. This level covers relational and NoSQL databases, replication strategies, sharding, and data modeling.",
+      "moduleCount": 8
+    },
+    {
+      "level": 4,
+      "title": "The Speed Layer",
+      "subtitle": "Making systems fast",
+      "color": "#f97316",
+      "description": "Caching is the most common performance optimization in system design, and the most commonly misunderstood. This level covers caching fundamentals, invalidation strategies, distributed caching, and multi-level cache architectures that make systems feel instant.",
+      "moduleCount": 6
+    },
+    {
+      "level": 5,
+      "title": "The Communication Layer",
+      "subtitle": "How services talk to each other",
+      "color": "#ef4444",
+      "description": "Modern systems are composed of services that need to communicate. REST, GraphQL, gRPC, message queues, and event-driven patterns each solve different problems. This level covers API design, asynchronous communication, and the patterns that keep services loosely coupled.",
+      "moduleCount": 7
+    },
+    {
+      "level": 6,
+      "title": "The Component Catalog",
+      "subtitle": "Building blocks of modern infrastructure",
+      "color": "#10b981",
+      "description": "Senior engineers don't just know databases and caches — they know the full catalog of infrastructure components. Containers, object storage, search engines, task queues, notification systems, monitoring pipelines, payment systems, and feature flags. Each module is a deep dive into one component category.",
+      "moduleCount": 9
+    },
+    {
+      "level": 7,
+      "title": "The Pattern Library",
+      "subtitle": "Recurring solutions to common problems",
+      "color": "#ec4899",
+      "description": "Patterns are a shared vocabulary for design decisions. Event-driven architecture, CQRS, domain-driven design, clean architecture, deployment patterns, infrastructure patterns, and distributed transaction patterns. Know when to apply each, understand the tradeoffs, and recognize them in production systems.",
+      "moduleCount": 8
+    },
+    {
+      "level": 8,
+      "title": "The Architecture",
+      "subtitle": "Structuring systems at scale",
+      "color": "#6366f1",
+      "description": "How do you decompose a monolith? When are microservices the right call? What about serverless? This level covers architectural styles, service decomposition using domain-driven design, API gateways, service meshes, and the cross-cutting concerns that every production system needs.",
+      "moduleCount": 7
+    },
+    {
+      "level": 9,
+      "title": "The Distributed Systems",
+      "subtitle": "When physics gets in the way",
+      "color": "#14b8a6",
+      "description": "Distributed systems are where theory meets reality. CAP theorem, consensus algorithms, distributed clocks, distributed transactions, CRDTs, consistent hashing, and gossip protocols. This level gives you the theoretical foundations to reason about correctness in systems that span multiple machines.",
+      "moduleCount": 8
+    },
+    {
+      "level": 10,
+      "title": "The Resilience Layer",
+      "subtitle": "Systems that survive failure",
+      "color": "#f59e0b",
+      "description": "Everything fails. The question is whether your system fails gracefully. Rate limiting, circuit breakers, back-pressure, observability, chaos engineering, and disaster recovery. This level teaches you to design systems that bend without breaking.",
+      "moduleCount": 7
+    },
+    {
+      "level": 11,
+      "title": "The Data Pipeline",
+      "subtitle": "Processing data at scale",
+      "color": "#84cc16",
+      "description": "When data grows beyond what a single database can handle, you need pipelines. Batch processing, stream processing, event sourcing, CQRS, change data capture, and modern data architectures. This level covers how to move, transform, and analyze data at scale.",
+      "moduleCount": 6
+    },
+    {
+      "level": 12,
+      "title": "The Security Layer",
+      "subtitle": "Protecting systems and data",
+      "color": "#dc2626",
+      "description": "Security is not a feature — it is a constraint that shapes every design decision. Authentication at scale, authorization patterns, encryption, network security, zero trust, and secrets management. This level ensures your designs are secure by default.",
+      "moduleCount": 6
+    },
+    {
+      "level": 13,
+      "title": "The Design Interview",
+      "subtitle": "Putting it all together",
+      "color": "#7c3aed",
+      "description": "Everything you have learned converges here. A structured framework for system design interviews, followed by seven complete design exercises: URL shortener, chat system, news feed, search engine, video streaming, ride-sharing, and notification system. Each builds on the concepts from earlier levels.",
+      "moduleCount": 8
+    },
+    {
+      "level": 14,
+      "title": "The Architect's Intuition",
+      "subtitle": "Mastering the meta-game",
+      "color": "#0891b2",
+      "description": "Architecture is not just about technology — it is about decisions. Cloud cost estimation, migration strategies, Conway's Law, technology decision-making, architecture reviews, and a capstone project. This level develops the judgment that separates architects from engineers.",
+      "moduleCount": 6
+    }
+  ],
+  "modules": {
+    "level-1": [
+      {
+        "title": "Level 1: The Fundamentals",
+        "description": "First principles of system design: scalability, latency, throughput, availability, and estimation.",
+        "level": "level-1",
+        "slug": "index",
+        "order": 0,
+        "isCheckpoint": false,
+        "isIndex": true
+      },
+      {
+        "title": "1.1 Scalability",
+        "description": "Vertical vs horizontal scaling, stateless design, and the fundamental tradeoffs of growing a system.",
+        "level": "level-1",
+        "slug": "scalability",
+        "order": 1,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "1.2 Latency and Throughput",
+        "description": "The two dimensions of performance: how fast and how many. Measuring, reasoning about, and improving both.",
+        "level": "level-1",
+        "slug": "latency-and-throughput",
+        "order": 2,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "1.3 Availability and SLAs",
+        "description": "Nines of availability, SLOs, SLIs, SLAs, and the cost of each additional nine.",
+        "level": "level-1",
+        "slug": "availability-and-slas",
+        "order": 3,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "1.4 Consistency Models",
+        "description": "Strong, eventual, causal, and read-your-writes consistency. What each means and when each is appropriate.",
+        "level": "level-1",
+        "slug": "consistency-models",
+        "order": 4,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "1.5 Back-of-Envelope Estimation",
+        "description": "The numbers every engineer should know, and how to estimate storage, bandwidth, and compute for any system.",
+        "level": "level-1",
+        "slug": "back-of-envelope",
+        "order": 5,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "1.6 Anatomy of a Web Request",
+        "description": "What happens when you type a URL and press Enter. DNS, TCP, TLS, HTTP, server processing, and the response.",
+        "level": "level-1",
+        "slug": "anatomy-of-web-request",
+        "order": 6,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "1.7 Checkpoint",
+        "description": "Test your understanding of scalability, performance, availability, consistency, and estimation.",
+        "level": "level-1",
+        "slug": "checkpoint",
+        "order": 7,
+        "isCheckpoint": true,
+        "isIndex": false
+      }
+    ],
+    "level-2": [
+      {
+        "title": "Level 2: The Network",
+        "description": "How data moves between systems: DNS, CDNs, load balancers, proxies, and protocols.",
+        "level": "level-2",
+        "slug": "index",
+        "order": 0,
+        "isCheckpoint": false,
+        "isIndex": true
+      },
+      {
+        "title": "2.1 DNS",
+        "description": "How domain names resolve to IP addresses, DNS record types, TTL, and DNS as a load balancing tool.",
+        "level": "level-2",
+        "slug": "dns",
+        "order": 1,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "2.2 Content Delivery Networks",
+        "description": "How CDNs work, push vs pull, cache invalidation at the edge, and when to use a CDN.",
+        "level": "level-2",
+        "slug": "cdns",
+        "order": 2,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "2.3 Load Balancing",
+        "description": "L4 vs L7 load balancing, algorithms (round robin, least connections, consistent hashing), health checks.",
+        "level": "level-2",
+        "slug": "load-balancing",
+        "order": 3,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "2.4 Reverse Proxies and API Gateways",
+        "description": "What reverse proxies do, API gateway patterns, rate limiting, authentication, and request routing.",
+        "level": "level-2",
+        "slug": "reverse-proxies-api-gateways",
+        "order": 4,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "2.5 Protocols",
+        "description": "HTTP/1.1 vs HTTP/2 vs HTTP/3, WebSockets, Server-Sent Events, gRPC, and choosing the right protocol.",
+        "level": "level-2",
+        "slug": "protocols",
+        "order": 5,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "2.6 Global Delivery Design",
+        "description": "Designing for users worldwide: anycast, multi-region deployment, latency-based routing, and edge computing.",
+        "level": "level-2",
+        "slug": "global-delivery",
+        "order": 6,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "2.7 Checkpoint",
+        "description": "Design the network layer for a global web application from DNS to server.",
+        "level": "level-2",
+        "slug": "checkpoint",
+        "order": 7,
+        "isCheckpoint": true,
+        "isIndex": false
+      }
+    ],
+    "level-3": [
+      {
+        "title": "Level 3: The Data Layer",
+        "description": "Where state lives: databases, replication, partitioning, and data modeling for scale.",
+        "level": "level-3",
+        "slug": "index",
+        "order": 0,
+        "isCheckpoint": false,
+        "isIndex": true
+      },
+      {
+        "title": "3.1 Relational Databases",
+        "description": "ACID properties, indexes, query optimization, connection pooling, and when relational is the right choice.",
+        "level": "level-3",
+        "slug": "relational-databases",
+        "order": 1,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "3.2 NoSQL Taxonomy",
+        "description": "Document stores, key-value stores, wide-column stores, and graph databases. What each solves and when to choose each.",
+        "level": "level-3",
+        "slug": "nosql-taxonomy",
+        "order": 2,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "3.3 Replication",
+        "description": "Leader-follower, multi-leader, and leaderless replication. Sync vs async. Replication lag and its consequences.",
+        "level": "level-3",
+        "slug": "replication",
+        "order": 3,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "3.4 Partitioning and Sharding",
+        "description": "Range partitioning, hash partitioning, shard key selection, and handling cross-shard queries.",
+        "level": "level-3",
+        "slug": "partitioning-and-sharding",
+        "order": 4,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "3.5 Indexing Strategies",
+        "description": "B-tree vs LSM-tree, secondary indexes, composite indexes, covering indexes, and full-text search.",
+        "level": "level-3",
+        "slug": "indexing-strategies",
+        "order": 5,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "3.6 Data Modeling for Scale",
+        "description": "Denormalization, materialized views, time-series data, and designing schemas that scale with your access patterns.",
+        "level": "level-3",
+        "slug": "data-modeling-for-scale",
+        "order": 6,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "3.7 Polyglot Persistence",
+        "description": "Using multiple databases in one system. When to combine SQL and NoSQL, managing consistency across stores.",
+        "level": "level-3",
+        "slug": "polyglot-persistence",
+        "order": 7,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "3.8 Checkpoint",
+        "description": "Design the data layer for a social media platform with 100M users.",
+        "level": "level-3",
+        "slug": "checkpoint",
+        "order": 8,
+        "isCheckpoint": true,
+        "isIndex": false
+      }
+    ],
+    "level-4": [
+      {
+        "title": "Level 4: The Speed Layer",
+        "description": "Making systems fast: caching fundamentals, invalidation, distributed caching, and multi-level architectures.",
+        "level": "level-4",
+        "slug": "index",
+        "order": 0,
+        "isCheckpoint": false,
+        "isIndex": true
+      },
+      {
+        "title": "4.1 Caching Fundamentals",
+        "description": "Cache-aside, read-through, write-through, and write-behind patterns. When each is appropriate.",
+        "level": "level-4",
+        "slug": "caching-fundamentals",
+        "order": 1,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "4.2 Cache Invalidation",
+        "description": "TTL, event-driven invalidation, cache stampede prevention, and why invalidation is the hardest problem in CS.",
+        "level": "level-4",
+        "slug": "cache-invalidation",
+        "order": 2,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "4.3 Distributed Caching",
+        "description": "Redis vs Memcached, cluster mode, data partitioning, replication, and cache topology.",
+        "level": "level-4",
+        "slug": "distributed-caching",
+        "order": 3,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "4.4 Multi-Level Cache Architecture",
+        "description": "L1 (in-process), L2 (distributed), L3 (CDN). Designing cache hierarchies and managing coherence.",
+        "level": "level-4",
+        "slug": "multi-level-cache",
+        "order": 4,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "4.5 Edge Caching",
+        "description": "Caching at the CDN edge, stale-while-revalidate, edge compute, and personalized content at the edge.",
+        "level": "level-4",
+        "slug": "edge-caching",
+        "order": 5,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "4.6 Checkpoint",
+        "description": "Design a multi-level caching strategy for an e-commerce product catalog.",
+        "level": "level-4",
+        "slug": "checkpoint",
+        "order": 6,
+        "isCheckpoint": true,
+        "isIndex": false
+      }
+    ],
+    "level-5": [
+      {
+        "title": "Level 5: The Communication Layer",
+        "description": "How services talk to each other: APIs, message queues, and asynchronous patterns.",
+        "level": "level-5",
+        "slug": "index",
+        "order": 0,
+        "isCheckpoint": false,
+        "isIndex": true
+      },
+      {
+        "title": "5.1 REST API Design",
+        "description": "Resource modeling, HTTP methods, status codes, pagination, versioning, and HATEOAS.",
+        "level": "level-5",
+        "slug": "rest-api-design",
+        "order": 1,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "5.2 GraphQL and gRPC",
+        "description": "When REST is not enough. GraphQL for flexible queries, gRPC for high-performance service-to-service calls.",
+        "level": "level-5",
+        "slug": "graphql-and-grpc",
+        "order": 2,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "5.3 Webhooks and Event-Driven APIs",
+        "description": "Push vs pull, webhook reliability patterns, idempotency, and event notification design.",
+        "level": "level-5",
+        "slug": "webhooks-and-events",
+        "order": 3,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "5.4 Message Queues",
+        "description": "Kafka, RabbitMQ, SQS. Queue vs log semantics, ordering guarantees, consumer groups, and backpressure.",
+        "level": "level-5",
+        "slug": "message-queues",
+        "order": 4,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "5.5 Async Patterns",
+        "description": "Saga pattern, transactional outbox, choreography vs orchestration, and eventual consistency in practice.",
+        "level": "level-5",
+        "slug": "async-patterns",
+        "order": 5,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "5.6 Designing for Communication Failure",
+        "description": "Retries, exponential backoff, dead letter queues, idempotency keys, and graceful degradation.",
+        "level": "level-5",
+        "slug": "communication-failure",
+        "order": 6,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "5.7 Checkpoint",
+        "description": "Design the communication layer for an order processing system with multiple downstream services.",
+        "level": "level-5",
+        "slug": "checkpoint",
+        "order": 7,
+        "isCheckpoint": true,
+        "isIndex": false
+      }
+    ],
+    "level-6": [
+      {
+        "title": "Level 6: The Component Catalog",
+        "description": "The infrastructure building blocks every senior engineer should be able to reason about and evaluate.",
+        "level": "level-6",
+        "slug": "index",
+        "order": 0,
+        "isCheckpoint": false,
+        "isIndex": true
+      },
+      {
+        "title": "6.1 Containers and Orchestration",
+        "description": "Docker, Kubernetes, pods, services, auto-scaling, and when K8s is overkill.",
+        "level": "level-6",
+        "slug": "containers-and-orchestration",
+        "order": 1,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "6.2 Object and Blob Storage",
+        "description": "S3, GCS, Azure Blob. Storage classes, lifecycle policies, pre-signed URLs, and cost optimization.",
+        "level": "level-6",
+        "slug": "object-and-blob-storage",
+        "order": 2,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "6.3 Search Infrastructure",
+        "description": "Elasticsearch, inverted indexes, analyzers, search relevance, and choosing a search solution.",
+        "level": "level-6",
+        "slug": "search-infrastructure",
+        "order": 3,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "6.4 Task Queues and Job Scheduling",
+        "description": "Background jobs, cron at scale, retry strategies, dead letter queues, and distributed cron.",
+        "level": "level-6",
+        "slug": "task-queues-and-scheduling",
+        "order": 4,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "6.5 Notification Infrastructure",
+        "description": "Push notifications, email, SMS. Multi-channel orchestration, preference management, and throttling.",
+        "level": "level-6",
+        "slug": "notification-infrastructure",
+        "order": 5,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "6.6 Logging and Monitoring Pipelines",
+        "description": "ELK stack, structured logging, metrics collection, alerting, and log retention at scale.",
+        "level": "level-6",
+        "slug": "logging-and-monitoring",
+        "order": 6,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "6.7 Payment and Billing Systems",
+        "description": "Payment gateways, PCI compliance, idempotent charges, subscription billing, and ledger design.",
+        "level": "level-6",
+        "slug": "payment-and-billing",
+        "order": 7,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "6.8 Feature Flags and A/B Testing",
+        "description": "Remote configuration, gradual rollouts, A/B testing infrastructure, and experiment lifecycle.",
+        "level": "level-6",
+        "slug": "feature-flags-and-ab-testing",
+        "order": 8,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "6.9 Checkpoint",
+        "description": "Given a system, identify which infrastructure components you need and justify your choices.",
+        "level": "level-6",
+        "slug": "checkpoint",
+        "order": 9,
+        "isCheckpoint": true,
+        "isIndex": false
+      }
+    ],
+    "level-7": [
+      {
+        "title": "Level 7: The Pattern Library",
+        "description": "Recurring architectural patterns that solve common problems in distributed systems.",
+        "level": "level-7",
+        "slug": "index",
+        "order": 0,
+        "isCheckpoint": false,
+        "isIndex": true
+      },
+      {
+        "title": "7.1 Event-Driven Architecture",
+        "description": "Events vs commands, event bus, choreography vs orchestration, and eventual consistency as a feature.",
+        "level": "level-7",
+        "slug": "event-driven-architecture",
+        "order": 1,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "7.2 CQRS and Read/Write Separation",
+        "description": "Separate read and write models, materialized views, sync strategies, and when CQRS is overkill.",
+        "level": "level-7",
+        "slug": "cqrs-read-write-separation",
+        "order": 2,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "7.3 Domain-Driven Design for System Design",
+        "description": "Bounded contexts as service boundaries, aggregates, context mapping, and anti-corruption layers.",
+        "level": "level-7",
+        "slug": "domain-driven-design",
+        "order": 3,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "7.4 Clean and Hexagonal Architecture",
+        "description": "Ports and adapters, dependency inversion at the system level, and testing boundaries.",
+        "level": "level-7",
+        "slug": "clean-and-hexagonal",
+        "order": 4,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "7.5 Deployment Patterns",
+        "description": "Strangler fig, blue-green deployments, canary releases, shadow traffic, and database migration patterns.",
+        "level": "level-7",
+        "slug": "deployment-patterns",
+        "order": 5,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "7.6 Infrastructure Patterns",
+        "description": "Sidecar, ambassador, and adapter patterns. How service meshes use these. Init containers.",
+        "level": "level-7",
+        "slug": "infrastructure-patterns",
+        "order": 6,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "7.7 Distributed Transaction Patterns",
+        "description": "Saga (orchestration and choreography), transactional outbox, compensating actions, and idempotency keys.",
+        "level": "level-7",
+        "slug": "distributed-transaction-patterns",
+        "order": 7,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "7.8 Checkpoint",
+        "description": "Given real-world scenarios, identify which patterns apply and explain the tradeoffs.",
+        "level": "level-7",
+        "slug": "checkpoint",
+        "order": 8,
+        "isCheckpoint": true,
+        "isIndex": false
+      }
+    ],
+    "level-8": [
+      {
+        "title": "Level 8: The Architecture",
+        "description": "Structuring systems at scale: monoliths, microservices, serverless, and cross-cutting concerns.",
+        "level": "level-8",
+        "slug": "index",
+        "order": 0,
+        "isCheckpoint": false,
+        "isIndex": true
+      },
+      {
+        "title": "8.1 Monoliths vs Microservices",
+        "description": "The spectrum from monolith to microservices. Modular monoliths, when to split, and the costs of distribution.",
+        "level": "level-8",
+        "slug": "monoliths-vs-microservices",
+        "order": 1,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "8.2 Service Decomposition",
+        "description": "Using domain-driven design to find service boundaries. Aggregates, bounded contexts, and avoiding distributed monoliths.",
+        "level": "level-8",
+        "slug": "service-decomposition",
+        "order": 2,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "8.3 API Gateways and BFF",
+        "description": "Backend-for-frontend pattern, API composition, request routing, and gateway responsibilities.",
+        "level": "level-8",
+        "slug": "api-gateways-and-bff",
+        "order": 3,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "8.4 Service Mesh and Sidecars",
+        "description": "Istio, Linkerd, Envoy. What a service mesh does, when you need one, and the operational cost.",
+        "level": "level-8",
+        "slug": "service-mesh-and-sidecars",
+        "order": 4,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "8.5 Serverless and FaaS",
+        "description": "Lambda, Cloud Functions, edge functions. Cold starts, execution limits, and serverless design patterns.",
+        "level": "level-8",
+        "slug": "serverless-and-faas",
+        "order": 5,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "8.6 Cross-Cutting Concerns",
+        "description": "Observability, feature flags, service discovery, configuration management, and distributed tracing.",
+        "level": "level-8",
+        "slug": "cross-cutting-concerns",
+        "order": 6,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "8.7 Checkpoint",
+        "description": "Decompose a monolithic application into services and defend your architectural decisions.",
+        "level": "level-8",
+        "slug": "checkpoint",
+        "order": 7,
+        "isCheckpoint": true,
+        "isIndex": false
+      }
+    ],
+    "level-9": [
+      {
+        "title": "Level 9: The Distributed Systems",
+        "description": "When physics gets in the way: CAP theorem, consensus, clocks, and conflict resolution.",
+        "level": "level-9",
+        "slug": "index",
+        "order": 0,
+        "isCheckpoint": false,
+        "isIndex": true
+      },
+      {
+        "title": "9.1 CAP Theorem and PACELC",
+        "description": "The fundamental impossibility result in distributed systems and its practical implications.",
+        "level": "level-9",
+        "slug": "cap-theorem-and-pacelc",
+        "order": 1,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "9.2 Consensus Algorithms",
+        "description": "Raft and Paxos. How distributed systems agree on values. Leader election, log replication, and safety guarantees.",
+        "level": "level-9",
+        "slug": "consensus-algorithms",
+        "order": 2,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "9.3 Distributed Clocks and Ordering",
+        "description": "Logical clocks, vector clocks, Lamport timestamps, and why wall-clock time is unreliable in distributed systems.",
+        "level": "level-9",
+        "slug": "distributed-clocks",
+        "order": 3,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "9.4 Distributed Transactions",
+        "description": "Two-phase commit, three-phase commit, and why distributed transactions are the last resort.",
+        "level": "level-9",
+        "slug": "distributed-transactions",
+        "order": 4,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "9.5 CRDTs and Conflict Resolution",
+        "description": "Conflict-free replicated data types, last-writer-wins, merge functions, and designing for concurrent updates.",
+        "level": "level-9",
+        "slug": "crdts-and-conflict-resolution",
+        "order": 5,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "9.6 Consistent Hashing",
+        "description": "How consistent hashing distributes load, virtual nodes, and why it matters for caches and databases.",
+        "level": "level-9",
+        "slug": "consistent-hashing",
+        "order": 6,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "9.7 Gossip Protocols",
+        "description": "How nodes discover each other, share state, and detect failures without a central coordinator.",
+        "level": "level-9",
+        "slug": "gossip-protocols",
+        "order": 7,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "9.8 Checkpoint",
+        "description": "Analyze a distributed system design for consistency, availability, and partition tolerance tradeoffs.",
+        "level": "level-9",
+        "slug": "checkpoint",
+        "order": 8,
+        "isCheckpoint": true,
+        "isIndex": false
+      }
+    ],
+    "level-10": [
+      {
+        "title": "Level 10: The Resilience Layer",
+        "description": "Systems that survive failure: rate limiting, circuit breakers, observability, and chaos engineering.",
+        "level": "level-10",
+        "slug": "index",
+        "order": 0,
+        "isCheckpoint": false,
+        "isIndex": true
+      },
+      {
+        "title": "10.1 Rate Limiting Algorithms",
+        "description": "Token bucket, leaky bucket, fixed window, sliding window. Distributed rate limiting and client-side strategies.",
+        "level": "level-10",
+        "slug": "rate-limiting",
+        "order": 1,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "10.2 Circuit Breakers and Bulkheads",
+        "description": "Preventing cascade failures with circuit breakers, bulkhead isolation, and timeout policies.",
+        "level": "level-10",
+        "slug": "circuit-breakers-and-bulkheads",
+        "order": 2,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "10.3 Back-Pressure and Flow Control",
+        "description": "When downstream systems are overwhelmed: back-pressure, load shedding, and graceful degradation.",
+        "level": "level-10",
+        "slug": "back-pressure-and-flow-control",
+        "order": 3,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "10.4 Observability",
+        "description": "Logs, metrics, traces. The RED and USE methods. Distributed tracing. Building dashboards that matter.",
+        "level": "level-10",
+        "slug": "observability",
+        "order": 4,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "10.5 Chaos Engineering",
+        "description": "Deliberately injecting failures to find weaknesses. Chaos Monkey, Litmus, and game days.",
+        "level": "level-10",
+        "slug": "chaos-engineering",
+        "order": 5,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "10.6 Disaster Recovery and Multi-Region",
+        "description": "RPO, RTO, active-active, active-passive, failover strategies, and multi-region data replication.",
+        "level": "level-10",
+        "slug": "disaster-recovery",
+        "order": 6,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "10.7 Checkpoint",
+        "description": "Design the resilience layer for a payment processing system that cannot afford downtime.",
+        "level": "level-10",
+        "slug": "checkpoint",
+        "order": 7,
+        "isCheckpoint": true,
+        "isIndex": false
+      }
+    ],
+    "level-11": [
+      {
+        "title": "Level 11: The Data Pipeline",
+        "description": "Processing data at scale: batch, stream, event sourcing, and modern data architectures.",
+        "level": "level-11",
+        "slug": "index",
+        "order": 0,
+        "isCheckpoint": false,
+        "isIndex": true
+      },
+      {
+        "title": "11.1 Batch Processing",
+        "description": "MapReduce, Spark, and the batch processing paradigm. When batch is the right tool.",
+        "level": "level-11",
+        "slug": "batch-processing",
+        "order": 1,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "11.2 Stream Processing",
+        "description": "Kafka Streams, Flink, and real-time processing. Windowing, watermarks, and exactly-once semantics.",
+        "level": "level-11",
+        "slug": "stream-processing",
+        "order": 2,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "11.3 Event Sourcing and CQRS",
+        "description": "Storing events instead of state. Event stores, projections, snapshots, and combining with CQRS.",
+        "level": "level-11",
+        "slug": "event-sourcing-and-cqrs",
+        "order": 3,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "11.4 Change Data Capture",
+        "description": "Capturing database changes as events. Debezium, log-based CDC, and keeping systems in sync.",
+        "level": "level-11",
+        "slug": "change-data-capture",
+        "order": 4,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "11.5 Data Architectures",
+        "description": "Lambda architecture, Kappa architecture, data mesh, and choosing the right data architecture.",
+        "level": "level-11",
+        "slug": "data-architectures",
+        "order": 5,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "11.6 Checkpoint",
+        "description": "Design a data pipeline for a real-time analytics dashboard processing millions of events per second.",
+        "level": "level-11",
+        "slug": "checkpoint",
+        "order": 6,
+        "isCheckpoint": true,
+        "isIndex": false
+      }
+    ],
+    "level-12": [
+      {
+        "title": "Level 12: The Security Layer",
+        "description": "Protecting systems and data: authentication, authorization, encryption, and zero trust.",
+        "level": "level-12",
+        "slug": "index",
+        "order": 0,
+        "isCheckpoint": false,
+        "isIndex": true
+      },
+      {
+        "title": "12.1 Authentication at Scale",
+        "description": "JWT, OAuth 2.0, OpenID Connect, SSO, and session management for distributed systems.",
+        "level": "level-12",
+        "slug": "authentication-at-scale",
+        "order": 1,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "12.2 Authorization Patterns",
+        "description": "RBAC, ABAC, ReBAC. Centralized vs distributed authorization. Policy engines and access control lists.",
+        "level": "level-12",
+        "slug": "authorization-patterns",
+        "order": 2,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "12.3 Encryption and Data Protection",
+        "description": "Encryption at rest and in transit, key management, envelope encryption, and data classification.",
+        "level": "level-12",
+        "slug": "encryption-and-data-protection",
+        "order": 3,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "12.4 Network Security and Zero Trust",
+        "description": "Network segmentation, mTLS, zero trust architecture, and defense in depth.",
+        "level": "level-12",
+        "slug": "network-security-and-zero-trust",
+        "order": 4,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "12.5 Secrets Management",
+        "description": "Vault, AWS Secrets Manager, environment variables. Rotating secrets, access auditing, and the principle of least privilege.",
+        "level": "level-12",
+        "slug": "secrets-management",
+        "order": 5,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "12.6 Checkpoint",
+        "description": "Audit a system design for security vulnerabilities and propose mitigations.",
+        "level": "level-12",
+        "slug": "checkpoint",
+        "order": 6,
+        "isCheckpoint": true,
+        "isIndex": false
+      }
+    ],
+    "level-13": [
+      {
+        "title": "Level 13: The Design Interview",
+        "description": "A structured framework plus seven complete design exercises covering real-world systems.",
+        "level": "level-13",
+        "slug": "index",
+        "order": 0,
+        "isCheckpoint": false,
+        "isIndex": true
+      },
+      {
+        "title": "13.1 The Design Interview Framework",
+        "description": "A repeatable framework: requirements, estimation, high-level design, deep dive, and tradeoffs.",
+        "level": "level-13",
+        "slug": "design-interview-framework",
+        "order": 1,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "13.2 Design a URL Shortener",
+        "description": "End-to-end design: hashing, storage, redirection, analytics, and handling billions of URLs.",
+        "level": "level-13",
+        "slug": "design-url-shortener",
+        "order": 2,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "13.3 Design a Chat System",
+        "description": "Real-time messaging: WebSockets, message storage, delivery guarantees, presence, and group chat.",
+        "level": "level-13",
+        "slug": "design-chat-system",
+        "order": 3,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "13.4 Design a News Feed",
+        "description": "Fan-out on write vs fan-out on read, ranking, caching, and handling celebrity users.",
+        "level": "level-13",
+        "slug": "design-news-feed",
+        "order": 4,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "13.5 Design a Search Engine",
+        "description": "Web crawling, indexing, ranking, query processing, and serving results at scale.",
+        "level": "level-13",
+        "slug": "design-search-engine",
+        "order": 5,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "13.6 Design a Video Streaming Platform",
+        "description": "Upload, transcoding, adaptive bitrate streaming, CDN delivery, and recommendation engine.",
+        "level": "level-13",
+        "slug": "design-video-streaming",
+        "order": 6,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "13.7 Design a Ride-Sharing Service",
+        "description": "Location tracking, matching algorithms, surge pricing, ETA calculation, and real-time dispatch.",
+        "level": "level-13",
+        "slug": "design-ride-sharing",
+        "order": 7,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "13.8 Design a Notification System",
+        "description": "Multi-channel delivery, prioritization, templating, rate limiting, and preference management at scale.",
+        "level": "level-13",
+        "slug": "design-notification-system",
+        "order": 8,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "13.9 Checkpoint",
+        "description": "Mock interview: pick a system and present a complete design under time pressure.",
+        "level": "level-13",
+        "slug": "checkpoint",
+        "order": 9,
+        "isCheckpoint": true,
+        "isIndex": false
+      }
+    ],
+    "level-14": [
+      {
+        "title": "Level 14: The Architect's Intuition",
+        "description": "The judgment that separates architects from engineers: cost, migration, decisions, and team dynamics.",
+        "level": "level-14",
+        "slug": "index",
+        "order": 0,
+        "isCheckpoint": false,
+        "isIndex": true
+      },
+      {
+        "title": "14.1 Cloud Cost Estimation",
+        "description": "Estimating and optimizing cloud costs for compute, storage, network, and managed services.",
+        "level": "level-14",
+        "slug": "cloud-cost-estimation",
+        "order": 1,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "14.2 Migration Strategies",
+        "description": "Strangler fig, blue-green, big bang. Database migrations, data migration patterns, and rollback plans.",
+        "level": "level-14",
+        "slug": "migration-strategies",
+        "order": 2,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "14.3 Conway's Law and Team Topology",
+        "description": "How team structure shapes system architecture. Stream-aligned teams, platform teams, and enabling teams.",
+        "level": "level-14",
+        "slug": "conways-law-and-team-topology",
+        "order": 3,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "14.4 Technology Decision-Making",
+        "description": "Architecture Decision Records, build vs buy, evaluating new technology, and avoiding resume-driven development.",
+        "level": "level-14",
+        "slug": "technology-decision-making",
+        "order": 4,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "14.5 Architecture Review",
+        "description": "How to conduct and present architecture reviews. Documenting decisions, tradeoffs, and rationale.",
+        "level": "level-14",
+        "slug": "architecture-review",
+        "order": 5,
+        "isCheckpoint": false,
+        "isIndex": false
+      },
+      {
+        "title": "14.6 Capstone",
+        "description": "Design a complete system from scratch: requirements, estimation, architecture, data model, and operational plan.",
+        "level": "level-14",
+        "slug": "capstone",
+        "order": 6,
+        "isCheckpoint": true,
+        "isIndex": false
+      }
+    ]
+  }
+}

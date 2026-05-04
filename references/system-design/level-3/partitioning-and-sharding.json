@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "title": "3.4 Partitioning and Sharding",
+    "description": "Range partitioning, hash partitioning, shard key selection, and handling cross-shard queries.",
+    "level": "level-3",
+    "slug": "partitioning-and-sharding",
+    "order": 4,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "You have 1 billion user records and a single database server cannot handle the load. You decide to split users across 10 database servers. How do you decide which user goes to which server? What happens when you need to add an 11th server?"
+    },
+    {
+      "type": "markdown",
+      "content": "## Why partition?\n\nWhen data exceeds what one node can handle (storage, compute, or throughput), you split it across multiple nodes. Each node holds a **partition** (or **shard**) of the data.\n\n## Partitioning strategies\n\n### Range partitioning\n\nAssign continuous ranges of the partition key to each shard.\n\n```\nShard 1: users A-F\nShard 2: users G-L\nShard 3: users M-R\nShard 4: users S-Z\n```\n\n**Pros:** Range queries are efficient (find all users G-L \u2192 single shard). Data is sorted within each shard.\n**Cons:** Hot spots if data is unevenly distributed. All users whose names start with 'S' hit Shard 4.\n\n### Hash partitioning\n\nHash the partition key and assign based on hash value.\n\n```\nshard = hash(user_id) % num_shards\n```\n\n**Pros:** Even distribution (hash functions spread data uniformly). No hot spots from skewed key distributions.\n**Cons:** Range queries require hitting all shards (the hash destroys ordering). Adding/removing shards requires rehashing (unless using consistent hashing).\n\n### Consistent hashing\n\nArrange shards on a ring. Hash each key and walk clockwise to find its shard. Adding a shard only moves keys from adjacent shards, not all shards.\n\n**Used by:** DynamoDB, Cassandra, most distributed caches.\n\n## Shard key selection\n\nThe shard key determines data distribution. Bad choices create hot spots; good choices spread load evenly.\n\n| Shard Key | Good For | Risk |\n|---|---|---|\n| user_id | User-specific queries | Even distribution |\n| timestamp | Time-range queries | Hot spot on current shard |\n| country | Geographic queries | Uneven (USA >> Luxembourg) |\n| hash(user_id) | Even distribution | Loses range query ability |\n\n**Hot partition problem:** Instagram found that celebrity accounts (with millions of followers) created hot shards when sharding by user_id. Solution: add a random suffix to spread one user's data across multiple shards, then aggregate at query time.\n\n## Cross-shard queries\n\nThe biggest challenge of sharding. A query that needs data from multiple shards is called a **scatter-gather** \u2014 send the query to all shards, collect results, merge.\n\n**Strategies to minimize cross-shard queries:**\n- Design your shard key to match your most common query pattern\n- Denormalize data so each shard has everything it needs\n- Use a secondary index service (Elasticsearch) for cross-shard search\n- Accept eventual consistency for aggregation queries"
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "An e-commerce platform shards its orders table by customer_id. A product manager wants to run a query: 'Show all orders for product X in the last 24 hours.' Why is this query expensive, and what can you do about it?",
+      "answer": "**Why it is expensive:** The orders are sharded by customer_id, not product_id. To find all orders for product X, you must query EVERY shard (scatter-gather), each filtering its local data for product X and the time range. With 100 shards, that is 100 parallel queries that must all complete before you can return results.\n\n**Solutions:** (1) **Secondary index:** Maintain a separate index (e.g., in Elasticsearch) that maps product_id to order_ids. Query the index first, then fetch specific orders from the relevant shards. (2) **Dual-write to a denormalized table:** Maintain a second table sharded by product_id for product-centric queries. (3) **Async aggregation:** Use a stream processor (Kafka + Flink) to maintain pre-computed product-level aggregations in real-time. The lesson: shard key selection is an irreversible optimization for one access pattern that makes other patterns harder."
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Sharding splits data across nodes for horizontal scaling. Range partitioning enables efficient range queries but risks hot spots. Hash partitioning distributes evenly but loses ordering. Your shard key should match your primary access pattern \u2014 and accept that cross-shard queries will be expensive."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Sharding splits data across machines. Module 3.5 covers how data is organized within each machine \u2014 indexing strategies that make queries fast even on massive datasets."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What is the main advantage of hash partitioning over range partitioning?",
+      "options": [
+        "Better range query performance",
+        "Even data distribution that avoids hot spots",
+        "Lower storage costs"
+      ],
+      "correctIndex": 1,
+      "explanation": "Hash partitioning distributes data evenly across shards, avoiding hot spots.",
+      "encourageCorrect": "Exactly! Hash partitioning trades range query capability for even distribution.",
+      "encourageIncorrect": "Hash partitioning distributes data evenly, avoiding hot spots. Range queries become expensive though."
+    },
+    {
+      "question": "Why are cross-shard queries expensive?",
+      "options": [
+        "They require more disk space",
+        "They must query every shard and combine results (scatter-gather)",
+        "They need special authentication"
+      ],
+      "correctIndex": 1,
+      "explanation": "A cross-shard query must hit every shard in parallel, limited by the slowest shard.",
+      "encourageCorrect": "Right! Scatter-gather is slow \u2014 your shard key should match your primary access pattern.",
+      "encourageIncorrect": "Cross-shard queries use scatter-gather \u2014 query every shard and combine results."
+    }
+  ]
+}

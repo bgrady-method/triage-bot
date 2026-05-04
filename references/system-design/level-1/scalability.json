@@ -1,0 +1,118 @@
+{
+  "meta": {
+    "title": "1.1 Scalability",
+    "description": "Vertical vs horizontal scaling, stateless design, and why shared-nothing architectures win at scale.",
+    "level": "level-1",
+    "slug": "scalability",
+    "order": 1,
+    "isCheckpoint": false,
+    "isIndex": false
+  },
+  "blocks": [
+    {
+      "type": "predictPrompt",
+      "prompt": "Your web app is getting 10x more traffic than last month. You have one server running everything. What are your options for handling the load? Write down as many strategies as you can think of before reading on."
+    },
+    {
+      "type": "markdown",
+      "content": "## The two axes of scaling\n\nEvery scaling decision starts with the same question: **do I make this machine bigger, or do I add more machines?**\n\n### Vertical scaling (scale up)\n\nAdd more resources to a single machine \u2014 more CPU cores, more RAM, faster SSDs.\n\n**Advantages:** Simple. No code changes. No distributed systems headaches.\n\n**Limits:**\n- Hardware has a ceiling. The largest cloud instances top out around 448 vCPUs and 24TB RAM.\n- Cost scales super-linearly. A machine with 2x the CPU often costs 3-4x the price.\n- Single point of failure. One machine means one failure domain.\n\n### Horizontal scaling (scale out)\n\nAdd more machines and distribute the work across them.\n\n**Advantages:** No theoretical ceiling. Better fault tolerance. Often more cost-effective.\n\n**Challenges:** Your application must be designed for it. State management, data consistency, and network communication all become harder.\n\n| | Vertical | Horizontal |\n|---|---|---|\n| Complexity | Low | High |\n| Cost curve | Exponential | Linear |\n| Ceiling | Hardware limits | Effectively unlimited |\n| Fault tolerance | Single point of failure | Can survive node failures |\n| Code changes | None | Significant |\n\n## The key to horizontal scaling: statelessness\n\nA **stateless** server stores no session data locally. Every request contains everything the server needs to process it (or can fetch it from a shared store). Any server in the pool can handle any request.\n\nA **stateful** server remembers things between requests \u2014 sessions, caches, file uploads in progress. If that server goes down, the state is lost. If you need to add servers, you need \"sticky sessions\" to route users back to the same server.\n\n```\nStateful:   User A \u2192 always \u2192 Server 1 (has session)\n            User B \u2192 always \u2192 Server 2 (has session)\n\nStateless:  User A \u2192 any server \u2192 reads session from Redis\n            User B \u2192 any server \u2192 reads session from Redis\n```\n\n**The rule:** Move state out of your application servers and into dedicated state stores (databases, caches, object storage). Your application servers become interchangeable workers.\n\n## Shared-nothing architecture\n\nThe gold standard for horizontal scaling. Each node is independent \u2014 it shares no memory, no disk, no state with other nodes. Nodes communicate only through the network.\n\n**Why it wins:** Adding capacity means adding nodes. Removing a node does not affect others. You can scale linearly with load.\n\n**Real-world example:** Amazon's web tier runs thousands of stateless application servers behind load balancers. Session state lives in DynamoDB. File uploads go to S3. The servers themselves are disposable \u2014 any one can be terminated and replaced in seconds."
+    },
+    {
+      "type": "calibrationCheck",
+      "question": "You are running a web application on a single 8-core server with 32GB RAM. Traffic has doubled. Your options are: (A) upgrade to a 16-core, 64GB server, or (B) add a second identical 8-core server behind a load balancer. What factors should drive your decision?",
+      "answer": "**Choose vertical (A) when:** The bottleneck is a single-threaded process (like a database), your application stores local state that is hard to share, the traffic increase is temporary, or you need a quick fix with zero code changes.\n\n**Choose horizontal (B) when:** You expect continued growth beyond what one machine can handle, you need fault tolerance (if one server dies, the other keeps serving), your application is already stateless or can be made stateless, or you want linear cost scaling.\n\n**The key insight:** Vertical scaling buys you time. Horizontal scaling buys you a future. Most teams start vertical and switch to horizontal when they hit the ceiling or need fault tolerance."
+    },
+    {
+      "type": "practiceSet",
+      "title": "Scalability Practice",
+      "problems": [
+        {
+          "id": "sd-1-1-1",
+          "question": "A social media startup stores user sessions in memory on each application server and uses sticky sessions (cookie-based routing) to ensure users return to the same server. They want to scale from 2 servers to 20. What is the primary problem with their current approach?",
+          "options": [
+            "A) Sticky sessions prevent the load balancer from distributing traffic evenly, creating hot spots",
+            "B) If any server fails, all sessions on that server are permanently lost, and uneven session distribution prevents effective scaling",
+            "C) The session cookies will become too large for browsers to handle"
+          ],
+          "correctAnswer": "B",
+          "explanation": "The core problem is that in-memory sessions create both a reliability and scalability issue. When a server fails, all its sessions are lost (users get logged out). As you scale to 20 servers, some servers accumulate more long-lived sessions than others, creating uneven load that the load balancer cannot fix. Option A is partially true (hot spots can occur) but the deeper issue is the fault tolerance and uneven distribution problem. Option C is incorrect \u2014 session cookies typically contain only a session ID, not the full session data. The fix: externalize sessions to Redis or a similar shared store.",
+          "difficulty": "intermediate"
+        },
+        {
+          "id": "sd-1-1-2",
+          "question": "A company runs a CPU-intensive image processing service. Each request takes 2 seconds of CPU time. They currently handle 4 requests/second on a single 8-core server. They need to handle 40 requests/second. Which scaling approach is most appropriate?",
+          "options": [
+            "A) Vertical scaling \u2014 upgrade to an 80-core server to handle 10x the load",
+            "B) Horizontal scaling \u2014 deploy 10 identical 8-core servers behind a load balancer",
+            "C) Neither \u2014 they should optimize the image processing algorithm first"
+          ],
+          "correctAnswer": "B",
+          "explanation": "Horizontal scaling is the clear winner here. Image processing is embarrassingly parallel \u2014 each request is independent with no shared state between requests. Ten 8-core servers give you 80 cores at roughly linear cost. An 80-core server (if it even exists) would cost significantly more than 10x an 8-core server due to super-linear pricing. Option C (optimization) is always worth considering but the question asks about scaling approach \u2014 and the workload is a textbook case for horizontal scaling. The stateless, CPU-bound, independent-request pattern is ideal for scale-out.",
+          "difficulty": "intermediate"
+        },
+        {
+          "id": "sd-1-1-3",
+          "question": "Which of the following is NOT a characteristic of a shared-nothing architecture?",
+          "options": [
+            "A) Nodes communicate only through the network",
+            "B) Adding capacity means adding independent nodes",
+            "C) All nodes share a single distributed file system for coordination"
+          ],
+          "correctAnswer": "C",
+          "explanation": "A shared-nothing architecture means exactly that \u2014 nodes share nothing. No shared memory, no shared disk, no shared file system. Option C describes a shared-disk architecture, which is a different (and less scalable) approach. In shared-nothing, each node has its own local storage and state. Coordination happens through the network (option A), and scaling means adding independent nodes (option B). Shared-nothing is the foundation of systems like Cassandra, Google's web infrastructure, and most modern microservice architectures.",
+          "difficulty": "basic"
+        }
+      ]
+    },
+    {
+      "type": "explainBack",
+      "prompt": "Explain to a junior developer why making servers stateless is the single most important thing they can do to prepare an application for horizontal scaling. What specific things need to move out of the server, and where do they go?"
+    },
+    {
+      "type": "keyTakeaway",
+      "content": "Vertical scaling has a ceiling; horizontal scaling does not. The key to horizontal scaling is statelessness \u2014 move sessions, caches, and file storage out of your application servers into shared stores. Shared-nothing architectures scale linearly because nodes are independent and interchangeable."
+    },
+    {
+      "type": "connectPrompt",
+      "prompt": "Scalability tells you how to handle more load. But how do you measure whether your system is fast enough? Module 1.2 covers the two dimensions of performance: latency (how fast) and throughput (how many)."
+    }
+  ],
+  "reviewQuestions": [
+    {
+      "question": "What is the key requirement for horizontal scaling?",
+      "options": [
+        "Faster hardware",
+        "Stateless servers",
+        "A single large database"
+      ],
+      "correctIndex": 1,
+      "explanation": "Stateless servers are essential for horizontal scaling \u2014 any server can handle any request because state is stored externally.",
+      "encourageCorrect": "That is right! Statelessness is the foundation of horizontal scaling.",
+      "encourageIncorrect": "The key is statelessness \u2014 move sessions and state out of your app servers into shared stores so any server can handle any request."
+    },
+    {
+      "question": "What is a shared-nothing architecture?",
+      "options": [
+        "Servers that share a distributed file system",
+        "Servers that are independent and share no memory, disk, or state",
+        "Servers that share a single database"
+      ],
+      "correctIndex": 1,
+      "explanation": "In shared-nothing architecture, each node is fully independent \u2014 communicating only through the network \u2014 enabling linear scaling.",
+      "encourageCorrect": "Exactly! Independent nodes that communicate only over the network can scale linearly.",
+      "encourageIncorrect": "A shared-nothing architecture means each node is independent \u2014 no shared memory, disk, or state. Nodes communicate only through the network."
+    },
+    {
+      "question": "Why does vertical scaling have a ceiling?",
+      "options": [
+        "Hardware has physical limits and costs grow super-linearly",
+        "Software cannot use more than one CPU core",
+        "Cloud providers do not allow large instances"
+      ],
+      "correctIndex": 0,
+      "explanation": "The largest machines top out at hundreds of vCPUs and cost grows super-linearly \u2014 2x CPU often costs 3-4x the price.",
+      "encourageCorrect": "Well done! Hardware limits plus super-linear cost growth make vertical scaling a temporary solution.",
+      "encourageIncorrect": "Hardware has physical limits (e.g., ~448 vCPUs max), and a machine with 2x the CPU often costs 3-4x the price."
+    }
+  ]
+}
