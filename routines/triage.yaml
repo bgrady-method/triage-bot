@@ -1,8 +1,12 @@
 # Routine: triage  (v0.5 — pull-mode polling via Slack MCP)
 #
 # Config template for the Anthropic routine at https://claude.ai/code/routines.
-# The routine UI is source of truth; this file documents the intended config so
-# it stays in version control with the prompt and scripts. Update both together.
+# This file is the source of truth for the deployed triage routine.
+# When updating prompt.md or this YAML: edit here, commit, then sync to
+# https://claude.ai/code/routines (trigger id trig_01A6VgYtcZkh567gxCLvEMMw)
+# — they're not auto-pushed. The deployed prompt is an INLINE snapshot
+# captured at create time; the next-fire run does NOT re-read prompt.md
+# from the cloned repo automatically.
 #
 # Why polling: in v0.5 we skip the Slack-app + Cloudflare-Worker push path and
 # let the routine pull recent messages from the alert channels itself, every

@@ -1,9 +1,17 @@
-# Routine: stability-review  (v0.1)
+# Routine: stability-review  (v0.2)
 #
 # Runs monthly. Synthesises the trailing 30 days of triage-bot output
-# (kb/incident-log.jsonl + docs/investigations/*.md + KB) plus fresh
-# DD/ES queries plus read-only Jira cross-reference into a postmortem-
-# style markdown report committed to stability-reviews/YYYY-MM/report.md.
+# (kb/incident-log.jsonl + docs/investigations/*.md + docs/messages/*.jsonl
+# + KB) plus fresh DD/ES queries (trend-delta + cross-service + request-id
+# pivot) plus read-only Jira cross-reference into a postmortem-style
+# markdown report committed to stability-reviews/YYYY-MM/YYYY-MM-DD-report.md
+# (dated, never overwritten — see stability-review-prompt.md Phase 0c).
+#
+# This file is the source of truth for the deployed stability-review routine.
+# When updating stability-review-prompt.md or this YAML: edit here, commit,
+# then sync to https://claude.ai/code/routines
+# (trigger id trig_01CgsBZFhq3Tphw4719pQswG) — they're not auto-pushed.
+# The deployed prompt is an INLINE snapshot captured at create time.
 #
 # Setup steps (mirror routines/triage.yaml — but note Atlassian MCP is new):
 #   1. https://claude.ai/code/routines -> "New routine"
