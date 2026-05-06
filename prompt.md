@@ -24,6 +24,38 @@ Investigation helpers (all read-only, all share the same SSH bastion):
 
 ---
 
+## Message logging — required after every Slack send
+
+Every outbound Slack message (`chat.postMessage` to any channel, every self-DM, every threaded reply, the `#triage-bot-health` heartbeat) must be appended to disk as a JSONL line **immediately after** the send returns success. This is the audit trail — Slack DMs are otherwise ephemeral, and the stability-review and KB-approver routines depend on this corpus.
+
+Path: `docs/messages/<YYYY-MM-DD-of-send>/<channel-slug>.jsonl`. The slug is `self-dm` for the bot's self-DM, `triage-bot-health` for the health channel, or the lowercased channel name (without `#`) for any other public channel. If the channel has no name, fall back to the channel ID.
+
+Schema (one object per line, no trailing comma, key order doesn't matter):
+
+```json
+{"ts": "<iso-8601-utc>", "channel_id": "<C…|D…>", "channel_name": "<#name|self-dm>", "recipient": "self-dm|#triage-bot-health|alert-frontend-errors|…", "message_type": "kb-proposal|known-issue|new-fix|needs-human|health-status|stability-summary|thread-reply|other", "alert_hash": "<16-char-hex-or-null>", "thread_ts": "<parent-ts-or-null>", "body": "<full message text exactly as sent>"}
+```
+
+Pseudocode pattern after every send:
+
+```bash
+DATE_DIR="docs/messages/$(date -u +%Y-%m-%d)"
+mkdir -p "$DATE_DIR"
+SLUG="self-dm"   # or "triage-bot-health", or the channel name
+LINE=$(jq -nc --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+              --arg cid "$CHANNEL_ID" --arg cn "$CHANNEL_NAME" --arg rcp "$SLUG" \
+              --arg mt "$MESSAGE_TYPE" --arg ah "${ALERT_HASH:-null}" \
+              --arg tts "${THREAD_TS:-null}" --arg body "$BODY" \
+              '{ts:$ts, channel_id:$cid, channel_name:$cn, recipient:$rcp, message_type:$mt, alert_hash:($ah|select(.!="null")), thread_ts:($tts|select(.!="null")), body:$body}')
+echo "$LINE" >> "$DATE_DIR/$SLUG.jsonl"
+```
+
+These files are committed by the same poll-cycle commit that pushes the rest of the cycle's output (`triage.yaml` already has `main` in `push_branches`). No extra commit, no separate branch.
+
+If the send fails, do NOT log — the message didn't actually go out. Only log on success.
+
+---
+
 ## Outer loop — poll every alert channel
 
 ### 0a. Bootstrap git auth, load orientation, read config

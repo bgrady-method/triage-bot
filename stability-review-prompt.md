@@ -27,6 +27,20 @@ Investigation helpers (all read-only):
 
 ---
 
+## Message logging — required after every Slack send
+
+Every outbound Slack message (the Exec Summary self-DM, the `#triage-bot-health` one-liner, any thread reply) must be appended to `docs/messages/<YYYY-MM-DD-of-send>/<channel-slug>.jsonl` immediately after the send returns success. Slug rules and schema are identical to the triage routine — see the same section in `prompt.md` and follow the exact format so downstream consumers (this routine's Phase 2.5, the kb-approver) can read both routines' messages with one parser.
+
+```json
+{"ts": "<iso-8601-utc>", "channel_id": "<C…|D…>", "channel_name": "<#name|self-dm>", "recipient": "self-dm|#triage-bot-health|…", "message_type": "stability-summary|health-status|thread-reply|other", "alert_hash": null, "thread_ts": "<parent-ts-or-null>", "body": "<full message text exactly as sent>"}
+```
+
+`alert_hash` is always `null` for this routine; `message_type` should be `stability-summary` for the Exec Summary DM, `health-status` for the `#triage-bot-health` one-liner. Files are committed by the same commit that pushes the report.
+
+If the send fails, do NOT log — only log on success.
+
+---
+
 ## Phase 0 — Bootstrap
 
 ### 0a. Git auth + orientation
