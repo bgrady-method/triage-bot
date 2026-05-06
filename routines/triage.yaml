@@ -36,9 +36,11 @@ repos:
   # The bot's own repo — KB lives here, scripts run from here, prompt is read from here
   - url: https://github.com/bgrady-method/triage-bot
     branch: main
-    push_branches: ["claude/*", "main"]
-    # claude/* for per-alert work branches
-    # main for kb/incident-log.jsonl appends (the routine commits log lines back to main on every run)
+    push_branches: ["main"]
+    # v0.8 (2026-05-06): branches removed. Investigations now commit directly to
+    # main alongside the kb/incident-log.jsonl append. The idempotency lock moved
+    # from "does claude/triage-<hash> exist on origin?" to "does kb/incident-log.jsonl
+    # already contain alert_hash <hash>?". See prompt.md hard-rule #12.
 
   # Method service repos that get cloned for codebase grep / diff proposals.
   # Start with the 5-10 most-alerted-on services. Add more as the KB tells us where alerts cluster.
