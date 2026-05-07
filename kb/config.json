@@ -16,5 +16,10 @@
   "stability_review": {
     "max_spend_usd": 5
   },
-  "comment": "group_window_minutes: rolling gap threshold for clustering alerts into root-cause groups (default 30). max_runs_per_day counts groups (investigations), not individual alert messages. poll_window_minutes is 65 so we never miss a message landing right at the hourly boundary. stability_review.max_spend_usd is the per-run cap for the monthly stability-review routine (separate from the global cap)."
+  "cluster_wide_impact": {
+    "min_services_for_cluster_wide": 3,
+    "adjacent_bucket_count": 1,
+    "bucket_seconds": 20
+  },
+  "comment": "group_window_minutes: rolling gap threshold for clustering alerts into root-cause groups (default 30). max_runs_per_day counts groups (investigations), not individual alert messages. poll_window_minutes is 65 so we never miss a message landing right at the hourly boundary. stability_review.max_spend_usd is the per-run cap for the monthly stability-review routine (separate from the global cap). cluster_wide_impact.min_services_for_cluster_wide: scripts/check_cluster_wide_impact.py classifies a dependency event as cluster-wide when this many services have errors in the same or adjacent buckets."
 }

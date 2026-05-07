@@ -18,11 +18,17 @@ When the alert is about a logged exception, a vague pattern ("requests failing i
 python scripts/es_search.py search --query "*" --from now-5m --limit 3
 ```
 
-If 0 docs returned and the user is sure logs should exist, the log pipeline is broken — stop investigating, escalate. Or check that the index glob matches:
+If 0 docs returned and the user is sure logs should exist, evaluate three possibilities **in this order**:
 
-```bash
-python scripts/es_search.py mapping --filter "<a-field-you-know-exists>"
-```
+1. **The service is not shipping to Logstash at all** — consult `kb/logstash-coverage.md`. If the service is listed there as `indexed: no` (e.g. `runtime-core-api`), Logstash will never have its logs no matter how the query is shaped. Route to the documented fallback: open the slow request's trace in DD APM, or read host logs at `D:/logs/<service>/...`.
+2. **Wrong index glob** — `ELK_INDEX_GLOB` env var or `es_search.py`'s default may not match the live index pattern. Check field mapping:
+
+   ```bash
+   python scripts/es_search.py mapping --filter "<a-field-you-know-exists>"
+   ```
+3. **Pipeline is broken** — only after ruling out (1) and (2). Stop investigating; escalate.
+
+> **Critical fact.** The canonical service-name facet is `fields.ServiceName` (NOT `service.name`, NOT `kubernetes.labels.app`). A query for `fields.ServiceName:"runtime-core-api"` returning 0 hits means runtime-core-api isn't indexed — use DD APM, not ES. The 2026-05-07 RTC Screen Load investigation lost ~3 turns to this trap before falling back.
 
 ## Step 2 — Aggregate to find concentration
 

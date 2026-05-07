@@ -5,11 +5,14 @@ Three subcommands cover the es-investigate playbook:
   - aggregate    : terms aggregation by a field
   - mapping      : GET _mapping for an index, optionally filtered
 
-Auth via env vars:
-  ELK_BASE_URL    — e.g. https://logstash.method.internal:9243
-  ELK_USER        — basic-auth user
-  ELK_PASS        — basic-auth password
-  ELK_INDEX_GLOB  — default index glob (default: "logstash-*")
+Auth via env vars (process env wins; .env files are fallbacks):
+  ELK_BASE_URL    or ES_SEARCH_ENDPOINT / ES_URL  — e.g. https://logstash.method.internal:9243
+  ELK_USER        or ES_USERNAME / ES_USER         — basic-auth user
+  ELK_PASS        or ES_PASSWORD                   — basic-auth password
+  ELK_INDEX_GLOB  or ES_DEFAULT_INDEX              — default index glob (default: "logstash-*")
+
+If the vars are absent, this script also tries to load `<repo>/.env` and
+`~/.claude/skills/es-setup/.env` so it works outside `invoke-routine.ps1`.
 
 Output: JSON to stdout. Errors: JSON to stderr + non-zero exit.
 """
@@ -23,25 +26,50 @@ import os
 import sys
 import urllib.error
 import urllib.request
+from pathlib import Path
 from typing import Any
 
 
+def _maybe_load_dotenv() -> None:
+    """Best-effort load of .env if python-dotenv is available. Process env wins."""
+    try:
+        from dotenv import load_dotenv  # type: ignore
+    except ImportError:
+        return
+    repo_env = Path(__file__).resolve().parents[1] / ".env"
+    home_env = Path.home() / ".claude" / "skills" / "es-setup" / ".env"
+    for path in (repo_env, home_env):
+        if path.exists():
+            load_dotenv(path, override=False)
+
+
+_maybe_load_dotenv()
+
+
 def _base_url() -> str:
-    url = os.environ.get("ELK_BASE_URL")
+    url = (
+        os.environ.get("ELK_BASE_URL")
+        or os.environ.get("ES_SEARCH_ENDPOINT")
+        or os.environ.get("ES_URL")
+    )
     if not url:
-        die("ELK_BASE_URL must be set")
+        die("ELK_BASE_URL (or ES_SEARCH_ENDPOINT / ES_URL) must be set")
     return url.rstrip("/")
 
 
 def _index() -> str:
-    return os.environ.get("ELK_INDEX_GLOB", "logstash-*")
+    return (
+        os.environ.get("ELK_INDEX_GLOB")
+        or os.environ.get("ES_DEFAULT_INDEX")
+        or "logstash-*"
+    )
 
 
 def _headers() -> dict[str, str]:
-    user = os.environ.get("ELK_USER")
-    pw = os.environ.get("ELK_PASS")
+    user = os.environ.get("ELK_USER") or os.environ.get("ES_USERNAME") or os.environ.get("ES_USER")
+    pw = os.environ.get("ELK_PASS") or os.environ.get("ES_PASSWORD")
     if not user or not pw:
-        die("ELK_USER and ELK_PASS must be set")
+        die("ELK_USER/ELK_PASS (or ES_USERNAME/ES_PASSWORD) must be set")
     creds = base64.b64encode(f"{user}:{pw}".encode("utf-8")).decode("ascii")
     return {
         "authorization": f"Basic {creds}",
