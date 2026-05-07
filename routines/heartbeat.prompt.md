@@ -31,7 +31,7 @@ Parse the resulting JSON. The script covers:
 
 Then run the MCP-tool checks inline (Python can't make MCP calls):
 
-  a. **Slack MCP** — call `mcp__slack__users.info` for `BEN_USER_ID` (resolve via `mcp__slack__auth.test` first if needed). If it returns the profile, slack=ok. If it errors, slack=fail with the error message.
+  a. **Slack MCP** — call `mcp__claude_ai_Slack__slack_read_user_profile` for `BEN_USER_ID` (resolve via `mcp__claude_ai_Slack__slack_search_users` first if needed). If it returns the profile, slack=ok. If it errors, slack=fail with the error message.
 
   b. **Atlassian MCP** — call `mcp__claude_ai_Atlassian__atlassianUserInfo` (no args). If it returns a user object, jira=ok. If it errors with auth, jira=fail with the error message. If the connector isn't configured for this routine, jira=skipped with "Atlassian MCP not enabled for heartbeat".
 

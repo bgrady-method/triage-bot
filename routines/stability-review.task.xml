@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-16"?>
+<Task version="1.4" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
+  <RegistrationInfo>
+    <Author>triage-bot</Author>
+    <Description>triage-bot/stability-review — monthly stability report, first Tuesday of each month at 13:23 UTC. Cron equivalent: 23 13 1-7 * 2 UTC. See routines/stability-review.prompt.md.</Description>
+    <URI>\triage-bot\stability-review</URI>
+  </RegistrationInfo>
+  <Triggers>
+    <CalendarTrigger>
+      <StartBoundary>2026-01-06T13:23:00Z</StartBoundary>
+      <Enabled>true</Enabled>
+      <ScheduleByMonthDayOfWeek>
+        <Weeks>
+          <Week>1</Week>
+        </Weeks>
+        <DaysOfWeek>
+          <Tuesday />
+        </DaysOfWeek>
+        <Months>
+          <January />
+          <February />
+          <March />
+          <April />
+          <May />
+          <June />
+          <July />
+          <August />
+          <September />
+          <October />
+          <November />
+          <December />
+        </Months>
+      </ScheduleByMonthDayOfWeek>
+    </CalendarTrigger>
+  </Triggers>
+  <Principals>
+    <Principal id="Author">
+      <UserId>MachineUser</UserId>
+      <LogonType>InteractiveToken</LogonType>
+      <RunLevel>LeastPrivilege</RunLevel>
+    </Principal>
+  </Principals>
+  <Settings>
+    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>
+    <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
+    <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>
+    <AllowHardTerminate>true</AllowHardTerminate>
+    <StartWhenAvailable>true</StartWhenAvailable>
+    <RunOnlyIfNetworkAvailable>true</RunOnlyIfNetworkAvailable>
+    <AllowStartOnDemand>true</AllowStartOnDemand>
+    <Enabled>true</Enabled>
+    <Hidden>false</Hidden>
+    <RunOnlyIfIdle>false</RunOnlyIfIdle>
+    <WakeToRun>false</WakeToRun>
+    <ExecutionTimeLimit>PT1H</ExecutionTimeLimit>
+    <Priority>7</Priority>
+  </Settings>
+  <Actions Context="Author">
+    <Exec>
+      <Command>powershell.exe</Command>
+      <Arguments>-NoProfile -ExecutionPolicy Bypass -File C:\MethodDev\triage-bot\scripts\invoke-routine.ps1 -Routine stability-review</Arguments>
+      <WorkingDirectory>C:\MethodDev\triage-bot</WorkingDirectory>
+    </Exec>
+  </Actions>
+</Task>
