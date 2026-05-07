@@ -9,3 +9,9 @@ node_modules/
 .dev.vars
 .DS_Store
 *.log
+
+# Claude Code — local-only state
+.claude/settings.local.json
+
+# Routine run logs (written by scripts/invoke-routine.ps1)
+logs/
