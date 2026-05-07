@@ -264,12 +264,21 @@ python scripts/match_kb.py --kb kb/known-issues.json --channel <channel_name> --
 
 ### 4. Investigation
 
+**Per-tool timeout (applies to every script/HTTP call in §4).** Wrap every external call with `timeout 90 ...` so a wedged endpoint cannot starve the cycle. If `timeout` exits non-zero (124 = timed out), record the evidence as `unavailable: timeout` (capturing the query that was attempted) and continue. Do not retry inline. The shape:
+
+```bash
+timeout 90 python scripts/dd_search.py monitors --state Alert --state "No Data" --summary > /tmp/dd-monitors.json \
+  || echo '{"status":"unavailable: timeout","tool":"dd_search.py monitors"}' > /tmp/dd-monitors.json
+```
+
+The same wrapping applies to `dd_search.py logs|metrics`, `es_search.py search|aggregate`, `sql_query.py`, and `mongo_query.py`. If a tool's `timeout` triggers, downstream phases must read the JSON, see `status: unavailable: timeout`, and proceed without that data — never block, never retry.
+
 #### 4.0 DD monitors — always first
 
 Before doing any channel-specific investigation, always run the monitors scan:
 
 ```bash
-python scripts/dd_search.py monitors --state Alert --state "No Data" --summary
+timeout 90 python scripts/dd_search.py monitors --state Alert --state "No Data" --summary
 ```
 
 This establishes what Datadog currently thinks is broken and is the canonical
@@ -601,6 +610,27 @@ git commit -m "poll-cycle: ${G} groups (${M} new, ${K} deduped)"
 git push origin main
 ```
 
+**Push retry policy.** If `git push` fails, classify the failure and act:
+
+```bash
+for attempt in 1 2 3; do
+  if git push origin main; then break; fi
+  err=$?
+  # If the failure looks like a fast-forward race, rebase and retry once.
+  if [ "$attempt" -lt 3 ] && git pull --rebase origin main 2>&1 | grep -qE 'Successfully rebased|up to date'; then
+    continue
+  fi
+  # Otherwise — auth, conflict, network — stop after 3 tries and surface.
+  if [ "$attempt" -eq 3 ]; then
+    echo "❌ triage-bot poll-cycle: git push failed 3x (last err=$err) — see run log" \
+      | slack chat.postMessage channel=#triage-bot-health
+    exit 1
+  fi
+done
+```
+
+Three tries max. Don't retry indefinitely — better to leave a partial commit on local `main` and surface the failure than to spin forever.
+
 ### 10. Final outer try/catch
 
 If the outer loop itself errored (couldn't reach Slack, couldn't read git, etc.), post to `#triage-bot-health`:
@@ -627,6 +657,26 @@ Then re-raise so the routine logs it.
 11. **Write the investigation report.** Every investigated group gets a `docs/investigations/YYYY-MM-DD-<hash>.md` committed on `main`. No exceptions. This is how the team reviews and improves triage quality over time.
 
 12. **No branches.** v0.8 commits everything to `main`. Never run `git checkout -b`, `git branch`, `git push origin claude/...`, or any branch-creating operation. The idempotency lock is the `alert_hash` in `kb/incident-log.jsonl`, not a remote ref.
+
+---
+
+## Unattended-execution rules
+
+This routine runs unattended on a disposable Windows VM via Windows Task Scheduler. There is no operator at the keyboard to answer questions or unblock a wedged tool. Every uncertainty resolves to a deterministic action — never a question.
+
+1. **No interactive prompts.** Never ask the operator a question mid-run. If a decision feels ambiguous, follow the rule defined for that section. If no rule exists, default to the lowest-risk continuing action — typically: classify as `needs-human`, log to `kb/incident-log.jsonl`, DM Ben, move on.
+
+2. **Per-tool timeout: 90 seconds.** Every external call (DD/ES/SQL/Mongo script, `gh api`, MCP tool) is wrapped with `timeout 90` (see §4 for the shape). On timeout: record the evidence as `unavailable: timeout` with the attempted query, continue. Do not retry inline beyond the budget.
+
+3. **Per-group budget: 5 minutes wall-clock.** No single alert group consumes more than 5 minutes of investigation time. If §4 (Investigation) for a group has been running for more than 5 minutes, classify the group as `needs-human` with whatever evidence is in hand, write the incident-log + investigation report (marking the report as `(time-budget exhausted)` in the Investigation section), DM Ben, and move on. One tarpit alert cannot starve the rest of the cycle.
+
+4. **Per-fire deadline awareness.** The cycle's overall deadline is 30 minutes (Task Scheduler `timeout_minutes`). If 27 minutes have elapsed since the cycle started, do not start a new group. In-progress groups finish or get marked partial. The cycle-summary line in step 9 records `deadline_reached: true` when this triggers, so the next fire can pick up via the alert_hash dedup.
+
+5. **Fail-soft.** Any unhandled exception inside steps 1–8 for a single group → log a one-liner to `#triage-bot-health` (`❌ triage-bot group failed (group <hash>, <M> alerts): <short error>`), append a `classification: "errored"` line to `kb/incident-log.jsonl` for that group's primary, continue with the next group. Do not crash the whole cycle on a single group's failure.
+
+6. **No interactive auth.** All credentials come from environment variables set by `scripts/bootstrap.ps1` at VM provisioning time. If `GH_TOKEN`, `DD_API_KEY`, or any other required credential is missing or rejected at startup, post `🔴 triage-bot: <name> credential missing/rejected` to `#triage-bot-health` and exit non-zero. Do not attempt to recover by prompting.
+
+7. **Push retry is bounded.** See the "Push retry policy" in step 9. Three tries, then surface and exit. Never loop indefinitely on a failing push.
 
 ---
 

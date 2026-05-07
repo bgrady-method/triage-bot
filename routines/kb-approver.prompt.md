@@ -47,3 +47,21 @@ Else: stay silent. No-op runs aren't worth the noise.
 2. Reorder/dedupe by `id` so a re-approval just updates the entry rather than duplicating it.
 3. If a JSON block fails to parse, react 🚫 on the bot's original message and skip; never crash the whole run on a single bad entry.
 4. Cap: process at most 20 approvals per run — if there are more, do the first 20 and they'll be picked up next hour.
+
+---
+
+## Unattended-execution rules
+
+This routine runs unattended on a disposable Windows VM via Windows Task Scheduler. There is no operator at the keyboard. The human-in-the-loop here is **asynchronous** (Ben reacts ✅ in his own time; this routine just polls those reactions on its own schedule). Within a fire, every decision is deterministic.
+
+1. **No interactive prompts.** Never ask the operator a question mid-run. The reaction-checking logic in Part 1 is purely observational — `reactions.get` returns either ✅, ❌, 🚫, or nothing, and each maps to a fixed action.
+
+2. **Per-tool timeout: 90 seconds.** Wrap each Slack MCP call (`users.info`, `conversations.open`, `conversations.history`, `reactions.get`) with `timeout 90 ...`. On timeout: skip the affected message, log to `#triage-bot-health` (`🟡 kb-approver: slack call timed out — skipped <message_ts>`), continue. The next fire will retry naturally.
+
+3. **Per-fire deadline awareness.** The routine's overall deadline is 5 minutes (Task Scheduler `timeout_minutes`). At 4 minutes elapsed, stop starting new approvals; commit whatever's been processed and exit. The hard cap of 20 approvals/run already keeps this within budget; the deadline rule is the safety net.
+
+4. **Fail-soft.** Any unhandled exception while processing one approved DM → react 🚫 on the source message (so a re-run won't reprocess it), log to `#triage-bot-health` (`🟡 kb-approver: failed to apply <id> — see error`), continue with the next message. Hard rule #3 already enforces this for parse failures; this generalises it to all single-message errors.
+
+5. **No interactive auth.** Credentials (`GH_TOKEN`, `SLACK_USER_TOKEN`) come from env vars set at VM provisioning. If either is missing or rejected, post `🔴 kb-approver: <name> credential missing/rejected` to `#triage-bot-health` and exit non-zero. Do not prompt.
+
+6. **Push retry is bounded.** Try once, on failure pull-rebase-retry once, on second failure post `🟡 kb-approver: push failed — KB additions deferred` and exit. The KB JSON edits remain in the local working tree; the next fire will detect the un-applied additions (via the same Slack-history scan) and retry.

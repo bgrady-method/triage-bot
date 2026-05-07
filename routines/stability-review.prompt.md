@@ -183,6 +183,8 @@ Cap at 10 findings (top by frequency × severity). Drop the rest into a "Long ta
 
 ## Phase 3 — Fresh DD / ES signal per cluster
 
+**Per-tool timeout (applies to every script call in §3 and §4).** Wrap every `scripts/dd_search.py` and `scripts/es_search.py` invocation with `timeout 90 ...`. On timeout (exit 124), capture `{"status":"unavailable: timeout","query":"<query>"}` as the result and continue — the cluster's Findings entry will note the gap rather than the query hanging the run. The same applies to Atlassian MCP calls in Phase 4.
+
 For each cluster, run **three** ES + DD passes. The single error-concentration query of v0.1 was too thin — recommendations need trend evidence, cross-service context, and a concrete request-id pivot to be actionable.
 
 ### 3a. Trend-delta (graduation gate)
@@ -395,6 +397,26 @@ Append one line to `kb/incident-log.jsonl`:
 ```
 
 Commit + push this in a follow-up commit so the report commit stays clean.
+
+---
+
+## Unattended-execution rules
+
+This routine runs unattended on a disposable Windows VM via Windows Task Scheduler. There is no operator at the keyboard to answer questions or unblock a wedged tool. Every uncertainty resolves to a deterministic action — never a question.
+
+1. **No interactive prompts.** Never ask the operator a question mid-run. The methodology refs (`five-whys-template.md`, etc.) sometimes phrase steps as "discuss with the team" — for this routine, substitute "produce best-effort output and flag uncertainty inline with `> [needs human review]:` markers in the report itself." A human reads the report; the routine never blocks waiting for one.
+
+2. **Per-tool timeout: 90 seconds.** See the §3 preamble. Every script and MCP call is wrapped with `timeout 90` (or equivalent for MCP tools). On timeout: capture as `unavailable: timeout`, continue. Phase 8's quality gate already handles the `(ES unavailable)` case.
+
+3. **Per-fire deadline awareness.** The routine's overall deadline is 45 minutes (Task Scheduler `timeout_minutes`). At 42 minutes elapsed, stop starting new clusters. In-progress cluster work either completes or gets marked `(deadline reached — partial analysis)` in the Findings entry. The report header records the truncation so a follow-up run can pick up where this one stopped.
+
+4. **Fail-soft.** Any unhandled exception in a phase → write a `> [phase failed]: <step> — <short error>` marker into the report at the point where the phase would have produced output, log to `#triage-bot-health` (`🟡 stability-review ${YYYY_MM}: <phase> failed — see report`), and continue to the next phase. The report committed at the end is partial-but-useful, not crashed-and-empty.
+
+5. **No interactive auth.** All credentials come from environment variables set by `scripts/bootstrap.ps1`. If `GH_TOKEN`, `DD_API_KEY`, `JIRA_API_TOKEN`, or any other required credential is missing or rejected at startup, post `🔴 stability-review: <name> credential missing/rejected` to `#triage-bot-health` and exit non-zero. Do not prompt.
+
+6. **Push retry is bounded.** Phase 9a already specifies one rebase-and-retry on push failure. If the second push fails, post the `🔴 push failed` line and exit non-zero — the report file remains in the local working tree for human recovery on the next run.
+
+7. **Read-only Jira is non-negotiable.** Phase 4's hard rule is restated here for emphasis — no `createJiraIssue` / `editJiraIssue` / `transitionJiraIssue` / `addCommentToJiraIssue` ever, even on the routine's own retries.
 
 ---
 
