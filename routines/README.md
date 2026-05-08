@@ -1,6 +1,6 @@
 # `routines/` — prompt + scheduling for the four triage-bot runs
 
-This directory holds the source-of-truth prompts and (in PR #2) the Windows Task Scheduler XML for the four triage-bot routines. The repo is mid-pivot from Anthropic Cloud Routines to fully local, unattended Claude Code sessions on a disposable Windows VM. See `C:\Users\Benjamin Grady\.claude\plans\i-notice-there-is-lazy-hedgehog.md` for the full plan.
+This directory holds the source-of-truth prompts and the Windows Task Scheduler XML for the four triage-bot routines. The repo is mid-pivot from Anthropic Cloud Routines to fully local, unattended Claude Code sessions on a disposable Windows VM. See `C:\Users\Benjamin Grady\.claude\plans\i-notice-there-is-lazy-hedgehog.md` for the full plan.
 
 ## What's here
 
@@ -15,20 +15,42 @@ This directory holds the source-of-truth prompts and (in PR #2) the Windows Task
 | `heartbeat.yaml` | **Legacy.** Cloud Routine config (trig_016cuz…hKaW). |
 | `kb-approver.yaml` | **Legacy.** Cloud Routine config (trig_013UVV…7xoq4). |
 | `SYNC.md` | **Legacy.** The manual paste-and-save workflow that keeps the cloud-routine inline-snapshot prompts in sync with the source files. Retired in PR #4. |
-
-In PR #2: `*.task.xml` files appear here (Windows Task Scheduler exports for each routine).
+| `triage.task.xml` | Windows Task Scheduler export — hourly 07:00–18:00 UTC. Register with `schtasks /Create /XML routines\triage.task.xml /TN "triage-bot\triage" /F`. |
+| `heartbeat.task.xml` | Task Scheduler export — every 6h (00/06/12/18 UTC). Same `schtasks /Create /XML` pattern under `\triage-bot\heartbeat`. |
+| `kb-approver.task.xml` | Task Scheduler export — every 3h at :45 UTC. Registers as `\triage-bot\kb-approver`. |
+| `stability-review.task.xml` | Task Scheduler export — first Tuesday each month at 13:23 UTC. Registers as `\triage-bot\stability-review`. |
 
 ## How the new model works
 
-Each routine is one `claude -p` invocation reading its `routines/<name>.prompt.md` file. Scheduled by Windows Task Scheduler. No inline-snapshot drift, no manual sync step — `git pull` at the start of every fire (in `scripts/invoke-routine.ps1`, landing in PR #2) means the next scheduled run always picks up committed prompt changes.
+Each routine is one `claude -p` invocation reading its `routines/<name>.prompt.md` file. Scheduled by Windows Task Scheduler via `scripts/invoke-routine.ps1`. No inline-snapshot drift, no manual sync step — `git pull --ff-only` at the start of every fire means the next scheduled run always picks up committed prompt changes.
 
 ```powershell
-# what scripts/invoke-routine.ps1 -Routine triage will do (PR #2):
-git pull origin main
-Get-Content routines/triage.prompt.md | claude -p "" `
-  --output-format json `
-  --permission-mode acceptEdits `
-  | Tee-Object -FilePath logs/triage-$(Get-Date -Format 'yyyyMMdd-HHmmss').json
+# scripts/invoke-routine.ps1 -Routine <name> does, in order:
+#   1. cd C:\MethodDev\triage-bot
+#   2. load .env into the process environment
+#   3. git pull --ff-only (non-fatal on failure)
+#   4. Get-Content routines/<name>.prompt.md | claude -p "" `
+#        --output-format json `
+#        --permission-mode acceptEdits `
+#        2>&1 | Tee-Object -FilePath logs/<name>-<UTC-stamp>.json
+#   5. exit with claude's exit code (so Task Scheduler "Last Run Result" is meaningful)
+```
+
+### Manual run (smoke test)
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File C:\MethodDev\triage-bot\scripts\invoke-routine.ps1 -Routine heartbeat
+Get-Content -Tail 1 (Get-ChildItem C:\MethodDev\triage-bot\logs\heartbeat-*.json |
+  Sort-Object LastWriteTime | Select-Object -Last 1)
+```
+
+### Inspect / disable a registered task
+
+```powershell
+schtasks /Query /TN "triage-bot\triage" /FO LIST /V    # next run + last result
+schtasks /Change /TN "triage-bot\triage" /DISABLE       # pause without unregistering
+schtasks /Run    /TN "triage-bot\triage"                # fire now (out of band)
 ```
 
 ## Editing prompts

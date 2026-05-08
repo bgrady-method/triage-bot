@@ -35,7 +35,13 @@ except ImportError:
     sys.exit(2)
 
 
-ENV_PATH = Path.home() / ".claude" / "skills" / "es-setup" / ".env"
+_HOME_ENV_PATH = Path.home() / ".claude" / "skills" / "es-setup" / ".env"
+# Vendored layout: <repo>/.claude/skills/es-setup/scripts/es_client.py
+# parents[0]=scripts parents[1]=es-setup parents[2]=skills parents[3]=.claude parents[4]=<repo>
+_REPO_ENV_PATH = Path(__file__).resolve().parents[4] / ".env"
+# Try repo-local first so a vendored deployment works without a home-dir .env.
+ENV_PATHS = [_REPO_ENV_PATH, _HOME_ENV_PATH]
+ENV_PATH = _HOME_ENV_PATH  # back-compat for any caller that imports the symbol
 
 
 class ElasticAPIError(Exception):
@@ -48,8 +54,9 @@ class ElasticAPIError(Exception):
 
 
 def _load_env() -> tuple[str, str, str, str, str, str]:
-    if ENV_PATH.exists():
-        load_dotenv(ENV_PATH, override=False)
+    for path in ENV_PATHS:
+        if path.exists():
+            load_dotenv(path, override=False)
     # Accept ES_SEARCH_ENDPOINT (current), ES_URL (earlier), and ELK_BASE_URL
     # (triage-bot routine-native) so a single secrets file works for both the
     # user-level skill and the vendored disposable-VM deployment.

@@ -181,6 +181,8 @@ Each group is a struct:
 
 If investigation later reveals two distinct root causes within one group, note both in the single DM rather than splitting. Grouping is a heuristic — the output can acknowledge ambiguity.
 
+**Co-recovery correlation.** If the group's combined text contains multiple `Recovered:` lines (e.g. "Recovered: RTC Screen Load high p95" plus "Recovered: Redis Errors high"), parse each Datadog monitor URL via `scripts/parse_alert_url.py` and compare their `event_unix_s` values. If the deltas are within 5 minutes, treat the group as a single cause-effect chain rather than parallel issues — the earlier-recovered signal is the cause hint. The investigation should produce one hypothesis ("X recovery preceded Y recovery; X likely caused Y") and one DM, with both recovery permalinks listed under "Source alerts."
+
 ### 0d. Daily-cap guard
 
 ```
@@ -312,6 +314,15 @@ involved in the vast majority of production incidents:
 | `ms-tables-fields-api` | `spider*` tables — most common deadlock/timeout source |
 
 Run the deploy check on each. If any has a recent deploy, load its CLAUDE.md.
+
+**For infrastructure-shaped incidents — read the right reference instead.** If
+golden signals show `errors.as_rate() == 0` AND `p95 > monitor threshold` (the
+downstream-latency anatomy from `playbooks/dd-investigate.md` step 3.5 / Rule
+R1), the cause is more likely infra than application code. Fetch the relevant
+`DeveloperTools/method-infrastructure/<file>.md` (Redis / SQL clusters / Mongo
+in `04-databases.md`; pool / RabbitMQ / IIS in `01-iis-inventory.md` and
+`02-services.md`) **before** reading service repos. Use `gh api` per CLAUDE.md
+infrastructure-references table — DeveloperTools is not cloned by the routine.
 
 #### 4.2 Channel-specific investigation
 
@@ -450,8 +461,13 @@ Symptoms:
   - <bullet>
 
 Trace IDs: <id1>, <id2>
+Anatomy: <downstream-latency | app-error-driven | load-driven | unknown>
+Cluster-wide? <true | false>   (only when scripts/check_cluster_wide_impact.py was run)
+  Affected services: <count> (<list>)
+  Outage duration: <seconds>
 Likely cause: <hypothesis>
 Suggested next action: <one of: recycle IIS pool / roll back deploy / page DB on-call / file defect / monitor>
+Observability gap: <only when cluster-wide AND no infra-layer monitor exists for the affected dependency, e.g. "no infra-layer monitor exists for redis. Customer-symptom monitor 115456700 caught this incident as a side-effect.">
 
 Source alerts (<M> total):
   • <permalink-1>  (<channel>, <HH:MM> UTC)
@@ -463,6 +479,8 @@ Evidence:
   • DD metrics: https://app.datadoghq.com/metric/explorer?...
   • Kibana: <url>  (or "unavailable — 403")
 ```
+
+The `Observability gap:` line is included when `playbooks/dd-investigate.md` step 3.6 returned `is_cluster_wide: true` AND a `dd_search.py monitors --tags "service:<dep>"` query (run during step 5 summary) returned 0 cluster-level monitors for the affected dependency. This surfaces missing infra-layer alerting so the user can decide whether to add a monitor.
 
 For the `swat` channel ONLY: replace the DM with a `chat.postMessage` thread reply on the primary alert. Include all source permalinks and evidence links in the thread reply.
 

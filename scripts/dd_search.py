@@ -113,10 +113,39 @@ def cmd_monitors(args: argparse.Namespace) -> int:
 
 
 def cmd_metric(args: argparse.Namespace) -> int:
-    """POST /api/v1/query — timeseries metric query."""
+    """POST /api/v1/query — timeseries metric query.
+
+    --top-series-by-max and --peak-only shrink multi-series output that
+    otherwise overflows the harness's 30 KB inline limit on `by {service}`
+    queries (see kb/dd-skill-tooling-status.md and Bob R-8).
+    """
     qs = {"from": args.from_unix, "to": args.to_unix, "query": args.query}
     url = f"https://api.{_site()}/api/v1/query?{urllib.parse.urlencode(qs)}"
     out = _request("GET", url)
+    if args.top_series_by_max or args.peak_only:
+        series = out.get("series") or []
+
+        def _series_max(s: dict) -> float:
+            stats = s.get("stats") or {}
+            if "max" in stats and stats["max"] is not None:
+                return float(stats["max"])
+            pts = s.get("pointlist") or s.get("sample_points") or []
+            vals = [p[1] for p in pts if p[1] is not None]
+            return max(vals) if vals else float("-inf")
+
+        if args.top_series_by_max and len(series) > args.top_series_by_max:
+            series = sorted(series, key=_series_max, reverse=True)[: args.top_series_by_max]
+        if args.peak_only:
+            for s in series:
+                pts = s.get("pointlist") or s.get("sample_points") or []
+                non_null = [p for p in pts if p[1] is not None]
+                if not non_null:
+                    continue
+                peak = max(non_null, key=lambda p: p[1])
+                key = "pointlist" if "pointlist" in s else "sample_points"
+                s[key] = [peak]
+        out["series"] = series
+        out["series_count"] = len(series)
     json.dump(out, sys.stdout, indent=2 if args.pretty else None)
     sys.stdout.write("\n")
     return 0
@@ -142,9 +171,11 @@ def main() -> int:
     pm.set_defaults(func=cmd_monitors)
 
     pq = sub.add_parser("metric", help="Run a metric timeseries query.")
-    pq.add_argument("--query", required=True, help='e.g. "p95:trace.web.request.duration{service:tables-fields,env:prod}".')
+    pq.add_argument("--query", required=True, help='e.g. "p95:trace.aspnet_core.request{service:runtime-core-api,env:prod}".')
     pq.add_argument("--from-unix", required=True, type=int, help="Unix epoch seconds (start).")
     pq.add_argument("--to-unix", required=True, type=int, help="Unix epoch seconds (end).")
+    pq.add_argument("--top-series-by-max", type=int, default=0, metavar="N", help="When the query has multiple series (e.g. by {service}), keep only the top N by stats.max. 0 = keep all.")
+    pq.add_argument("--peak-only", action="store_true", help="Replace each series's sample points with just the peak point. Combine with --top-series-by-max for compact output on cluster-wide impact queries.")
     pq.set_defaults(func=cmd_metric)
 
     args = p.parse_args()

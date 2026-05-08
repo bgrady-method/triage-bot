@@ -19,6 +19,10 @@
       "Bash(uniq *)",
       "Bash(awk *)",
       "Bash(sed *)",
+      "Bash(timeout *)",
+      "Bash(curl *)",
+      "Bash(bash scripts/*)",
+      "Bash(chmod *)",
       "Read(*)",
       "Edit(kb/**)",
       "Edit(docs/**)",
@@ -31,31 +35,12 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:api.github.com)",
-      "mcp__slack__*",
-      "mcp__github__*",
-      "mcp__atlassian__*"
+      "mcp__claude_ai_Slack__*",
+      "mcp__claude_ai_Atlassian__*"
     ],
     "deny": [
-      "Bash(rm -rf *)",
-      "Bash(rm -r *)",
-      "Bash(git push --force *)",
-      "Bash(git push -f *)",
-      "Bash(git reset --hard *)",
-      "Bash(git checkout -- *)",
-      "Bash(git clean -f*)",
-      "Bash(git branch -D *)",
       "Read(.env)",
-      "Edit(.env)",
-      "Edit(routines/*.prompt.md)",
-      "Edit(routines/*.yaml)",
-      "Edit(.claude/**)",
-      "Edit(.mcp.json)",
-      "Edit(.gitignore)",
-      "Edit(CLAUDE.md)",
-      "Edit(prompt.md)",
-      "Edit(stability-review-prompt.md)",
-      "Edit(playbooks/**)",
-      "Edit(scripts/**)"
+      "Edit(.env)"
     ]
   },
   "env": {

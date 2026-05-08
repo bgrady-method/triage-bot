@@ -31,7 +31,7 @@ Parse the resulting JSON. The script covers:
 
 Then run the MCP-tool checks inline (Python can't make MCP calls):
 
-  a. **Slack MCP** — call `mcp__slack__users.info` for `BEN_USER_ID` (resolve via `mcp__slack__auth.test` first if needed). If it returns the profile, slack=ok. If it errors, slack=fail with the error message.
+  a. **Slack MCP** — call `mcp__claude_ai_Slack__slack_read_user_profile` for `BEN_USER_ID` (resolve via `mcp__claude_ai_Slack__slack_search_users` first if needed). If it returns the profile, slack=ok. If it errors, slack=fail with the error message.
 
   b. **Atlassian MCP** — call `mcp__claude_ai_Atlassian__atlassianUserInfo` (no args). If it returns a user object, jira=ok. If it errors with auth, jira=fail with the error message. If the connector isn't configured for this routine, jira=skipped with "Atlassian MCP not enabled for heartbeat".
 
@@ -113,3 +113,21 @@ later cost-tracking can see it:
 ```
 
 Commit + push as a follow-up commit so the kb stays clean.
+
+---
+
+## Unattended-execution rules
+
+This routine runs unattended on a disposable Windows VM via Windows Task Scheduler. There is no operator at the keyboard. Every uncertainty resolves to a deterministic action.
+
+1. **No interactive prompts.** Never ask the operator a question mid-run. Tool checks classify into `ok | fail | skipped` deterministically; the post composition follows the Step-3 priority table without judgment.
+
+2. **Per-tool timeout: 90 seconds.** Wrap every external call (the `tool_health.py` invocation, every MCP call) with `timeout 90 ...`. If the script itself doesn't return within 90s, treat it as `fail` with reason `script-timeout` and proceed to compose the post. The point of the heartbeat is to land *some* status post even if half the tools are wedged — never let a single hang suppress the canary.
+
+3. **Per-fire deadline awareness.** The routine's overall deadline is 8 minutes (Task Scheduler `timeout_minutes`). At 7 minutes elapsed, stop starting new tool checks; compose the post with whatever results are in hand and mark missing tools `skipped (deadline)`. The post still goes out.
+
+4. **Fail-soft.** If composing the post itself fails (Slack MCP wedged, network down), write the intended post body to `logs/heartbeat-failed-${YYYY_MM_DD-HH-mm}.txt` and exit non-zero. The kill-switch logic in Step 3 priority 1 still runs to completion before the post attempt — flipping `kb/config.json.enabled = false` is the most important side-effect this routine has and must not be blocked by Slack failures.
+
+5. **No interactive auth.** All credentials come from environment variables. If `GH_TOKEN` or any tool credential is missing, the affected tool reports `fail` (not `skipped`) and the post line names it. Don't prompt to recover.
+
+6. **Push retry is bounded.** Two pushes happen here (the kill-switch flip if triggered, and the incident-log append). On either: try once, on failure pull-rebase-retry once, on second failure write the intended commit to `logs/heartbeat-uncommitted-${YYYY_MM_DD-HH-mm}.diff` and post `🟡 heartbeat: git push failed — see logs` to `#triage-bot-health`. The next heartbeat fire will catch up.
