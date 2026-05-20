@@ -10,7 +10,7 @@ Every hour, the routine:
 2. Computes a stable hash for each new message; skips ones it already triaged (`claude/triage-{hash}` branch exists).
 3. Investigates each new message across Datadog, Elasticsearch, the read-only SQL replica, and the cloned Method codebase.
 4. Classifies: `false-alarm` / `known-issue-recurrence` / `new-with-clear-fix` / `needs-human`.
-5. DMs Ben on Slack with findings + a recommended next step (or thread-replies on the original alert for `false-alarm` and `swat`).
+5. DMs Ben on Slack with findings + a recommended next step (or thread-replies on the original alert for `false-alarm`). **Never posts to `#swat`** — swat alerts produce a DM only.
 6. Commits its learning to `kb/`.
 7. (After ~2 weeks of signal) opens PRs for clear single-file fixes.
 

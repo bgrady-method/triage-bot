@@ -43,14 +43,15 @@ Each of the four alert channels has a different upstream and a different signal-
 
 **Source:** human-posted P0/P1 incident posts. Sometimes structured (XMatters), often free-form ("API is down for customer X").
 
-**Investigation order:**
-1. **Post in-thread, don't DM.** SWAT means a human is already engaged; the bot's job is to gather context fast and put it where the responder can see it. Use `chat.postMessage` with `thread_ts` set to the alert's `ts`.
-2. Run Datadog + ES in parallel, widest plausible window (`now-1h` minimum).
-3. Pull recent deploys (`git log --since="1 hour ago"` on the cloned target service repo, if mentioned).
-4. SQL health-check on the named customer DB if applicable.
-5. Output a structured summary in the thread, not a DM.
+**NEVER POST TO #swat.** No thread replies, no top-level posts, no reactions. SWAT is a human-incident-response channel; the bot adds noise there. All investigation output for swat alerts goes to Ben's self-DM, exactly like the other alert channels.
 
-**Bias:** never auto-PR from SWAT. Always `needs-human`. The bot is a research assistant in this channel, nothing more.
+**Investigation order:**
+1. Run Datadog + ES in parallel, widest plausible window (`now-1h` minimum).
+2. Pull recent deploys (`git log --since="1 hour ago"` on the cloned target service repo, if mentioned).
+3. SQL health-check on the named customer DB if applicable.
+4. DM Ben a structured summary with all source permalinks and evidence links.
+
+**Bias:** never auto-PR from SWAT. Always `needs-human`. The bot is a silent research assistant for swat — observes, investigates, DMs Ben. Never writes to the channel.
 
 ## Posting locations summary
 
@@ -59,5 +60,5 @@ Each of the four alert channels has a different upstream and a different signal-
 | `alert-frontend-errors` | Self-DM (bot acts as Ben via Slack MCP) |
 | `alert-runtime-monitoring` | Self-DM |
 | `alert-system` | Self-DM |
-| `swat` | **Thread reply on the alert itself** (not a DM) — slow in v0.5 (up to 60 min) but still the right surface |
+| `swat` | Self-DM (same as other alert channels). **Never post to #swat itself** — no thread replies, no top-level posts. |
 | `triage-bot-health` | Heartbeat + failure summaries + cycle deferrals |
