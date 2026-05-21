@@ -56,7 +56,7 @@ Cloud cron's hourly minimum is the latency floor — alerts in `#swat` may sit u
 | `scripts/` | Portable Python helpers (KB matcher, DD/ES/SQL search, alert hash, course-content sync) |
 | `playbooks/` | Investigation playbooks (DD, ES, classification, channel guidance, stability-review methodology) |
 | `references/` | Read-only reference library: mirrored system-design course, postmortem methodology (5-whys, formulas, ICE), platform architecture digest, known failure modes |
-| `routines/` | Routine YAML configs (triage, heartbeat, kb-approver, stability-review) |
+| `routines/` | Routine YAML configs (triage, heartbeat, stability-review) |
 | `stability-reviews/` | Output: one `YYYY-MM/report.md` per monthly stability-review run |
 | `slack-receiver/` | **Parked.** Push-mode receiver (Slack app + Cloudflare Worker). Revive only if you need sub-minute latency for `#swat`. |
 | `docs/` | Runbook (triage), KB curation guide, stability-review runbook |
@@ -65,11 +65,12 @@ Cloud cron's hourly minimum is the latency floor — alerts in `#swat` may sit u
 
 1. **Push this repo** (already done): `https://github.com/bgrady-method/triage-bot`.
 2. **Get channel IDs.** In Slack, right-click each of the four alert channels + `#triage-bot-health`, copy the channel ID, paste into `kb/config.json`.
-3. **Create the four Anthropic routines** at https://claude.ai/code/routines:
+3. **Create the three Anthropic routines** at https://claude.ai/code/routines (or use the local Windows Task Scheduler setup in `scripts/install-tasks.ps1`):
    - `triage` — paste `prompt.md`, configure per `routines/triage.yaml` (cron `0 * * * *`, Slack + GitHub MCPs, the secrets list).
    - `heartbeat` — inline prompt from `routines/heartbeat.yaml`, cron `0 */6 * * *`.
-   - `kb-approver` — inline prompt from `routines/kb-approver.yaml`, cron `*/30 * * * *`.
    - `stability-review` — paste `stability-review-prompt.md`, configure per `routines/stability-review.yaml` (cron `23 9 1-7 * 2` — first Tuesday of the month at 09:23 local; Slack + GitHub + **Atlassian** MCPs).
+
+   KB writes are performed in-line by the triage routine; there is no separate kb-approver. See `docs/kb-curation.md`.
 4. **Connect Slack MCP** in each routine. OAuth as Ben — the routine then acts as you.
 5. **Add the secrets** (DD/ES/SSH/SQL/GH) to the triage routine.
 6. **First run.** Wait for the next hour boundary, or manually trigger the routine. Watch `kb/incident-log.jsonl` on `main` — every cron fire appends a `poll-cycle` summary line.

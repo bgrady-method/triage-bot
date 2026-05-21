@@ -160,6 +160,6 @@ Quality gate before commit:
 
 - This playbook does not file Jira tickets.
 - It does not page anyone.
-- It does not change KB entries (that's `kb-approver`'s job).
+- It does not change KB entries (the triage routine writes those directly during normal cycles).
 - It does not silence monitors.
 - It does not deploy or roll back.

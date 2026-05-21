@@ -26,14 +26,14 @@ Investigation helpers (all read-only, all share the same SSH bastion):
 
 ## Message logging — required after every Slack send
 
-Every outbound Slack message (`chat.postMessage` to any channel, every self-DM, every threaded reply, the `#triage-bot-health` heartbeat) must be appended to disk as a JSONL line **immediately after** the send returns success. This is the audit trail — Slack DMs are otherwise ephemeral, and the stability-review and KB-approver routines depend on this corpus.
+Every outbound Slack message (`chat.postMessage` to any channel, every self-DM, every threaded reply, the `#triage-bot-health` heartbeat) must be appended to disk as a JSONL line **immediately after** the send returns success. This is the audit trail — Slack DMs are otherwise ephemeral, and the stability-review routine depends on this corpus.
 
 Path: `docs/messages/<YYYY-MM-DD-of-send>/<channel-slug>.jsonl`. The slug is `self-dm` for the bot's self-DM, `triage-bot-health` for the health channel, or the lowercased channel name (without `#`) for any other public channel. If the channel has no name, fall back to the channel ID.
 
 Schema (one object per line, no trailing comma, key order doesn't matter):
 
 ```json
-{"ts": "<iso-8601-utc>", "channel_id": "<C…|D…>", "channel_name": "<#name|self-dm>", "recipient": "self-dm|#triage-bot-health|alert-frontend-errors|…", "message_type": "kb-proposal|known-issue|new-fix|needs-human|health-status|stability-summary|thread-reply|other", "alert_hash": "<16-char-hex-or-null>", "thread_ts": "<parent-ts-or-null>", "body": "<full message text exactly as sent>"}
+{"ts": "<iso-8601-utc>", "channel_id": "<C…|D…>", "channel_name": "<#name|self-dm>", "recipient": "self-dm|#triage-bot-health|alert-frontend-errors|…", "message_type": "kb-update|known-issue|new-fix|needs-human|health-status|stability-summary|thread-reply|other", "alert_hash": "<16-char-hex-or-null>", "thread_ts": "<parent-ts-or-null>", "body": "<full message text exactly as sent>"}
 ```
 
 Pseudocode pattern after every send:
@@ -395,14 +395,15 @@ For deduplicated alerts (prior line for this `alert_hash` exists in `kb/incident
 
 ### 7. Act
 
-**false-alarm**: Slack `chat.postMessage` to the alert's channel with `thread_ts: primary.ts`, text: `🤖 known false alarm — <reason>`. Then DM yourself proposing a new `kb/false-alarms.json` entry:
+**false-alarm**: Slack `chat.postMessage` to the alert's channel with `thread_ts: primary.ts`, text: `🤖 known false alarm — <reason>`. Then **directly write a new entry to `kb/false-alarms.json`** (no human approval gate — false-alarm misclassifications are cheap):
 
-````
-🤖 proposed kb entry — react ✅ to add to kb/false-alarms.json:
-```proposed_kb_entry
-{ "target": "false-alarms", "id": "fa-...", "match": {...}, "reason": "...", "silence_for": "24h" }
-```
-````
+1. Construct the entry: `{ "target": "false-alarms", "id": "fa-<YYYY-MM-DD>-<short-slug>", "match": {...}, "reason": "...", "silence_for": "24h", "first_seen": "<iso>", "occurrences": 1 }`.
+2. If an entry with the same `id` already exists in `kb/false-alarms.json`, increment its `occurrences` and update `last_seen` — do not duplicate.
+3. Write the updated file (preserve JSON formatting — 2-space indent, sorted array by `id`).
+4. `git add kb/false-alarms.json` — the file will be staged with the rest of the cycle's commit in step 8.
+5. DM yourself a `kb-update` notification confirming what was added (include the entry JSON for the audit log).
+
+**Guardrail:** only write to KB when classification confidence ≥ 0.85 AND alert evidence is robust (≥2 source alerts OR a clear-cut single-alert pattern documented in the investigation report). On lower confidence, skip the KB write and let the DM stand as a `needs-human` instead.
 
 **known-issue-recurrence**: DM yourself:
 ```
@@ -417,8 +418,16 @@ Source alerts (<M> total):
 ```
 
 **new-with-clear-fix** (DM only in v0.6):
+
+When confidence ≥ 0.85 AND the investigation pinpoints a reproducible root cause with a fix sketch, **directly write a new entry to `kb/known-issues.json`** in the same step as the DM (no approval gate):
+
+1. Construct the entry: `{ "id": "ki-<YYYY-MM-DD>-<short-slug>", "title": "...", "first_seen": "<iso>", "last_seen": "<iso>", "occurrences": 1, "match": {...}, "diagnosis": "...", "playbook": "...", "fix_status": "proposed", "fix_jira": null, "fix_template": null, "confidence": 0.<NN> }`.
+2. If an entry with the same `id` exists, increment `occurrences`, update `last_seen`, and merge any new diagnosis details — do not duplicate.
+3. Write `kb/known-issues.json` (2-space indent, sorted by `id`) and stage with `git add kb/known-issues.json`.
+4. DM yourself with the fix details, marked `message_type: "kb-update"`:
+
 ```
-🛠️ *proposed fix*
+🛠️ *proposed fix — added to kb/known-issues.json as `<ki-id>`*
 Channel: <name>  •  confidence: 0.<NN>  •  alerts in group: <M>
 Investigation summary:
   - <bullet>
@@ -427,7 +436,6 @@ Proposed change:
 \`\`\`diff
 <unified diff, single file, ≤30 lines>
 \`\`\`
-React 👍 to ack, ✅ if I should add this pattern to known-issues.json.
 
 Source alerts (<M> total):
   • <permalink-1>  (<channel>, <HH:MM> UTC)
@@ -437,6 +445,8 @@ Evidence:
   • <label>: <url>
   • <label>: <url>
 ```
+
+If confidence < 0.85, skip the KB write — fall through to `needs-human` instead so a real entry isn't seeded from weak evidence.
 
 In v2 (only when `pr_mode: "on"` AND confidence ≥ 0.85 AND KB entry has `fix_template` AND diff is single-file ≤30 lines AND CI dry-run passes): clone the target repo, apply the diff on a `claude/triage-<hash>-fix` branch, push, open a PR, then DM yourself with the PR URL.
 

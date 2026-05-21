@@ -4,42 +4,25 @@ How the bot's knowledge base grows, and how Ben keeps it useful.
 
 ## How entries get into the KB
 
-There are three paths:
+There are two paths:
 
-### 1. Bot proposes, Ben approves (the common path)
+### 1. The bot writes directly (the common path)
 
-After a `false-alarm` or `new-with-clear-fix` classification, the bot's DM contains a fenced JSON block tagged `proposed_kb_entry`:
+When the triage routine classifies an alert as `false-alarm` or `new-with-clear-fix` with confidence ≥ 0.85, it writes the entry directly to `kb/false-alarms.json` or `kb/known-issues.json` and commits in the same cycle. No proposal, no ✅ reaction, no approver routine — the agent owns the write.
 
-````
-🤖 proposed kb entry — react ✅ to add to kb/false-alarms.json:
-```proposed_kb_entry
-{
-  "target": "false-alarms",
-  "id": "fa-2026-04-30-tables-fields-1am-warmup",
-  "title": "tables-fields p95 spike during 1am cache prewarm",
-  "match": {
-    "channels": ["alert-runtime-monitoring"],
-    "any_of": [{ "regex": "tables-fields.*p95.*4[0-9][0-9]ms" }]
-  },
-  "reason": "Cron-driven cache prewarm always nudges p95 between 1:00-1:05 ET.",
-  "silence_for": "24h"
-}
-```
-````
+Example commit message: `kb: add fa-2026-04-30-tables-fields-1am-warmup from triage cycle <hash>`.
 
-Ben reacts ✅ on that DM. Within 30 minutes, the `kb-approver` cron routine picks it up and commits the entry to `kb/false-alarms.json` on `main`.
+The bot still DMs you a `kb-update` notification so the change shows up in your self-DM history alongside the alert it came from. The DM contains the full entry JSON for auditability.
 
-Ben reacts ❌ if the entry is wrong — nothing gets added.
+**If you disagree with an entry** the bot wrote, edit (or remove) it directly on `main` — see path 2 below. The bot reads the latest version on the next fire.
 
-No reaction = no action. Old un-reacted DMs are ignored after 24h.
+**Guardrails the bot enforces before writing:**
+- Confidence ≥ 0.85 (lower confidence → falls through to `needs-human` instead).
+- For `kb/false-alarms.json`: ≥2 source alerts OR a clear-cut single-alert pattern documented in the investigation report.
+- For `kb/known-issues.json`: investigation pinpoints a reproducible root cause with a fix sketch (diff or playbook).
+- Idempotence: if an entry with the same `id` already exists, the bot increments `occurrences` and updates `last_seen` rather than duplicating.
 
-### 2. Auto-promotion (false alarms only, low-stakes)
-
-If two alerts within 24h are classified `false-alarm` with no matched KB entry, the `kb-approver` cron synthesizes a minimal entry from their shared signature and adds it without Ben's approval. Rationale: false-alarm misclassifications are cheap (worst case the bot stays silent on a real alert *that looked exactly like a false alarm twice in a row*, which is acceptable risk).
-
-Auto-promotion **never** applies to `kb/known-issues.json` — those entries gate the bot's playbook output and need a human in the loop.
-
-### 3. Hand-editing
+### 2. Hand-editing
 
 For one-off corrections, edit `kb/known-issues.json` or `kb/false-alarms.json` directly on `main` and push. The bot reads the latest version on every fire (it's a fresh clone each run).
 

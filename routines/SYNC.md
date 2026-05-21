@@ -13,7 +13,6 @@ auto-update when the source-of-truth files in this repo (`prompt.md`,
 | triage           | `trig_01A6VgYtcZkh567gxCLvEMMw`     | `prompt.md`                          | `0 7-18 * * *` (hourly)   |
 | stability-review | `trig_01CgsBZFhq3Tphw4719pQswG`     | `stability-review-prompt.md`         | `23 13 1-7 * 2` (1st Tue) |
 | heartbeat        | `trig_016cuzzVZHdEJ3yAVvezhKaW`     | `routines/heartbeat.yaml` (inline)   | `0 */6 * * *` (every 6h)  |
-| kb-approver      | `trig_013UVV5cqh6pgwhLCg27xoq4`     | `routines/kb-approver.yaml` (inline) | `45 */3 * * *` (every 3h) |
 
 ## Sync workflow when a prompt changes
 

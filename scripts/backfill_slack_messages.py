@@ -55,8 +55,11 @@ def classify_message_type(body: str, default: str) -> str:
         return "health-status"
     if ":rotating_light:" in body or "needs human" in b or "needs-human" in b:
         return "needs-human"
+    if "kb-update" in b or "added to kb/" in b or "added to known-issues" in b or "added to false-alarms" in b:
+        return "kb-update"
     if "proposed_kb_entry" in b or "kb proposal" in b or "false alarm" in b:
-        return "kb-proposal"
+        # Back-compat for messages from before the direct-write change (2026-05-21).
+        return "kb-update"
     if "known issue" in b or "recurrence" in b:
         return "known-issue"
     if "clear fix" in b or "suggested fix" in b:

@@ -29,7 +29,7 @@ Investigation helpers (all read-only):
 
 ## Message logging — required after every Slack send
 
-Every outbound Slack message (the Exec Summary self-DM, the `#triage-bot-health` one-liner, any thread reply) must be appended to `docs/messages/<YYYY-MM-DD-of-send>/<channel-slug>.jsonl` immediately after the send returns success. Slug rules and schema are identical to the triage routine — see the same section in `prompt.md` and follow the exact format so downstream consumers (this routine's Phase 2.5, the kb-approver) can read both routines' messages with one parser.
+Every outbound Slack message (the Exec Summary self-DM, the `#triage-bot-health` one-liner, any thread reply) must be appended to `docs/messages/<YYYY-MM-DD-of-send>/<channel-slug>.jsonl` immediately after the send returns success. Slug rules and schema are identical to the triage routine — see the same section in `prompt.md` and follow the exact format so downstream consumers (this routine's Phase 2.5) can read both routines' messages with one parser.
 
 ```json
 {"ts": "<iso-8601-utc>", "channel_id": "<C…|D…>", "channel_name": "<#name|self-dm>", "recipient": "self-dm|#triage-bot-health|…", "message_type": "stability-summary|health-status|thread-reply|other", "alert_hash": null, "thread_ts": "<parent-ts-or-null>", "body": "<full message text exactly as sent>"}
@@ -162,8 +162,8 @@ wc -l /tmp/messages-in-window.jsonl
 ```
 
 Group messages by `message_type` and tally:
-- **`needs-human` DMs** — these are the alerts the routine flagged for human review. Cross-reference with `kb/incident-log.jsonl` `needs-human` entries: any DM that is NOT followed by a `kb-proposal` DM **and** has no matching `docs/investigations/<date>-<hash>.md` is a **silent fail** — the routine asked Ben to look at it but produced no recoverable artefact. Surface these as a Phase-2 cluster candidate even if the alert_hash itself is a singleton.
-- **`kb-proposal` DMs that never got an approver write** — cross-check `git log -- kb/known-issues.json kb/false-alarms.json` for an entry matching the proposal's `id`. Missing entries indicate the kb-approver routine isn't picking them up; surface as an "Open Follow-up".
+- **`needs-human` DMs** — these are the alerts the routine flagged for human review. Cross-reference with `kb/incident-log.jsonl` `needs-human` entries: any DM that has no matching `docs/investigations/<date>-<hash>.md` is a **silent fail** — the routine asked Ben to look at it but produced no recoverable artefact. Surface these as a Phase-2 cluster candidate even if the alert_hash itself is a singleton.
+- **`kb-update` DMs** — these are direct KB writes the triage routine performed. Cross-check `git log -- kb/known-issues.json kb/false-alarms.json` for the matching commit; absence indicates the DM-and-commit pair desynced and the entry never landed. Surface as an "Open Follow-up".
 - **`health-status` posts** — note any patterns in the `tools:` line. Repeated `es ✗` indicates an environment-side ES auth issue that's blocking richer triage and should appear in the report's "Open Follow-ups" if not already there.
 
 ---
@@ -345,7 +345,7 @@ Quality gate before writing:
 - [ ] Every calculation shows substitution.
 - [ ] Every Jira reference uses ticket keys (no free-text "see the deadlock ticket").
 - [ ] No PII in quotes.
-- [ ] Each cluster cites at least one `docs/messages/` entry (`needs-human` DM, `kb-proposal`, or `health-status` correlate) **OR** explicitly explains why the message corpus produced no signal for that cluster.
+- [ ] Each cluster cites at least one `docs/messages/` entry (`needs-human` DM, `kb-update`, or `health-status` correlate) **OR** explicitly explains why the message corpus produced no signal for that cluster.
 - [ ] Each Phase-3 finding includes a trend-delta value (`Δ_freq = …`) **OR** a `(ES unavailable)` marker if 3a was deferred.
 - [ ] Each Phase-3c finding cites a concrete `request_id` (real trace), not just an aggregate.
 - [ ] If `docs/investigations/<hash>.md` exists for any cluster's hash, the Finding cites the file path.

@@ -53,7 +53,6 @@ function Register-RoutineTask {
 }
 
 Register-RoutineTask -Name 'triage'      -Hours (7..18)                  -Minute 7
-Register-RoutineTask -Name 'kb-approver' -Hours @(0,3,6,9,12,15,18,21)   -Minute 47
 Register-RoutineTask -Name 'heartbeat'   -Hours @(0,6,12,18)             -Minute 3
 
 # stability-review: weekly Tuesday 9:23am; wrapper enforces first-Tuesday-of-month

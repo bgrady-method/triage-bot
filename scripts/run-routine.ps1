@@ -1,6 +1,6 @@
 param(
     [Parameter(Mandatory=$true)]
-    [ValidateSet('triage','kb-approver','heartbeat','stability-review')]
+    [ValidateSet('triage','heartbeat','stability-review')]
     [string]$Routine,
 
     [switch]$Force
@@ -47,8 +47,7 @@ $outFile = Join-Path $logDir "$Routine-$ts.json"
 $runsLog = Join-Path $logDir 'runs.jsonl'
 
 $prompts = @{
-    'triage' = 'Run the triage routine. Read routines/triage.yaml and prompt.md from this repo for the procedure, then execute it end-to-end. Operate as the triage-bot: investigate new alerts, classify them, DM Ben, update KB proposals, and commit per the prompt instructions.'
-    'kb-approver' = 'Run the kb-approver routine. Read routines/kb-approver.yaml from this repo for the full inline prompt and execute it end-to-end.'
+    'triage' = 'Run the triage routine. Read routines/triage.yaml and prompt.md from this repo for the procedure, then execute it end-to-end. Operate as the triage-bot: investigate new alerts, classify them, DM Ben, write directly to kb/known-issues.json or kb/false-alarms.json when warranted, and commit per the prompt instructions.'
     'heartbeat' = 'Run the heartbeat routine. Read routines/heartbeat.yaml from this repo for the full inline prompt and execute it end-to-end.'
     'stability-review' = 'Run the stability-review routine. Read routines/stability-review.yaml and stability-review-prompt.md from this repo for the full procedure and execute it end-to-end.'
 }
@@ -69,9 +68,9 @@ try {
     $exitCode = 1
 }
 
-# Push any commits the routine made. The bot's own kb-approver bootstrap
-# expects GH_TOKEN in the env, which Task Scheduler doesn't provide — so
-# we fetch the user's gh token and push with an inline URL.
+# Push any commits the routine made. The bot's prompts expect GH_TOKEN
+# in the env, which Task Scheduler doesn't provide — so we fetch the
+# user's gh token and push with an inline URL.
 $pushResult = 'skipped'
 try {
     $token = & $gh auth token 2>$null
