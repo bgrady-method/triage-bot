@@ -8,8 +8,11 @@ Checks (REST-reachable from the routine VM):
   - gh        : `gh auth status` — GitHub CLI is authenticated and on a token
                 with the right scopes.
   - dd        : Datadog API key validates (`GET /api/v1/validate`).
-  - es        : Elasticsearch / Logstash cluster reachable
-                (`GET $ELK_BASE_URL/_cluster/health`).
+  - es        : Elasticsearch / Logstash search endpoint reachable
+                (`POST $ELK_BASE_URL/<index>/_search?size=0`). Uses _search
+                rather than _cluster/health because the bot's read-only
+                user typically lacks the `monitor` cluster privilege —
+                _cluster/health returns 403 even when search works fine.
   - vpn       : TCP-connect to `$SSH_HOST:$SSH_PORT`. The SSH bastion is the
                 jump host for SQL and Mongo tunnels — if we can't reach it,
                 neither tunnel will work. Stand-in for "VPN is up".
@@ -110,11 +113,19 @@ def check_es() -> dict:
         return _skipped("ELK_BASE_URL not set")
     user = os.environ.get("ELK_USER")
     pw = os.environ.get("ELK_PASS")
-    headers = {}
+    index = os.environ.get("ELK_INDEX_GLOB", "logstash-*")
+    headers = {"content-type": "application/json"}
     if user and pw:
         headers["Authorization"] = "Basic " + b64encode(f"{user}:{pw}".encode()).decode()
-    url = base.rstrip("/") + "/_cluster/health"
-    req = urllib.request.Request(url, headers=headers)
+    # _search?size=0 exercises the same auth+routing path es_search.py uses,
+    # without needing the `monitor` cluster privilege that _cluster/health requires.
+    url = base.rstrip("/") + f"/{index}/_search?size=0"
+    req = urllib.request.Request(
+        url,
+        data=b'{"query":{"match_all":{}}}',
+        headers=headers,
+        method="POST",
+    )
     try:
         with urllib.request.urlopen(req, timeout=TIMEOUT_SECONDS) as r:
             body = json.loads(r.read().decode("utf-8"))
@@ -124,10 +135,11 @@ def check_es() -> dict:
         return _fail(f"network: {e.reason}")
     except (TimeoutError, socket.timeout):
         return _fail("timeout")
-    color = body.get("status", "?")
-    if color in ("green", "yellow"):
-        return _ok(f"cluster={body.get('cluster_name','?')} status={color}")
-    return _fail(f"cluster status={color}")
+    took = body.get("took")
+    total = body.get("hits", {}).get("total", {}).get("value")
+    if took is not None:
+        return _ok(f"index={index} took={took}ms hits={total}")
+    return _fail(f"unexpected response shape: {list(body)[:5]}")
 
 
 def check_vpn() -> dict:
