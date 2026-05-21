@@ -1,6 +1,6 @@
 param(
     [Parameter(Mandatory=$true)]
-    [ValidateSet('triage','heartbeat','stability-review')]
+    [ValidateSet('triage','heartbeat','stability-review','daily-digest','pir-ingest')]
     [string]$Routine,
 
     [switch]$Force
@@ -50,6 +50,8 @@ $prompts = @{
     'triage' = 'Run the triage routine. Read routines/triage.yaml and prompt.md from this repo for the procedure, then execute it end-to-end. Operate as the triage-bot: investigate new alerts, classify them, DM Ben, write directly to kb/known-issues.json or kb/false-alarms.json when warranted, and commit per the prompt instructions.'
     'heartbeat' = 'Run the heartbeat routine. Read routines/heartbeat.yaml from this repo for the full inline prompt and execute it end-to-end.'
     'stability-review' = 'Run the stability-review routine. Read routines/stability-review.yaml and stability-review-prompt.md from this repo for the full procedure and execute it end-to-end.'
+    'daily-digest' = 'Run the daily-digest routine. Read routines/daily-digest.yaml from this repo for the full inline prompt and execute it end-to-end. Emit one self-DM summarising today docs/messages/<UTC-date>/digest.jsonl entries; if the digest file is empty or missing, exit silently.'
+    'pir-ingest' = 'Run the pir-ingest routine. Read routines/pir-ingest.yaml from this repo for the full inline prompt and execute it end-to-end. Fetch the Method PIR Confluence blog (pageId 133496969) via Atlassian MCP, parse engineer-authored incident blocks, dedupe against kb/known-issues.json, and write any new entries with confidence=0.95.'
 }
 
 $prompt = $prompts[$Routine]

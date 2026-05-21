@@ -52,8 +52,9 @@ function Register-RoutineTask {
     Write-Host "Registered: $taskName ($($Hours.Count) daily triggers @ :$minStr)"
 }
 
-Register-RoutineTask -Name 'triage'      -Hours (7..18)                  -Minute 7
-Register-RoutineTask -Name 'heartbeat'   -Hours @(0,6,12,18)             -Minute 3
+Register-RoutineTask -Name 'triage'       -Hours (7..18)                  -Minute 7
+Register-RoutineTask -Name 'heartbeat'    -Hours @(0,6,12,18)             -Minute 3
+Register-RoutineTask -Name 'daily-digest' -Hours @(18)                    -Minute 30
 
 # stability-review: weekly Tuesday 9:23am; wrapper enforces first-Tuesday-of-month
 $srAction = New-ScheduledTaskAction `
@@ -69,6 +70,21 @@ Register-ScheduledTask `
     -Principal $principal `
     -Force | Out-Null
 Write-Host "Registered: $folder\stability-review (weekly Tuesday 9:23am, wrapper guards first-Tuesday-of-month)"
+
+# pir-ingest: weekly Monday 9:15am
+$piAction = New-ScheduledTaskAction `
+    -Execute 'powershell.exe' `
+    -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$wrapperPath`" -Routine pir-ingest" `
+    -WorkingDirectory $repoRoot
+$piTrigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday -At '9:15am'
+Register-ScheduledTask `
+    -TaskName "$folder\pir-ingest" `
+    -Action $piAction `
+    -Trigger $piTrigger `
+    -Settings $settings `
+    -Principal $principal `
+    -Force | Out-Null
+Write-Host "Registered: $folder\pir-ingest (weekly Monday 9:15am)"
 
 Write-Host ''
 Write-Host 'Done. Inspect with:  schtasks /query /tn "\TriageBot\heartbeat" /v /fo LIST'

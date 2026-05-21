@@ -13,6 +13,8 @@ auto-update when the source-of-truth files in this repo (`prompt.md`,
 | triage           | `trig_01A6VgYtcZkh567gxCLvEMMw`     | `prompt.md`                          | `0 7-18 * * *` (hourly)   |
 | stability-review | `trig_01CgsBZFhq3Tphw4719pQswG`     | `stability-review-prompt.md`         | `23 13 1-7 * 2` (1st Tue) |
 | heartbeat        | `trig_016cuzzVZHdEJ3yAVvezhKaW`     | `routines/heartbeat.yaml` (inline)   | `0 */6 * * *` (every 6h)  |
+| daily-digest     | (local only — no cloud routine)     | `routines/daily-digest.yaml` (inline) | Task Scheduler 18:30 local daily |
+| pir-ingest       | (local only — no cloud routine)     | `routines/pir-ingest.yaml` (inline)  | Task Scheduler Mon 09:15 local weekly |
 
 ## Sync workflow when a prompt changes
 

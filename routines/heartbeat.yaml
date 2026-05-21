@@ -122,6 +122,16 @@ prompt: |
     - For each non-bot, non-self message: compute alert_hash, grep kb/incident-log.jsonl
     - If any are missing, list them in the heartbeat post (max 3, "...and N more")
 
+  ## Step 4.5 — Suppression sanity-check (Layers 1+2 of noise reduction)
+
+  Count today's incident-log primary entries with `"suppressed_dm":true` vs
+  entries with `"suppressed_dm":false` (excluding `classification=poll-cycle`,
+  `grouped`, and `heartbeat`). If suppressed-DM count is ≥ 2× the DM-sent
+  count, surface a line in the heartbeat post: `digest backlog: <suppressed>
+  suppressed vs <sent> sent today — consider checking the daily-digest`.
+  This is the canary that suppression is over-firing. Cheap (one grep against
+  today's lines).
+
   ## Step 5 — Append to incident log
 
   Append one line to kb/incident-log.jsonl summarising the heartbeat result so

@@ -22,7 +22,23 @@ The bot still DMs you a `kb-update` notification so the change shows up in your 
 - For `kb/known-issues.json`: investigation pinpoints a reproducible root cause with a fix sketch (diff or playbook).
 - Idempotence: if an entry with the same `id` already exists, the bot increments `occurrences` and updates `last_seen` rather than duplicating.
 
-### 2. Hand-editing
+**Recurrence DM suppression (`last_notified_at` field, added 2026-05-21):**
+
+Each KB entry tracks the last time the bot DM'd Ben about a recurrence. On subsequent matches, the recurrence DM is suppressed unless one of:
+- The match is on `#swat` (always DM).
+- More than `kb/config.json.suppression_window_hours` (default 24h) have passed since `last_notified_at`.
+- `occurrences % 10 == 0` (every 10th hit re-surfaces so long-running issues don't go invisible).
+- The entry's `fix_status` changed since the last DM.
+
+Suppressed recurrences are appended to `docs/messages/<UTC-date>/digest.jsonl` and summarised by the `daily-digest` routine at 18:30 local. The KB entry's `occurrences` and `last_seen` are always updated even when the DM is withheld.
+
+### 2. PIR ingestion (weekly)
+
+The `pir-ingest` routine (`routines/pir-ingest.yaml`) runs every Monday at 09:15 local. It fetches the canonical Post-Incident Report Confluence blog (`method.atlassian.net/wiki/spaces/SD/blog/.../Post-Incident+Report`, pageId `133496969`) via the Atlassian MCP, parses each engineer-authored incident block, dedupes against existing `kb/known-issues.json` entries, and writes any new ones with **confidence = 0.95** (PIRs are engineer-confirmed ground truth, not bot inference). It only writes known-issues, never false-alarms.
+
+Today's KB was seeded by hand from this PIR (commit `3c779fb`); the routine keeps the KB current going forward with no manual effort.
+
+### 3. Hand-editing
 
 For one-off corrections, edit `kb/known-issues.json` or `kb/false-alarms.json` directly on `main` and push. The bot reads the latest version on every fire (it's a fresh clone each run).
 

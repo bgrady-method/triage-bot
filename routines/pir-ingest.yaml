@@ -1,0 +1,162 @@
+# Routine: pir-ingest  (v0.1 — Layer 4 of noise-reduction)
+#
+# Runs once weekly (Task Scheduler, Monday 09:15 local). Fetches the
+# canonical Post-Incident Report Confluence blog at
+# method.atlassian.net/wiki/spaces/SD/blog/.../Post-Incident+Report
+# (pageId 133496969), parses each engineer-authored incident block, and
+# writes any new entries directly to kb/known-issues.json so the triage
+# routine can classify future occurrences as known-issue-recurrence
+# (with the engineer-pinned playbook) instead of guessing root cause.
+#
+# Today's KB seed (commit 3c779fb) hand-extracted the 5 most recent
+# May incidents from this PIR. This routine keeps the KB current with
+# new PIRs going forward without manual effort.
+#
+# Source of truth for the routine; no cloud sync (runs locally via
+# Windows Task Scheduler — see scripts/install-tasks.ps1).
+
+name: pir-ingest
+description: Weekly sync of engineer-authored PIRs into kb/known-issues.json.
+
+prompt: |
+  You are the triage-bot PIR ingester. Run this exact procedure.
+
+  ## Step 0 — bootstrap
+
+  ```bash
+  git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/bgrady-method/triage-bot.git" 2>/dev/null || true
+  git config user.email "triage-bot@method.me"
+  git config user.name "triage-bot"
+  ```
+
+  ## Step 1 — Fetch the PIR Confluence page
+
+  Use the Atlassian MCP tool to fetch the PIR blog:
+
+  - tool: `mcp__claude_ai_Atlassian__getConfluencePage`
+  - args: `cloudId="method.atlassian.net"`, `pageId="133496969"`,
+    `contentType="blog"`, `contentFormat="markdown"`.
+
+  The response body is large (~190KB). The content is a series of
+  `---`-delimited blocks, each one incident, with markdown fields:
+  `**Incident/Alert:**`, `**Prepared by (Author):**`, `**Duration:**`,
+  `**Summary:**`, `**Impact:**`, `**Root Cause:**`, `**Action Items:**`.
+
+  Some blocks use `## ` headings instead of `**bold**` — handle both.
+
+  ## Step 2 — Parse incident blocks
+
+  Split the body by `\n---\n`. For each block, only treat it as a real
+  incident if **all three** of `Incident/Alert`, `Prepared by`, and
+  `Duration` are non-empty (the file contains template stubs at the top
+  — skip them).
+
+  Extract:
+    - `title` = the text on the `Incident/Alert` line (trim Markdown).
+    - `author` = the value of `Prepared by (Author)`.
+    - `duration` = the value of `Duration`. Parse out earliest and
+      latest timestamps as `first_seen` / `last_seen` if you can; if
+      the block says "ongoing" use first_seen + null last_seen.
+    - `summary`, `impact`, `root_cause`, `action_items` = the corresponding
+      sections as raw markdown strings.
+    - `fix_jira` = any `https://method.atlassian.net/browse/<KEY>` URL
+      found inside the block (Atlassian smartlink data-ids are also
+      acceptable — try to resolve them via the Atlassian MCP if needed).
+
+  ## Step 3 — Deduplicate against existing KB
+
+  Read `kb/known-issues.json`. For each parsed PIR incident, decide it
+  is "already represented" if any existing entry matches **any** of:
+    - `title` substring match (case-insensitive, ≥ 60% word overlap) with
+      an existing entry's `title`.
+    - The same `fix_jira` value (when present on both sides).
+    - The existing entry's `references` array contains a Confluence URL
+      that points to the PIR page (anchor-fragment-aware would be
+      ideal but a substring match on `133496969` is fine).
+
+  Skip incidents that are already represented.
+
+  ## Step 4 — Synthesize new KB entries
+
+  For each genuinely new incident, construct an entry:
+
+  ```json
+  {
+    "id": "ki-<short-slug>",
+    "title": "<incident title>",
+    "first_seen": "<iso>",
+    "last_seen": "<iso>",
+    "occurrences": 1,
+    "match": {
+      "channels": ["<inferred from Impact section>"],
+      "any_of": [
+        {"contains": "<key error string from Summary/RootCause>"},
+        {"contains": "<another key string>"},
+        ...
+      ]
+    },
+    "diagnosis": "<Root Cause field, condensed>",
+    "playbook": "<Action Items distilled into a numbered list>",
+    "fix_status": "in-progress|mitigated|proposed|resolved",
+    "fix_jira": "<KEY-or-null>",
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report"
+    ]
+  }
+  ```
+
+  ID slug: lowercase, hyphenated, no more than 8 words. Prefer
+  service-name-then-symptom slugs (e.g., `ki-mongodb-rs01-fd-exhaustion`)
+  over date-prefixed ones — these are durable patterns, not
+  one-off events.
+
+  Channel inference rules of thumb (Impact-field driven):
+    - Anything mentioning "DNS", "microservices.method.int", "network" →
+      `alert-system`, `alert-runtime-monitoring`, `swat`.
+    - Anything mentioning "RUM", "frontend", "XHR" → `alert-frontend-errors`.
+    - Anything mentioning a backend service by name → `alert-runtime-monitoring` + `swat`.
+    - Anything causing customer-facing downtime → also include `swat`.
+
+  Confidence is fixed at **0.95** — PIRs are engineer-confirmed ground
+  truth, not bot inference.
+
+  ## Step 5 — Write, commit, DM
+
+  Read `kb/known-issues.json`, merge in the new entries (sorted by `id`),
+  write back, stage with `git add kb/known-issues.json`.
+
+  Commit message: `pir-ingest: +<N> entries from PIR <YYYY-MM-DD>`
+  with the list of new ids in the body.
+
+  Send a `kb-update` DM to yourself (the standard message_type for direct
+  KB writes) listing the new entries by id+title+jira so Ben sees what
+  landed.
+
+  If `N == 0` (no new entries), exit silently. No "nothing to ingest"
+  DM — that's noise.
+
+  ## Hard rules
+
+  1. Never write to `kb/false-alarms.json` from this routine. PIRs are
+     by definition real incidents, not false alarms.
+  2. Confidence is always 0.95 for PIR-derived entries. Lower confidence
+     means the PIR was unclear — in that case, skip the entry and surface
+     it as a comment in the DM rather than write a weak KB entry.
+  3. Never edit existing entries — only add new ones. If a recurring
+     pattern needs entry updates, that's the triage routine's job.
+  4. Idempotence: re-running on the same PIR content with no new
+     incidents produces zero commits and zero DMs.
+
+trigger:
+  type: local-task-scheduler
+  expression: "weekly Monday 09:15 local"
+
+mcp_connectors:
+  - slack
+  - atlassian
+
+secrets:
+  - GH_TOKEN

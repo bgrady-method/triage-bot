@@ -469,10 +469,50 @@ If confidence < 0.85, skip the KB write — fall through to `needs-human` instea
 
 In v2 (only when `pr_mode: "on"` AND confidence ≥ 0.85 AND KB entry has `fix_template` AND diff is single-file ≤30 lines AND CI dry-run passes): clone the target repo, apply the diff on a `claude/triage-<hash>-fix` branch, push, open a PR, then DM yourself with the PR URL.
 
-**needs-human**:
+**needs-human**: First decide whether to DM via the **impact-scored escalation gate** (Layer 2 of noise reduction). Investigations are still committed regardless of whether the DM goes out — only the Slack notification is gated.
+
+**Compute `escalation_score` from observable signals only** (do NOT use classification confidence — that's a self-report, not a property of the alert):
+
+Impact signals:
+- `channel_name == "swat"` → **bypass cap, always DM**, `gate_reason = "swat-bypass"`.
+- Matched service name in `kb/config.json.critical_path_services` (e.g., `ms-gateway-api`, `ms-authentication-api`, `oauth2`, `ms-tables-fields-api`, `runtime-core`): **+3** (sign-in / core path).
+- DD log aggregation in primary's time window shows ≥5 distinct `@account_name`: **+3** (broad customer impact). Run `python scripts/dd_search.py logs --query 'service:method-ui status:error' --from <ts> --to <ts> --aggregate account_name --limit 50` (or equivalent for the affected service).
+- Matched service deployed within last 2h (deploy-correlation already computed in step 4.1): **+2**.
+
+Corroboration (additive):
+- Group size ≥ 3: **+2**.
+- Group size = 2: **+1**.
+- ≥2 distinct `channel_name` across group satellites: **+2** (cross-channel co-firing).
+- No KB match AND no prior alert with same `alert_hash` in last 7 days (grep `kb/incident-log.jsonl`): **+2** (truly novel).
+- Active swat thread mentions the same service/bot_id in last 30 min: **+1**.
+
+Inhibition (subtractive — high-leverage):
+- `matched_kb != null` (Ben already knows): **−3**.
+- Operator engagement in source channel: any non-bot, non-Ben message reply on `primary.ts` in last 30 min. Check via Slack MCP `conversations.replies` on the primary's channel+ts. **−3** (humans are handling it; the bot adds noise).
+- Recent DM for the same `matched_kb` in last 24h (grep today's `self-dm.jsonl`): **−2**.
+
+**Decision:**
 ```
-🚨 *new alert — needs human*
-Channel: <name>  •  confidence: 0.<NN>  •  bug-type guess: <data|env|code|unknown>  •  alerts in group: <M>
+today_dm_count = grep -c '"message_type":"needs-human"' docs/messages/$(date -u +%Y-%m-%d)/self-dm.jsonl 2>/dev/null || 0
+today_dm_count += grep -c '"message_type":"known-issue-recurrence"' docs/messages/$(date -u +%Y-%m-%d)/self-dm.jsonl 2>/dev/null || 0
+
+if channel_name == "swat":
+    send_dm(); gate_reason = "swat-bypass"  # never counts against cap
+elif escalation_score >= config.escalation_score_threshold (default 3):
+    if today_dm_count < config.daily_escalation_cap (default 5):
+        send_dm(); gate_reason = "scored"
+    else:
+        digest_append; gate_reason = "daily-cap"
+else:
+    digest_append; gate_reason = "low-impact"
+```
+
+Set `escalation_score` and `gate_reason` on the primary incident-log entry. If suppressing, also set `suppressed_dm: true` and append a digest line: `{"ts":"...Z","alert_hash":"<hash>","channel":"<name>","classification":"needs-human","escalation_score":<int>,"investigation":"docs/investigations/<date>-<hash>.md","gate_reason":"<reason>"}`.
+
+**If DMing**, send:
+```
+🚨 *new alert — needs human*  (score: <N>)
+Channel: <name>  •  bug-type guess: <data|env|code|unknown>  •  alerts in group: <M>
 
 Symptoms:
   - <bullet>

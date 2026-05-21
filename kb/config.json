@@ -17,5 +17,14 @@
     "max_spend_usd": 5
   },
   "suppression_window_hours": 24,
-  "comment": "group_window_minutes: rolling gap threshold for clustering alerts into root-cause groups (default 30). max_runs_per_day counts groups (investigations), not individual alert messages. poll_window_minutes is 65 so we never miss a message landing right at the hourly boundary. stability_review.max_spend_usd is the per-run cap for the monthly stability-review routine (separate from the global cap). suppression_window_hours: known-issue-recurrence DMs are suppressed within this window after the entry's last_notified_at; #swat and every-10th-occurrence resurface anyway."
+  "daily_escalation_cap": 5,
+  "escalation_score_threshold": 3,
+  "critical_path_services": [
+    "ms-gateway-api",
+    "ms-authentication-api",
+    "oauth2",
+    "ms-tables-fields-api",
+    "runtime-core"
+  ],
+  "comment": "group_window_minutes: rolling gap threshold for clustering alerts into root-cause groups (default 30). max_runs_per_day counts groups (investigations), not individual alert messages. poll_window_minutes is 65 so we never miss a message landing right at the hourly boundary. stability_review.max_spend_usd is the per-run cap for the monthly stability-review routine (separate from the global cap). suppression_window_hours: known-issue-recurrence DMs suppressed within this window after the entry's last_notified_at; #swat and every-10th-occurrence resurface anyway. daily_escalation_cap: max non-swat needs-human DMs per UTC day; excess go to digest.jsonl. escalation_score_threshold: minimum impact+corroboration−inhibition score to send a needs-human DM (below threshold goes to digest). critical_path_services: services that count as 'sign-in/core path' for the scoring rubric."
 }
