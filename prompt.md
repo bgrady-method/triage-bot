@@ -371,9 +371,13 @@ Compute a confidence score 0..1 using the rubric in `classification.md`.
   "action": "<planned>",
   "grouped_alerts": ["<group_hash>", "<sat_hash_1>", "<sat_hash_2>"],
   "duration_s": 0,
-  "runtime_cost_usd": 0
+  "runtime_cost_usd": 0,
+  "suppressed_dm": false,
+  "gate_reason": null
 }
 ```
+
+`suppressed_dm` is `true` when a DM was withheld by the step 7 gates (known-issue suppression, severity/cap gate). `gate_reason` is one of `"swat-bypass"`, `"scored"`, `"known-issue-window"`, `"known-issue-occurrence-resurface"`, `"known-issue-fix-status-changed"`, `"low-impact"`, `"daily-cap"`, `"operator-engaged"`, or `null` when no gate ran. These fields are additive — older consumers ignore them.
 
 **Satellite log entries** (written during step 2, appended directly to `kb/incident-log.jsonl` on `main` — no branches):
 ```json
@@ -405,7 +409,22 @@ For deduplicated alerts (prior line for this `alert_hash` exists in `kb/incident
 
 **Guardrail:** only write to KB when classification confidence ≥ 0.85 AND alert evidence is robust (≥2 source alerts OR a clear-cut single-alert pattern documented in the investigation report). On lower confidence, skip the KB write and let the DM stand as a `needs-human` instead.
 
-**known-issue-recurrence**: DM yourself:
+**known-issue-recurrence**:
+
+1. **Always update the KB entry**, even if the DM is suppressed:
+   - Increment `occurrences`.
+   - Set `last_seen` to now.
+   - Stage the file with `git add kb/known-issues.json`.
+
+2. **Decide whether to DM** (suppression gate — Layer 1 of noise reduction):
+   - **If `channel_name == "swat"`:** DM. Set `last_notified_at = now`. `gate_reason = "swat-bypass"`. Humans are paying attention to swat — never suppress.
+   - **Elif `entry.last_notified_at` is null** (first time we've DM'd this entry): DM. Set `last_notified_at = now`. `gate_reason = null`.
+   - **Elif `(now - entry.last_notified_at) > suppression_window_hours`** (default 24h, from `kb/config.json`): DM. Set `last_notified_at = now`. `gate_reason = null`.
+   - **Elif `entry.occurrences % 10 == 0`** (every 10th recurrence resurfaces so long-running issues don't go invisible): DM. Set `last_notified_at = now`. `gate_reason = "known-issue-occurrence-resurface"`.
+   - **Elif `entry.fix_status` changed since `last_notified_at`** (status flipped to in-progress / resolved / needs-ops-decision since we last DM'd): DM. Set `last_notified_at = now`. `gate_reason = "known-issue-fix-status-changed"`.
+   - **Else: suppress the DM.** `suppressed_dm = true`, `gate_reason = "known-issue-window"`. Append a one-line summary to `docs/messages/<UTC-date>/digest.jsonl` for the end-of-day digest (see daily-digest routine). Schema for the digest line: `{"ts":"...Z","alert_hash":"<hash>","channel":"<name>","classification":"known-issue-recurrence","matched_kb":"<ki-id>","occurrences":<N>,"investigation":"docs/investigations/<date>-<hash>.md","gate_reason":"known-issue-window"}`.
+
+3. **If DMing**, send the message:
 ```
 📒 *known issue recurrence* — `<ki-id>`
 This is occurrence #<N> in the last 7 days.
