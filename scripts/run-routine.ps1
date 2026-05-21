@@ -10,6 +10,28 @@ $ErrorActionPreference = 'Continue'
 $repoRoot = 'C:\MethodDev\triage-bot'
 Set-Location $repoRoot
 
+# Load .env into the process env so the routine's helper scripts
+# (scripts/dd_search.py, es_search.py, sql_query.py, mongo_query.py)
+# can read DD_API_KEY / ELK_* / SQL_* / MONGO_URI_* etc.
+# The cloud routine got these via its secrets store; Task Scheduler
+# doesn't, so we hydrate them here.
+$envFile = Join-Path $repoRoot '.env'
+if (Test-Path $envFile) {
+    Get-Content $envFile | ForEach-Object {
+        $line = $_.Trim()
+        if (-not $line -or $line.StartsWith('#')) { return }
+        $eq = $line.IndexOf('=')
+        if ($eq -lt 1) { return }
+        $name = $line.Substring(0, $eq).Trim()
+        $value = $line.Substring($eq + 1).Trim()
+        if (($value.StartsWith('"') -and $value.EndsWith('"')) -or
+            ($value.StartsWith("'") -and $value.EndsWith("'"))) {
+            $value = $value.Substring(1, $value.Length - 2)
+        }
+        Set-Item -Path "env:$name" -Value $value
+    }
+}
+
 # stability-review runs on the FIRST Tuesday of each month.
 # Task Scheduler has no first-Tuesday-of-month trigger, so we use a weekly
 # Tuesday trigger and bail out here on later Tuesdays. -Force bypasses
