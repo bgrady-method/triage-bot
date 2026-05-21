@@ -1,0 +1,2 @@
+{"ts":"2026-05-21T19:20:04Z","alert_hash":"aaf942fbe4d8e904","channel":"alert-system","classification":"needs-human","escalation_score":2,"investigation":"docs/investigations/2026-05-21-aaf942fbe4d8e904.md","gate_reason":"low-impact"}
+{"ts":"2026-05-21T19:20:04Z","alert_hash":"e0da3cd226fe8ff8","channel":"alert-runtime-monitoring","classification":"needs-human","escalation_score":3,"investigation":"docs/investigations/2026-05-21-e0da3cd226fe8ff8.md","gate_reason":"daily-cap"}
