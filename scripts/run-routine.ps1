@@ -1,7 +1,9 @@
 param(
     [Parameter(Mandatory=$true)]
     [ValidateSet('triage','kb-approver','heartbeat','stability-review')]
-    [string]$Routine
+    [string]$Routine,
+
+    [switch]$Force
 )
 
 $ErrorActionPreference = 'Continue'
@@ -10,8 +12,9 @@ Set-Location $repoRoot
 
 # stability-review runs on the FIRST Tuesday of each month.
 # Task Scheduler has no first-Tuesday-of-month trigger, so we use a weekly
-# Tuesday trigger and bail out here on later Tuesdays.
-if ($Routine -eq 'stability-review' -and (Get-Date).Day -gt 7) {
+# Tuesday trigger and bail out here on later Tuesdays. -Force bypasses
+# the guard for manual/ad-hoc runs.
+if ($Routine -eq 'stability-review' -and -not $Force -and (Get-Date).Day -gt 7) {
     exit 0
 }
 
