@@ -34,14 +34,37 @@ $prompts = @{
 $prompt = $prompts[$Routine]
 $startedAt = Get-Date
 $claude = 'C:\Users\MachineUser\.local\bin\claude.exe'
+$gh = 'C:\Program Files\GitHub CLI\gh.exe'
 $exitCode = 1
 
 try {
-    & $claude -p $prompt --output-format json *>&1 | Out-File -FilePath $outFile -Encoding utf8
+    # Pipe $null so claude.exe sees an immediate EOF on stdin instead of
+    # waiting 3s for input it'll never get from Task Scheduler.
+    $null | & $claude -p $prompt --output-format json *>&1 | Out-File -FilePath $outFile -Encoding utf8
     $exitCode = $LASTEXITCODE
 } catch {
     "Exception: $($_.Exception.Message)" | Out-File -FilePath $outFile -Encoding utf8 -Append
     $exitCode = 1
+}
+
+# Push any commits the routine made. The bot's own kb-approver bootstrap
+# expects GH_TOKEN in the env, which Task Scheduler doesn't provide — so
+# we fetch the user's gh token and push with an inline URL.
+$pushResult = 'skipped'
+try {
+    $token = & $gh auth token 2>$null
+    if ($token) {
+        $pushUrl = "https://x-access-token:$token@github.com/bgrady-method/triage-bot.git"
+        $pushOut = & git push $pushUrl main 2>&1
+        $pushResult = if ($LASTEXITCODE -eq 0) { 'ok' } else { 'failed' }
+        "--- push ($pushResult) ---" | Out-File -FilePath $outFile -Append -Encoding utf8
+        $pushOut | Out-File -FilePath $outFile -Append -Encoding utf8
+    } else {
+        $pushResult = 'no-token'
+    }
+} catch {
+    $pushResult = 'error'
+    "Push exception: $($_.Exception.Message)" | Out-File -FilePath $outFile -Append -Encoding utf8
 }
 
 $endedAt = Get-Date
@@ -54,6 +77,7 @@ $entry = [pscustomobject]@{
     duration_s = $durationS
     exit_code = $exitCode
     status = $status
+    push = $pushResult
     output_file = $outFile
 } | ConvertTo-Json -Compress
 Add-Content -Path $runsLog -Value $entry -Encoding utf8
