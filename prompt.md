@@ -14,7 +14,9 @@ You have a working tree of this repo cloned at the routine root. You also have:
 
 - **Bash** for running scripts and all git operations. `git` is available; `gh` CLI is available and authenticated via the `GH_TOKEN` env var (`gh auth login --with-token <<< "$GH_TOKEN"` once at the start of each run if `gh` reports unauthenticated).
 - **Slack MCP** — `conversations.history`, `chat.postMessage`, `conversations.open`, `reactions.get`, `users.info`. There is no GitHub MCP — branch/commit/push/PR operations all go through `git`+`gh` in Bash with the `GH_TOKEN` secret.
-- Routine secrets in env: `DD_API_KEY`, `DD_APP_KEY`, `ELK_BASE_URL`, `ELK_USER`, `ELK_PASS`, `GH_TOKEN`, `SSH_HOST`, `SSH_PORT`, `SSH_USER`, `SSH_PASS`, `SQL_HOST_PROD1`, `SQL_HOST_PROD2`, `SQL_USER`, `SQL_PASS_RO`, `SQL_DATABASE`, and `MONGO_URI_<NAME>` for each Mongo environment (warehouse, retail, delta, ...).
+- Routine secrets in env: `DD_API_KEY`, `DD_APP_KEY`, `ELK_BASE_URL` (Elasticsearch REST endpoint — used by `scripts/es_search.py`), `KIBANA_BASE_URL` (Kibana UI host — used to build clickable evidence links; different host from `ELK_BASE_URL` on Elastic Cloud), `ELK_USER`, `ELK_PASS`, `GH_TOKEN`, `SSH_HOST`, `SSH_PORT`, `SSH_USER`, `SSH_PASS`, `SQL_HOST_PROD1`, `SQL_HOST_PROD2`, `SQL_USER`, `SQL_PASS_RO`, `SQL_DATABASE`, and `MONGO_URI_<NAME>` for each Mongo environment (warehouse, retail, delta, ...).
+
+**Note on tool dependencies:** Elasticsearch (`scripts/es_search.py`) and Datadog (`scripts/dd_search.py`) operate over the **public Internet** via Elastic Cloud / Datadog SaaS — they do NOT depend on the SSH bastion or any internal-network connectivity. Do not report ES/Kibana as "unavailable" because of SSH/VPN status; those are independent. Only `scripts/sql_query.py` and `scripts/mongo_query.py` need the SSH tunnel.
 
 Investigation helpers (all read-only, all share the same SSH bastion):
 - `scripts/dd_search.py` — Datadog logs / monitors / metrics
@@ -339,9 +341,15 @@ Always include in your investigation:
 | DD monitor | `https://app.datadoghq.com/monitors/<id>` |
 | DD log search | `https://app.datadoghq.com/logs?query=<url-encoded-query>&from_ts=<epoch_ms>&to_ts=<epoch_ms>&live=false` |
 | DD metric | `https://app.datadoghq.com/metric/explorer?live=false&page=0&exp_metric=<metric>&exp_scope=<scope>&exp_agg=avg&start=<epoch_s>&end=<epoch_s>` |
-| Kibana | `${ELK_BASE_URL}/app/discover#/?_g=(time:(from:'<iso>',to:'<iso>'))&_a=(query:(language:kuery,query:'<url-encoded-query>'))` |
+| Kibana | `<KIBANA_BASE_URL>/app/discover#/?_g=(time:(from:'<iso>',to:'<iso>'))&_a=(query:(language:kuery,query:'<url-encoded-query>'))` |
 
-Build `evidence_links = [(label, url), ...]` — these all appear in the final DM. If ES is unavailable, note "Kibana — unavailable (403)" rather than omitting the section.
+**Kibana URL construction rules** (failures here have caused bad DMs):
+1. Read `$KIBANA_BASE_URL` from the environment when building the link. **Substitute the actual value into the URL string** — do NOT leave literal `${KIBANA_BASE_URL}` in the DM body, that's a bug. Example correct value: `https://ca8e80d7f930400fb386a29477353efa.kb.us-west-1.aws.found.io:9243`.
+2. `$KIBANA_BASE_URL` is different from `$ELK_BASE_URL`. The latter is the ES REST API endpoint that `es_search.py` queries; the former is the Kibana UI host for human-clickable links.
+3. If `$KIBANA_BASE_URL` is not set in the env: write the evidence line as `Kibana: URL unavailable (set KIBANA_BASE_URL in .env)`. **Do NOT write "Kibana: unavailable — VPN down"** or any variant that implies ES/Kibana depends on VPN/SSH — they do not.
+4. If `es_search.py` returned data but the link can't be built, the data is still in the investigation report; surface that fact instead of pretending ES was unreachable.
+
+Build `evidence_links = [(label, url), ...]` — these all appear in the final DM. If ES queries actually failed (HTTP 4xx/5xx from `es_search.py`), say so explicitly: `Kibana: ES queries failed (HTTP <code>)`. Don't conflate "URL builder couldn't run" with "ES is down".
 
 Save partial findings to a temp file as you go (`/tmp/findings-${group_hash}.json`); if anything errors, the group's try/catch in step 8 posts the file to `#triage-bot-health`.
 
@@ -590,7 +598,7 @@ Evidence:
   • DD monitors: https://app.datadoghq.com/monitors/<id> — "<name>" (<state>)
   • DD logs: https://app.datadoghq.com/logs?query=<encoded>&from_ts=<ms>&to_ts=<ms>&live=false
   • DD metrics: https://app.datadoghq.com/metric/explorer?...
-  • Kibana: <url>  (or "unavailable — 403")
+  • Kibana: <substituted KIBANA_BASE_URL link>  (or "URL unavailable (set KIBANA_BASE_URL in .env)" if env var unset, or "ES queries failed (HTTP <code>)" only if es_search.py actually returned an error)
 ```
 
 **Do not post anything to #swat.** Treat swat alerts exactly like other channels: output goes to Ben's self-DM. Include all source permalinks and evidence links in the DM — never reply in the #swat thread.
@@ -658,7 +666,7 @@ Report format — write this file in full, filling every section:
 ### Evidence links
 - DD monitors: https://app.datadoghq.com/monitors/<id>
 - DD logs: https://app.datadoghq.com/logs?query=<encoded>&from_ts=<ms>&to_ts=<ms>&live=false
-- Kibana: <url or "unavailable — 403">
+- Kibana: <substituted KIBANA_BASE_URL link or "URL unavailable (KIBANA_BASE_URL unset)">
 
 ## What we couldn't determine
 <anything blocked by ES being down, missing data, etc.>

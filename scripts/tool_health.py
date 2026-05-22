@@ -13,14 +13,13 @@ Checks (REST-reachable from the routine VM):
                 rather than _cluster/health because the bot's read-only
                 user typically lacks the `monitor` cluster privilege —
                 _cluster/health returns 403 even when search works fine.
-  - vpn       : TCP-connect to `$SSH_HOST:$SSH_PORT`. The SSH bastion is the
-                jump host for SQL and Mongo tunnels — if we can't reach it,
-                neither tunnel will work. Stand-in for "VPN is up".
   - sql       : NOT performed end-to-end (requires the SSH tunnel + a SQL
-                driver outside stdlib). The check reports `skipped` with a
-                reason; rely on `vpn` as the upstream signal.
+                driver outside stdlib). Reports `skipped` with a reason.
+                The SSH-bastion check was removed 2026-05-22 when the bot
+                started running on a direct ethernet connection; ES does
+                not depend on it (Elastic Cloud is on the public Internet).
   - mongo     : Same — reported `skipped` since the URI test would need
-                pymongo. The `vpn` check is the upstream signal.
+                pymongo.
 
 MCP tools (slack, atlassian, github MCP) are NOT checked here — Python can't
 call MCPs. The heartbeat prompt makes those MCP calls inline. See
@@ -52,7 +51,7 @@ import urllib.error
 import urllib.request
 from base64 import b64encode
 
-CHECKS = ("gh", "dd", "es", "vpn", "sql", "mongo")
+CHECKS = ("gh", "dd", "es", "sql", "mongo")
 TIMEOUT_SECONDS = 8
 
 
@@ -165,22 +164,23 @@ def check_vpn() -> dict:
 def check_sql() -> dict:
     if not os.environ.get("SQL_HOST_PROD1"):
         return _skipped("SQL_HOST_PROD1 not set")
-    return _skipped("end-to-end SQL test requires SSH tunnel + driver; relying on vpn check upstream")
+    return _skipped("end-to-end SQL test requires SSH tunnel + driver; not actively tested")
 
 
 def check_mongo() -> dict:
     if not any(k.startswith("MONGO_URI_") for k in os.environ):
         return _skipped("no MONGO_URI_* env var set")
-    return _skipped("end-to-end Mongo test requires pymongo; relying on vpn check upstream")
+    return _skipped("end-to-end Mongo test requires pymongo; not actively tested")
 
 
 CHECK_FN = {
     "gh": check_gh,
     "dd": check_dd,
     "es": check_es,
-    "vpn": check_vpn,
     "sql": check_sql,
     "mongo": check_mongo,
+    # check_vpn() retained below as dead code for back-compat; not in default CHECKS.
+    "vpn": check_vpn,
 }
 
 
