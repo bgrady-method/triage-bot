@@ -1,0 +1,10 @@
+{
+  "_default": {
+    "tier": "unknown",
+    "notes": "Default tier for any @account_name not explicitly listed. Contributes 0 to escalation_score so the signal only activates after Ben seeds real accounts. The bot must NEVER write to this file — it's human-curated. Add entries below as you learn which accounts are which tier."
+  },
+  "_schema": {
+    "tier": "enterprise | paid | free | unknown",
+    "notes": "Free-form, optional"
+  }
+}

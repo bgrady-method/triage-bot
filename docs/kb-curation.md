@@ -30,7 +30,34 @@ Each KB entry tracks the last time the bot DM'd Ben about a recurrence. On subse
 - `occurrences % 10 == 0` (every 10th hit re-surfaces so long-running issues don't go invisible).
 - The entry's `fix_status` changed since the last DM.
 
-Suppressed recurrences are appended to `docs/messages/<UTC-date>/digest.jsonl` and summarised by the `daily-digest` routine at 18:30 local. The KB entry's `occurrences` and `last_seen` are always updated even when the DM is withheld.
+Suppressed recurrences are appended to **`docs/actionable/<UTC-date>.md`** (a per-day markdown file committed to the repo — Ben reviews when convenient, no end-of-day Slack DM). The KB entry's `occurrences` and `last_seen` are always updated even when the DM is withheld.
+
+## Scoring rubric for `needs-human` (Granularity v2)
+
+When triage classifies an alert as `needs-human`, an impact-scored gate decides whether it earns a Slack DM, lands in `docs/actionable/<date>.md`, or just gets counted. Inputs are all observable from existing data (no model self-confidence). See `prompt.md` step 7 for the authoritative signal list and weights.
+
+Key adjustable knobs in `kb/config.json`:
+- `escalation_score_threshold` (default 4) — DM if score ≥ this
+- `actionable_score_threshold` (default 2) — full `actionable.md` entry if score ≥ this; below = terse one-liner
+- `daily_escalation_cap` (default 5) — hard ceiling on non-swat DMs per UTC day; excess go to `actionable.md`
+- `critical_path_services` — service names that count as sign-in/core path (+3 to score)
+
+Self-tuning signals (no manual upkeep): monitor history (a monitor's historical DM-rate adjusts its score by ±2), recency decay (same monitor firing repeatedly today loses score), metric-breach magnitude (parses observed-vs-threshold ratio from alert text).
+
+## Ben-curated lookups
+
+The bot reads but never writes:
+
+- **`kb/account-tiers.json`** — map of `account_name` → tier (`enterprise` / `paid` / `free` / `unknown`). When DD logs surface account names during investigation, this signal adds +2 for any enterprise account or +1 for all-paid. Default `_default: unknown` contributes 0 so the signal is opt-in until you seed real accounts.
+
+## `docs/actionable/<YYYY-MM-DD>.md`
+
+One file per UTC date, append-only during the day. Three categories inside:
+- **high-borderline** — score between `actionable_score_threshold` and `escalation_score_threshold`. Full score_breakdown + suggested action.
+- **known-issue-recurrence** — suppressed by the 24h window (Layer 1). One section per occurrence, grouped under the matched ki-id.
+- **low-impact** — score below `actionable_score_threshold`. Terse one-line per entry.
+
+Committed in the same commit as the triage cycle's other outputs. No standalone end-of-day routine.
 
 ### 2. PIR ingestion (weekly)
 

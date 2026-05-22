@@ -409,6 +409,46 @@ For deduplicated alerts (prior line for this `alert_hash` exists in `kb/incident
 
 **Guardrail:** only write to KB when classification confidence ≥ 0.85 AND alert evidence is robust (≥2 source alerts OR a clear-cut single-alert pattern documented in the investigation report). On lower confidence, skip the KB write and let the DM stand as a `needs-human` instead.
 
+#### Helper: appending to `docs/actionable/<UTC-date>.md`
+
+Whenever step 7 suppresses a Slack DM, the finding is captured in the day's actionable file instead. The file is human-readable markdown committed to the repo — Ben reviews when convenient; no push notification.
+
+**File path:** `docs/actionable/$(date -u +%Y-%m-%d).md`. Create with the header below if it doesn't exist yet. Triage appends entries in arrival order during the day.
+
+**Header (on file creation):**
+```markdown
+# Actionable items — <UTC-date>
+
+Findings the bot investigated but did not escalate to a Slack DM.
+Append-only during the day; one section per investigated alert.
+Categories: `high-borderline` (score in [actionable_threshold, escalation_score_threshold)), `known-issue-recurrence` (suppressed by Layer 1), `low-impact` (score below actionable_threshold — terse line only).
+
+---
+```
+
+**Per-entry section (high-borderline / known-issue-recurrence):**
+```markdown
+## `<alert_hash_short>` · <HH:MM>Z · #<channel> · category=<category>
+**Score:** <N> (DM gate: <escalation_score_threshold>)
+**Classification:** <classification> · **bug-type guess:** <data|env|code|unknown>
+**Hypothesis:** <one-line>
+**Investigation:** [docs/investigations/<date>-<hash>.md](docs/investigations/<date>-<hash>.md)
+**Score breakdown:**
+- <±N> <signal_name> (<short value>)
+- ...
+**Matched KB:** <ki-id or null>
+**Suggested action:** <one line>
+
+---
+```
+
+**Per-entry line (low-impact):**
+```markdown
+- `<alert_hash_short>` · <HH:MM>Z · #<channel> · score=<N> · <one-line summary>
+```
+
+Always commit `docs/actionable/<UTC-date>.md` in the same cycle's commit as the rest of the cycle's outputs.
+
 **known-issue-recurrence**:
 
 1. **Always update the KB entry**, even if the DM is suppressed:
@@ -422,7 +462,7 @@ For deduplicated alerts (prior line for this `alert_hash` exists in `kb/incident
    - **Elif `(now - entry.last_notified_at) > suppression_window_hours`** (default 24h, from `kb/config.json`): DM. Set `last_notified_at = now`. `gate_reason = null`.
    - **Elif `entry.occurrences % 10 == 0`** (every 10th recurrence resurfaces so long-running issues don't go invisible): DM. Set `last_notified_at = now`. `gate_reason = "known-issue-occurrence-resurface"`.
    - **Elif `entry.fix_status` changed since `last_notified_at`** (status flipped to in-progress / resolved / needs-ops-decision since we last DM'd): DM. Set `last_notified_at = now`. `gate_reason = "known-issue-fix-status-changed"`.
-   - **Else: suppress the DM.** `suppressed_dm = true`, `gate_reason = "known-issue-window"`. Append a one-line summary to `docs/messages/<UTC-date>/digest.jsonl` for the end-of-day digest (see daily-digest routine). Schema for the digest line: `{"ts":"...Z","alert_hash":"<hash>","channel":"<name>","classification":"known-issue-recurrence","matched_kb":"<ki-id>","occurrences":<N>,"investigation":"docs/investigations/<date>-<hash>.md","gate_reason":"known-issue-window"}`.
+   - **Else: suppress the DM.** `suppressed_dm = true`, `gate_reason = "known-issue-window"`. Append a `known-issue-recurrence` section to `docs/actionable/<UTC-date>.md` per the Helper format above. The body includes matched_kb id, occurrences count, hypothesis (one line — usually the entry's title), and link to the investigation file.
 
 3. **If DMing**, send the message:
 ```
@@ -469,27 +509,45 @@ If confidence < 0.85, skip the KB write — fall through to `needs-human` instea
 
 In v2 (only when `pr_mode: "on"` AND confidence ≥ 0.85 AND KB entry has `fix_template` AND diff is single-file ≤30 lines AND CI dry-run passes): clone the target repo, apply the diff on a `claude/triage-<hash>-fix` branch, push, open a PR, then DM yourself with the PR URL.
 
-**needs-human**: First decide whether to DM via the **impact-scored escalation gate** (Layer 2 of noise reduction). Investigations are still committed regardless of whether the DM goes out — only the Slack notification is gated.
+**needs-human**: First decide whether to DM via the **impact-scored escalation gate**. Investigations are still committed regardless of whether the DM goes out — only the Slack notification is gated.
 
-**Compute `escalation_score` from observable signals only** (do NOT use classification confidence — that's a self-report, not a property of the alert):
+**Compute `escalation_score` from observable signals only** (do NOT use classification confidence — that's a self-report, not a property of the alert). Record every signal's delta in a `score_breakdown` array on the primary incident-log entry; the breakdown is also the human-readable explanation surfaced in `docs/actionable/`.
 
-Impact signals:
-- `channel_name == "swat"` → **bypass cap, always DM**, `gate_reason = "swat-bypass"`.
-- Matched service name in `kb/config.json.critical_path_services` (e.g., `ms-gateway-api`, `ms-authentication-api`, `oauth2`, `ms-tables-fields-api`, `runtime-core`): **+3** (sign-in / core path).
-- DD log aggregation in primary's time window shows ≥5 distinct `@account_name`: **+3** (broad customer impact). Run `python scripts/dd_search.py logs --query 'service:method-ui status:error' --from <ts> --to <ts> --aggregate account_name --limit 50` (or equivalent for the affected service).
-- Matched service deployed within last 2h (deploy-correlation already computed in step 4.1): **+2**.
+**Impact signals** (additive):
 
-Corroboration (additive):
-- Group size ≥ 3: **+2**.
-- Group size = 2: **+1**.
-- ≥2 distinct `channel_name` across group satellites: **+2** (cross-channel co-firing).
-- No KB match AND no prior alert with same `alert_hash` in last 7 days (grep `kb/incident-log.jsonl`): **+2** (truly novel).
-- Active swat thread mentions the same service/bot_id in last 30 min: **+1**.
+| Signal | Source | Delta |
+|---|---|---|
+| `channel_name == "swat"` | step 1 | **bypass cap, always DM** (`gate_reason="swat-bypass"`) |
+| Matched service name in `kb/config.json.critical_path_services` (`ms-gateway-api`, `ms-authentication-api`, `oauth2`, `ms-tables-fields-api`, `runtime-core`) | step 4.1 | **+3** |
+| DD log `@account_name` distinct count in primary's time window — 1 account | step 4 (DD aggregation) | 0 |
+| ... 2–4 accounts | | **+1** |
+| ... 5–14 accounts | | **+2** |
+| ... 15+ accounts | | **+3** |
+| Matched service deployed within last 2h (deploy-correlation from step 4.1) | step 4.1 | **+2** |
+| **Metric-breach magnitude** — if alert text or DD monitor metadata contains a value-vs-threshold pair (e.g., `p95: 800ms vs 500ms threshold` or DD's `value` / `threshold` fields), compute `ratio = (observed - threshold) / threshold`. Apply the bracket: ratio < 0.5 → 0; 0.5–1.0 → +1; 1.0–2.0 → +2; ≥ 2.0 → +3. Record the parsed value+threshold+ratio in the breakdown for auditability. | parsed from alert text or DD `monitors/<id>` lookup | **+1 to +3** |
+| **Account tier** — for each `@account_name` from DD logs, look up `kb/account-tiers.json` (Ben-curated; bot never writes here). If any account is `enterprise`, +2. Else if all accounts are `paid` (none enterprise), +1. Else (`unknown` / `free` / no accounts identified), 0. Default tier is `unknown` so the signal only triggers once Ben seeds the file. | step 4 + `kb/account-tiers.json` | **0 to +2** |
 
-Inhibition (subtractive — high-leverage):
-- `matched_kb != null` (Ben already knows): **−3**.
-- Operator engagement in source channel: any non-bot, non-Ben message reply on `primary.ts` in last 30 min. Check via Slack MCP `conversations.replies` on the primary's channel+ts. **−3** (humans are handling it; the bot adds noise).
-- Recent DM for the same `matched_kb` in last 24h (grep today's `self-dm.jsonl`): **−2**.
+**Corroboration signals** (additive):
+
+| Signal | Source | Delta |
+|---|---|---|
+| Group size = 2 | step 1 | **+1** |
+| Group size 3–4 | step 1 | **+2** |
+| Group size 5–9 | step 1 | **+3** |
+| Group size ≥ 10 | step 1 | **+4** |
+| ≥2 distinct `channel_name` across group satellites | step 1 | **+2** (cross-channel co-firing) |
+| No KB match AND no prior alert with same `alert_hash` in last 7 days (grep `kb/incident-log.jsonl`) | step 3 + grep | **+2** (truly novel) |
+| Active swat thread mentions the same service/bot_id in last 30 min | Slack MCP `conversations.history` on swat | **+1** |
+
+**Inhibition signals** (subtractive — these are the high-leverage signals):
+
+| Signal | Source | Delta |
+|---|---|---|
+| `matched_kb != null` (Ben already knows) | step 3 | **−3** |
+| Operator engagement in source channel: any non-bot, non-Ben message reply on `primary.ts` in last 30 min. Check via Slack MCP `conversations.replies` on the primary's channel+ts. | new Slack MCP call | **−3** |
+| Recent DM for the same `matched_kb` in last 24h (grep today's `self-dm.jsonl`) | grep | **−2** |
+| **Monitor history / maturity** — for the alert's monitor_id (parse `monitors/<id>` from text), count `fire_count` (total in `kb/incident-log.jsonl` last 30d) and `dm_count` (fires with `gate_reason in ("scored", "swat-bypass")`). When `fire_count < 5`: 0 (new/unproven). When `fire_count ≥ 5`, compute `dm_rate = dm_count / fire_count`: <0.1 → −2, 0.1–0.4 → −1, 0.4–0.8 → 0, ≥0.8 → **+1**. Self-tuning: noisy monitors earn negative; reliably-paging monitors earn positive. | grep `kb/incident-log.jsonl` | **−2 to +1** |
+| **Recency decay** (same monitor, same UTC day) — count this monitor_id's fires in today's `kb/incident-log.jsonl`. 1st fire → 0; 2nd → **−1**; 3rd+ → **−2** (floor). Different from "Recent DM for same matched_kb" — works per-monitor even when no KB entry exists. | grep | **0 to −2** |
 
 **Decision:**
 ```
@@ -498,16 +556,18 @@ today_dm_count += grep -c '"message_type":"known-issue-recurrence"' docs/message
 
 if channel_name == "swat":
     send_dm(); gate_reason = "swat-bypass"  # never counts against cap
-elif escalation_score >= config.escalation_score_threshold (default 3):
+elif escalation_score >= config.escalation_score_threshold (default 4):
     if today_dm_count < config.daily_escalation_cap (default 5):
         send_dm(); gate_reason = "scored"
     else:
-        digest_append; gate_reason = "daily-cap"
+        actionable_append(category="high-borderline"); gate_reason = "daily-cap"
+elif escalation_score >= config.actionable_score_threshold (default 2):
+    actionable_append(category="high-borderline"); gate_reason = "low-impact"
 else:
-    digest_append; gate_reason = "low-impact"
+    actionable_append(category="low-impact"); gate_reason = "low-impact"
 ```
 
-Set `escalation_score` and `gate_reason` on the primary incident-log entry. If suppressing, also set `suppressed_dm: true` and append a digest line: `{"ts":"...Z","alert_hash":"<hash>","channel":"<name>","classification":"needs-human","escalation_score":<int>,"investigation":"docs/investigations/<date>-<hash>.md","gate_reason":"<reason>"}`.
+Set `escalation_score`, `score_breakdown`, and `gate_reason` on the primary incident-log entry. If suppressing, also set `suppressed_dm: true` and append to `docs/actionable/<UTC-date>.md` per the Helper above. The `high-borderline` category records the full breakdown + suggested action; `low-impact` records only the terse one-liner.
 
 **If DMing**, send:
 ```

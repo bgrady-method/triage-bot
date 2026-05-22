@@ -122,15 +122,22 @@ prompt: |
     - For each non-bot, non-self message: compute alert_hash, grep kb/incident-log.jsonl
     - If any are missing, list them in the heartbeat post (max 3, "...and N more")
 
-  ## Step 4.5 — Suppression sanity-check (Layers 1+2 of noise reduction)
+  ## Step 4.5 — Suppression sanity-check (noise-reduction canary)
 
   Count today's incident-log primary entries with `"suppressed_dm":true` vs
-  entries with `"suppressed_dm":false` (excluding `classification=poll-cycle`,
-  `grouped`, and `heartbeat`). If suppressed-DM count is ≥ 2× the DM-sent
-  count, surface a line in the heartbeat post: `digest backlog: <suppressed>
-  suppressed vs <sent> sent today — consider checking the daily-digest`.
-  This is the canary that suppression is over-firing. Cheap (one grep against
-  today's lines).
+  `"suppressed_dm":false` (excluding `classification=poll-cycle`, `grouped`,
+  and `heartbeat`). If suppressed-DM count is ≥ 2× the DM-sent count, surface
+  one line in the heartbeat post:
+
+      `actionable backlog: <suppressed> suppressed vs <sent> sent today — see docs/actionable/<UTC-date>.md`
+
+  Also: if today's poll-cycle count is ≥ 1 but `docs/actionable/<UTC-date>.md`
+  does NOT exist, surface `actionable file missing — triage may have failed to
+  commit`. The file's existence is the canary; absence means the cycle never
+  ran or never committed.
+
+  Cheap: one grep against today's incident-log lines, one Test-Path on the
+  actionable file.
 
   ## Step 5 — Append to incident log
 
