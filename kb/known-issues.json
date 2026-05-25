@@ -73,6 +73,89 @@
     "last_notified_at": "2026-05-24T11:26:17Z"
   },
   {
+    "id": "ki-billingengine-api-key1-removed-in-refactor",
+    "title": "billingengine-api subscription pages 500 on Sunday after Friday release removed API key1 used by nightly billing agent",
+    "first_seen": "2026-04-26T14:18:00Z",
+    "last_seen": "2026-04-26T14:45:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-runtime-monitoring",
+        "alert-frontend-errors",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "billingengine-api"
+        },
+        {
+          "contains": "billingengine"
+        },
+        {
+          "contains": "subscription page"
+        },
+        {
+          "contains": "subscription pages"
+        },
+        {
+          "contains": "PL-62423"
+        }
+      ]
+    },
+    "diagnosis": "billingengine-api historically supported two API keys (key1 and key2). A recent AI-assisted refactor removed key1, unaware that the nightly billing agent depended on it while the subscription page used key2. Friday's release passed regression because subscription page traffic uses key2. Saturday morning the nightly billing agent failed because it needed key1. As a workaround, key1 was replaced with key2 in production to rerun billing, which then broke the subscription page (500 error in browser console) starting Sunday. Mitigation: rolled back the Friday billingengine-api release.",
+    "playbook": "1) Confirm: subscription page 500s for Method:New customers + recent billingengine-api release in last few days. 2) Check whether a billing agent run failed overnight (look for key1/key2 references in billing agent logs). 3) Mitigation: roll back the most recent billingengine-api release. 4) Long-term per PIR action items: establish dependency-identification procedure before release, expand regression coverage to cover billing-agent-driven flows, avoid Friday billing-related releases since failures surface only Saturday/Sunday morning.",
+    "fix_status": "resolved",
+    "fix_jira": "PL-62423",
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report",
+      "https://method.atlassian.net/browse/PL-62423"
+    ]
+  },
+  {
+    "id": "ki-calendar-sync-net-framework-version-mismatch",
+    "title": "Calendar Sync deploy fails health check when project targets a .NET Framework version the server doesn't have installed",
+    "first_seen": "2026-05-06T12:54:00Z",
+    "last_seen": "2026-05-06T13:08:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-system",
+        "alert-runtime-monitoring",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "Calendar Sync"
+        },
+        {
+          "contains": "ms-google-calendarsync"
+        },
+        {
+          "contains": "google-calendarsync"
+        },
+        {
+          "contains": "failed deployment"
+        },
+        {
+          "contains": "health check"
+        }
+      ]
+    },
+    "diagnosis": "On 2026-05-06 the Google Calendar Sync deployment failed its health check ~14 minutes after it started and was rolled back. Root cause: the project had been upgraded to target .NET Framework 4.8, but the target server didn't have 4.8 installed, so the service couldn't start. This pattern recurs whenever a .NET Framework version bump is made without first confirming the runtime is installed on every machine in the IIS pool.",
+    "playbook": "1) On deploy failure for a .NET Framework service, check the targeted TargetFrameworkVersion in the csproj that was deployed vs. installed .NET Framework versions on the target machines (`Get-ChildItem 'HKLM:\\SOFTWARE\\Microsoft\\NET Framework Setup\\NDP'`). 2) If mismatched, roll back the deploy (the standard outcome here). 3) Long-term per PIR: any .NET Framework version bump must be coordinated with DevOps to confirm the framework is installed on every target server before merging.",
+    "fix_status": "resolved",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report"
+    ]
+  },
+  {
     "id": "ki-classic-ui-eda-nuget-thread-starvation",
     "title": "Classic UI app pool crashes from EDA NuGet async-call thread starvation on .NET Framework",
     "first_seen": "2026-05-04T12:01:00Z",
@@ -159,6 +242,141 @@
     ]
   },
   {
+    "id": "ki-gmail-sidebar-google-bandwidth-quota-exceeded",
+    "title": "Method:Sidebar (Gmail) 'Bandwidth quota exceeded' from Google's auth discovery endpoints",
+    "first_seen": "2026-04-27T14:00:00Z",
+    "last_seen": "2026-04-28T20:00:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-frontend-errors",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "Bandwidth quota exceeded"
+        },
+        {
+          "contains": "Method Sidebar"
+        },
+        {
+          "contains": "Method:Sidebar"
+        },
+        {
+          "contains": "Gmail Sidebar"
+        },
+        {
+          "contains": "gmail addon"
+        },
+        {
+          "contains": "gmail-addon"
+        },
+        {
+          "contains": "PL-62491"
+        }
+      ]
+    },
+    "diagnosis": "Method:Sidebar (Gmail) users intermittently see 'Bandwidth quota exceeded' on authentication discovery pages and downstream calls. Root cause is Google-side, not Method-side: Google's authentication discovery endpoints throttled during this window, and the same symptom affected other tenants of those endpoints. Google's own issue tracker eventually marked it fixed. Method tests confirmed resolution while some external users still reported residual problems.",
+    "playbook": "1) If 'Bandwidth quota exceeded' shows up in Method:Sidebar logs/RUM, this is a Google-side throttle, not Method code. 2) No remediation action on our side. 3) Communicate the workaround/wait pattern: the issue resolves when Google clears the throttle. 4) Optional: check the Google issue tracker for the auth-discovery quota incident referenced in PL-62491 before paging anyone.",
+    "fix_status": "resolved",
+    "fix_jira": "PL-62491",
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report",
+      "https://method.atlassian.net/browse/PL-62491"
+    ]
+  },
+  {
+    "id": "ki-ios-text-input-disabled-keyboard-onfocus",
+    "title": "iOS 17+ users: keyboard fails to open on customized text-input controls (disabled-state OS behavior change)",
+    "first_seen": "2023-11-22T00:00:00Z",
+    "last_seen": "2023-11-23T00:00:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-frontend-errors",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "keyboard not"
+        },
+        {
+          "contains": "keyboard does not"
+        },
+        {
+          "contains": "text input"
+        },
+        {
+          "contains": "iOS 17"
+        },
+        {
+          "contains": "onFocus"
+        },
+        {
+          "contains": "PL-44055"
+        }
+      ]
+    },
+    "diagnosis": "iOS 17+ changed how mobile controls respond to being disabled. Method controls that briefly toggle disabled on focus (a customization pattern used by some accounts) now suppress the keyboard. High impact for the few accounts that use this customization on their text inputs. Caught late as a P2 ticket.",
+    "playbook": "1) When iOS-mobile users report 'keyboard doesn't open on tap', check the affected account's customization for onFocus disable/enable patterns on text input controls. 2) Confirm iOS version (17+) and that the same screen works for non-customized inputs. 3) Workaround for affected accounts: remove the onFocus disabled toggle from their customization. 4) Long-term per PIR: organizational policy for pro-active testing against major OS updates (championed by John Jones).",
+    "fix_status": "resolved",
+    "fix_jira": "PL-44055",
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report",
+      "https://method.atlassian.net/browse/PL-44055"
+    ]
+  },
+  {
+    "id": "ki-legacy-syncservice-wrong-version-deployed",
+    "title": "Wrong version of legacy-syncservice-api deployed breaks QBDT sync + Accounting View Deltas + account signup",
+    "first_seen": "2026-05-04T12:50:00Z",
+    "last_seen": "2026-05-04T13:20:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-runtime-monitoring",
+        "alert-system",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "legacy-syncservice"
+        },
+        {
+          "contains": "QuickBooks Desktop sync"
+        },
+        {
+          "contains": "QBDT sync"
+        },
+        {
+          "contains": "Accounting View Deltas"
+        },
+        {
+          "contains": "Regeneration Response Not Successful"
+        },
+        {
+          "contains": "account creation"
+        }
+      ]
+    },
+    "diagnosis": "On 2026-05-04 multiple symptoms surfaced together: QuickBooks Desktop sync failing, Accounting View Deltas regeneration returning 'Response Not Successful', and new account creation failing (1 signup affected). Root cause: an incorrect (older) build of legacy-syncservice-api was deployed under the belief that it predated certain DevOps code changes; in fact it already contained the problematic code and the newer version had the fix. Once the right build was deployed, QBDT background sync caught up automatically for affected customers.",
+    "playbook": "1) If QBDT sync, view-deltas regeneration, and signup are all failing concurrently, suspect a bad legacy-syncservice-api build. 2) Check what version is deployed on the legacy IIS pool host (services.methodlocal.com) vs the last known-good. 3) Mitigation: redeploy the correct (newer) build; background QBDT sync will resume on its own. 4) Long-term per PIR: when a defective version is suspected, the fix forces the project through full regression again before any roll-forward.",
+    "fix_status": "resolved",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report"
+    ]
+  },
+  {
     "id": "ki-mongodb-rs01-fd-exhaustion",
     "title": "MongoDB rs01 self-aborts on file-descriptor exhaustion (LimitNOFILE=64000 too low)",
     "first_seen": "2026-05-15T13:38:00Z",
@@ -206,6 +424,52 @@
     ]
   },
   {
+    "id": "ki-ms-account-redis-cache-timeout-on-cold-start",
+    "title": "ms-account-api on MSL-03 returns slow/200s during release because heartbeat-only health check passes before Redis is reachable",
+    "first_seen": "2023-12-01T14:04:00Z",
+    "last_seen": "2023-12-01T14:18:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-runtime-monitoring",
+        "alert-system",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "ms-account-api"
+        },
+        {
+          "contains": "ms-account"
+        },
+        {
+          "contains": "MSL-03"
+        },
+        {
+          "contains": "health/heartbeat"
+        },
+        {
+          "contains": "PL-44270"
+        },
+        {
+          "regex": "Redis.*timeout"
+        }
+      ]
+    },
+    "diagnosis": "During an ms-account-api release on 2023-12-01, AWS target-group health checks hit /health/heartbeat and returned 200 immediately, so AWS put the new instance back into rotation. The service itself was still failing to query Redis (cache lookups timing out), so end-user requests landed on an effectively-unready instance and screens took ~30 seconds to load. Pattern: shallow heartbeat-only health check on a service whose hot path depends on Redis being warm.",
+    "playbook": "1) If ms-account-api shows slow loads right after a release, check whether the AWS target group is using /health/heartbeat (shallow) vs /health/check (deeper). Per PIR action item PL-44270, the AWS health-check path was updated to /health/check; verify it's still set that way. 2) If Redis is timing out, check Redis health and connectivity from the ms-account-api host first. 3) Long-term cache-timeout/retry improvements are tracked in PL-44341.",
+    "fix_status": "resolved",
+    "fix_jira": "PL-44270",
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report",
+      "https://method.atlassian.net/browse/PL-44270",
+      "https://method.atlassian.net/browse/PL-44341"
+    ]
+  },
+  {
     "id": "ki-qbo-sync-datadog-mass-transit-blockage",
     "title": "QBO Sync silently fails to enqueue to RabbitMQ â€” Datadog trace + old MassTransit blockage",
     "first_seen": "2026-04-30T14:00:00Z",
@@ -241,6 +505,57 @@
     "last_notified_at": null,
     "references": [
       "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report"
+    ]
+  },
+  {
+    "id": "ki-rabbitmq-audittrail-overflow-from-large-qbo-sync",
+    "title": "RabbitMQ goes critical when audit-trail queue fills from a large qbo-sync-api customer change burst",
+    "first_seen": "2023-11-27T18:46:00Z",
+    "last_seen": "2023-11-27T18:49:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-system",
+        "alert-runtime-monitoring",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "audit trail"
+        },
+        {
+          "contains": "AuditTrail"
+        },
+        {
+          "contains": "RabbitMQ"
+        },
+        {
+          "contains": "linux-prod-01"
+        },
+        {
+          "contains": "linux-prod-02"
+        },
+        {
+          "contains": "qbo-sync-api"
+        },
+        {
+          "contains": "accTaxCl"
+        },
+        {
+          "contains": "PL-44203"
+        }
+      ]
+    },
+    "diagnosis": "On 2023-11-27 a customer-driven qbo-sync-api pull of >50K accTaxCl* changes pushed massive audit-trail traffic through RabbitMQ. The audit-trail queue overflowed, processing fell behind, and the broker went Critical (linux-prod-01 hit high memory and failed; RabbitMQ nodes started reporting 'Node not responding / Removing (timedout) connection' in their logs). Services dependent on RabbitMQ went Critical and Method became briefly unresponsive. When the audit trail maxes out, audit entries can be lost.",
+    "playbook": "1) If RabbitMQ goes Critical and Method services are unresponsive, check RabbitMQ logs for 'Node ... not responding' / 'Removing (timedout) connection' patterns and check memory on linux-prod-01/02. 2) Aggregate audit-trail queue depth and identify the producing account (often qbo-sync-api pulling a big sync). 3) Mitigation: throttle / pause the offending customer sync; restart RabbitMQ nodes if they remain partitioned. 4) Long-term fix tracked in PL-44203.",
+    "fix_status": "resolved",
+    "fix_jira": "PL-44203",
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report",
+      "https://method.atlassian.net/browse/PL-44203"
     ]
   },
   {
@@ -282,6 +597,102 @@
     "last_notified_at": null,
     "references": [
       "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report"
+    ]
+  },
+  {
+    "id": "ki-runtime-core-target-group-port-mismatch",
+    "title": "runtime-core-api 404s on one node after re-registration because AWS target group default port is 5000 instead of 80",
+    "first_seen": "2025-05-14T13:25:00Z",
+    "last_seen": "2025-05-14T13:55:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-runtime-monitoring",
+        "alert-system",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "runtime-core-api"
+        },
+        {
+          "contains": "prod-rt-04"
+        },
+        {
+          "contains": "rt-prod-4"
+        },
+        {
+          "contains": "AppRoutine.Subscriber.Agent"
+        },
+        {
+          "contains": "PL-54148"
+        },
+        {
+          "contains": "PL-54150"
+        },
+        {
+          "regex": "runtime.*404"
+        }
+      ]
+    },
+    "diagnosis": "On 2025-05-14 a memory alert on prod-rt-04 (driven by AppRoutine.Subscriber.Agent slowly leaking) led DevOps to remove the host from the production-runtime-core-api target group, restart it, and re-register it. The target group's default protocol port was 5000, so the re-added host registered on 5000 instead of 80. Requests that landed on rt4 then 404'd, producing intermittent blank screens / slowness for all users. Two parallel fixes: (1) PL-54148 fixes the AppRoutine memory leak; (2) PL-54150 moved runtime-core-api to a new target group with the correct default port.",
+    "playbook": "1) If runtime screens are intermittently blank/404 after a runtime-core node was just restarted or re-registered, suspect a port-mismatch on the AWS target group. 2) Verify each registered runtime-core-api target is on port 80 (not 5000). 3) Mitigation: re-register the host with the correct port. 4) Long-term: per PIR, runtime-core-api now lives in a target group whose default port is correct; verify that's still the case in AWS console.",
+    "fix_status": "resolved",
+    "fix_jira": "PL-54148",
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report",
+      "https://method.atlassian.net/browse/PL-54148",
+      "https://method.atlassian.net/browse/PL-54150"
+    ]
+  },
+  {
+    "id": "ki-stock-app-routines-global-vs-account-scoping",
+    "title": "Pausing/resuming one customer's stock app routine pauses it globally because JobSchedule filter omitted AccountId",
+    "first_seen": "2025-06-10T00:00:00Z",
+    "last_seen": "2025-06-16T00:00:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-runtime-monitoring",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "stock app routine"
+        },
+        {
+          "contains": "stock app routines"
+        },
+        {
+          "contains": "AppRoutine"
+        },
+        {
+          "contains": "MethodAppStore"
+        },
+        {
+          "contains": "JobSchedule"
+        },
+        {
+          "contains": "PL-55177"
+        },
+        {
+          "regex": "routine.*paused"
+        }
+      ]
+    },
+    "diagnosis": "Stock app routines (work orders, proposals, donations, etc.) are stored globally in MethodAppStore and referenced by individual accounts, but the JobSchedule documents are per-account. The pause/resume implementation filtered on AppRoutineId only, not on (AppRoutineId, AccountId), so a pause/resume in any single account (including dev/test accounts) flipped the schedule entries for every account referencing that global routine. The bug went unnoticed until a significant drop in routine executions was observed post-2025-06-10.",
+    "playbook": "1) If multiple customers across accounts report a stock app routine 'silently stopped', check JobSchedule pause/resume history and look for an action that hit AppRoutineId without an AccountId filter. 2) Mitigation: re-enable affected stock app routines via the templatedevv2 interface (per PIR). 3) Long-term fix already merged (PL-55177): the filter now uses AccountId together with AppRoutineId so per-account toggles stay scoped to that account.",
+    "fix_status": "resolved",
+    "fix_jira": "PL-55177",
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report",
+      "https://method.atlassian.net/browse/PL-55177"
     ]
   }
 ]
