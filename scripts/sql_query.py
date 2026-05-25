@@ -50,7 +50,19 @@ PARAM_PLACEHOLDER_RE = re.compile(r":(?P<name>[A-Za-z_]\w*)")
 CONNECTIONS = {
     "prod1": {"host_env": "SQL_HOST_PROD1", "description": "Production SQL Server 1 (read-only)"},
     "prod2": {"host_env": "SQL_HOST_PROD2", "description": "Production SQL Server 2 (read-only)"},
+    "prod3": {"host_env": "SQL_HOST_PROD3", "description": "Production SQL Server 3 (read-only) — optional, AlocetSystem-bearing"},
+    "prod4": {"host_env": "SQL_HOST_PROD4", "description": "Production SQL Server 4 (read-only) — optional, AlocetSystem-bearing"},
+    "prod5": {"host_env": "SQL_HOST_PROD5", "description": "Production SQL Server 5 (read-only) — optional, AlocetSystem-bearing"},
 }
+
+
+def connection_available(name: str) -> bool:
+    """True if the env var for the given connection is set. Used by account_impact.py
+    to skip clusters that aren't configured rather than fail the whole batch."""
+    meta = CONNECTIONS.get(name)
+    if not meta:
+        return False
+    return bool(os.environ.get(meta["host_env"]))
 
 
 def die(msg: str, code: int = 1) -> None:
@@ -149,13 +161,16 @@ def ssh_tunnel(remote_host: str, remote_port: int) -> Iterator[int]:
         forwarder.stop()
 
 
-def run_query(sql: str, params: list[Any], local_port: int) -> dict:
+def run_query(sql: str, params: list[Any], local_port: int, database: str | None = None) -> dict:
     try:
         import pyodbc  # type: ignore
     except ImportError:
         die("pyodbc required (pip install pyodbc + Microsoft ODBC Driver 17/18 system package)")
 
-    db = env_required("SQL_DATABASE")
+    # database param overrides SQL_DATABASE env var when set — lets account_impact.py
+    # switch from AlocetSystem (account lookup) to a per-tenant DB (user count)
+    # without mutating the environment.
+    db = database or env_required("SQL_DATABASE")
     user = env_required("SQL_USER")
     pw = env_required("SQL_PASS_RO")
     # Driver name matches db_utils.py:72 ("ODBC Driver 17 for SQL Server" for production).
@@ -204,6 +219,10 @@ def main() -> int:
         default=[],
         help="key=value parameter for the template. Repeatable.",
     )
+    p.add_argument(
+        "--database",
+        help="Override SQL_DATABASE for this invocation (e.g., to switch from AlocetSystem to a tenant DB). Falls back to env var when omitted.",
+    )
     p.add_argument("--list", action="store_true", help="List available templates and exit.")
     args = p.parse_args()
 
@@ -231,10 +250,12 @@ def main() -> int:
     remote_port = env_int("SQL_PORT", 1433)
 
     with ssh_tunnel(remote_host, remote_port) as local_port:
-        result = run_query(bound_sql, args_list, local_port)
+        result = run_query(bound_sql, args_list, local_port, database=args.database)
 
     result["connection"] = args.connection
     result["remote_host"] = remote_host
+    if args.database:
+        result["database"] = args.database
     json.dump(result, sys.stdout, indent=2)
     sys.stdout.write("\n")
     return 0

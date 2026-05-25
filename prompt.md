@@ -353,6 +353,59 @@ Build `evidence_links = [(label, url), ...]` — these all appear in the final D
 
 Save partial findings to a temp file as you go (`/tmp/findings-${group_hash}.json`); if anything errors, the group's try/catch in step 8 posts the file to `#triage-bot-health`.
 
+#### 4.3 Affected accounts (impact lookup)
+
+Once you've identified the named `@account_name` values from DD log aggregation in step 4, **run `scripts/account_impact.py`** to translate the account names into per-tenant active user counts. This replaces the old "count distinct account names" heuristic — the new signal is "total active users affected" weighted by tier.
+
+```bash
+python scripts/account_impact.py --accounts ramexteriorsinc,prestonhardware,mvwd > /tmp/affected-accounts-${group_hash}.jsonl 2>/tmp/affected-accounts-${group_hash}.err
+cat /tmp/affected-accounts-${group_hash}.jsonl
+```
+
+The wrapper returns one JSON object per input account with a `status` field. Handle each status:
+
+| `status` | Bot behaviour |
+|---|---|
+| `ok` | Add `total_active_users` to the running impact total; record the per-tenant breakdown. |
+| `not_found` | Retry once with a likely variant (subdomain, friendly name, or DatabaseName from a recent investigation). If still not found, drop this account from the impact total and note it in the report. |
+| `ambiguous` | Pick the candidate with the highest `is_active==true` AND highest `total_active_users` from the `candidates` array. Re-invoke `account_impact.py` with that candidate's exact `company_account` field. |
+| `inactive_account` | Include in the report for context, but contributes 0 to the impact total. |
+| `tenant_unreachable` | Record the gap. Fall back to `tier`-only weighting for that one account; don't block. |
+| `schema_unknown` | Same as tenant_unreachable — flag in the report; contributes 0 to user count. |
+| `error` | Log the `error_message`; treat as a coverage gap. |
+
+If `account_impact.py` exits non-zero entirely (SSH down, no clusters configured), fall through to the legacy distinct-account count from DD logs and tag `user_count_source: "fallback"` in the step 7 score breakdown.
+
+**Render the result as an "Affected accounts" table in the investigation report** (step 8.1):
+
+```markdown
+### Affected accounts (from account_impact.py)
+| Account | Tier | Tenants | Active users | Licensed | Status |
+|---|---|---|---|---|---|
+| ramexteriorsinc | enterprise | 2 | 52 | 49 | ok |
+| mvwd | unknown (default) | 1 | 18 | 18 | ok |
+| acme | — | — | — | — | ambiguous (3 candidates — see JSONL) |
+| **Total** | | | **70** | **67** | |
+```
+
+Commit the raw JSONL output to `docs/investigations/<date>-<hash>.accounts.jsonl` alongside the investigation report so a later stability-review can re-aggregate without re-querying.
+
+**Tier handling.** The wrapper looks up each account in `kb/account-tiers.json`. Most accounts are NOT in that file — they inherit the `_default` tier (currently `"unknown"`, contributing 0 to the score). This is intended: Ben curates only special-cased accounts. Treat the absence of an explicit tier as expected, not a gap. The wrapper reports `tier_source: "account-tiers.json"` vs `"default"` so the bot can audit whether the tier signal came from a real curated entry.
+
+#### 4.4 Extrapolation findings
+
+Before moving to step 5, the bot **must answer**: *"could this be affecting more accounts than the ones we just looked up?"* The named-only count from DD is a lower bound — many alerts surface as singletons because monitoring sampled a single account, not because the impact is single-account.
+
+Three decision branches; pick exactly one and record the reasoning in the investigation report's "Extrapolation findings" section:
+
+1. **Infrastructure-shaped pattern.** If the root-cause hypothesis (step 4 diagnosis) names DNS, gateway, Redis/Valkey, Mongo, or a SQL cluster (look for keywords: `microservices.method.int`, `mongod`, `Redis SCAN`, `gateway timeout`, `RabbitMQ`, `ms-gateway-api`), the impact likely extends to **all accounts on the affected cluster**. Run `python scripts/sql_query.py --connection <cluster> --template cluster-resolve --param database=<tenant_db>` to confirm the cluster, then query AlocetSystem for a SUM of active accounts on that cluster (or note the cluster name for the stability-review to compute). Report this as a `user_count_source: "cluster_lower_bound"` annotation.
+
+2. **Shared-endpoint generic error.** If the error is generic (XHR timeout to a shared endpoint, the well-known noisy monitor 77419271 "Unusual number of XHR errors", any pattern matching `ki-2026-05-21-gateway-microservices-timeout`), broaden the DD log query: drop the `@account_name` filter and extend the time window to last 60 minutes. Re-aggregate `@account_name` distinct count. If the broader query reveals additional accounts beyond the named ones, append them to the affected list and **re-invoke `account_impact.py`** with the expanded set. Tag `user_count_source: "extrapolated_dd_broaden"`.
+
+3. **Account-specific bug.** If the error trace points to one account (customer-specific data state, single `@account_name` in DD logs across multiple sampled hits, account-specific URL like `isUsingControl` triggered by a particular App/Routine GUID), explicitly note: *"Extrapolation: not warranted — error is account-specific"*. This proves the bot considered the question and decided no. Tag `user_count_source: "named_only"`.
+
+The extrapolation outcome feeds back into step 7 scoring: use the extrapolated user count when branch 1 or 2 succeeded; fall back to the named-only count for branch 3 or when the broader query was blocked.
+
 ### 5. Classify
 
 Per `playbooks/classification.md`:
@@ -527,13 +580,14 @@ In v2 (only when `pr_mode: "on"` AND confidence ≥ 0.85 AND KB entry has `fix_t
 |---|---|---|
 | `channel_name == "swat"` | step 1 | **bypass cap, always DM** (`gate_reason="swat-bypass"`) |
 | Matched service name in `kb/config.json.critical_path_services` (`ms-gateway-api`, `ms-authentication-api`, `oauth2`, `ms-tables-fields-api`, `runtime-core`) | step 4.1 | **+3** |
-| DD log `@account_name` distinct count in primary's time window — 1 account | step 4 (DD aggregation) | 0 |
-| ... 2–4 accounts | | **+1** |
-| ... 5–14 accounts | | **+2** |
-| ... 15+ accounts | | **+3** |
+| **Active users affected** (sum of `total_active_users` across all `status:ok` accounts from `account_impact.py`, including any extrapolated additions from step 4.4) — ≤ 20 | step 4.3 + 4.4 | 0 |
+| ... 21–100 | | **+1** |
+| ... 101–500 | | **+2** |
+| ... 501–2,000 | | **+3** |
+| ... 2,001+ | | **+4** |
 | Matched service deployed within last 2h (deploy-correlation from step 4.1) | step 4.1 | **+2** |
 | **Metric-breach magnitude** — if alert text or DD monitor metadata contains a value-vs-threshold pair (e.g., `p95: 800ms vs 500ms threshold` or DD's `value` / `threshold` fields), compute `ratio = (observed - threshold) / threshold`. Apply the bracket: ratio < 0.5 → 0; 0.5–1.0 → +1; 1.0–2.0 → +2; ≥ 2.0 → +3. Record the parsed value+threshold+ratio in the breakdown for auditability. | parsed from alert text or DD `monitors/<id>` lookup | **+1 to +3** |
-| **Account tier** — for each `@account_name` from DD logs, look up `kb/account-tiers.json` (Ben-curated; bot never writes here). If any account is `enterprise`, +2. Else if all accounts are `paid` (none enterprise), +1. Else (`unknown` / `free` / no accounts identified), 0. Default tier is `unknown` so the signal only triggers once Ben seeds the file. | step 4 + `kb/account-tiers.json` | **0 to +2** |
+| **Account tier** — read `tier` field from each `account_impact.py` JSONL line (already resolved against `kb/account-tiers.json` with `_default` fallback). If any account is `enterprise`, +2. Else if all `status:ok` accounts are `paid` (none enterprise), +1. Else (`unknown` / `free` / no accounts identified), 0. Most accounts inherit the default tier — that's expected, not a gap. | step 4.3 (`tier` per account) | **0 to +2** |
 
 **Corroboration signals** (additive):
 
@@ -576,6 +630,23 @@ else:
 ```
 
 Set `escalation_score`, `score_breakdown`, and `gate_reason` on the primary incident-log entry. If suppressing, also set `suppressed_dm: true` and append to `docs/actionable/<UTC-date>.md` per the Helper above. The `high-borderline` category records the full breakdown + suggested action; `low-impact` records only the terse one-liner.
+
+For the `active_users_affected` signal, the `score_breakdown` row gains audit metadata so future stability-reviews can tell where the count came from:
+
+```json
+{
+  "signal": "active_users_affected",
+  "value": 70,
+  "delta": 1,
+  "source": "account_impact.py",
+  "user_count_source": "named_only",
+  "accounts_resolved": 2,
+  "accounts_unresolved": 1,
+  "accounts_inactive": 0
+}
+```
+
+`user_count_source` is one of: `named_only` (just the accounts named in DD logs); `extrapolated_dd_broaden` (broadened DD query in step 4.4 found additional accounts); `cluster_lower_bound` (infrastructure-shaped event — count is a lower bound across the affected cluster); `fallback` (account_impact.py unavailable, reverted to legacy distinct-account count from DD logs).
 
 **If DMing**, send:
 ```

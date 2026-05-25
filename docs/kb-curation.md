@@ -48,7 +48,35 @@ Self-tuning signals (no manual upkeep): monitor history (a monitor's historical 
 
 The bot reads but never writes:
 
-- **`kb/account-tiers.json`** — map of `account_name` → tier (`enterprise` / `paid` / `free` / `unknown`). When DD logs surface account names during investigation, this signal adds +2 for any enterprise account or +1 for all-paid. Default `_default: unknown` contributes 0 so the signal is opt-in until you seed real accounts.
+- **`kb/account-tiers.json`** — map of `account_name` → tier (`enterprise` / `paid` / `free` / `unknown`). Only special-cased accounts go in this file; **everything else inherits the `_default.tier`** (currently `unknown`, contributing 0 to the escalation score). The bot's `score_breakdown` records `tier_source: "account-tiers.json"` vs `"default"` so you can audit which signal came from a real curated entry. Change `_default.tier` if you want a different fleet-wide default.
+
+## Account-impact lookup (active users + multi-tenancy)
+
+**`scripts/account_impact.py`** is the bot's reproducible "given a list of affected account names, count active users per account" tool. The triage routine runs it in step 4.3 of `prompt.md` after extracting `@account_name` values from Datadog logs. Output is JSONL — one line per input account.
+
+Per-account result includes the per-`TenantId` breakdown from `spiderSecurity` (Method is multi-tenant *within* an account DB too — multiple `TenantId` values are common), totals across tenants, the account's `tier` (resolved through `account-tiers.json` with `_default` fallback), and a `status` field for edge cases:
+
+| Status | Meaning |
+|---|---|
+| `ok` | Found and counted. |
+| `not_found` | Not in any AlocetSystem cluster the bot tried. Bot retries with subdomain / friendly-name variant. |
+| `ambiguous` | Multiple registry rows matched. Bot picks the most-active + highest-user-count candidate. |
+| `inactive_account` | Registry shows `IsActive=0`; user count 0. |
+| `tenant_unreachable` | Registry found the DB but connect failed (cluster down, name drift). |
+| `schema_unknown` | Tenant DB reachable but `spiderSecurity` missing (old schema). |
+| `error` | Uncategorised; includes `error_message`. |
+
+The triage routine **always commits the raw JSONL** alongside the investigation report (`docs/investigations/<date>-<hash>.accounts.jsonl`), so a later stability-review can re-aggregate user-impact across the window without re-querying.
+
+### Extrapolation
+
+A single account mentioned in DD logs is rarely the *only* affected account. After running `account_impact.py`, step 4.4 in `prompt.md` asks the bot to decide whether the impact extends beyond the named set:
+
+- **Infrastructure-shaped** (DNS, gateway, Redis, Mongo, SQL cluster keywords in the diagnosis) — the bot scopes the impact to *all accounts on the affected cluster*; the user-count signal is a lower bound.
+- **Shared-endpoint generic error** (e.g., the well-known noisy monitor 77419271) — the bot broadens the DD log query to drop the `@account_name` filter and re-aggregate over the wider time window, then re-runs `account_impact.py` with the expanded set.
+- **Account-specific bug** — the bot explicitly notes that extrapolation was considered and rejected.
+
+The `score_breakdown` records `user_count_source`: `named_only` / `extrapolated_dd_broaden` / `cluster_lower_bound` / `fallback`, so the next stability-review can tell which alerts were under-estimated due to lack of extrapolation data.
 
 ## `docs/actionable/<YYYY-MM-DD>.md`
 

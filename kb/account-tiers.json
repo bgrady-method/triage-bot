@@ -1,7 +1,7 @@
 {
   "_default": {
     "tier": "unknown",
-    "notes": "Default tier for any @account_name not explicitly listed. Contributes 0 to escalation_score so the signal only activates after Ben seeds real accounts. The bot must NEVER write to this file — it's human-curated. Add entries below as you learn which accounts are which tier."
+    "notes": "Default tier for any account not explicitly listed below. This is expected, not a gap — only special-cased accounts go in this file; everything else inherits this default. Change the `tier` value here if you want a different fleet-wide default (e.g., `paid` if most Method customers are paid-tier). User counts are queried live via scripts/account_impact.py — do NOT store seat counts here. The bot must NEVER write to this file."
   },
   "_schema": {
     "tier": "enterprise | paid | free | unknown",
