@@ -2,6 +2,17 @@
 
 The methodology behind the monthly `stability-review` routine. Used by `stability-review-prompt.md`. Mirrors the structure of `playbooks/dd-investigate.md` and `playbooks/es-investigate.md` — Steps, Conventions, Gotchas, Out of scope.
 
+## Mandatory framing (every report this playbook produces)
+
+Every report this playbook produces — monthly stability-review, ad-hoc availability snapshot, post-incident retrospective, anything — **must include an "Industry comparison" / "Framing" section** with:
+
+1. A **benchmark tier table** (99.99% hyper-scale, 99.95% well-run mid-market, 99.9% industry-standard SaaS SLA — Salesforce / HubSpot / QBO / Zoho, 99.5% below-industry). Annualized + monthly downtime per tier.
+2. **Method against those tiers** — every availability metric in the report gets an industry-context comparison ("X notches below/at/above 99.9%"), not bare percentages.
+3. An **annualization caveat** when the window contains an incident cluster — explicitly name the P0-count-per-window so readers don't naively annualize.
+4. A **concentration-vs-distribution call** — is the shortfall dominated by a small set of named root causes (closable), or distributed across many unrelated incidents (systemic)?
+
+Headline numbers in the Executive Summary always carry industry context inline. A raw "99.34%" without "≈ 1 notch below the 99.9% peer SLA standard, concentrated in 4 named incidents" is misleading.
+
 ## When to use
 
 - The `stability-review` routine fires on its monthly cron (`23 9 1-7 * 2` — first Tuesday of the month, 09:23 local).

@@ -187,6 +187,44 @@ Total discrete: **228 critical-path min + 30 sync + 14 sync + 101 legacy = 373 a
 
 ---
 
+## Industry comparison (critical-but-fair framing)
+
+The raw availability numbers above need context to be useful. Where do Method's results sit relative to peer SaaS?
+
+### Industry benchmarks
+
+| Tier | Annual downtime | Monthly | Who hits this |
+|---|---:|---:|---|
+| **99.99%** (four nines) | ~52 min/yr | ~4.4 min | AWS S3, Cloudflare, Stripe — hyper-scale infra. Uncommon for app SaaS. |
+| **99.95%** | ~4.4 hr/yr | ~21.6 min | Atlassian Enterprise tier, ServiceNow, well-run mid-market SaaS |
+| **99.9%** (three nines) | ~8.76 hr/yr | ~43.2 min | **Industry-standard SaaS SLA.** Salesforce, HubSpot, Intuit QuickBooks Online (Method's direct competitor), Zoho CRM, Pipedrive all publicly target this. |
+| **99.5%** | ~43.8 hr/yr | ~3.6 hr | Below-industry; usually a structural-issues signal |
+
+### Method against these benchmarks
+
+| Method metric | This window | Annualized (if sustained) | Industry comparison |
+|---|---:|---:|---|
+| Customer-perceived platform | 99.34% | ~58 hr/yr | **~7× worse than the 99.9% peer SLA**, ~13× worse than 99.95% |
+| Sign-in strict | 99.89% | ~9.6 hr/yr | **At the edge of 99.9%** — one P0-free month away from passing the industry bar |
+| ms-gateway-api | 99.34%–99.49% | ~44–58 hr/yr | Materially below peer norms; chronic timeout pattern is the single biggest contributor |
+| runtime-core | 99.68% | ~28 hr/yr | Below 99.9%; concentrated in one bad day (May 15) |
+
+### Three things that matter when reading the gap
+
+1. **24 days isn't a year.** This window contains **4 P0 incidents in 7 days** (May 14/15/19/20). Naively annualizing that cluster overstates Method's steady-state rate. A more honest read: "this was a structurally bad week, plus a chronic gateway-timeout pattern that has been bleeding ~0.7% all month." A few quiet months would shift the headline meaningfully. The annualized columns above should be read as "what this rate would imply if sustained," not "Method's annual availability is X."
+
+2. **Method's definition is stricter than most published SaaS SLAs.** "Customer-perceived = any of {gateway, auth, runtime-core, tables-fields} impaired" counts partial degradation that QBO's or HubSpot's reported uptime numbers usually don't. The **sign-in strict** number (99.89%) is the apples-to-apples comparison to industry-published SLAs — and it's **one notch below the industry standard**, not catastrophically off. If Method published an SLA today defined as "sign-in succeeds within 20s," the 99.89% number is the one to compare to peers' 99.9%.
+
+3. **The shortfall is concentrated, not distributed.** Four named root causes account for ~95% of the impaired minutes: DNS PPS quota (~250 min estimate), May 15 MongoDB FD + SQL-failover overlap (~100 min), May 19 Redis cascade (~62 min), May 20 RabbitMQ blip (53 min). All four have engineer-identified fixes in flight (see § Recommendations). This is a *specific-named-problems-to-close* situation, not a *the-platform-is-fundamentally-unreliable* situation. Peers who hit 99.9% sustained don't avoid Redis cascades or DNS quotas — they close them out faster and add inhibition (multi-region DNS, cache warm-spare, circuit breakers).
+
+### Bottom line for executives
+
+Below peer norms (Salesforce / HubSpot / QBO all publicly target 99.9%; Method is at ~99.34% customer-perceived for this 24-day window), but the gap is **closable**. It's four specific incidents plus one chronic pattern — not a hundred small things. Resolving the gateway-microservices-timeout ticket alone moves Method's gateway availability ~0.15% upward, shrinking the per-window shortfall by roughly a third. The other three named incidents have known fixes; the chronic DNS pattern has PIR action items already in motion.
+
+A reasonable target for next month: **customer-perceived ≥ 99.9%** (≤ 43 min critical-path impaired in 30 days). That requires closing out the gateway-timeout decision and confirming the DNS PPS-quota fixes stuck. Both are tracked.
+
+---
+
 ## Comparison to proposed SLOs
 
 The 2026-05-21 stability-review proposed availability SLOs for the most-impacted surfaces. Where we stand:

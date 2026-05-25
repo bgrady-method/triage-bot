@@ -335,9 +335,21 @@ Use `references/methodology/postmortem-template.md` as the structure. Sections i
 1. Executive Summary
 2. Methodology
 3. Findings (one per cluster, ordered by ICE descending)
-4. Trend Analysis (skip if no prior report; if prior reports exist, list them and check status of their recommendations)
-5. Open Follow-ups
-6. Appendix: raw queries
+4. **Industry comparison (required — see "Mandatory framing" below)**
+5. Trend Analysis (skip if no prior report; if prior reports exist, list them and check status of their recommendations)
+6. Open Follow-ups
+7. Appendix: raw queries
+
+### Mandatory framing (applies to every report this routine writes)
+
+Every report includes an **"Industry comparison" or "Framing" section** with the same four elements:
+
+1. **Industry benchmarks table.** Cite the well-known SaaS reliability tiers — 99.99% (hyper-scale: AWS S3, Cloudflare, Stripe), 99.95% (well-run mid-market: Atlassian Enterprise, ServiceNow), 99.9% (industry-standard SaaS SLA — Salesforce, HubSpot, Intuit QuickBooks Online, Zoho), 99.5% (below-industry / structural-issues territory). Include annualized + monthly downtime per tier so readers can place Method's numbers.
+2. **Method against benchmarks table.** Each metric in the report (sign-in availability, ms-gateway-api availability, customer-perceived platform availability, etc.) gets a row with the observed value, an *annualized-if-sustained* value, and a one-line industry comparison.
+3. **Annualization caveat.** Whenever a short window contains an incident cluster, explicitly state: "this window contains N P0s in M days; annualizing the cluster overstates the steady-state rate." Don't headline annualized numbers without this caveat.
+4. **Concentration vs distribution call.** State whether the shortfall is dominated by a small set of named root causes (closable — list them) or distributed across many small unrelated incidents (systemic — name the pattern). Use this to argue what's actionable and what isn't.
+
+Apply the framing to the Executive Summary headline too — never publish a raw availability number without industry context next to it. "99.34% in this window" alone is misleading; "99.34% — about a notch below the 99.9% peer SLA standard, concentrated in 4 named incidents" is honest.
 
 Quality gate before writing:
 - [ ] Every recommendation cites a `level-N/<slug>.json` path.
@@ -345,6 +357,8 @@ Quality gate before writing:
 - [ ] Every calculation shows substitution.
 - [ ] Every Jira reference uses ticket keys (no free-text "see the deadlock ticket").
 - [ ] No PII in quotes.
+- [ ] **Industry-comparison section present** with: (a) tier benchmark table 99.99%/99.95%/99.9%/99.5%, (b) Method-against-tiers row per metric with annualized-if-sustained column, (c) explicit annualization caveat naming P0-count-per-window, (d) concentration-vs-distribution call.
+- [ ] Executive Summary's headline availability numbers have **industry context inline** ("X% — N notches below/at/above the 99.9% peer norm") — never bare percentages.
 - [ ] Each cluster cites at least one `docs/messages/` entry (`needs-human` DM, `kb-update`, or `health-status` correlate) **OR** explicitly explains why the message corpus produced no signal for that cluster.
 - [ ] Each Phase-3 finding includes a trend-delta value (`Δ_freq = …`) **OR** a `(ES unavailable)` marker if 3a was deferred.
 - [ ] Each Phase-3c finding cites a concrete `request_id` (real trace), not just an aggregate.
