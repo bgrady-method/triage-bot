@@ -3,8 +3,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-05-27T13:04:09Z",
-    "occurrences": 42,
+    "last_seen": "2026-05-27T14:00:12Z",
+    "occurrences": 44,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -33,8 +33,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-05-27T11:52:19Z",
-    "occurrences": 9,
+    "last_seen": "2026-05-27T14:05:01Z",
+    "occurrences": 12,
     "match": {
       "channels": [
         "alert-system",
@@ -70,7 +70,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.85,
-    "last_notified_at": "2026-05-26T14:17:19Z"
+    "last_notified_at": "2026-05-27T14:08:30Z"
   },
   {
     "id": "ki-billingengine-api-key1-removed-in-refactor",
