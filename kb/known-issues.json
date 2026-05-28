@@ -3,8 +3,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-05-28T13:25:09Z",
-    "occurrences": 60,
+    "last_seen": "2026-05-28T14:29:46Z",
+    "occurrences": 61,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -71,6 +71,38 @@
     "fix_template": null,
     "confidence": 0.85,
     "last_notified_at": "2026-05-27T14:08:30Z"
+  },
+  {
+    "id": "ki-2026-05-28-mobile-asyncstorage-securestore-keychain",
+    "title": "Method iOS app (v2.1.537): 'Failed to migrate from AsyncStorage to SecureStore' (ERR_KEY_CHAIN) storm",
+    "first_seen": "2026-05-28T00:07:21Z",
+    "last_seen": "2026-05-28T14:29:46Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-system",
+        "alert-frontend-errors",
+        "alert-runtime-monitoring"
+      ],
+      "any_of": [
+        {
+          "contains": "Failed to migrate from AsyncStorage to SecureStore"
+        },
+        {
+          "contains": "ERR_KEY_CHAIN"
+        },
+        {
+          "contains": "AsyncStorage to SecureStore"
+        }
+      ]
+    },
+    "diagnosis": "Client-side error from the Method native mobile app (iOS, observed UA Method/2.1.537 CFNetwork/Darwin). The app's one-time AsyncStorage->SecureStore storage migration fails with the iOS keychain error code ERR_KEY_CHAIN, logged server-side via mobilenative.method.me POST /apps/v1/logging/mobile (MethodUI.Controllers.LoggingController relay; dd_service 'nonprod/apps' on PROD-NEW-04/5/6 - ingestion hosts only, not a server fault). Volume on 2026-05-28: ~0 in the 08-11Z window, 826 in 11-13Z, ~4859 in the 13:48-14:08Z window (accelerating ~240/min), 5996 total for the UTC day vs ~3 in the 24h-ago baseline (~80x). Surfaced via Datadog error-tracking new-issue monitor 227951254 (Alert state). Server-side has no fix - the migration/keychain access is client-side in the mobile app.",
+    "playbook": "1) Confirm volume + app version in ES: level:(ERROR OR FATAL) AND fields.dd_service:\"nonprod/apps\" AND message:\"Failed to migrate from AsyncStorage\" -- check fields.UserAgent for app version (e.g. Method/2.1.537) and OS (CFNetwork/Darwin = iOS). 2) This is a CLIENT bug: route to the mobile team. Likely cause is a missing/incorrect iOS keychain access group or entitlement, or a SecureStore key collision, introduced by the storage-migration code path in the suspected release (2.1.537). 3) Mitigation options for mobile team: ship a patch that wraps the migration in a try/catch and falls back to AsyncStorage (do not block app start on keychain), or fix the keychain entitlement. 4) Server side: no action beyond monitoring volume; consider whether the /apps/v1/logging/mobile pipeline should down-rank this to WARN to avoid error-tracking noise.",
+    "fix_status": "needs-human",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.8,
+    "last_notified_at": "2026-05-28T14:29:46Z"
   },
   {
     "id": "ki-billingengine-api-key1-removed-in-refactor",
