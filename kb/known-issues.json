@@ -3,8 +3,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-05-29T12:17:12Z",
-    "occurrences": 75,
+    "last_seen": "2026-05-29T12:20:12Z",
+    "occurrences": 76,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -103,6 +103,39 @@
     "fix_template": null,
     "confidence": 0.8,
     "last_notified_at": "2026-05-28T14:29:46Z"
+  },
+  {
+    "id": "ki-2026-05-29-methodsession-getaccountbysubdomain-nre",
+    "title": "method-platform-ui apps backend NRE in MethodSessionService.GetAccountBySubdomain() -> 'JWT Retrieval Failed' on subdomain-less synthetic monitor probes (Centreon + Datadog Watchdog noise)",
+    "first_seen": "2026-05-29T12:49:31Z",
+    "last_seen": "2026-05-29T13:06:28Z",
+    "occurrences": 2,
+    "match": {
+      "channels": [
+        "alert-system"
+      ],
+      "any_of": [
+        {
+          "contains": "JWT Retrieval Failed"
+        },
+        {
+          "contains": "GetAccountBySubdomain"
+        },
+        {
+          "contains": "MethodSessionService"
+        },
+        {
+          "contains": "monitors/236570583"
+        }
+      ]
+    },
+    "diagnosis": "Datadog Watchdog monitor 236570583 ('New issue to review', APM/infrastructure) and Centreon synthetic service-checks (bot B03GBAMHUTB, #alert-system) fire when the method-platform-ui apps backend (Com.Method.ServiceContract, .NET Framework, hosts PROD-NEW-04/5/6 serving method.ws + methodportal.com) throws System.NullReferenceException in Services.Account.MethodSessionService.GetAccountBySubdomain(), logged as 'JWT Retrieval Failed' (level Error). The NRE only triggers for requests with no resolvable account subdomain -- observed EXCLUSIVELY from synthetic monitor probes: UserAgent WindowsPowerShell/5.1, client IPs 172.31.105.207 (internal) + 52.9.26.127 (external), account id '0', paths /apps/api/system/getsessiondata, /apps/api/dashboard/getdashboardrightpanel/0, /apps/api/outlookgadget/getnavigation/0, /apps/api/search/recents. First investigated 2026-05-29 ~12:51Z (sharp 0->~28/5min onset; 84 hits 12:50-13:10Z vs 0 same-window 24h-ago). NO real-user impact: 0 non-PowerShell occurrences in window; real users always carry a valid subdomain so GetAccountBySubdomain() returns non-null for them. NOT a deploy regression -- method-platform-ui last commit 2026-05-06 (23d), ms-authentication-api healthy (1 error in window), gateway unaffected. Recurring/intermittent: 'JWT Retrieval Failed' = 336 over the prior 7 days but 0 in the same 24h-ago window, so it bursts when the probes run. Most likely trigger is a Centreon synthetic-check addition/change at ~12:51Z that probes these endpoints without a valid Host/subdomain, exposing a pre-existing missing null-guard.",
+    "playbook": "1) Confirm synthetic-only: ES aggregate message:'JWT Retrieval Failed' by fields.UserAgent.keyword -- if 100% WindowsPowerShell and 0 real browsers, there is no customer impact; deprioritize. 2) Confirm the NRE: search the same docs for exceptions[].StackTraceString containing GetAccountBySubdomain in Com.Method.ServiceContract/Services/Account/MethodSessionService.cs. 3) Two independent fixes, pick per owner: (a) CODE -- add a null guard in MethodSessionService.GetAccountBySubdomain() so a missing/unknown subdomain returns 400/empty-session instead of dereferencing null (source is TFS-built Com.Method.ServiceContract, NOT in the GitHub clones -- route to the platform-ui/MethodUI backend owner); (b) MONITORING -- fix the Centreon synthetic check to send a valid account subdomain / Host header, or point it at a health endpoint that doesn't require an account, which silences both the false-CRITICAL Centreon alerts and the Datadog Watchdog 236570583 'New issue to review' noise. 4) Establish WHY it started at ~12:51Z (check Centreon check-config change history around that time). 5) Until fixed, #alert-system will keep getting intermittent Centreon CRITICALs + Watchdog 236570583 fires for this pattern -- treat as monitoring noise, not a customer outage.",
+    "fix_status": "needs-human",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.85,
+    "last_notified_at": "2026-05-29T13:12:00Z"
   },
   {
     "id": "ki-billingengine-api-key1-removed-in-refactor",
