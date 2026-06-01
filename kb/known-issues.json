@@ -1,5 +1,128 @@
 [
   {
+    "id": "ki-2026-04-13-elasticsearch-native-oom-no-master",
+    "title": "Elasticsearch cluster outage — native OOM on Lucene mmap, no master, all writes failed (2026-04-13)",
+    "first_seen": "2026-04-12T09:31:00Z",
+    "last_seen": "2026-04-13T12:24:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-system",
+        "alert-runtime-monitoring",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "cluster_block_exception"
+        },
+        {
+          "contains": "no master"
+        },
+        {
+          "contains": "prod-elasticsearch-audittrail"
+        },
+        {
+          "regex": "Elasticsearch.*OOM"
+        },
+        {
+          "regex": "mmap.*ENOMEM"
+        },
+        {
+          "regex": "elasticsearch.*master"
+        }
+      ]
+    },
+    "diagnosis": "Two of three Elasticsearch cluster nodes crashed due to native (OS-level) out-of-memory errors on Lucene mmap segment file allocation, not JVM heap OOM. Each node has 30 GB RAM with no swap; JVM is configured with 16 GB heap + 8 GB direct memory, leaving only ~6 GB for OS+kernel+Lucene mmap segments. During elevated background merge activity, the remaining native memory was exhausted on two nodes within 21 hours, causing mmap ENOMEM and process death. Node 3 (prod-elasticsearch-audittrail-03) crashed first on 2026-04-12 09:31 UTC and went undetected because there was no port-level monitoring. When Node 2 also crashed on 2026-04-13 06:49 UTC, the cluster lost quorum and went read-only. Both nodes had Restart=no in their systemd units so they did not auto-recover. RabbitMQ accumulated failed-event writes with 'cluster_block_exception: no master'. Manual restart at ~12:23 UTC restored the cluster; no data lost. Mitigations already applied (per PIR): Restart=on-failure enabled on all three nodes, Centreon ES port 9200 TCP check added, cluster-health-status check added. Still pending: reduce JVM heap to 12 GB and remove/reduce MaxDirectMemorySize, add 2-4 GB emergency swap with vm.swappiness=1, reduce shard count from 14,248 toward <3,000 via ILM.",
+    "playbook": "1) On 'ES writes failing' / 'cluster_block_exception: no master' alerts, immediately check all three ES nodes via the new Centreon port-9200 check; if any port-9200 fail, that node is dead. 2) Confirm cluster health endpoint — RED means master lost. 3) Mitigation: SSH to the dead node(s), confirm the elasticsearch process is gone, restart manually (systemctl restart elasticsearch) — Restart=on-failure should now auto-restart but verify. 4) Confirm RabbitMQ ES-audit queue is draining once cluster is back. 5) Cross-check whether the still-pending mitigations (heap reduction, swap, shard reduction) have shipped — if not, escalate.",
+    "fix_status": "mitigated",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report"
+    ]
+  },
+  {
+    "id": "ki-2026-04-17-quickbooks-xero-servertime-race-sync-skip",
+    "title": "Race condition nullifying ServerTimeModified causes some Method saves to skip syncing to QuickBooks / Xero",
+    "first_seen": "2026-04-17T13:00:00Z",
+    "last_seen": "2026-04-17T21:00:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-runtime-monitoring",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "ServerTimeModified"
+        },
+        {
+          "regex": "saves.*not syncing.*QuickBooks"
+        },
+        {
+          "regex": "saves.*not syncing.*Xero"
+        },
+        {
+          "regex": "Xero.*ServerTimeModified"
+        }
+      ]
+    },
+    "diagnosis": "Newly introduced code that resets Xero's ServerTimeModified back to null after a successful sync inadvertently affected the QB path too, sometimes nullifying ServerTimeModified BEFORE the actual sync had run. This was a race condition (intermittent), so records would silently fail to enqueue to QB. Mitigated by rolling back the offending code. Follow-up migration in progress to identify and re-set ServerTimeModified for the records that were missed and push them to QB.",
+    "playbook": "1) If customers report 'some saves not appearing in QB/Xero' shortly after a Method release, check the most recent commits touching ServerTimeModified handling (Xero sync code). 2) Confirm intermittent (not full outage) by sampling sync logs for the affected accounts. 3) Mitigation: roll back the offending change. 4) Recovery: run a migration to set ServerTimeModified back on the missed records and push them through.",
+    "fix_status": "resolved",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report"
+    ]
+  },
+  {
+    "id": "ki-2026-04-25-ms-preferences-internal-tag-dependency",
+    "title": "Method-wide outage during morning release when ms-preferences-api shipped [AllowInternal]/[AllowIdentity] tags before dependent services updated (PL-62401)",
+    "first_seen": "2026-04-25T13:20:00Z",
+    "last_seen": "2026-04-25T14:53:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-system",
+        "alert-runtime-monitoring",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "ms-preferences-api"
+        },
+        {
+          "contains": "PL-62401"
+        },
+        {
+          "contains": "AllowInternal"
+        },
+        {
+          "contains": "AllowIdentity"
+        },
+        {
+          "regex": "preferences.*internal.*route"
+        }
+      ]
+    },
+    "diagnosis": "While hardening weak external security checks on ms-preferences-api, the team added [AllowInternal]/[AllowIdentity] tags so external callers would be blocked and upstream services would route through the internal routes instead. Nine services depend on ms-preferences-api. ms-preferences-api was released first; the dependent services were still mid-release, so their existing calls to the public routes were now rejected, and Method was effectively down for all customers (sign-in errors plus loading-screen errors) until the morning releases were rolled back.",
+    "playbook": "1) If sign-in fails / loading screen breaks across the platform during a morning release window and ms-preferences-api is in the release set, check whether [AllowInternal]/[AllowIdentity] tags were just added without corresponding upstream caller updates. 2) Mitigation: roll back ms-preferences-api (or whichever security-hardened service shipped first). 3) Long-term per PIR: any release touching dependency-heavy security tags must be DevOps+Lead reviewed and scheduled outside business hours.",
+    "fix_status": "resolved",
+    "fix_jira": "PL-62401",
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report",
+      "https://method.atlassian.net/browse/PL-62401"
+    ]
+  },
+  {
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
@@ -221,6 +344,139 @@
     ]
   },
   {
+    "id": "ki-chrome-screen-editor-broken-after-update",
+    "title": "Chrome update on Windows sporadically breaks Method Screen Editor template loading (PL-44761)",
+    "first_seen": "2024-01-16T00:00:00Z",
+    "last_seen": "2024-01-17T00:00:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-frontend-errors",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "PL-44761"
+        },
+        {
+          "contains": "Screen Editor"
+        },
+        {
+          "contains": "Chrome"
+        },
+        {
+          "regex": "Screen Editor.*Chrome"
+        },
+        {
+          "regex": "designer.*Chrome.*broken"
+        }
+      ]
+    },
+    "diagnosis": "A new Chrome release on Windows sporadically broke the Method Screen Editor — could not view Properties or Action Sets of screen controls. Root cause: Method's designer template-loading logic interacted with a behavior change introduced in the latest Chrome update. No known customer impact (P2 ticket). Pattern is durable: any future Chrome update can recur this kind of break on the designer.",
+    "playbook": "1) On 'Screen Editor / Designer broken on Chrome' reports — especially clustered in a single browser version — check the Chrome release notes for changes touching DOM/iframe/template loading. 2) Confirm by reproducing in a different Chrome version or another browser (Edge/Firefox). 3) Mitigation: workaround for users (older Chrome, or different browser). 4) Long-term: instrument designer template-loading against Chrome beta channel for early detection.",
+    "fix_status": "resolved",
+    "fix_jira": "PL-44761",
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report",
+      "https://method.atlassian.net/browse/PL-44761"
+    ]
+  },
+  {
+    "id": "ki-classic-clb-to-alb-ssl-redirect-loss",
+    "title": "Classic users can't sign in after CLB→ALB switch because IIS SSL redirect rules weren't carried over",
+    "first_seen": "2025-04-14T17:14:00Z",
+    "last_seen": "2025-04-14T18:02:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-system",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "ALB"
+        },
+        {
+          "contains": "CLB"
+        },
+        {
+          "contains": "Classic"
+        },
+        {
+          "regex": "page loading.*Classic"
+        },
+        {
+          "regex": "IIS redirect"
+        },
+        {
+          "regex": "fresh sign.in"
+        }
+      ]
+    },
+    "diagnosis": "DevOps replaced the Classic load balancers (CLB → ALB). The new ALB setup did not initially account for the IIS redirect rules that route Classic to external servers via SSL, so fresh sign-ins broke. Existing/cached sessions weren't affected, which delayed detection — ~7 Classic accounts hit the issue before the change was rolled back within a minute of detection. Browser caching meant users continued to see the issue for several minutes after rollback. Fix: added an SSL certificate to the new ALB that evening, plus a separate target group for HTTPS traffic to handle secure redirects.",
+    "playbook": "1) On 'page loading' / 'stuck during sign-in' for Classic users immediately after a load-balancer or routing change, check whether IIS SSL redirect rules are intact on the new LB. 2) Confirm via the cache signal: fresh sign-ins fail but already-signed-in users work — this is the LB-change fingerprint. 3) Mitigation: roll back the LB change. 4) Long-term: when migrating CLB→ALB, ensure SSL cert + separate HTTPS target group + IIS redirect rules are all migrated; never make such changes during business hours.",
+    "fix_status": "resolved",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report"
+    ]
+  },
+  {
+    "id": "ki-classic-time-desync-token-expiry-login-loop",
+    "title": "Classic users stuck at account-selection screen because time desync between Classic and new auth servers expires tokens prematurely",
+    "first_seen": "2025-09-20T00:00:00Z",
+    "last_seen": "2025-09-20T00:36:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-system",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "account selection"
+        },
+        {
+          "contains": "Classic"
+        },
+        {
+          "contains": "cornerstonetf"
+        },
+        {
+          "contains": "cdsanalytical"
+        },
+        {
+          "contains": "customequipmentcompanyinc"
+        },
+        {
+          "regex": "time desync"
+        },
+        {
+          "regex": "token.expiry"
+        },
+        {
+          "regex": "Incognito.*Classic"
+        }
+      ]
+    },
+    "diagnosis": "20+ Classic users on multiple accounts (cornerstonetf, cdsanalytical, customequipmentcompanyinc, etc.) could not proceed past the account-selection screen when signing into Classic. The issue was reproducible in regular Chrome but not Incognito, indicating cached-state interaction with a real backend problem. Root cause: time desynchronization between Classic and new auth servers caused valid tokens to be rejected as expired. After syncing the clocks on the two machines, affected users were able to sign in without clearing cache. Long-term: Classic is migrating to Windows Server 2022, which should keep clocks in sync via the standard NTP setup.",
+    "playbook": "1) On 'cannot proceed past account selection' Classic sign-in reports, check time synchronization between the Classic auth machines and the new auth servers (run `w32tm /query /status` on each Windows host). 2) Confirm via the workaround: Incognito works, regular Chrome doesn't — that's the signal. 3) Mitigation: run `w32tm /resync` on the affected servers to bring time back in sync. 4) Long-term: complete Classic's migration to Windows Server 2022 (this is the canonical fix per the PIR).",
+    "fix_status": "mitigated",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report"
+    ]
+  },
+  {
     "id": "ki-classic-ui-eda-nuget-thread-starvation",
     "title": "Classic UI app pool crashes from EDA NuGet async-call thread starvation on .NET Framework",
     "first_seen": "2026-05-04T12:01:00Z",
@@ -256,6 +512,100 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.92,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report"
+    ]
+  },
+  {
+    "id": "ki-compromised-account-mass-spam-yahoo-ip-block",
+    "title": "Compromised customer account sends mass spam through Method's SendGrid → Yahoo/AOL IP block → fallback email delivery degraded (recurring: PL-49712, PL-52097)",
+    "first_seen": "2024-10-25T13:00:00Z",
+    "last_seen": "2025-02-12T15:00:00Z",
+    "occurrences": 2,
+    "match": {
+      "channels": [
+        "alert-system",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "PL-49712"
+        },
+        {
+          "contains": "PL-52097"
+        },
+        {
+          "contains": "BonOpusSales"
+        },
+        {
+          "contains": "soldiersports"
+        },
+        {
+          "contains": "crypto"
+        },
+        {
+          "regex": "compromised.*account"
+        },
+        {
+          "regex": "Yahoo.*block"
+        },
+        {
+          "regex": "spam.*emails"
+        }
+      ]
+    },
+    "diagnosis": "Recurring pattern: a customer login is compromised (password reuse across sites; Method's rate-limit doesn't slow a single-attempt brute-force) and the attacker uses the account to send tens of thousands of crypto/scam emails through Method's shared SendGrid sub-user. Yahoo / AOL detect the volume + content and block the sending IPs; SendGrid eventually suspends the sub-user. Method's mitigation pattern: detect via automated alert (~1h after attack start), disable logins on the offending account, transition the marketing fallback to a new sub-user, rotate IPs, add a code-level block for the offending account, set hard rate limits temporarily (e.g., 100 marketing / 500 transactional). Customer impact: all customers without an authenticated custom domain temporarily can't send to Yahoo/AOL. Confirmed events: soldiersports (Oct 25 2024, 90k+ spam emails, IPs 149.72.194.74 + 149.72.45.198 blocked), BonOpusSales (Feb 11 2025, 935/32K emails delivered; rest blocked by automated system).",
+    "playbook": "1) On '#alert-system spam delivery alert' or Impact alerting indicating Yahoo/AOL blocking IPs, look up the originating account in the spam volume — if >1000 emails in a short window from a single account, suspect compromise. 2) Confirm by checking the email content — if it's crypto/financial scam, treat as a confirmed compromise. 3) Mitigation: disable logins on the offending account, transition fallback to a new sub-user, request IP unblocks from Yahoo, add a temporary hard rate limit. 4) Long-term: more advanced login controls + outbound content scanning (tracked under PL-61115 / SendGrid suspension pattern).",
+    "fix_status": "in-progress",
+    "fix_jira": "PL-49712",
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report",
+      "https://method.atlassian.net/browse/PL-49712",
+      "https://method.atlassian.net/browse/PL-52097"
+    ]
+  },
+  {
+    "id": "ki-datadog-agent-app-routine-memory-crash",
+    "title": "RT05/RT06 crash when Datadog agent + app-routine subscriber profiling enabled causes memory/CPU spike",
+    "first_seen": "2024-07-04T08:30:00Z",
+    "last_seen": "2024-07-04T09:00:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-system",
+        "alert-runtime-monitoring"
+      ],
+      "any_of": [
+        {
+          "contains": "RT05"
+        },
+        {
+          "contains": "RT06"
+        },
+        {
+          "contains": "Datadog agent"
+        },
+        {
+          "contains": "AppRoutine.Subscriber"
+        },
+        {
+          "regex": "RT.*crash.*memory"
+        },
+        {
+          "regex": "datadog.*profiling"
+        }
+      ]
+    },
+    "diagnosis": "On 2024-07-04 at ~4:30 AM, RT05 and RT06 both crashed within ~30min of each other after the Datadog agent's profiling feature was enabled for the app-routine subscriber. The added profiling overhead caused memory and CPU spikes that exceeded available headroom. No customer impact (just fewer RT api nodes). Mitigation: disabled tracing for the agent; investigation into lowering the sampling rate continues.",
+    "playbook": "1) On unexplained RT-node crashes with memory/CPU spikes and no recent deploy, check whether Datadog tracing/profiling was recently enabled on the AppRoutine.Subscriber.Agent. 2) Mitigation: disable DD tracing on that agent. 3) Long-term: lower the DD sampling rate, monitor RT memory baseline, and re-enable in a controlled rollout.",
+    "fix_status": "mitigated",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.95,
     "last_notified_at": null,
     "references": [
       "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report"
@@ -298,6 +648,139 @@
     "diagnosis": "Every Windows EC2 instance forwards DNS to two AD domain controllers, which then forward *.method.int queries to AWS Route53 Resolver at 172.31.0.2. That destination counts against the AWS per-ENI 1024 PPS link-local quota (shared with 169.254.169.253, IMDS, NTP, Windows Licensing). Combined query rate from 11 Windows hosts pushes DCs' link-local PPS over the cap during bursts; AWS silently drops the excess packets at the VPC fabric. DCs' conditional forwarder for method.int had UseRecursion=True, so on forwarder timeout the DC falls back to root-hint recursion. Root hints can't resolve .int (reserved TLD; no public method.int zone), so they return NXDOMAIN, which the DC negatively caches. Windows DNS clients then cache the negative response for 15 minutes (MaxNegativeTtl), extending visible outage well past the actual packet-drop bursts. ENA linklocal_allowance_exceeded confirms shaping events; CloudWatch NetworkPacketsOut on prod-dc-01 doubled (1,557 â†’ 2,982) at incident time. Affected services: report-generation API, classic API, ms-gateway-api, microservices nodes. NOTE: this can present as ki-2026-05-21-gateway-microservices-timeout (Ocelot timeouts) â€” check DNS first when both fire.",
     "playbook": "1) Check ENA metrics on Windows DCs (prod-dc-01, prod-dc-02): pps_allowance_exceeded, linklocal_allowance_exceeded. If non-zero in the alert window, this is the issue. 2) Check Datadog for NetworkPacketsOut spike on DCs. 3) Confirm the conditional forwarder now points to Route 53 Resolver inbound endpoint (rslvr-in-33bec0891b854ea8b at 172.31.223.154 / 172.31.168.212) with UseRecursion=$false â€” the PIR's action items state this was completed on 2026-05-20/21. 4) If the endpoint path was reverted, recycle DNS clients on affected hosts to clear the 15-min negative cache. 5) Long-term per PIR: reduce Windows MaxNegativeTtl from 15 minutes to 30 seconds; enable DNS client logging; collect Datadog throttling metrics (bw_*_allowance_exceeded, pps_allowance_exceeded, conntrack_allowance_exceeded, linklocal_allowance_exceeded).",
     "fix_status": "in-progress",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report"
+    ]
+  },
+  {
+    "id": "ki-eda-orchestrator-api-timeout-gary-accounts",
+    "title": "EDA Orchestrator API 1-minute timeouts on prod-msl-03/04/05 cause Gary-account-only platform slowness (PL-57695)",
+    "first_seen": "2025-10-06T00:00:00Z",
+    "last_seen": "2025-10-06T01:00:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-runtime-monitoring",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "PL-57695"
+        },
+        {
+          "contains": "EDA Orchestrator"
+        },
+        {
+          "contains": "EDA.Orchestrator.Api"
+        },
+        {
+          "contains": "prod-msl-03"
+        },
+        {
+          "contains": "prod-msl-04"
+        },
+        {
+          "contains": "prod-msl-05"
+        },
+        {
+          "regex": "EDA.*timeout.*1.minute"
+        },
+        {
+          "regex": "Gary account"
+        }
+      ]
+    },
+    "diagnosis": "The platform experienced intermittent slowness for ~1 hour on 2025-10-06. Datadog metrics + Logstash traced it to the EDA Orchestrator API timing out after a fixed 1 minute, which then delayed upstream runtime-core request processing. EDA Orchestrator is only enabled for the 'Gary accounts' cohort, so only those accounts saw the impact. Root cause was a load-balancing / deployment misconfiguration on prod-msl-03/04/05 — fixed under PL-57695.",
+    "playbook": "1) On runtime-core slowness alerts that affect only the Gary-accounts cohort, check the EDA Orchestrator API (eda.methodlocal.int health) for elevated latency / 1-minute timeouts on prod-msl-03/04/05. 2) If timing out, confirm the LB target group includes all three nodes and they all return healthy at the same EDA endpoint. 3) Mitigation: re-balance the EDA Orchestrator deploy across all three nodes (or restart any failing node). 4) PL-57695 was the long-term fix — confirm that LB/deploy config is still correct.",
+    "fix_status": "resolved",
+    "fix_jira": "PL-57695",
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report",
+      "https://method.atlassian.net/browse/PL-57695"
+    ]
+  },
+  {
+    "id": "ki-elasticsearch-disk-watermark-readonly",
+    "title": "Elasticsearch high-disk watermark flips indices read-only → RabbitMQ messages pile up to 40K error-queue cap",
+    "first_seen": "2025-05-13T22:00:00Z",
+    "last_seen": "2025-05-14T03:00:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-system",
+        "alert-runtime-monitoring"
+      ],
+      "any_of": [
+        {
+          "contains": "high disk space watermark"
+        },
+        {
+          "contains": "Elasticsearch"
+        },
+        {
+          "contains": "read-only mode"
+        },
+        {
+          "contains": "40,000 messages"
+        },
+        {
+          "contains": "error queue"
+        },
+        {
+          "regex": "indices.*read.only"
+        },
+        {
+          "regex": "ES.*disk.*watermark"
+        }
+      ]
+    },
+    "diagnosis": "Elasticsearch reached its high disk space watermark, ES auto-flipped indices into read-only mode, and writes stopped. With ES rejecting writes, messages piled up in RabbitMQ. Method policy is 40K-message ceiling per queue; once exceeded, messages divert to the error queue. Customers saw intermittent random error messages between 10-11 PM and general slowness throughout the day. Action items: increased the data drive size; the upcoming ES v9 cluster migration is the long-term fix.",
+    "playbook": "1) On 'intermittent random error messages' / generalized slowness when no deploy ran, check ES cluster disk usage on each node. If any node is over the high-watermark threshold (default 85%), ES has flipped its indices to read-only. 2) Confirm via RabbitMQ — search for queues at or near the 40K message cap, especially audit-trail or ES-shipper queues. 3) Mitigation: free disk on the affected ES node (close old indices, delete stale snapshots, expand the data volume). 4) Long-term: confirm the ES v9 cluster migration has shipped and the new cluster has appropriate disk headroom / ILM.",
+    "fix_status": "mitigated",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report"
+    ]
+  },
+  {
+    "id": "ki-fieldcrew-empty-state-feature-flag-mismatch",
+    "title": "Field Crew app: empty-state overlay blocks all users when feature flag (auto-create-visit-on-WO) is on for older accounts that don't have the new behavior",
+    "first_seen": "2026-04-01T00:00:00Z",
+    "last_seen": "2026-04-01T00:20:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-frontend-errors",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "Field Crew"
+        },
+        {
+          "contains": "FieldCrew"
+        },
+        {
+          "regex": "empty.state.overlay"
+        },
+        {
+          "regex": "field.crew.*not.accessible"
+        }
+      ]
+    },
+    "diagnosis": "A new Field Crew feature that auto-creates a 'visit' when a work order is assigned to a technician was wired behind a release feature flag. The empty-state-overlay dismissal logic was conditioned on the presence of that auto-created visit. For older accounts the feature was not applicable, so no visit existed, the overlay never dismissed, and customers couldn't access Field Crew at all. Two accounts were reported affected. Mitigation: turn the feature flag OFF.",
+    "playbook": "1) On 'Field Crew not accessible' / 'empty state overlay' reports, check whether the field-crew feature flag for auto-create-visit-on-WO is on AND the affected account is an older account that does not get visits auto-created. 2) Immediate mitigation: flip the feature flag off for affected accounts (or globally). 3) Permanent fix: change the overlay dismissal condition to check user's actual access to work orders, not the existence of an auto-created visit.",
+    "fix_status": "mitigated",
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.95,
@@ -351,6 +834,47 @@
     "references": [
       "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report",
       "https://method.atlassian.net/browse/PL-62491"
+    ]
+  },
+  {
+    "id": "ki-intercom-sync-featureflag-overflow-emails",
+    "title": "Cancelled accounts receive payment emails because Intercom sync truncated by FeatureFlagList >255-char overflow (PL-48592)",
+    "first_seen": "2024-07-16T13:00:00Z",
+    "last_seen": "2024-08-28T17:00:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-runtime-monitoring",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "PL-48592"
+        },
+        {
+          "contains": "Intercom"
+        },
+        {
+          "contains": "FeatureFlagList"
+        },
+        {
+          "regex": "cancelled.*payment.*email"
+        },
+        {
+          "regex": "Intercom.*sync"
+        }
+      ]
+    },
+    "diagnosis": "Customers with cancelled accounts received payment emails from Method that they should not have. Investigation found the emails were sent by Intercom, not Method. Method's Intercom sync was breaking for several accounts because the FeatureFlagList company field exceeded the 255-char max. As a result, cancelled-account states were never synced to Intercom, and Intercom continued to treat cancelled accounts as active for email triggers. Estimated impact: ~125 inactive accounts and ~1,265 active accounts. Hotfix released to address active and inactive accounts during nightly sync; data backfill performed for the 125 inactive. Follow-up observability work in PL-48592.",
+    "playbook": "1) On 'cancelled customers receiving emails from Method' complaints, check whether the emails were sent by Method or by Intercom (sender domain in the email). 2) Verify Intercom sync health — search for sync failures linked to FeatureFlagList truncation. 3) If recurrence: hotfix to truncate or chunk FeatureFlagList for Intercom transmission, then backfill stale cancelled-account states. 4) Long-term: confirm PL-48592 observability is in place to detect Intercom-sync drift earlier.",
+    "fix_status": "resolved",
+    "fix_jira": "PL-48592",
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report",
+      "https://method.atlassian.net/browse/PL-48592"
     ]
   },
   {
@@ -442,6 +966,276 @@
     ]
   },
   {
+    "id": "ki-methodintegration-domain-payment-overdue",
+    "title": "methodintegration.com domain redirected to GoDaddy parking page from overdue payment → Classic / Report Generation / Tables & Fields down",
+    "first_seen": "2025-09-15T00:00:00Z",
+    "last_seen": "2025-09-15T01:35:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-system",
+        "alert-runtime-monitoring",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "methodintegration.com"
+        },
+        {
+          "contains": "GoDaddy"
+        },
+        {
+          "regex": "domain.*overdue"
+        },
+        {
+          "regex": "domain.*payment"
+        },
+        {
+          "regex": "Report Generation"
+        }
+      ]
+    },
+    "diagnosis": "Method Classic, Report Generation, and Tables & Fields all suddenly broke. Root cause: the methodintegration.com domain registration payment was overdue on GoDaddy and GoDaddy redirected the domain to their parking page. Action items: Paul purchased the domain for three years, ops@method.me was added as an admin on the GoDaddy account, and the credentials were added to Passbolt.",
+    "playbook": "1) On unexplained simultaneous outages of Classic + Report Generation + Tables & Fields with no recent deploy, immediately check whether any Method-owned domain (especially methodintegration.com) has changed DNS / redirects to a registrar parking page. 2) Visit the domain in a browser — if it shows GoDaddy / registrar parking, payment is overdue. 3) Mitigation: pay the domain immediately; DNS will repropagate within minutes-to-hours. 4) Long-term: confirm ops@method.me is on the registrar account, credentials in Passbolt, and renewal is multi-year.",
+    "fix_status": "resolved",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report"
+    ]
+  },
+  {
+    "id": "ki-methodtcpipserver-stops-during-classic-deploy",
+    "title": "MethodTCPIPServer agent stops during deploy of an unrelated web service → QBDT Real-Time Sync down",
+    "first_seen": "2024-06-19T12:50:00Z",
+    "last_seen": "2024-06-19T13:35:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-runtime-monitoring",
+        "alert-system",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "MethodTCPIPServer"
+        },
+        {
+          "contains": "QBDT Real time sync"
+        },
+        {
+          "regex": "QBDT.*Engine.*disconnect"
+        }
+      ]
+    },
+    "diagnosis": "QBDT Real-Time Sync between Method→QBDT was down for ~45 minutes; the Engine showed as disconnected. Root cause: during a deploy of a web service (NOT MethodTCPIPServer), the MethodTCPIPServer agent stopped operating — even though the deploy did not target it. The deploy should not have affected the agent. Action item is to monitor for recurrence; no permanent fix shipped at PIR time.",
+    "playbook": "1) On 'QBDT Real-Time Sync down' alerts shortly after a deploy of any Classic-related web service, check whether the MethodTCPIPServer agent is running on Classic. If not, restart it. 2) Confirm the Engine reconnects. 3) Long-term: instrument for the agent stopping (Centreon or DD agent process check) so this doesn't go undetected.",
+    "fix_status": "needs-human",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report"
+    ]
+  },
+  {
+    "id": "ki-methodui-sanitization-analytics-overload",
+    "title": "MethodUI outage from sanitization-discrepancy tracking firing excessive ms-analytics calls → SQL pool exhaustion (PL-52451)",
+    "first_seen": "2025-02-27T13:36:00Z",
+    "last_seen": "2025-02-27T14:42:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-system",
+        "alert-runtime-monitoring",
+        "alert-frontend-errors",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "PL-52451"
+        },
+        {
+          "contains": "sanitization discrepancy"
+        },
+        {
+          "contains": "MethodPheonix"
+        },
+        {
+          "contains": "MethodPhoenix"
+        },
+        {
+          "contains": "ms-analytics"
+        },
+        {
+          "regex": "sql.*max.*connection.*pool"
+        },
+        {
+          "regex": "XSS.*analytics"
+        }
+      ]
+    },
+    "diagnosis": "A change to track XSS-sanitization discrepancies (compare raw vs sanitized user input) generated excessive and redundant API calls to ms-analytics. Faulty comparison logic flagged minor variations (attribute order, spacing, extra closing tags) as discrepancies; one path compared objects instead of primitives, multiplying call volume. ms-analytics was overwhelmed; SQL Server max-connection-pool hit (~4000 open connections on sql-prod1 vs typical ~1500/server at peak) — taking the whole platform down. Confusion: MethodPheonix surfaced the errors but the actual problem was upstream; recent architecture changes (2 new servers) further delayed root-cause identification. Rollback was delayed by the investigation. Mitigations: batching/deduplication for the discrepancy tracking, fix the comparison logic, expedite rollback decisions when only one service shows symptoms.",
+    "playbook": "1) On MethodUI outage with errors pointing to MethodPheonix and elevated SQL connection counts, check ms-analytics request rate over the last release window — if it's 10x+ baseline, this is the pattern. 2) Confirm via SQL: SELECT COUNT(*) FROM sys.dm_exec_connections per host. If sql-prod1 shows >3000 open, sanitization-tracking is the suspect. 3) Mitigation: roll back the latest sanitization change in MethodUI. 4) Long-term: confirm batching/deduplication are in place for discrepancy reporting, and that the comparison logic doesn't false-positive on minor whitespace/order differences.",
+    "fix_status": "resolved",
+    "fix_jira": "PL-52451",
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report",
+      "https://method.atlassian.net/browse/PL-52451"
+    ]
+  },
+  {
+    "id": "ki-microsoft-sso-secret-keys-expiration",
+    "title": "Microsoft SSO sign-in fails because Method's Microsoft secret keys expired without notification (PL-44416)",
+    "first_seen": "2023-12-04T07:30:00Z",
+    "last_seen": "2023-12-04T16:30:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-system",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "PL-44416"
+        },
+        {
+          "contains": "Microsoft SSO"
+        },
+        {
+          "contains": "Microsoft secret"
+        },
+        {
+          "regex": "SSO.*sign.in.*Microsoft"
+        },
+        {
+          "regex": "secret.*keys.*expir"
+        }
+      ]
+    },
+    "diagnosis": "Users on whitelisted accounts could not sign in via Microsoft SSO for ~9 hours. Root cause: Method's Microsoft SSO secret keys expired and we did not receive any notification. Approximately 6 accounts impacted (based on IPs in the logs). Fix: Arash created new Microsoft secret keys via the Secret Manager. Microsoft only allows 2-year expiration for these keys, so the team plans to set a reminder for the next rotation. Long-term: keep an up-to-date SSO doc and run sign-in SSO automation tests daily.",
+    "playbook": "1) On 'Microsoft SSO sign-in failing' alerts, check the Microsoft secret keys' expiration date in Method's Secret Manager and in the Azure portal for the Method app registration. 2) If expired or near expiration, rotate the secret immediately — generate a new client secret in Azure, update Method's Secret Manager. 3) Long-term: confirm the 2-year-renewal reminder is set, daily SSO sign-in automation tests are running, and an alert fires N days before expiration.",
+    "fix_status": "resolved",
+    "fix_jira": "PL-44416",
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report",
+      "https://method.atlassian.net/browse/PL-44416"
+    ]
+  },
+  {
+    "id": "ki-mongo-account-collection-data-missing",
+    "title": "Single-account login failure because account data missing from MongoDB Account collection (PL-48047)",
+    "first_seen": "2024-07-29T19:17:00Z",
+    "last_seen": "2024-07-29T20:26:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-system",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "PL-48047"
+        },
+        {
+          "contains": "knollinvestments"
+        },
+        {
+          "contains": "Account collection"
+        },
+        {
+          "regex": "MongoDb.*Account.*missing"
+        },
+        {
+          "regex": "unable to login"
+        }
+      ]
+    },
+    "diagnosis": "A single account (knollinvestments) was unable to log in to Method because its account-level data had gone missing from the MongoDB Account collection. The data was restored by manually re-inserting it; PL-48047 was filed to investigate how the data was lost in the first place. Pattern is rare but recurring shape: when a single account can't sign in and everything else is healthy, check the Mongo Account collection for that account name.",
+    "playbook": "1) On 'single account cannot sign in / login' reports while the rest of the platform is healthy, query the MongoDB Account collection for that account's document. If it's missing, this is the pattern. 2) Mitigation: restore the missing document from a backup or recreate it manually if no backup exists. 3) Long-term: PL-48047 root-cause analysis — most likely candidates are a botched cleanup script or a TTL index misconfiguration.",
+    "fix_status": "resolved",
+    "fix_jira": "PL-48047",
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report",
+      "https://method.atlassian.net/browse/PL-48047"
+    ]
+  },
+  {
+    "id": "ki-mongodb-migration-overwhelms-app-update-agent",
+    "title": "Migration 672 (banner content/schedule collection creation across all accounts) overwhelmed Mongo + cascaded to App Update Agent → new accounts had blank dashboards (PL-58297)",
+    "first_seen": "2025-12-10T14:00:00Z",
+    "last_seen": "2025-12-10T16:00:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-runtime-monitoring",
+        "alert-system",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "PL-58297"
+        },
+        {
+          "contains": "PL-58299"
+        },
+        {
+          "contains": "PL-58300"
+        },
+        {
+          "contains": "672_CreateBannerContentAndBannerScheduleCollectionToAllAccounts"
+        },
+        {
+          "contains": "BannerContentCollection"
+        },
+        {
+          "contains": "BannerScheduleCollection"
+        },
+        {
+          "contains": "Runtime.Core.ScreenInfo"
+        },
+        {
+          "contains": "Runtime.Core.ScreenBase"
+        },
+        {
+          "contains": "AddCmpndIdxVersionIdToScreenInfoAccount"
+        },
+        {
+          "contains": "AddCmpndIdxFieldTableNameToScreenBaseAccount"
+        },
+        {
+          "contains": "deferred table drop"
+        },
+        {
+          "regex": "newly.created.accounts.*blank.dashboard"
+        }
+      ]
+    },
+    "diagnosis": "Migration 672 ran synchronous drop/create operations on two collections (BannerContentCollection, BannerScheduleCollection) across all ~12K account databases at once, triggering WiredTiger's 'deferred table drop' mechanism and replication lag. The Mongo load cascaded to the App Update Agent (RabbitMQ consumer), which failed creating two compound indexes — AddCmpndIdxVersionIdToScreenInfoAccount (Runtime.Core.ScreenInfo) and AddCmpndIdxFieldTableNameToScreenBaseAccount (Runtime.Core.ScreenBase). New accounts finishing onboarding during the 2-hour window saw blank dashboards. Mitigation: P0 to stop the migration immediately; PL-58299 reshapes the migration to run off-hours; PL-58300 adds index-check handling.",
+    "playbook": "1) If new-account dashboards are blank during/after a migration window, check whether a migration script is currently running across all account DBs (look for active drop/create ops in Mongo). 2) Confirm App Update Agent failures via the RabbitMQ consumer logs and look for index-creation failures on Runtime.Core.ScreenInfo / Runtime.Core.ScreenBase. 3) Mitigation: stop the offending migration — apps re-appear instantly for new accounts once Mongo load subsides. 4) Long-term: any future cross-account migration must run off-hours and in smaller batches, and must NOT use synchronous drop+create (use create-only or rename-then-drop).",
+    "fix_status": "resolved",
+    "fix_jira": "PL-58297",
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report",
+      "https://method.atlassian.net/browse/PL-58297"
+    ]
+  },
+  {
     "id": "ki-mongodb-rs01-fd-exhaustion",
     "title": "MongoDB rs01 self-aborts on file-descriptor exhaustion (LimitNOFILE=64000 too low)",
     "first_seen": "2026-05-15T13:38:00Z",
@@ -474,6 +1268,47 @@
     "diagnosis": "LimitNOFILE=64000 in mongod.service (never overridden from the install default) is too low for the multi-tenant, one-DB-per-tenant deployment. Migration 716 (commit 23a3164) created two new collections in every tenant DB, pushing FD count past the limit. WiredTiger returned errno 24 (EMFILE), triggering fatal assertion 50882 and a self-abort. The replica set failed over in ~10 seconds, but rs01 stayed down for 91 minutes because Restart=on-failure was not set in the service unit, leaving all traffic on a single data node (causing slow customization screens). rs02 (current primary) was at ~27,300/64,000 FDs and rising at PIR time â€” same crash risk remains until LimitNOFILE is raised.",
     "playbook": "1) Check mongod logs on rs01/rs02/rs03 for fatal assertion 50882 or 'errno 24' or 'EMFILE'. 2) Check current FD usage: `lsof -p $(pgrep mongod) | wc -l`. If approaching 64000, you're on the same path. 3) Check whether LimitNOFILE was raised: `systemctl show mongod | grep LimitNOFILE`. Per PIR action item (Arash, immediate priority), this should be raised to infinity and Restart=on-failure added via systemd drop-in (rs01 first, then step down rs02). 4) Symptom signal: 'customization slow' + only one healthy replica = rs01 (or whichever) is down. 5) Mitigation: manual restart of the failed mongod.",
     "fix_status": "proposed",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report"
+    ]
+  },
+  {
+    "id": "ki-ms-account-nginx-soft-limit-1024-deploy",
+    "title": "ms-account-api release exhausts nginx 1024-connection soft limit during single-node rotation → login failures",
+    "first_seen": "2024-04-05T13:00:00Z",
+    "last_seen": "2024-04-05T13:10:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-system",
+        "alert-runtime-monitoring",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "ms-account-api"
+        },
+        {
+          "contains": "nginx"
+        },
+        {
+          "contains": "1024"
+        },
+        {
+          "regex": "trouble.*log.in"
+        },
+        {
+          "regex": "max connections.*1024"
+        }
+      ]
+    },
+    "diagnosis": "During the morning release of ms-account-api, the deploy drained one instance at a time. While only one healthy instance remained behind the LB, the nginx process there hit its 1024 max-connections soft limit (other microservices on the same MSL host competed for the same nginx). Health checks failed, ms-account became unresponsive, dependents (Method-JWT issuance, sign-in) cascaded. Action items: raise the nginx soft limit on connections, add an extra node to the MSL pool, reduce method-ui's call rate to ms-account, schedule application-health review meetings with dev teams.",
+    "playbook": "1) On 'trouble logging into Method' or ms-account-api health check failures during a release rotation, check the nginx on the deploying MSL host — `ss -tn state established '( sport = :http )' | wc -l`. If it's near 1024, this is the pattern. 2) Mitigation: pause the rotation; bring an additional node into the LB; raise the nginx soft limit if not already done. 3) Long-term: confirm the nginx connections monitor / alert is in place.",
+    "fix_status": "mitigated",
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.95,
@@ -529,6 +1364,135 @@
     ]
   },
   {
+    "id": "ki-ms-preferences-init-fails-unknown-feature-flag",
+    "title": "New-signup onboarding fails on first step when ms-preferences-api can't initialize preferences for unknown/renamed feature flag",
+    "first_seen": "2024-09-13T13:00:00Z",
+    "last_seen": "2024-09-13T14:00:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-frontend-errors",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "ms-preferences-api"
+        },
+        {
+          "contains": "ms-preferences"
+        },
+        {
+          "contains": "feature flag"
+        },
+        {
+          "regex": "signup.*onboarding"
+        },
+        {
+          "regex": "preferences.*initialize"
+        }
+      ]
+    },
+    "diagnosis": "Signup passes a list of feature flags to ms-preferences-api when creating an account. If any flag is unknown or has been renamed, ms-preferences-api fails the entire call — and ms-preferences has no mechanism to initialize the preferences collection on a partial failure. Result: new sign-ups error on the first onboarding page until ms-preferences-api is rolled back. Long-term fix: update preferences init to ignore unknown feature flags instead of failing.",
+    "playbook": "1) On 'new signups onboarding failing' reports, check whether ms-preferences-api was just released and whether the signup flow's feature-flag list includes any unknown/renamed flags. 2) Mitigation: roll back ms-preferences-api. 3) Long-term: confirm the preferences-init endpoint now ignores unknown feature flags (silently skip rather than fail the whole call).",
+    "fix_status": "resolved",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report"
+    ]
+  },
+  {
+    "id": "ki-multi-tenant-getappname-call-routine-fails",
+    "title": "Multi-tenant runtime pages with 'Call Routine' on load/focus fail to load after GetAppName cache change (PL-60985)",
+    "first_seen": "2026-02-09T13:58:00Z",
+    "last_seen": "2026-02-09T15:19:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-frontend-errors",
+        "alert-runtime-monitoring",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "PL-60985"
+        },
+        {
+          "contains": "PL-60992"
+        },
+        {
+          "contains": "GetAppName"
+        },
+        {
+          "contains": "mobilitycitybocaratonfl"
+        },
+        {
+          "contains": "JudicialServicesRR"
+        },
+        {
+          "regex": "Call Routine.*page.*load"
+        },
+        {
+          "regex": "multi.tenant.*[Cc]all.[Rr]outine"
+        }
+      ]
+    },
+    "diagnosis": "A change to improve cross-account app-name retrieval (GetAppName cache lookup) unintentionally exposed a pre-existing bug where some code paths used the wrong account reference when connecting to the per-tenant database. Tenants whose pages used 'Call Routine' actions on page load/focus (e.g., Invoice List, Sales Receipt List on mobilitycitybocaratonfl and JudicialServicesRR) failed to load. Mitigation: rolled the change back via PL-60985. Long-term: PL-60992 adds multi-tenant unit/automation tests for GetAppName and a fix for the underlying account-reference bug.",
+    "playbook": "1) If multi-tenant accounts report specific pages (often list pages with Call Routine actions on load) failing to load after a release, check whether the most recent runtime-core deploy touched the GetAppName cache logic in ServiceMap or related code paths. 2) Confirm by checking whether the affected accounts use Call Routine on page load/focus (mobilitycitybocaratonfl is a known reproducer with multiple tenant locations). 3) Mitigation: roll back the offending change. 4) Long-term: ensure PL-60992 unit/automation tests pass before merging similar cache-lookup changes.",
+    "fix_status": "resolved",
+    "fix_jira": "PL-60985",
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report",
+      "https://method.atlassian.net/browse/PL-60985",
+      "https://method.atlassian.net/browse/PL-60992"
+    ]
+  },
+  {
+    "id": "ki-mysql-connection-pool-exhausted-soap-logging",
+    "title": "CIAMedical SOAP API logging fails with 'Timeout expired … all pooled connections in use' from MySQL",
+    "first_seen": "2024-05-30T12:49:00Z",
+    "last_seen": "2024-05-30T13:26:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-runtime-monitoring",
+        "alert-system"
+      ],
+      "any_of": [
+        {
+          "contains": "CIAMedical"
+        },
+        {
+          "contains": "MySqlException"
+        },
+        {
+          "contains": "Failed to log a message"
+        },
+        {
+          "contains": "max pool size was reached"
+        },
+        {
+          "regex": "MySql.*Timeout.*connection.*pool"
+        }
+      ]
+    },
+    "diagnosis": "The CIAMedical SOAP API host exhausted its MySQL connection pool with 'Timeout expired. The timeout period elapsed prior to obtaining a connection from the pool. This may have occurred because all pooled connections were in use and max pool size was reached.' Other Classic hosts (4/5) had many users hitting MySQL with no effect. Impact was minimal — only the per-call count-logging failed (the API calls themselves still went through), so the only side effect was that customers got 'free' calls beyond their API limit. Mitigation: changed MySQL calls into a singleton, which silenced the noise.",
+    "playbook": "1) If logs on a SOAP API host (CIAMedical or similar) show 'MySql.Data.MySqlClient.MySqlException … all pooled connections were in use', check whether per-call logging is creating a new MySQL connection per request. 2) Confirm: API endpoint itself works, only count-logging fails. 3) Mitigation: make the MySQL connection a singleton (or use a connection-pool helper that reuses connections). 4) Customer impact is minimal — API limit tracking is broken (free calls until fixed).",
+    "fix_status": "resolved",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report"
+    ]
+  },
+  {
     "id": "ki-oauth-token-db-bloat",
     "title": "oauth_token MongoDB at ~6 TB: daily MongoDB-Backup-Status-bot warning fire (5 GB advisory threshold)",
     "first_seen": "2026-05-31T10:39:07Z",
@@ -559,6 +1523,99 @@
     "last_notified_at": "2026-05-31T11:15:00Z",
     "references": [
       "docs/investigations/2026-05-31-280112c3596d9bcc.md"
+    ]
+  },
+  {
+    "id": "ki-prod-new-gmsa-password-rotation-sql-login-failure",
+    "title": "prod-new-04 intermittent 'Login is from an untrusted domain' SQL errors after gMSA 30-day password rotation",
+    "first_seen": "2026-03-02T18:30:00Z",
+    "last_seen": "2026-03-03T12:30:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-system",
+        "alert-runtime-monitoring",
+        "alert-frontend-errors",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "prod-new-04"
+        },
+        {
+          "contains": "prod_new_gmsa"
+        },
+        {
+          "contains": "Login is from an untrusted domain"
+        },
+        {
+          "contains": "Integrated authentication"
+        },
+        {
+          "regex": "untrusted.domain.*Integrated"
+        },
+        {
+          "regex": "gMSA.*password.rotation"
+        }
+      ]
+    },
+    "diagnosis": "Customers intermittently hit the Method error page; refreshing worked. Investigation showed the error originated on prod-new-04 (a recently added Windows server to help with release-time load): 'Login failed. The login is from an untrusted domain and cannot be used with Integrated authentication.' from method-platform-ui connecting to SQL. Root cause: the IIS app pools run under a group managed service account (prod_new_gmsa$). gMSA passwords rotate every 30 days by default, which coincided with the server's age. prod-new-04 had not been added to the AD group that grants access to the new gMSA password, so when the password rotated, the service account could not authenticate to SQL. Immediate fix: removed prod-new-04 from target group / LB. Permanent fix: added the server to the 'prod_new_gmsa' AD group and added Centreon health checks for the server's endpoints.",
+    "playbook": "1) If a specific node shows intermittent 'Login failed. The login is from an untrusted domain' SQL errors and it's a newer Windows server, check (a) whether the gMSA password rotated recently (default every 30 days) and (b) whether the host is a member of the AD group that grants password-retrieval permission. 2) Immediate mitigation: remove the failing node from the LB target group so traffic stops hitting it. 3) Permanent fix: add the host to the correct AD group, then Test-ADServiceAccount on the server to confirm gMSA retrieval works. 4) Centreon health checks should be added for every new prod node's endpoints; if missing, this kind of slow-rolling failure goes undetected for many hours.",
+    "fix_status": "resolved",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report"
+    ]
+  },
+  {
+    "id": "ki-qbdt-realtime-sync-dns-target-group-misroute",
+    "title": "QBDT Real-Time Sync silently fails because legacy-sync-services DNS routes to wrong machine in target group (PL-61643)",
+    "first_seen": "2026-03-13T13:00:00Z",
+    "last_seen": "2026-03-13T15:00:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-runtime-monitoring",
+        "alert-system",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "PL-61643"
+        },
+        {
+          "contains": "legacy-sync-services"
+        },
+        {
+          "contains": "prod-classic-1"
+        },
+        {
+          "contains": "prod-classic-2"
+        },
+        {
+          "contains": "prod-utility"
+        },
+        {
+          "regex": "QBDT.*[Rr]eal.[Tt]ime [Ss]ync"
+        },
+        {
+          "regex": "connection attempt failed because the connected party did not properly respond"
+        }
+      ]
+    },
+    "diagnosis": "Customers reported Real-Time Sync from Method to QuickBooks Desktop was not working — QBDT instances showed as 'connected' but RT events were not triggering. Background, full, and changes syncs were unaffected. Root cause: DNS configuration for legacy-sync-services on prod-classic-1/2 resolved to a load balancer whose target group pointed to the WRONG machine, so RT-sync traffic was timing out or failing to reach the actual service. Temporary fix: added a host entry on prod-classic-1/2 to force traffic to the correct IP. Permanent fix: added the correct machine (prod-utility) to the target group, so DNS routing now works; the temporary host entries can be removed once the new routing is confirmed stable.",
+    "playbook": "1) If RT sync from Method→QBDT is down but background/full/changes sync still works, suspect a DNS routing problem (NOT an app-pool crash). 2) From prod-classic-1 and prod-classic-2, run `nslookup legacy-sync-services.method.int` and confirm the load balancer it resolves to has prod-utility in its target group. 3) Confirm via the canonical error: 'A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond'. 4) Mitigation: add an /etc/hosts (Linux) or hosts file (Windows) entry pointing legacy-sync-services to the correct prod-utility IP. 5) Permanent: AWS console → target group → add prod-utility, remove temp hosts entries.",
+    "fix_status": "resolved",
+    "fix_jira": "PL-61643",
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report",
+      "https://method.atlassian.net/browse/PL-61643"
     ]
   },
   {
@@ -597,6 +1654,57 @@
     "last_notified_at": null,
     "references": [
       "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report"
+    ]
+  },
+  {
+    "id": "ki-rabbitmq-audittrail-healthcheck-connection-leak",
+    "title": "RabbitMQ cluster memory leak — AuditTrail API health check holds persistent broker connection on every check (PL-57675)",
+    "first_seen": "2025-09-29T00:00:00Z",
+    "last_seen": "2025-10-03T00:00:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-system",
+        "alert-runtime-monitoring"
+      ],
+      "any_of": [
+        {
+          "contains": "PL-57675"
+        },
+        {
+          "contains": "PL-57581"
+        },
+        {
+          "contains": "AuditTrail"
+        },
+        {
+          "contains": "audit-trail"
+        },
+        {
+          "contains": "MSL03"
+        },
+        {
+          "contains": "MSL04"
+        },
+        {
+          "regex": "RabbitMQ.*memory"
+        },
+        {
+          "regex": "connection.leak"
+        }
+      ]
+    },
+    "diagnosis": "The RabbitMQ cluster experienced prolonged high memory usage (4 days) traced to a connection leak in the AuditTrail API. Its health check was misconfigured to open a persistent connection to the broker on every probe; with frequent probes, the open-connection count grew continuously and consumed RMQ memory. Manual node restarts temporarily relieved memory pressure. The investigation was initially hampered because the old AWS Classic Load Balancer did not pass true client IPs. Resolution: replaced the CLB with an NLB to expose client IPs, identified MSL03/MSL04 as the offending services, fixed the AuditTrail health check, deployed. Long-term: PL-57581 migrates the RMQ cluster to new Ubuntu machines with the latest broker version. No customer impact during the incident — only internal alerting noise and manual restarts.",
+    "playbook": "1) On 'RabbitMQ memory growing / high memory' alerts, list the open RMQ connections by client IP. If a single host has dozens-to-hundreds of connections, that's the leak source. 2) If client IPs are masked by a CLB, fail back to the NLB-exposed view (or restart the LB to capture true IPs). 3) Identify the offending service (often AuditTrail API on MSL03/MSL04) and confirm via its health check route. 4) Mitigation: fix the health check to close its broker connection after probing (per PL-57675), redeploy. 5) Long-term: PL-57581 RMQ upgrade migration.",
+    "fix_status": "resolved",
+    "fix_jira": "PL-57675",
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report",
+      "https://method.atlassian.net/browse/PL-57675",
+      "https://method.atlassian.net/browse/PL-57581"
     ]
   },
   {
@@ -692,6 +1800,172 @@
     ]
   },
   {
+    "id": "ki-release-iis-saturation-401-burst-getutcoffset",
+    "title": "IIS saturation during deploy rotation: 1.7k 401-burst to GetUtcOffsetFromTimezone overflows app-pool queue while single-node",
+    "first_seen": "2026-01-28T13:55:00Z",
+    "last_seen": "2026-01-28T14:40:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-system",
+        "alert-runtime-monitoring",
+        "alert-frontend-errors",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "GetUtcOffsetFromTimezone"
+        },
+        {
+          "contains": "white screen"
+        },
+        {
+          "contains": "app pool queue"
+        },
+        {
+          "regex": "release.*IIS.*satur"
+        },
+        {
+          "regex": "401.*burst"
+        }
+      ]
+    },
+    "diagnosis": "During the 8:55 AM scheduled release rotation, a frontend bug triggered a burst of ~1.7k requests to the GetUtcOffsetFromTimezone endpoint. Those requests returned 401 Unauthorized; method-ui was configured to throw .NET exceptions for 401s, and .NET exceptions are computationally expensive. Because the deploy was mid-rotation, only one node was in the LB. That single node's IIS saturated almost instantly, the app-pool queue overflowed, and the platform showed white screens / freezes for ~45 min. User refreshes amplified the load. Action items per PIR: extend deploy/deregister delay by +60s, change method-ui to return response codes instead of throwing exceptions for 401, add WAF rate-limit rules based on Athena log analysis, optimize GetUtcOffsetFromTimezone, consider keeping a spare node during the deploy rotation.",
+    "playbook": "1) On 'white screen' / IIS-saturation alerts during a release window, check whether the LB shows only one healthy node (mid-rotation single-node state). 2) Search ES for a burst of 401s in the window — especially for GetUtcOffsetFromTimezone or any endpoint that returns 401 for unauthenticated calls. 3) If both signals hit, the pattern is confirmed. 4) Mitigation: bring an additional node into the target group, or pause the rotation, until the burst subsides. 5) Long-term: confirm WAF rate-limits are enforced and method-ui no longer throws .NET exceptions for non-2xx HTTP status (action item from this PIR).",
+    "fix_status": "in-progress",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report"
+    ]
+  },
+  {
+    "id": "ki-report-designer-config-corruption-on-release",
+    "title": "Report Designer 404 for specific users/accounts after method-ui hotfix (transient config corruption on release) (PL-46633)",
+    "first_seen": "2024-05-03T18:00:00Z",
+    "last_seen": "2024-05-03T18:53:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-frontend-errors",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "PL-46633"
+        },
+        {
+          "contains": "PL-46410"
+        },
+        {
+          "contains": "report designer"
+        },
+        {
+          "regex": "404.*report designer"
+        },
+        {
+          "regex": "method.ui.*404"
+        }
+      ]
+    },
+    "diagnosis": "A method-ui hotfix release caused intermittent 404s in the Report Designer for specific users/accounts. The code change itself was unrelated to the report designer. Not reproducible on dev environments. Re-releasing the same code resulted in no issues. Final hypothesis: a release-pipeline glitch caused config-file corruption / inconsistent copy during the deploy. Action item: DevOps to investigate the release pipeline.",
+    "playbook": "1) On 'Report Designer 404 for some accounts/users' alerts right after a method-ui release, check whether the deployed config files match the expected SHA across all method-ui hosts. If any host has a corrupted or inconsistent config file, this is the pattern. 2) Mitigation: re-release the same code (the PIR confirms re-release works). 3) Long-term: DevOps investigation into release-pipeline reliability (no ticket linked at PIR time).",
+    "fix_status": "needs-human",
+    "fix_jira": "PL-46633",
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report",
+      "https://method.atlassian.net/browse/PL-46633",
+      "https://method.atlassian.net/browse/PL-46410"
+    ]
+  },
+  {
+    "id": "ki-restapi-redoc-cdn-link-broken",
+    "title": "REST API developer docs blank page — CDN removed redoc.standalone.js (PL-58656)",
+    "first_seen": "2025-12-15T00:00:00Z",
+    "last_seen": "2025-12-15T02:00:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-frontend-errors",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "PL-58656"
+        },
+        {
+          "contains": "redoc.standalone.js"
+        },
+        {
+          "contains": "RestAPI"
+        },
+        {
+          "contains": "Rest API developer documents"
+        },
+        {
+          "regex": "REST.API.*blank"
+        },
+        {
+          "regex": "redoc.*CDN"
+        }
+      ]
+    },
+    "diagnosis": "The CDN hosting redoc.standalone.js (used by Method's REST API developer-docs page to render the API spec) removed the file at the location we were referencing, so the docs page rendered as a blank white page. REST API itself was unaffected — only the developer-docs UI was down. Discovered internally before any customer reported it; hotfixed by repointing the script tag to redoc's new CDN location.",
+    "playbook": "1) On 'REST API docs blank page' reports, view-source the docs page and check for the redoc.standalone.js <script> tag — if the URL returns 404, the CDN has moved the file. 2) Hotfix: update the script tag to redoc's current CDN URL (or self-host redoc.standalone.js in Method's static assets to remove the third-party CDN dependency). 3) The REST API endpoints themselves are unaffected — communicate that to customers if asked.",
+    "fix_status": "resolved",
+    "fix_jira": "PL-58656",
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report",
+      "https://method.atlassian.net/browse/PL-58656"
+    ]
+  },
+  {
+    "id": "ki-runtime-core-ansible-redis-deploy-burst",
+    "title": "runtime-core morning deploy stalls on Ansible failure; retry overwhelms restarted services with Redis-timeout burst",
+    "first_seen": "2025-05-20T13:00:00Z",
+    "last_seen": "2025-05-20T13:20:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-system",
+        "alert-runtime-monitoring",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "Ansible"
+        },
+        {
+          "contains": "runtime-core"
+        },
+        {
+          "regex": "Redis.*timeout"
+        },
+        {
+          "regex": "code discrepanc"
+        }
+      ]
+    },
+    "diagnosis": "During the morning runtime-core API deploy on 2025-05-20, the Ansible deploy machine failed, the retry took a long time, and code versions diverged across the four runtime machines. When the runtime-core services finally restarted simultaneously, the burst of waiting requests overwhelmed the freshly-cold pool. A high volume of Redis timeouts compounded the slowness. Two parallel mitigations were started: migrating Ansible to its own server (so a single Ansible failure doesn't stall the deploy) and creating a new Redis cluster for tables-and-fields and the heaviest Redis users.",
+    "playbook": "1) On 'runtime-core outage' alerts during a morning release window, check whether Ansible is the deploy runner and whether it just failed/retried. 2) Confirm via version skew across the four runtime machines (check deployed git SHA on each). 3) Confirm Redis timeout volume in DD (search for Redis.*timeout in runtime-core logs). 4) Mitigation: wait for the deploy to converge, then warm caches; in severe cases reduce LB capacity to a subset of nodes until cache warms. 5) Long-term: confirm Ansible is on a dedicated host (not shared with anything else) and that the new Redis cluster has been carved out for tables-fields / heavy users.",
+    "fix_status": "mitigated",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report"
+    ]
+  },
+  {
     "id": "ki-runtime-core-target-group-port-mismatch",
     "title": "runtime-core-api 404s on one node after re-registration because AWS target group default port is 5000 instead of 80",
     "first_seen": "2025-05-14T13:25:00Z",
@@ -741,6 +2015,298 @@
     ]
   },
   {
+    "id": "ki-runtime-ms-account-caching-broken-servicemap",
+    "title": "runtime-core repeatedly calls ms-account endpoint after PL-57225 broke ServiceMap cache → platform slowness (PL-57626 hotfix)",
+    "first_seen": "2025-09-30T13:00:00Z",
+    "last_seen": "2025-09-30T17:35:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-runtime-monitoring",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "PL-57626"
+        },
+        {
+          "contains": "PL-57225"
+        },
+        {
+          "contains": "ServiceMap"
+        },
+        {
+          "contains": "ms-account"
+        },
+        {
+          "regex": "runtime.*caching.*ms.account"
+        },
+        {
+          "regex": "ServiceMap.*cache"
+        }
+      ]
+    },
+    "diagnosis": "A runtime-core change in PL-57225 (app-publish / app-update logic) modified ServiceMap class caching behavior such that runtime-core skipped its in-memory cache for the ms-account lookup and queried ms-account on every request. Excess runtime→ms-account traffic increased load on backend systems and caused platform-wide slowness for ~4h35m, particularly during app publish/update operations. Hotfix PL-57626 restored proper caching.",
+    "playbook": "1) On platform slowness alerts after a runtime-core release, check the request rate from runtime-core to ms-account in Datadog. If it's 10-100x baseline, ServiceMap caching is broken. 2) Verify the most recent runtime-core deploy touched ServiceMap or related cache code (check PL-57225 / PL-57626 history). 3) Mitigation: deploy a hotfix that restores the original ServiceMap caching, or roll back the offending PR. 4) Verify in Warehouse and prod that the request rate returned to baseline.",
+    "fix_status": "resolved",
+    "fix_jira": "PL-57626",
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report",
+      "https://method.atlassian.net/browse/PL-57225",
+      "https://method.atlassian.net/browse/PL-57626"
+    ]
+  },
+  {
+    "id": "ki-sendgrid-subuser5-reactivated-by-patching",
+    "title": "Authenticated-domain emails route to wrong sub-user because an old SendGrid sub-user agent was reactivated by server patching (PL-45779)",
+    "first_seen": "2024-03-13T13:00:00Z",
+    "last_seen": "2024-03-13T15:28:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-system",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "PL-45779"
+        },
+        {
+          "contains": "sub-user"
+        },
+        {
+          "contains": "linux-prod-1"
+        },
+        {
+          "contains": "linux-prod-2"
+        },
+        {
+          "regex": "subscriber agent"
+        },
+        {
+          "regex": "sub.user.*reactivated"
+        }
+      ]
+    },
+    "diagnosis": "Some emails from customers with authenticated domains were not being properly authenticated and were going through the wrong SendGrid sub-user. Investigation found that during a server-patching restart, an old SendGrid sub-user subscriber agent on linux-prod-1 and linux-prod-2 (that had been disabled and removed from the service catalog) came back to life. So instead of 4 valid agents, 5 total were running — 1 of which was the invalid old one — and ~20% of outbound was being directed to that wrong sub-user. Fix: removed the code and disabled the service.",
+    "playbook": "1) On 'authenticated-domain emails landing in spam / wrong sender' reports, check the live SendGrid subscriber agents on linux-prod-1/2. If there are more than 4, an old agent has been reactivated. 2) Mitigation: disable / remove the extra agent. 3) Long-term: confirm the agent's code and service have been fully removed (not just disabled) so a patching restart can't bring it back.",
+    "fix_status": "resolved",
+    "fix_jira": "PL-45779",
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report",
+      "https://method.atlassian.net/browse/PL-45779"
+    ]
+  },
+  {
+    "id": "ki-sendgrid-subuser-suspension-tenant-phishing",
+    "title": "SendGrid sub-user suspension after malicious Method tenant sends phishing/spam through it (recurring: Feb 11 / Apr 14 / Apr 21 2026)",
+    "first_seen": "2026-02-11T19:19:00Z",
+    "last_seen": "2026-04-22T12:59:00Z",
+    "occurrences": 3,
+    "match": {
+      "channels": [
+        "alert-system",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "SendGrid"
+        },
+        {
+          "contains": "OpsSubUser"
+        },
+        {
+          "contains": "sub-user"
+        },
+        {
+          "contains": "subuser"
+        },
+        {
+          "contains": "mail.method.me"
+        },
+        {
+          "contains": "PL-61115"
+        },
+        {
+          "regex": "phishing|crypto.scam"
+        },
+        {
+          "contains": "ranksizexxl"
+        },
+        {
+          "contains": "fmpublicationsltd"
+        },
+        {
+          "contains": "tanamcmullan"
+        },
+        {
+          "contains": "statewidehireptyltd"
+        }
+      ]
+    },
+    "diagnosis": "SendGrid Fraud Ops repeatedly suspends Method's outbound sub-users (Sub-User 2 / OpsSubUser) after detecting phishing from a Method tenant. The pattern: a malicious or compromised customer account sends phishing through Method's shared SendGrid identity, SendGrid suspends the entire sub-user, all Method customers without an authenticated custom domain stop delivering email until traffic is rerouted to a different sub-user. Confirmed occurrences in 2026: Feb 11 (Sub-User 2, statewidehireptyltd, ~6 days outage until reactivation), Apr 14 (OpsSubUser, ranksizexxl.club from tenant wanddgital), Apr 21 (OpsSubUser, tanamcmullan.com phishing from fmpublicationsltd via leftover attacker user METHODE from a prior Tunisia incident). Root cause is structural: no outbound email content inspection, no tenant rate limiting for new sign-ups, no anomaly detection for attacker-style changes (new users, API keys, owner-email change to non-matching domain). Reactivation requires API-key deletion, password rotation, and 2FA per SendGrid's non-negotiable steps; Basic support plan slows response.",
+    "playbook": "1) If transactional/marketing emails are stuck in 'Pending' or being deferred, check SendGrid dashboard for sub-user suspension state. 2) Identify the offending Method account from SendGrid's suspension reason (it always names a tenant domain). Disable that tenant's MethodId+users, rotate API keys, invalidate owner sessions, audit for leftover attacker users (the Apr 21 case had a stale 'METHODE' user from a prior compromise). 3) Immediate mitigation: reroute outbound from the suspended sub-user to a healthy one (SubUser2 / SubUser3) and confirm queue drains. 4) Submit remediation evidence to SendGrid (API-key rotation, password reset, 2FA) and request reinstatement. 5) Long-term tracked in PL-61115: outbound payload inspection, new-signup tenant rate limiting, stricter domain validation, dynamic sub-user/IP management.",
+    "fix_status": "in-progress",
+    "fix_jira": "PL-61115",
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report",
+      "https://method.atlassian.net/browse/PL-61115"
+    ]
+  },
+  {
+    "id": "ki-shuttle-third-party-platform-outage",
+    "title": "Shuttle (third-party payment platform) outages disrupt Method payment widget / webhooks / portal — recurring",
+    "first_seen": "2024-01-19T17:00:00Z",
+    "last_seen": "2024-10-08T20:00:00Z",
+    "occurrences": 4,
+    "match": {
+      "channels": [
+        "alert-runtime-monitoring",
+        "alert-frontend-errors",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "Shuttle"
+        },
+        {
+          "contains": "shuttle"
+        },
+        {
+          "contains": "PL-49765"
+        },
+        {
+          "contains": "PL-44065"
+        },
+        {
+          "contains": "PL-45556"
+        },
+        {
+          "contains": "BOLT-1178"
+        },
+        {
+          "contains": "Payment widget"
+        },
+        {
+          "contains": "Authorize.Net"
+        },
+        {
+          "regex": "504 gateway"
+        },
+        {
+          "regex": "payment.*technical issue"
+        }
+      ]
+    },
+    "diagnosis": "Method's payment integration depends on the third-party Shuttle platform. Shuttle has produced multiple recurring outages with the same Method-side signal — payment widget returns 504 / black screen / 500, webhooks stop, sometimes the Shuttle dev portal can't log in. Confirmed events: 2023-11-15 (PL-44065, bad Shuttle release E008 null), 2024-01-19 (~12h, Shuttle datacenter routing failure), 2024-02-14 (PL-45556, BOLT-1178, England Logistics specific config issue from Shuttle), 2024-10-08 (PL-49765, 24h full Shuttle outage from DB restore failure), 2024-10-29 (~48h Authorize.Net gateway behind Shuttle failing OAuth refresh during 7-day maintenance window). Pattern is third-party — Method has no remediation beyond communicating to customers and verifying the issue resolves on Shuttle's side. Action item history: investigate moving away from Shuttle and improving long-window alerting for third-party silent outages.",
+    "playbook": "1) On 'payments failing' / 'BOLT-1178' / 'Payment widget 504' reports, first check Shuttle's status page — if they have an open incident, this is the third-party pattern. 2) Confirm the Method-side signal: 504 gateway / 500 internal server error on the payment widget; webhook delivery dropping. 3) Mitigation: there's no Method-side fix during a Shuttle outage. Communicate the workaround to customers (wait for Shuttle to recover; processing resumes automatically). 4) Track recurrence — if Shuttle outages persist, escalate the 'move away from Shuttle' workstream.",
+    "fix_status": "needs-human",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report",
+      "https://method.atlassian.net/browse/PL-49765",
+      "https://method.atlassian.net/browse/PL-44065",
+      "https://method.atlassian.net/browse/PL-45556"
+    ]
+  },
+  {
+    "id": "ki-signin-hmac-validation-fail-during-hotfix",
+    "title": "Brief sign-in 400 errors during a sign-in hotfix release (HMAC validation transient failure) (PL-53896)",
+    "first_seen": "2025-04-23T19:35:00Z",
+    "last_seen": "2025-04-23T19:37:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-system",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "PL-53896"
+        },
+        {
+          "contains": "HMAC validation"
+        },
+        {
+          "contains": "HMAC"
+        },
+        {
+          "regex": "sign.in.*400"
+        },
+        {
+          "regex": "hotfix.*sign.in"
+        }
+      ]
+    },
+    "diagnosis": "Admin team released a hotfix for the sign-in path. During the 2-minute deploy window, ~29 users got 400 errors on sign-in; the error logs pointed to HMAC validation failing. Users were able to sign in successfully shortly after. Action item: implement a sign-in fail-safe so HMAC checks can survive mid-release state without 400-ing customers.",
+    "playbook": "1) On a brief burst of sign-in 400s during/right after a release window, check whether the release touched the sign-in path. 2) Search for 'HMAC' in the sign-in logs in the window — if HMAC validation is throwing, this is the pattern. 3) No immediate action needed in most cases (transient; resolves within minutes). 4) Long-term: confirm the fail-safe action item is in place so this doesn't recur on the next sign-in hotfix.",
+    "fix_status": "needs-human",
+    "fix_jira": "PL-53896",
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report",
+      "https://method.atlassian.net/browse/PL-53896"
+    ]
+  },
+  {
+    "id": "ki-stockapp-ms-search-cpu-contention-msn-crash",
+    "title": "MSN01/MSN02 crash from stock-app release surge + ms-search CPU contention on tables-fields microservice",
+    "first_seen": "2025-01-02T14:00:00Z",
+    "last_seen": "2025-01-02T15:00:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-system",
+        "alert-runtime-monitoring",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "ms-search"
+        },
+        {
+          "contains": "MSN01"
+        },
+        {
+          "contains": "MSN02"
+        },
+        {
+          "contains": "StockApp"
+        },
+        {
+          "regex": "tables.fields.*CPU"
+        },
+        {
+          "regex": "ms.search.*CPU"
+        }
+      ]
+    },
+    "diagnosis": "Multiple StockApp releases on 2025-01-02 surged tables-fields-microservice request rate. ms-search-api separately was intermittently consuming excess CPU. The two services co-located on MSN01 and MSN02 competed for CPU, both servers crashed and restarted. Mitigation: ms-search refactor + upgrade to .NET 8 to fix performance bottlenecks, temporary MSN box upsize, and reverted recent ms-search changes.",
+    "playbook": "1) On MSN01/MSN02 crash alerts with no obvious deploy correlation, check whether multiple StockApp releases ran the same day and whether ms-search-api is showing high CPU. 2) Confirm via Datadog CPU graphs for tables-fields-api and ms-search on MSN01/02. 3) Mitigation: temporary box upsize, recycle app pools, throttle StockApp release cadence. 4) Long-term: keep ms-search on .NET 8 and consider splitting ms-search and tables-fields-microservice onto separate hosts.",
+    "fix_status": "resolved",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report"
+    ]
+  },
+  {
     "id": "ki-stock-app-routines-global-vs-account-scoping",
     "title": "Pausing/resuming one customer's stock app routine pauses it globally because JobSchedule filter omitted AccountId",
     "first_seen": "2025-06-10T00:00:00Z",
@@ -785,6 +2351,206 @@
     "references": [
       "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report",
       "https://method.atlassian.net/browse/PL-55177"
+    ]
+  },
+  {
+    "id": "ki-tenantid-null-from-entity-metadata-select",
+    "title": "Entity updates wrote TenantId=null because PL-58920 column-restriction excluded system columns (PL-59906 hotfix)",
+    "first_seen": "2025-12-22T00:00:00Z",
+    "last_seen": "2025-12-29T00:00:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-runtime-monitoring",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "PL-58920"
+        },
+        {
+          "contains": "PL-59906"
+        },
+        {
+          "contains": "PL-59920"
+        },
+        {
+          "contains": "TenantId"
+        },
+        {
+          "contains": "PrimaryTableFields"
+        },
+        {
+          "regex": "TenantId.*null.*update"
+        },
+        {
+          "regex": "IndexOutOfRangeException"
+        }
+      ]
+    },
+    "diagnosis": "The PL-58920 fix for an IndexOutOfRangeException added explicit column selection on entity retrieval queries: .Select(columnNames) where columnNames came from PrimaryTableFields (entity metadata). TenantId is a system-level DB column not exposed in entity metadata, so it was excluded from the query results — entity was read with TenantId=null, and subsequent updates persisted that null back. Data impact: ~30 records across 3 accounts (out of ~8.2M update operations in the Dec 22-29 window). PL-59906 was a hotfix removing the explicit column selection. PL-59920 backfills/repairs the corrupted records.",
+    "playbook": "1) If reports/audit-trail show TenantId=null on recently-updated entity records, check whether PL-58920-style column-restriction logic was deployed recently. 2) Confirm via DB: query the relevant entity table for TenantId IS NULL on rows updated in the window. 3) Hotfix: remove explicit column selection in entity retrieval — system columns (TenantId, etc.) MUST be in the result set. 4) Cleanup: run the PL-59920-style migration to restore TenantId from AuditTrail records. 5) Long-term: any entity-retrieval code that restricts columns must explicitly include system columns.",
+    "fix_status": "resolved",
+    "fix_jira": "PL-59906",
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report",
+      "https://method.atlassian.net/browse/PL-58920",
+      "https://method.atlassian.net/browse/PL-59906",
+      "https://method.atlassian.net/browse/PL-59920"
+    ]
+  },
+  {
+    "id": "ki-tfs-release-definition-missing-new-aws-node",
+    "title": "Intermittent failures on App-Builder / Grid Builder v2 because TFS release definition wasn't updated when a new AWS target-group node was added",
+    "first_seen": "2026-01-29T13:55:00Z",
+    "last_seen": "2026-01-29T14:10:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-system",
+        "alert-frontend-errors",
+        "alert-runtime-monitoring",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "Grid Builder"
+        },
+        {
+          "contains": "App-Builder"
+        },
+        {
+          "contains": "AppBuilder"
+        },
+        {
+          "contains": "TFS release definition"
+        },
+        {
+          "regex": "target group.*new node"
+        },
+        {
+          "regex": "release definition.*[Aa]pp.?[Bb]uilder"
+        }
+      ]
+    },
+    "diagnosis": "A new node had been added to the AWS target group for App-Builder, but the TFS release definition was not updated to include the new machine, so the new node never received the latest application code. Customers saw intermittent failures in Grid Builder v2 (load balancer routed some requests to the stale node). Mitigation: updated the primary TFS release definition to include the new machine; also updated all future-ready release definitions; verified successful deploy across all nodes.",
+    "playbook": "1) On intermittent failures in any TFS-built service (App-Builder, etc.) immediately after target-group changes, list the target-group members in AWS and cross-check against the TFS release definition's deployment targets. 2) Confirm by sampling a request and identifying which node served it — if mismatched nodes return different behavior, this is the pattern. 3) Mitigation: redeploy via the corrected TFS release definition (or temporarily remove the stale node from the target group). 4) Long-term: any time a node is added to an AWS target group, DevOps must update every TFS release definition that targets that group.",
+    "fix_status": "resolved",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report"
+    ]
+  },
+  {
+    "id": "ki-windows-patching-app-pool-needs-recycle-no-reboot",
+    "title": "Windows .NET Framework patching without reboot silently breaks app pools on MSN02 days later (PL-44252)",
+    "first_seen": "2023-11-29T13:54:00Z",
+    "last_seen": "2023-11-29T14:07:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-system",
+        "alert-runtime-monitoring",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "PL-44252"
+        },
+        {
+          "contains": "tables-fields"
+        },
+        {
+          "contains": "MSN02"
+        },
+        {
+          "contains": "ms-archive-api"
+        },
+        {
+          "regex": "tables.fields.*health.check"
+        },
+        {
+          "regex": "Windows.*patching.*app.pool"
+        }
+      ]
+    },
+    "diagnosis": "During the morning tables-fields release on 2023-11-29, the deploy failed health check on MSN02 (MSN01 was healthy). swat reports started coming in about the screen designer being unresponsive. Recycling the app pool unblocked the rollback. Investigation found that ms-archive-api on MSN02 had also been silently failing since 2023-11-23 (no logs/activity), while its heartbeat/health check stayed green. Root cause: Aqueel patched .NET Framework on MSN02 on the night of 2023-11-22 without rebooting the server. The patch required app pools to be recycled (or the server rebooted) before some services would resume functioning correctly. Action: monthly patching paused; long-term, patching steps must include auto-recycle/restart of app pools and ideally a server reboot.",
+    "playbook": "1) On 'tables-fields / screen designer unresponsive' or new release failing health check on one MSN host but not another, check whether Windows .NET Framework patching was recently applied without a reboot. 2) Confirm via Application Event Logs on the failing MSN — look for errors on the date matching the patch (e.g., Aqueel's Nov 22 patch). 3) Mitigation: recycle the affected app pool (Aqueel's Nov 29 step), then re-deploy. 4) Long-term: confirm the patching procedure now includes app-pool recycle + server reboot.",
+    "fix_status": "resolved",
+    "fix_jira": "PL-44252",
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report",
+      "https://method.atlassian.net/browse/PL-44252"
+    ]
+  },
+  {
+    "id": "ki-yahoo-ip-block-high-volume-email",
+    "title": "Yahoo automated systems block Method's outbound SendGrid IPs after high-volume campaign send (PL-47997 / PL-45894 / PL-47999)",
+    "first_seen": "2024-03-19T00:00:00Z",
+    "last_seen": "2024-07-26T16:30:00Z",
+    "occurrences": 3,
+    "match": {
+      "channels": [
+        "alert-system",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "PL-47997"
+        },
+        {
+          "contains": "PL-47999"
+        },
+        {
+          "contains": "PL-45894"
+        },
+        {
+          "contains": "Yahoo"
+        },
+        {
+          "contains": "AOL"
+        },
+        {
+          "contains": "majesticturbodallas"
+        },
+        {
+          "contains": "167.89.91.86"
+        },
+        {
+          "contains": "149.72.215.137"
+        },
+        {
+          "contains": "149.72.194.74"
+        },
+        {
+          "regex": "Yahoo.*blocking.*IP"
+        },
+        {
+          "regex": "deliverability.*Yahoo"
+        }
+      ]
+    },
+    "diagnosis": "Yahoo/AOL automated systems intermittently block Method's outbound SendGrid IPs when one IP sends 'too much mail' or 'too much bad quality mail' (e.g., spam complaints). Pattern: a single customer (often newly authenticated domain user) sends a large campaign (~10-20k recipients), the IP gets flagged, deliverability drops for all customers behind that IP. Mitigations: disable the flagged IP, divert traffic to backup IPs — but the diversion can propagate the block to the backup IP (PL-47997→PL-47999). Confirmed events: PL-45894 (Mar 19 2024, majesticturbodallas, ~12h), PL-47997 (Jul 25 2024, IP 167.89.91.86, ~14h), PL-47999 (Jul 26 2024, IP 149.72.215.137 after diversion, 30min). Long-term work: IP warm-up monitoring, bulk-email-limit/queue-fairness policy.",
+    "playbook": "1) On 'Yahoo/AOL deliverability drop' or 'emails to Yahoo failing' reports, check the SendGrid suppression / block list and the Yahoo postmaster page for the affected IPs. 2) Identify which customer drove the volume (usually a single newly-authenticated domain sending tens of thousands of recipients). 3) Mitigation: disable the flagged IP, divert traffic to a different IP — but monitor that traffic doesn't propagate the block to the new IP. 4) Long-term: enforce bulk-email-limit + queue-fairness policy; alert on per-IP send volume.",
+    "fix_status": "mitigated",
+    "fix_jira": "PL-47997",
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report",
+      "https://method.atlassian.net/browse/PL-47997",
+      "https://method.atlassian.net/browse/PL-47999",
+      "https://method.atlassian.net/browse/PL-45894"
     ]
   }
 ]
