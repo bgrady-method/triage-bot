@@ -1,7 +1,7 @@
 [
   {
     "id": "ki-2026-04-13-elasticsearch-native-oom-no-master",
-    "title": "Elasticsearch cluster outage — native OOM on Lucene mmap, no master, all writes failed (2026-04-13)",
+    "title": "Elasticsearch cluster outage \u2014 native OOM on Lucene mmap, no master, all writes failed (2026-04-13)",
     "first_seen": "2026-04-12T09:31:00Z",
     "last_seen": "2026-04-13T12:24:00Z",
     "occurrences": 1,
@@ -33,7 +33,7 @@
       ]
     },
     "diagnosis": "Two of three Elasticsearch cluster nodes crashed due to native (OS-level) out-of-memory errors on Lucene mmap segment file allocation, not JVM heap OOM. Each node has 30 GB RAM with no swap; JVM is configured with 16 GB heap + 8 GB direct memory, leaving only ~6 GB for OS+kernel+Lucene mmap segments. During elevated background merge activity, the remaining native memory was exhausted on two nodes within 21 hours, causing mmap ENOMEM and process death. Node 3 (prod-elasticsearch-audittrail-03) crashed first on 2026-04-12 09:31 UTC and went undetected because there was no port-level monitoring. When Node 2 also crashed on 2026-04-13 06:49 UTC, the cluster lost quorum and went read-only. Both nodes had Restart=no in their systemd units so they did not auto-recover. RabbitMQ accumulated failed-event writes with 'cluster_block_exception: no master'. Manual restart at ~12:23 UTC restored the cluster; no data lost. Mitigations already applied (per PIR): Restart=on-failure enabled on all three nodes, Centreon ES port 9200 TCP check added, cluster-health-status check added. Still pending: reduce JVM heap to 12 GB and remove/reduce MaxDirectMemorySize, add 2-4 GB emergency swap with vm.swappiness=1, reduce shard count from 14,248 toward <3,000 via ILM.",
-    "playbook": "1) On 'ES writes failing' / 'cluster_block_exception: no master' alerts, immediately check all three ES nodes via the new Centreon port-9200 check; if any port-9200 fail, that node is dead. 2) Confirm cluster health endpoint — RED means master lost. 3) Mitigation: SSH to the dead node(s), confirm the elasticsearch process is gone, restart manually (systemctl restart elasticsearch) — Restart=on-failure should now auto-restart but verify. 4) Confirm RabbitMQ ES-audit queue is draining once cluster is back. 5) Cross-check whether the still-pending mitigations (heap reduction, swap, shard reduction) have shipped — if not, escalate.",
+    "playbook": "1) On 'ES writes failing' / 'cluster_block_exception: no master' alerts, immediately check all three ES nodes via the new Centreon port-9200 check; if any port-9200 fail, that node is dead. 2) Confirm cluster health endpoint \u2014 RED means master lost. 3) Mitigation: SSH to the dead node(s), confirm the elasticsearch process is gone, restart manually (systemctl restart elasticsearch) \u2014 Restart=on-failure should now auto-restart but verify. 4) Confirm RabbitMQ ES-audit queue is draining once cluster is back. 5) Cross-check whether the still-pending mitigations (heap reduction, swap, shard reduction) have shipped \u2014 if not, escalate.",
     "fix_status": "mitigated",
     "fix_jira": null,
     "fix_template": null,
@@ -126,8 +126,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-06-01T15:53:13Z",
-    "occurrences": 96,
+    "last_seen": "2026-06-01T17:06:12Z",
+    "occurrences": 98,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -144,8 +144,8 @@
         }
       ]
     },
-    "diagnosis": "Frontend XHR errors (status_code:0, 'Failed to load') reported to DataDog RUM by method-ui are symptoms â€” the actual failure happens upstream in ms-gateway-api's Ocelot ResponderMiddleware, which raises RequestTimedOutError / TaskCanceledException while waiting for microservices.methodlocal.int (the .NET Framework Tier-3 IIS pool) to respond. Affected paths span multiple owned services on that pool: /syncutil/syncwidget/{account}/GetSyncWidgetInfoAsync, /preferences/v3/User, /account/learning/progress, /account/banners/queue. The pattern is chronic â€” Ocelot warning volume in the 17:00 UTC hour was 1072 today vs 1064 24h ago (+0.7%), so the underlying timeout rate is steady-state, not a regression. DataDog monitor 77419271 ('Unusual number of XHR errors for account: {{@account_name.name}}') trips whenever a single account's user session bunches >40 such XHR errors within 5 min. NOTE: this *may* be downstream of ki-dns-microservices-method-int-pps-quota â€” DNS resolution failures on the Windows fleet manifest as Ocelot timeouts. Cross-reference both before concluding root cause.",
-    "playbook": "1) Confirm chronic baseline by comparing ES Ocelot.Responder.Middleware Warning volume in the alert window vs the same window 24h ago â€” if delta < 20%, it's the chronic pattern (no new incident). 2) Aggregate timeouts by RequestPath: if dominant paths are all under upstream microservices.methodlocal.int, it's pool-level. 3) **Check ki-dns-microservices-method-int-pps-quota first** â€” DNS bursts on the Windows fleet present here as Ocelot timeouts. 4) If DNS is clean: identify which downstream microservice owns the slow path via Ocelot config in ms-gateway-api/gateway/API/ocelot.*.json. 5) Decision tree for the fix: (a) raise per-route Ocelot timeout (cheapest, masks symptom â€” appropriate if Ben prefers user-facing reliability over visibility), (b) scale microservices IIS pool / shorten recycle interval (medium cost, addresses cold-start tail), (c) profile the upstream microservice (sync-util / preferences / account) under prod load to find the slow path â€” root-cause fix but expensive.",
+    "diagnosis": "Frontend XHR errors (status_code:0, 'Failed to load') reported to DataDog RUM by method-ui are symptoms \u00e2\u20ac\u201d the actual failure happens upstream in ms-gateway-api's Ocelot ResponderMiddleware, which raises RequestTimedOutError / TaskCanceledException while waiting for microservices.methodlocal.int (the .NET Framework Tier-3 IIS pool) to respond. Affected paths span multiple owned services on that pool: /syncutil/syncwidget/{account}/GetSyncWidgetInfoAsync, /preferences/v3/User, /account/learning/progress, /account/banners/queue. The pattern is chronic \u00e2\u20ac\u201d Ocelot warning volume in the 17:00 UTC hour was 1072 today vs 1064 24h ago (+0.7%), so the underlying timeout rate is steady-state, not a regression. DataDog monitor 77419271 ('Unusual number of XHR errors for account: {{@account_name.name}}') trips whenever a single account's user session bunches >40 such XHR errors within 5 min. NOTE: this *may* be downstream of ki-dns-microservices-method-int-pps-quota \u00e2\u20ac\u201d DNS resolution failures on the Windows fleet manifest as Ocelot timeouts. Cross-reference both before concluding root cause.",
+    "playbook": "1) Confirm chronic baseline by comparing ES Ocelot.Responder.Middleware Warning volume in the alert window vs the same window 24h ago \u00e2\u20ac\u201d if delta < 20%, it's the chronic pattern (no new incident). 2) Aggregate timeouts by RequestPath: if dominant paths are all under upstream microservices.methodlocal.int, it's pool-level. 3) **Check ki-dns-microservices-method-int-pps-quota first** \u00e2\u20ac\u201d DNS bursts on the Windows fleet present here as Ocelot timeouts. 4) If DNS is clean: identify which downstream microservice owns the slow path via Ocelot config in ms-gateway-api/gateway/API/ocelot.*.json. 5) Decision tree for the fix: (a) raise per-route Ocelot timeout (cheapest, masks symptom \u00e2\u20ac\u201d appropriate if Ben prefers user-facing reliability over visibility), (b) scale microservices IIS pool / shorten recycle interval (medium cost, addresses cold-start tail), (c) profile the upstream microservice (sync-util / preferences / account) under prod load to find the slow path \u00e2\u20ac\u201d root-cause fix but expensive.",
     "fix_status": "needs-ops-decision",
     "fix_jira": null,
     "fix_template": null,
@@ -187,8 +187,8 @@
         }
       ]
     },
-    "diagnosis": "DD monitors 115456700 (RTC Screen Load p95 > 3s) and 117279738 (RTC Action Execution p95 > 3s) â€” both query `trace.aspnet_core.request{env:prod,service:runtime-core-api,resource_name:post_/api/v1/runtime/...}` â€” fire repeatedly with brief but severe p95 spikes. Signature is latency-only: zero error logs in window, monitor returns to OK shortly after. Confirmed pattern observed 2026-05-23 17:50â€“17:52Z (10.72s peak), and again across 2026-05-24 03:00â€“09:00Z (peaks: Action Execution 13.32s @03:28Z; Screen Load 24.38s @05:46Z, 15.80s @08:06Z, 7.74s @08:20Z, plus 10+ smaller spikes; Action Execution also 10.56s @04:42Z, 4.04s @08:08Z). Both endpoints (Screen Load + Action Execution) are runtime-core-api's hottest write paths; same service, distinct resource names, but co-firing pattern strongly suggests shared upstream contention (SQL/Mongo/Redis hot account, GC pause, or per-tenant burst) rather than endpoint-specific code. No deploys to runtime-core since 2026-05-06 (17+ days), so this is NOT a code regression. Likely candidates: (1) noisy-neighbor tenant burst saturating a per-DB connection pool; (2) RTC SQL query plan regression on a frequently-loaded screen; (3) GC pause from a recently-grown working set. DD APM trace search (not yet wired into dd_search.py) would pinpoint the slow span.",
-    "playbook": "1) Confirm pattern: run `dd_search.py metric --query 'p95:trace.aspnet_core.request{env:prod,service:runtime-core-api,resource_name:post_/api/v1/runtime/load/_screenid*}' --from-unix <window>` â€” if multiple > 3s points cluster in window, this is the pattern. 2) Confirm latency-only: `dd_search.py logs --query 'service:runtime-core-api status:error env:prod' --from <window>` should return 0 results. If error logs are present, this is a DIFFERENT incident â€” fall back to runtime-core CLAUDE.md. 3) If pattern confirmed, the diagnostic gap is identifying the slow span: open https://app.datadoghq.com/apm/traces?query=service%3Aruntime-core-api%20%40duration%3A%3E5s and inspect outlier traces in the spike window â€” look for SQL query, Mongo aggregation, or Redis SCAN dominating duration. Tag breakdown by `@account_name` or per-tenant DB name. 4) Mitigation options pending root cause: (a) increase monitor threshold to 4s if spikes are universally <4s and short-duration (cheapest, masks); (b) add per-resource_name circuit breaker in runtime-core (medium); (c) profile slowest accounts and apply targeted SQL/Mongo index fixes (root cause, expensive). 5) Cross-check ki-2026-05-21-gateway-microservices-timeout (different service) and ki-dns-microservices-method-int-pps-quota (could chain into runtime-core via downstream calls).",
+    "diagnosis": "DD monitors 115456700 (RTC Screen Load p95 > 3s) and 117279738 (RTC Action Execution p95 > 3s) \u00e2\u20ac\u201d both query `trace.aspnet_core.request{env:prod,service:runtime-core-api,resource_name:post_/api/v1/runtime/...}` \u00e2\u20ac\u201d fire repeatedly with brief but severe p95 spikes. Signature is latency-only: zero error logs in window, monitor returns to OK shortly after. Confirmed pattern observed 2026-05-23 17:50\u00e2\u20ac\u201c17:52Z (10.72s peak), and again across 2026-05-24 03:00\u00e2\u20ac\u201c09:00Z (peaks: Action Execution 13.32s @03:28Z; Screen Load 24.38s @05:46Z, 15.80s @08:06Z, 7.74s @08:20Z, plus 10+ smaller spikes; Action Execution also 10.56s @04:42Z, 4.04s @08:08Z). Both endpoints (Screen Load + Action Execution) are runtime-core-api's hottest write paths; same service, distinct resource names, but co-firing pattern strongly suggests shared upstream contention (SQL/Mongo/Redis hot account, GC pause, or per-tenant burst) rather than endpoint-specific code. No deploys to runtime-core since 2026-05-06 (17+ days), so this is NOT a code regression. Likely candidates: (1) noisy-neighbor tenant burst saturating a per-DB connection pool; (2) RTC SQL query plan regression on a frequently-loaded screen; (3) GC pause from a recently-grown working set. DD APM trace search (not yet wired into dd_search.py) would pinpoint the slow span.",
+    "playbook": "1) Confirm pattern: run `dd_search.py metric --query 'p95:trace.aspnet_core.request{env:prod,service:runtime-core-api,resource_name:post_/api/v1/runtime/load/_screenid*}' --from-unix <window>` \u00e2\u20ac\u201d if multiple > 3s points cluster in window, this is the pattern. 2) Confirm latency-only: `dd_search.py logs --query 'service:runtime-core-api status:error env:prod' --from <window>` should return 0 results. If error logs are present, this is a DIFFERENT incident \u00e2\u20ac\u201d fall back to runtime-core CLAUDE.md. 3) If pattern confirmed, the diagnostic gap is identifying the slow span: open https://app.datadoghq.com/apm/traces?query=service%3Aruntime-core-api%20%40duration%3A%3E5s and inspect outlier traces in the spike window \u00e2\u20ac\u201d look for SQL query, Mongo aggregation, or Redis SCAN dominating duration. Tag breakdown by `@account_name` or per-tenant DB name. 4) Mitigation options pending root cause: (a) increase monitor threshold to 4s if spikes are universally <4s and short-duration (cheapest, masks); (b) add per-resource_name circuit breaker in runtime-core (medium); (c) profile slowest accounts and apply targeted SQL/Mongo index fixes (root cause, expensive). 5) Cross-check ki-2026-05-21-gateway-microservices-timeout (different service) and ki-dns-microservices-method-int-pps-quota (could chain into runtime-core via downstream calls).",
     "fix_status": "investigating",
     "fix_jira": null,
     "fix_template": null,
@@ -372,8 +372,8 @@
         }
       ]
     },
-    "diagnosis": "A new Chrome release on Windows sporadically broke the Method Screen Editor — could not view Properties or Action Sets of screen controls. Root cause: Method's designer template-loading logic interacted with a behavior change introduced in the latest Chrome update. No known customer impact (P2 ticket). Pattern is durable: any future Chrome update can recur this kind of break on the designer.",
-    "playbook": "1) On 'Screen Editor / Designer broken on Chrome' reports — especially clustered in a single browser version — check the Chrome release notes for changes touching DOM/iframe/template loading. 2) Confirm by reproducing in a different Chrome version or another browser (Edge/Firefox). 3) Mitigation: workaround for users (older Chrome, or different browser). 4) Long-term: instrument designer template-loading against Chrome beta channel for early detection.",
+    "diagnosis": "A new Chrome release on Windows sporadically broke the Method Screen Editor \u2014 could not view Properties or Action Sets of screen controls. Root cause: Method's designer template-loading logic interacted with a behavior change introduced in the latest Chrome update. No known customer impact (P2 ticket). Pattern is durable: any future Chrome update can recur this kind of break on the designer.",
+    "playbook": "1) On 'Screen Editor / Designer broken on Chrome' reports \u2014 especially clustered in a single browser version \u2014 check the Chrome release notes for changes touching DOM/iframe/template loading. 2) Confirm by reproducing in a different Chrome version or another browser (Edge/Firefox). 3) Mitigation: workaround for users (older Chrome, or different browser). 4) Long-term: instrument designer template-loading against Chrome beta channel for early detection.",
     "fix_status": "resolved",
     "fix_jira": "PL-44761",
     "fix_template": null,
@@ -386,7 +386,7 @@
   },
   {
     "id": "ki-classic-clb-to-alb-ssl-redirect-loss",
-    "title": "Classic users can't sign in after CLB→ALB switch because IIS SSL redirect rules weren't carried over",
+    "title": "Classic users can't sign in after CLB\u2192ALB switch because IIS SSL redirect rules weren't carried over",
     "first_seen": "2025-04-14T17:14:00Z",
     "last_seen": "2025-04-14T18:02:00Z",
     "occurrences": 1,
@@ -416,8 +416,8 @@
         }
       ]
     },
-    "diagnosis": "DevOps replaced the Classic load balancers (CLB → ALB). The new ALB setup did not initially account for the IIS redirect rules that route Classic to external servers via SSL, so fresh sign-ins broke. Existing/cached sessions weren't affected, which delayed detection — ~7 Classic accounts hit the issue before the change was rolled back within a minute of detection. Browser caching meant users continued to see the issue for several minutes after rollback. Fix: added an SSL certificate to the new ALB that evening, plus a separate target group for HTTPS traffic to handle secure redirects.",
-    "playbook": "1) On 'page loading' / 'stuck during sign-in' for Classic users immediately after a load-balancer or routing change, check whether IIS SSL redirect rules are intact on the new LB. 2) Confirm via the cache signal: fresh sign-ins fail but already-signed-in users work — this is the LB-change fingerprint. 3) Mitigation: roll back the LB change. 4) Long-term: when migrating CLB→ALB, ensure SSL cert + separate HTTPS target group + IIS redirect rules are all migrated; never make such changes during business hours.",
+    "diagnosis": "DevOps replaced the Classic load balancers (CLB \u2192 ALB). The new ALB setup did not initially account for the IIS redirect rules that route Classic to external servers via SSL, so fresh sign-ins broke. Existing/cached sessions weren't affected, which delayed detection \u2014 ~7 Classic accounts hit the issue before the change was rolled back within a minute of detection. Browser caching meant users continued to see the issue for several minutes after rollback. Fix: added an SSL certificate to the new ALB that evening, plus a separate target group for HTTPS traffic to handle secure redirects.",
+    "playbook": "1) On 'page loading' / 'stuck during sign-in' for Classic users immediately after a load-balancer or routing change, check whether IIS SSL redirect rules are intact on the new LB. 2) Confirm via the cache signal: fresh sign-ins fail but already-signed-in users work \u2014 this is the LB-change fingerprint. 3) Mitigation: roll back the LB change. 4) Long-term: when migrating CLB\u2192ALB, ensure SSL cert + separate HTTPS target group + IIS redirect rules are all migrated; never make such changes during business hours.",
     "fix_status": "resolved",
     "fix_jira": null,
     "fix_template": null,
@@ -466,7 +466,7 @@
       ]
     },
     "diagnosis": "20+ Classic users on multiple accounts (cornerstonetf, cdsanalytical, customequipmentcompanyinc, etc.) could not proceed past the account-selection screen when signing into Classic. The issue was reproducible in regular Chrome but not Incognito, indicating cached-state interaction with a real backend problem. Root cause: time desynchronization between Classic and new auth servers caused valid tokens to be rejected as expired. After syncing the clocks on the two machines, affected users were able to sign in without clearing cache. Long-term: Classic is migrating to Windows Server 2022, which should keep clocks in sync via the standard NTP setup.",
-    "playbook": "1) On 'cannot proceed past account selection' Classic sign-in reports, check time synchronization between the Classic auth machines and the new auth servers (run `w32tm /query /status` on each Windows host). 2) Confirm via the workaround: Incognito works, regular Chrome doesn't — that's the signal. 3) Mitigation: run `w32tm /resync` on the affected servers to bring time back in sync. 4) Long-term: complete Classic's migration to Windows Server 2022 (this is the canonical fix per the PIR).",
+    "playbook": "1) On 'cannot proceed past account selection' Classic sign-in reports, check time synchronization between the Classic auth machines and the new auth servers (run `w32tm /query /status` on each Windows host). 2) Confirm via the workaround: Incognito works, regular Chrome doesn't \u2014 that's the signal. 3) Mitigation: run `w32tm /resync` on the affected servers to bring time back in sync. 4) Long-term: complete Classic's migration to Windows Server 2022 (this is the canonical fix per the PIR).",
     "fix_status": "mitigated",
     "fix_jira": null,
     "fix_template": null,
@@ -507,7 +507,7 @@
       ]
     },
     "diagnosis": "Classic UI IIS app pools crash intermittently under high EDA load. Root cause: new EDA NuGet package's asynchronous calls cause thread starvation in older .NET Framework code paths (known limitation in pre-modern .NET). Datadog tracer upgrades and older MassTransit libraries amplify the problem. Load test confirmed: the async version of the NuGet crashes after ~500-600 calls returning 502s; the sync version survives 1000 calls with ~62 timeouts but no crash. Mitigations applied: reduced EDA load and redeployed prior stable code (night of 2026-05-04). A modified sync-only NuGet exists; deployment postponed pending stability.",
-    "playbook": "1) Check IIS Event Viewer on PROD-CLASSIC-01/02 for app-pool crashes. 2) Confirm via the absence of explicit error stacks â€” Classic crashes here typically show only pool crashes with no application stack trace. 3) Look at EDA event rate; if elevated, this is the pattern. 4) Mitigation: recycle app pools, or reduce EDA event volume (reduce accounts producing events), or roll back to prior NuGet/Datadog tracer state. 5) Long-term fix is the sync-only NuGet package (built by Matt) â€” deployment pending.",
+    "playbook": "1) Check IIS Event Viewer on PROD-CLASSIC-01/02 for app-pool crashes. 2) Confirm via the absence of explicit error stacks \u00e2\u20ac\u201d Classic crashes here typically show only pool crashes with no application stack trace. 3) Look at EDA event rate; if elevated, this is the pattern. 4) Mitigation: recycle app pools, or reduce EDA event volume (reduce accounts producing events), or roll back to prior NuGet/Datadog tracer state. 5) Long-term fix is the sync-only NuGet package (built by Matt) \u00e2\u20ac\u201d deployment pending.",
     "fix_status": "mitigated",
     "fix_jira": null,
     "fix_template": null,
@@ -519,7 +519,7 @@
   },
   {
     "id": "ki-compromised-account-mass-spam-yahoo-ip-block",
-    "title": "Compromised customer account sends mass spam through Method's SendGrid → Yahoo/AOL IP block → fallback email delivery degraded (recurring: PL-49712, PL-52097)",
+    "title": "Compromised customer account sends mass spam through Method's SendGrid \u2192 Yahoo/AOL IP block \u2192 fallback email delivery degraded (recurring: PL-49712, PL-52097)",
     "first_seen": "2024-10-25T13:00:00Z",
     "last_seen": "2025-02-12T15:00:00Z",
     "occurrences": 2,
@@ -556,7 +556,7 @@
       ]
     },
     "diagnosis": "Recurring pattern: a customer login is compromised (password reuse across sites; Method's rate-limit doesn't slow a single-attempt brute-force) and the attacker uses the account to send tens of thousands of crypto/scam emails through Method's shared SendGrid sub-user. Yahoo / AOL detect the volume + content and block the sending IPs; SendGrid eventually suspends the sub-user. Method's mitigation pattern: detect via automated alert (~1h after attack start), disable logins on the offending account, transition the marketing fallback to a new sub-user, rotate IPs, add a code-level block for the offending account, set hard rate limits temporarily (e.g., 100 marketing / 500 transactional). Customer impact: all customers without an authenticated custom domain temporarily can't send to Yahoo/AOL. Confirmed events: soldiersports (Oct 25 2024, 90k+ spam emails, IPs 149.72.194.74 + 149.72.45.198 blocked), BonOpusSales (Feb 11 2025, 935/32K emails delivered; rest blocked by automated system).",
-    "playbook": "1) On '#alert-system spam delivery alert' or Impact alerting indicating Yahoo/AOL blocking IPs, look up the originating account in the spam volume — if >1000 emails in a short window from a single account, suspect compromise. 2) Confirm by checking the email content — if it's crypto/financial scam, treat as a confirmed compromise. 3) Mitigation: disable logins on the offending account, transition fallback to a new sub-user, request IP unblocks from Yahoo, add a temporary hard rate limit. 4) Long-term: more advanced login controls + outbound content scanning (tracked under PL-61115 / SendGrid suspension pattern).",
+    "playbook": "1) On '#alert-system spam delivery alert' or Impact alerting indicating Yahoo/AOL blocking IPs, look up the originating account in the spam volume \u2014 if >1000 emails in a short window from a single account, suspect compromise. 2) Confirm by checking the email content \u2014 if it's crypto/financial scam, treat as a confirmed compromise. 3) Mitigation: disable logins on the offending account, transition fallback to a new sub-user, request IP unblocks from Yahoo, add a temporary hard rate limit. 4) Long-term: more advanced login controls + outbound content scanning (tracked under PL-61115 / SendGrid suspension pattern).",
     "fix_status": "in-progress",
     "fix_jira": "PL-49712",
     "fix_template": null,
@@ -613,7 +613,7 @@
   },
   {
     "id": "ki-dns-microservices-method-int-pps-quota",
-    "title": "DNS resolution failures for *.method.int on Windows fleet â€” AWS Route53 1024 PPS link-local quota exceeded on DCs",
+    "title": "DNS resolution failures for *.method.int on Windows fleet \u00e2\u20ac\u201d AWS Route53 1024 PPS link-local quota exceeded on DCs",
     "first_seen": "2026-05-14T00:00:00Z",
     "last_seen": "2026-05-20T20:30:00Z",
     "occurrences": 1,
@@ -645,8 +645,8 @@
         }
       ]
     },
-    "diagnosis": "Every Windows EC2 instance forwards DNS to two AD domain controllers, which then forward *.method.int queries to AWS Route53 Resolver at 172.31.0.2. That destination counts against the AWS per-ENI 1024 PPS link-local quota (shared with 169.254.169.253, IMDS, NTP, Windows Licensing). Combined query rate from 11 Windows hosts pushes DCs' link-local PPS over the cap during bursts; AWS silently drops the excess packets at the VPC fabric. DCs' conditional forwarder for method.int had UseRecursion=True, so on forwarder timeout the DC falls back to root-hint recursion. Root hints can't resolve .int (reserved TLD; no public method.int zone), so they return NXDOMAIN, which the DC negatively caches. Windows DNS clients then cache the negative response for 15 minutes (MaxNegativeTtl), extending visible outage well past the actual packet-drop bursts. ENA linklocal_allowance_exceeded confirms shaping events; CloudWatch NetworkPacketsOut on prod-dc-01 doubled (1,557 â†’ 2,982) at incident time. Affected services: report-generation API, classic API, ms-gateway-api, microservices nodes. NOTE: this can present as ki-2026-05-21-gateway-microservices-timeout (Ocelot timeouts) â€” check DNS first when both fire.",
-    "playbook": "1) Check ENA metrics on Windows DCs (prod-dc-01, prod-dc-02): pps_allowance_exceeded, linklocal_allowance_exceeded. If non-zero in the alert window, this is the issue. 2) Check Datadog for NetworkPacketsOut spike on DCs. 3) Confirm the conditional forwarder now points to Route 53 Resolver inbound endpoint (rslvr-in-33bec0891b854ea8b at 172.31.223.154 / 172.31.168.212) with UseRecursion=$false â€” the PIR's action items state this was completed on 2026-05-20/21. 4) If the endpoint path was reverted, recycle DNS clients on affected hosts to clear the 15-min negative cache. 5) Long-term per PIR: reduce Windows MaxNegativeTtl from 15 minutes to 30 seconds; enable DNS client logging; collect Datadog throttling metrics (bw_*_allowance_exceeded, pps_allowance_exceeded, conntrack_allowance_exceeded, linklocal_allowance_exceeded).",
+    "diagnosis": "Every Windows EC2 instance forwards DNS to two AD domain controllers, which then forward *.method.int queries to AWS Route53 Resolver at 172.31.0.2. That destination counts against the AWS per-ENI 1024 PPS link-local quota (shared with 169.254.169.253, IMDS, NTP, Windows Licensing). Combined query rate from 11 Windows hosts pushes DCs' link-local PPS over the cap during bursts; AWS silently drops the excess packets at the VPC fabric. DCs' conditional forwarder for method.int had UseRecursion=True, so on forwarder timeout the DC falls back to root-hint recursion. Root hints can't resolve .int (reserved TLD; no public method.int zone), so they return NXDOMAIN, which the DC negatively caches. Windows DNS clients then cache the negative response for 15 minutes (MaxNegativeTtl), extending visible outage well past the actual packet-drop bursts. ENA linklocal_allowance_exceeded confirms shaping events; CloudWatch NetworkPacketsOut on prod-dc-01 doubled (1,557 \u00e2\u2020\u2019 2,982) at incident time. Affected services: report-generation API, classic API, ms-gateway-api, microservices nodes. NOTE: this can present as ki-2026-05-21-gateway-microservices-timeout (Ocelot timeouts) \u00e2\u20ac\u201d check DNS first when both fire.",
+    "playbook": "1) Check ENA metrics on Windows DCs (prod-dc-01, prod-dc-02): pps_allowance_exceeded, linklocal_allowance_exceeded. If non-zero in the alert window, this is the issue. 2) Check Datadog for NetworkPacketsOut spike on DCs. 3) Confirm the conditional forwarder now points to Route 53 Resolver inbound endpoint (rslvr-in-33bec0891b854ea8b at 172.31.223.154 / 172.31.168.212) with UseRecursion=$false \u00e2\u20ac\u201d the PIR's action items state this was completed on 2026-05-20/21. 4) If the endpoint path was reverted, recycle DNS clients on affected hosts to clear the 15-min negative cache. 5) Long-term per PIR: reduce Windows MaxNegativeTtl from 15 minutes to 30 seconds; enable DNS client logging; collect Datadog throttling metrics (bw_*_allowance_exceeded, pps_allowance_exceeded, conntrack_allowance_exceeded, linklocal_allowance_exceeded).",
     "fix_status": "in-progress",
     "fix_jira": null,
     "fix_template": null,
@@ -694,8 +694,8 @@
         }
       ]
     },
-    "diagnosis": "The platform experienced intermittent slowness for ~1 hour on 2025-10-06. Datadog metrics + Logstash traced it to the EDA Orchestrator API timing out after a fixed 1 minute, which then delayed upstream runtime-core request processing. EDA Orchestrator is only enabled for the 'Gary accounts' cohort, so only those accounts saw the impact. Root cause was a load-balancing / deployment misconfiguration on prod-msl-03/04/05 — fixed under PL-57695.",
-    "playbook": "1) On runtime-core slowness alerts that affect only the Gary-accounts cohort, check the EDA Orchestrator API (eda.methodlocal.int health) for elevated latency / 1-minute timeouts on prod-msl-03/04/05. 2) If timing out, confirm the LB target group includes all three nodes and they all return healthy at the same EDA endpoint. 3) Mitigation: re-balance the EDA Orchestrator deploy across all three nodes (or restart any failing node). 4) PL-57695 was the long-term fix — confirm that LB/deploy config is still correct.",
+    "diagnosis": "The platform experienced intermittent slowness for ~1 hour on 2025-10-06. Datadog metrics + Logstash traced it to the EDA Orchestrator API timing out after a fixed 1 minute, which then delayed upstream runtime-core request processing. EDA Orchestrator is only enabled for the 'Gary accounts' cohort, so only those accounts saw the impact. Root cause was a load-balancing / deployment misconfiguration on prod-msl-03/04/05 \u2014 fixed under PL-57695.",
+    "playbook": "1) On runtime-core slowness alerts that affect only the Gary-accounts cohort, check the EDA Orchestrator API (eda.methodlocal.int health) for elevated latency / 1-minute timeouts on prod-msl-03/04/05. 2) If timing out, confirm the LB target group includes all three nodes and they all return healthy at the same EDA endpoint. 3) Mitigation: re-balance the EDA Orchestrator deploy across all three nodes (or restart any failing node). 4) PL-57695 was the long-term fix \u2014 confirm that LB/deploy config is still correct.",
     "fix_status": "resolved",
     "fix_jira": "PL-57695",
     "fix_template": null,
@@ -708,7 +708,7 @@
   },
   {
     "id": "ki-elasticsearch-disk-watermark-readonly",
-    "title": "Elasticsearch high-disk watermark flips indices read-only → RabbitMQ messages pile up to 40K error-queue cap",
+    "title": "Elasticsearch high-disk watermark flips indices read-only \u2192 RabbitMQ messages pile up to 40K error-queue cap",
     "first_seen": "2025-05-13T22:00:00Z",
     "last_seen": "2025-05-14T03:00:00Z",
     "occurrences": 1,
@@ -742,7 +742,7 @@
       ]
     },
     "diagnosis": "Elasticsearch reached its high disk space watermark, ES auto-flipped indices into read-only mode, and writes stopped. With ES rejecting writes, messages piled up in RabbitMQ. Method policy is 40K-message ceiling per queue; once exceeded, messages divert to the error queue. Customers saw intermittent random error messages between 10-11 PM and general slowness throughout the day. Action items: increased the data drive size; the upcoming ES v9 cluster migration is the long-term fix.",
-    "playbook": "1) On 'intermittent random error messages' / generalized slowness when no deploy ran, check ES cluster disk usage on each node. If any node is over the high-watermark threshold (default 85%), ES has flipped its indices to read-only. 2) Confirm via RabbitMQ — search for queues at or near the 40K message cap, especially audit-trail or ES-shipper queues. 3) Mitigation: free disk on the affected ES node (close old indices, delete stale snapshots, expand the data volume). 4) Long-term: confirm the ES v9 cluster migration has shipped and the new cluster has appropriate disk headroom / ILM.",
+    "playbook": "1) On 'intermittent random error messages' / generalized slowness when no deploy ran, check ES cluster disk usage on each node. If any node is over the high-watermark threshold (default 85%), ES has flipped its indices to read-only. 2) Confirm via RabbitMQ \u2014 search for queues at or near the 40K message cap, especially audit-trail or ES-shipper queues. 3) Mitigation: free disk on the affected ES node (close old indices, delete stale snapshots, expand the data volume). 4) Long-term: confirm the ES v9 cluster migration has shipped and the new cluster has appropriate disk headroom / ILM.",
     "fix_status": "mitigated",
     "fix_jira": null,
     "fix_template": null,
@@ -866,7 +866,7 @@
       ]
     },
     "diagnosis": "Customers with cancelled accounts received payment emails from Method that they should not have. Investigation found the emails were sent by Intercom, not Method. Method's Intercom sync was breaking for several accounts because the FeatureFlagList company field exceeded the 255-char max. As a result, cancelled-account states were never synced to Intercom, and Intercom continued to treat cancelled accounts as active for email triggers. Estimated impact: ~125 inactive accounts and ~1,265 active accounts. Hotfix released to address active and inactive accounts during nightly sync; data backfill performed for the 125 inactive. Follow-up observability work in PL-48592.",
-    "playbook": "1) On 'cancelled customers receiving emails from Method' complaints, check whether the emails were sent by Method or by Intercom (sender domain in the email). 2) Verify Intercom sync health — search for sync failures linked to FeatureFlagList truncation. 3) If recurrence: hotfix to truncate or chunk FeatureFlagList for Intercom transmission, then backfill stale cancelled-account states. 4) Long-term: confirm PL-48592 observability is in place to detect Intercom-sync drift earlier.",
+    "playbook": "1) On 'cancelled customers receiving emails from Method' complaints, check whether the emails were sent by Method or by Intercom (sender domain in the email). 2) Verify Intercom sync health \u2014 search for sync failures linked to FeatureFlagList truncation. 3) If recurrence: hotfix to truncate or chunk FeatureFlagList for Intercom transmission, then backfill stale cancelled-account states. 4) Long-term: confirm PL-48592 observability is in place to detect Intercom-sync drift earlier.",
     "fix_status": "resolved",
     "fix_jira": "PL-48592",
     "fix_template": null,
@@ -967,7 +967,7 @@
   },
   {
     "id": "ki-methodintegration-domain-payment-overdue",
-    "title": "methodintegration.com domain redirected to GoDaddy parking page from overdue payment → Classic / Report Generation / Tables & Fields down",
+    "title": "methodintegration.com domain redirected to GoDaddy parking page from overdue payment \u2192 Classic / Report Generation / Tables & Fields down",
     "first_seen": "2025-09-15T00:00:00Z",
     "last_seen": "2025-09-15T01:35:00Z",
     "occurrences": 1,
@@ -996,7 +996,7 @@
       ]
     },
     "diagnosis": "Method Classic, Report Generation, and Tables & Fields all suddenly broke. Root cause: the methodintegration.com domain registration payment was overdue on GoDaddy and GoDaddy redirected the domain to their parking page. Action items: Paul purchased the domain for three years, ops@method.me was added as an admin on the GoDaddy account, and the credentials were added to Passbolt.",
-    "playbook": "1) On unexplained simultaneous outages of Classic + Report Generation + Tables & Fields with no recent deploy, immediately check whether any Method-owned domain (especially methodintegration.com) has changed DNS / redirects to a registrar parking page. 2) Visit the domain in a browser — if it shows GoDaddy / registrar parking, payment is overdue. 3) Mitigation: pay the domain immediately; DNS will repropagate within minutes-to-hours. 4) Long-term: confirm ops@method.me is on the registrar account, credentials in Passbolt, and renewal is multi-year.",
+    "playbook": "1) On unexplained simultaneous outages of Classic + Report Generation + Tables & Fields with no recent deploy, immediately check whether any Method-owned domain (especially methodintegration.com) has changed DNS / redirects to a registrar parking page. 2) Visit the domain in a browser \u2014 if it shows GoDaddy / registrar parking, payment is overdue. 3) Mitigation: pay the domain immediately; DNS will repropagate within minutes-to-hours. 4) Long-term: confirm ops@method.me is on the registrar account, credentials in Passbolt, and renewal is multi-year.",
     "fix_status": "resolved",
     "fix_jira": null,
     "fix_template": null,
@@ -1008,7 +1008,7 @@
   },
   {
     "id": "ki-methodtcpipserver-stops-during-classic-deploy",
-    "title": "MethodTCPIPServer agent stops during deploy of an unrelated web service → QBDT Real-Time Sync down",
+    "title": "MethodTCPIPServer agent stops during deploy of an unrelated web service \u2192 QBDT Real-Time Sync down",
     "first_seen": "2024-06-19T12:50:00Z",
     "last_seen": "2024-06-19T13:35:00Z",
     "occurrences": 1,
@@ -1030,7 +1030,7 @@
         }
       ]
     },
-    "diagnosis": "QBDT Real-Time Sync between Method→QBDT was down for ~45 minutes; the Engine showed as disconnected. Root cause: during a deploy of a web service (NOT MethodTCPIPServer), the MethodTCPIPServer agent stopped operating — even though the deploy did not target it. The deploy should not have affected the agent. Action item is to monitor for recurrence; no permanent fix shipped at PIR time.",
+    "diagnosis": "QBDT Real-Time Sync between Method\u2192QBDT was down for ~45 minutes; the Engine showed as disconnected. Root cause: during a deploy of a web service (NOT MethodTCPIPServer), the MethodTCPIPServer agent stopped operating \u2014 even though the deploy did not target it. The deploy should not have affected the agent. Action item is to monitor for recurrence; no permanent fix shipped at PIR time.",
     "playbook": "1) On 'QBDT Real-Time Sync down' alerts shortly after a deploy of any Classic-related web service, check whether the MethodTCPIPServer agent is running on Classic. If not, restart it. 2) Confirm the Engine reconnects. 3) Long-term: instrument for the agent stopping (Centreon or DD agent process check) so this doesn't go undetected.",
     "fix_status": "needs-human",
     "fix_jira": null,
@@ -1043,7 +1043,7 @@
   },
   {
     "id": "ki-methodui-sanitization-analytics-overload",
-    "title": "MethodUI outage from sanitization-discrepancy tracking firing excessive ms-analytics calls → SQL pool exhaustion (PL-52451)",
+    "title": "MethodUI outage from sanitization-discrepancy tracking firing excessive ms-analytics calls \u2192 SQL pool exhaustion (PL-52451)",
     "first_seen": "2025-02-27T13:36:00Z",
     "last_seen": "2025-02-27T14:42:00Z",
     "occurrences": 1,
@@ -1078,8 +1078,8 @@
         }
       ]
     },
-    "diagnosis": "A change to track XSS-sanitization discrepancies (compare raw vs sanitized user input) generated excessive and redundant API calls to ms-analytics. Faulty comparison logic flagged minor variations (attribute order, spacing, extra closing tags) as discrepancies; one path compared objects instead of primitives, multiplying call volume. ms-analytics was overwhelmed; SQL Server max-connection-pool hit (~4000 open connections on sql-prod1 vs typical ~1500/server at peak) — taking the whole platform down. Confusion: MethodPheonix surfaced the errors but the actual problem was upstream; recent architecture changes (2 new servers) further delayed root-cause identification. Rollback was delayed by the investigation. Mitigations: batching/deduplication for the discrepancy tracking, fix the comparison logic, expedite rollback decisions when only one service shows symptoms.",
-    "playbook": "1) On MethodUI outage with errors pointing to MethodPheonix and elevated SQL connection counts, check ms-analytics request rate over the last release window — if it's 10x+ baseline, this is the pattern. 2) Confirm via SQL: SELECT COUNT(*) FROM sys.dm_exec_connections per host. If sql-prod1 shows >3000 open, sanitization-tracking is the suspect. 3) Mitigation: roll back the latest sanitization change in MethodUI. 4) Long-term: confirm batching/deduplication are in place for discrepancy reporting, and that the comparison logic doesn't false-positive on minor whitespace/order differences.",
+    "diagnosis": "A change to track XSS-sanitization discrepancies (compare raw vs sanitized user input) generated excessive and redundant API calls to ms-analytics. Faulty comparison logic flagged minor variations (attribute order, spacing, extra closing tags) as discrepancies; one path compared objects instead of primitives, multiplying call volume. ms-analytics was overwhelmed; SQL Server max-connection-pool hit (~4000 open connections on sql-prod1 vs typical ~1500/server at peak) \u2014 taking the whole platform down. Confusion: MethodPheonix surfaced the errors but the actual problem was upstream; recent architecture changes (2 new servers) further delayed root-cause identification. Rollback was delayed by the investigation. Mitigations: batching/deduplication for the discrepancy tracking, fix the comparison logic, expedite rollback decisions when only one service shows symptoms.",
+    "playbook": "1) On MethodUI outage with errors pointing to MethodPheonix and elevated SQL connection counts, check ms-analytics request rate over the last release window \u2014 if it's 10x+ baseline, this is the pattern. 2) Confirm via SQL: SELECT COUNT(*) FROM sys.dm_exec_connections per host. If sql-prod1 shows >3000 open, sanitization-tracking is the suspect. 3) Mitigation: roll back the latest sanitization change in MethodUI. 4) Long-term: confirm batching/deduplication are in place for discrepancy reporting, and that the comparison logic doesn't false-positive on minor whitespace/order differences.",
     "fix_status": "resolved",
     "fix_jira": "PL-52451",
     "fix_template": null,
@@ -1120,7 +1120,7 @@
       ]
     },
     "diagnosis": "Users on whitelisted accounts could not sign in via Microsoft SSO for ~9 hours. Root cause: Method's Microsoft SSO secret keys expired and we did not receive any notification. Approximately 6 accounts impacted (based on IPs in the logs). Fix: Arash created new Microsoft secret keys via the Secret Manager. Microsoft only allows 2-year expiration for these keys, so the team plans to set a reminder for the next rotation. Long-term: keep an up-to-date SSO doc and run sign-in SSO automation tests daily.",
-    "playbook": "1) On 'Microsoft SSO sign-in failing' alerts, check the Microsoft secret keys' expiration date in Method's Secret Manager and in the Azure portal for the Method app registration. 2) If expired or near expiration, rotate the secret immediately — generate a new client secret in Azure, update Method's Secret Manager. 3) Long-term: confirm the 2-year-renewal reminder is set, daily SSO sign-in automation tests are running, and an alert fires N days before expiration.",
+    "playbook": "1) On 'Microsoft SSO sign-in failing' alerts, check the Microsoft secret keys' expiration date in Method's Secret Manager and in the Azure portal for the Method app registration. 2) If expired or near expiration, rotate the secret immediately \u2014 generate a new client secret in Azure, update Method's Secret Manager. 3) Long-term: confirm the 2-year-renewal reminder is set, daily SSO sign-in automation tests are running, and an alert fires N days before expiration.",
     "fix_status": "resolved",
     "fix_jira": "PL-44416",
     "fix_template": null,
@@ -1161,7 +1161,7 @@
       ]
     },
     "diagnosis": "A single account (knollinvestments) was unable to log in to Method because its account-level data had gone missing from the MongoDB Account collection. The data was restored by manually re-inserting it; PL-48047 was filed to investigate how the data was lost in the first place. Pattern is rare but recurring shape: when a single account can't sign in and everything else is healthy, check the Mongo Account collection for that account name.",
-    "playbook": "1) On 'single account cannot sign in / login' reports while the rest of the platform is healthy, query the MongoDB Account collection for that account's document. If it's missing, this is the pattern. 2) Mitigation: restore the missing document from a backup or recreate it manually if no backup exists. 3) Long-term: PL-48047 root-cause analysis — most likely candidates are a botched cleanup script or a TTL index misconfiguration.",
+    "playbook": "1) On 'single account cannot sign in / login' reports while the rest of the platform is healthy, query the MongoDB Account collection for that account's document. If it's missing, this is the pattern. 2) Mitigation: restore the missing document from a backup or recreate it manually if no backup exists. 3) Long-term: PL-48047 root-cause analysis \u2014 most likely candidates are a botched cleanup script or a TTL index misconfiguration.",
     "fix_status": "resolved",
     "fix_jira": "PL-48047",
     "fix_template": null,
@@ -1174,7 +1174,7 @@
   },
   {
     "id": "ki-mongodb-migration-overwhelms-app-update-agent",
-    "title": "Migration 672 (banner content/schedule collection creation across all accounts) overwhelmed Mongo + cascaded to App Update Agent → new accounts had blank dashboards (PL-58297)",
+    "title": "Migration 672 (banner content/schedule collection creation across all accounts) overwhelmed Mongo + cascaded to App Update Agent \u2192 new accounts had blank dashboards (PL-58297)",
     "first_seen": "2025-12-10T14:00:00Z",
     "last_seen": "2025-12-10T16:00:00Z",
     "occurrences": 1,
@@ -1223,8 +1223,8 @@
         }
       ]
     },
-    "diagnosis": "Migration 672 ran synchronous drop/create operations on two collections (BannerContentCollection, BannerScheduleCollection) across all ~12K account databases at once, triggering WiredTiger's 'deferred table drop' mechanism and replication lag. The Mongo load cascaded to the App Update Agent (RabbitMQ consumer), which failed creating two compound indexes — AddCmpndIdxVersionIdToScreenInfoAccount (Runtime.Core.ScreenInfo) and AddCmpndIdxFieldTableNameToScreenBaseAccount (Runtime.Core.ScreenBase). New accounts finishing onboarding during the 2-hour window saw blank dashboards. Mitigation: P0 to stop the migration immediately; PL-58299 reshapes the migration to run off-hours; PL-58300 adds index-check handling.",
-    "playbook": "1) If new-account dashboards are blank during/after a migration window, check whether a migration script is currently running across all account DBs (look for active drop/create ops in Mongo). 2) Confirm App Update Agent failures via the RabbitMQ consumer logs and look for index-creation failures on Runtime.Core.ScreenInfo / Runtime.Core.ScreenBase. 3) Mitigation: stop the offending migration — apps re-appear instantly for new accounts once Mongo load subsides. 4) Long-term: any future cross-account migration must run off-hours and in smaller batches, and must NOT use synchronous drop+create (use create-only or rename-then-drop).",
+    "diagnosis": "Migration 672 ran synchronous drop/create operations on two collections (BannerContentCollection, BannerScheduleCollection) across all ~12K account databases at once, triggering WiredTiger's 'deferred table drop' mechanism and replication lag. The Mongo load cascaded to the App Update Agent (RabbitMQ consumer), which failed creating two compound indexes \u2014 AddCmpndIdxVersionIdToScreenInfoAccount (Runtime.Core.ScreenInfo) and AddCmpndIdxFieldTableNameToScreenBaseAccount (Runtime.Core.ScreenBase). New accounts finishing onboarding during the 2-hour window saw blank dashboards. Mitigation: P0 to stop the migration immediately; PL-58299 reshapes the migration to run off-hours; PL-58300 adds index-check handling.",
+    "playbook": "1) If new-account dashboards are blank during/after a migration window, check whether a migration script is currently running across all account DBs (look for active drop/create ops in Mongo). 2) Confirm App Update Agent failures via the RabbitMQ consumer logs and look for index-creation failures on Runtime.Core.ScreenInfo / Runtime.Core.ScreenBase. 3) Mitigation: stop the offending migration \u2014 apps re-appear instantly for new accounts once Mongo load subsides. 4) Long-term: any future cross-account migration must run off-hours and in smaller batches, and must NOT use synchronous drop+create (use create-only or rename-then-drop).",
     "fix_status": "resolved",
     "fix_jira": "PL-58297",
     "fix_template": null,
@@ -1265,7 +1265,7 @@
         }
       ]
     },
-    "diagnosis": "LimitNOFILE=64000 in mongod.service (never overridden from the install default) is too low for the multi-tenant, one-DB-per-tenant deployment. Migration 716 (commit 23a3164) created two new collections in every tenant DB, pushing FD count past the limit. WiredTiger returned errno 24 (EMFILE), triggering fatal assertion 50882 and a self-abort. The replica set failed over in ~10 seconds, but rs01 stayed down for 91 minutes because Restart=on-failure was not set in the service unit, leaving all traffic on a single data node (causing slow customization screens). rs02 (current primary) was at ~27,300/64,000 FDs and rising at PIR time â€” same crash risk remains until LimitNOFILE is raised.",
+    "diagnosis": "LimitNOFILE=64000 in mongod.service (never overridden from the install default) is too low for the multi-tenant, one-DB-per-tenant deployment. Migration 716 (commit 23a3164) created two new collections in every tenant DB, pushing FD count past the limit. WiredTiger returned errno 24 (EMFILE), triggering fatal assertion 50882 and a self-abort. The replica set failed over in ~10 seconds, but rs01 stayed down for 91 minutes because Restart=on-failure was not set in the service unit, leaving all traffic on a single data node (causing slow customization screens). rs02 (current primary) was at ~27,300/64,000 FDs and rising at PIR time \u00e2\u20ac\u201d same crash risk remains until LimitNOFILE is raised.",
     "playbook": "1) Check mongod logs on rs01/rs02/rs03 for fatal assertion 50882 or 'errno 24' or 'EMFILE'. 2) Check current FD usage: `lsof -p $(pgrep mongod) | wc -l`. If approaching 64000, you're on the same path. 3) Check whether LimitNOFILE was raised: `systemctl show mongod | grep LimitNOFILE`. Per PIR action item (Arash, immediate priority), this should be raised to infinity and Restart=on-failure added via systemd drop-in (rs01 first, then step down rs02). 4) Symptom signal: 'customization slow' + only one healthy replica = rs01 (or whichever) is down. 5) Mitigation: manual restart of the failed mongod.",
     "fix_status": "proposed",
     "fix_jira": null,
@@ -1278,7 +1278,7 @@
   },
   {
     "id": "ki-ms-account-nginx-soft-limit-1024-deploy",
-    "title": "ms-account-api release exhausts nginx 1024-connection soft limit during single-node rotation → login failures",
+    "title": "ms-account-api release exhausts nginx 1024-connection soft limit during single-node rotation \u2192 login failures",
     "first_seen": "2024-04-05T13:00:00Z",
     "last_seen": "2024-04-05T13:10:00Z",
     "occurrences": 1,
@@ -1307,7 +1307,7 @@
       ]
     },
     "diagnosis": "During the morning release of ms-account-api, the deploy drained one instance at a time. While only one healthy instance remained behind the LB, the nginx process there hit its 1024 max-connections soft limit (other microservices on the same MSL host competed for the same nginx). Health checks failed, ms-account became unresponsive, dependents (Method-JWT issuance, sign-in) cascaded. Action items: raise the nginx soft limit on connections, add an extra node to the MSL pool, reduce method-ui's call rate to ms-account, schedule application-health review meetings with dev teams.",
-    "playbook": "1) On 'trouble logging into Method' or ms-account-api health check failures during a release rotation, check the nginx on the deploying MSL host — `ss -tn state established '( sport = :http )' | wc -l`. If it's near 1024, this is the pattern. 2) Mitigation: pause the rotation; bring an additional node into the LB; raise the nginx soft limit if not already done. 3) Long-term: confirm the nginx connections monitor / alert is in place.",
+    "playbook": "1) On 'trouble logging into Method' or ms-account-api health check failures during a release rotation, check the nginx on the deploying MSL host \u2014 `ss -tn state established '( sport = :http )' | wc -l`. If it's near 1024, this is the pattern. 2) Mitigation: pause the rotation; bring an additional node into the LB; raise the nginx soft limit if not already done. 3) Long-term: confirm the nginx connections monitor / alert is in place.",
     "fix_status": "mitigated",
     "fix_jira": null,
     "fix_template": null,
@@ -1392,7 +1392,7 @@
         }
       ]
     },
-    "diagnosis": "Signup passes a list of feature flags to ms-preferences-api when creating an account. If any flag is unknown or has been renamed, ms-preferences-api fails the entire call — and ms-preferences has no mechanism to initialize the preferences collection on a partial failure. Result: new sign-ups error on the first onboarding page until ms-preferences-api is rolled back. Long-term fix: update preferences init to ignore unknown feature flags instead of failing.",
+    "diagnosis": "Signup passes a list of feature flags to ms-preferences-api when creating an account. If any flag is unknown or has been renamed, ms-preferences-api fails the entire call \u2014 and ms-preferences has no mechanism to initialize the preferences collection on a partial failure. Result: new sign-ups error on the first onboarding page until ms-preferences-api is rolled back. Long-term fix: update preferences init to ignore unknown feature flags instead of failing.",
     "playbook": "1) On 'new signups onboarding failing' reports, check whether ms-preferences-api was just released and whether the signup flow's feature-flag list includes any unknown/renamed flags. 2) Mitigation: roll back ms-preferences-api. 3) Long-term: confirm the preferences-init endpoint now ignores unknown feature flags (silently skip rather than fail the whole call).",
     "fix_status": "resolved",
     "fix_jira": null,
@@ -1454,7 +1454,7 @@
   },
   {
     "id": "ki-mysql-connection-pool-exhausted-soap-logging",
-    "title": "CIAMedical SOAP API logging fails with 'Timeout expired … all pooled connections in use' from MySQL",
+    "title": "CIAMedical SOAP API logging fails with 'Timeout expired \u2026 all pooled connections in use' from MySQL",
     "first_seen": "2024-05-30T12:49:00Z",
     "last_seen": "2024-05-30T13:26:00Z",
     "occurrences": 1,
@@ -1481,8 +1481,8 @@
         }
       ]
     },
-    "diagnosis": "The CIAMedical SOAP API host exhausted its MySQL connection pool with 'Timeout expired. The timeout period elapsed prior to obtaining a connection from the pool. This may have occurred because all pooled connections were in use and max pool size was reached.' Other Classic hosts (4/5) had many users hitting MySQL with no effect. Impact was minimal — only the per-call count-logging failed (the API calls themselves still went through), so the only side effect was that customers got 'free' calls beyond their API limit. Mitigation: changed MySQL calls into a singleton, which silenced the noise.",
-    "playbook": "1) If logs on a SOAP API host (CIAMedical or similar) show 'MySql.Data.MySqlClient.MySqlException … all pooled connections were in use', check whether per-call logging is creating a new MySQL connection per request. 2) Confirm: API endpoint itself works, only count-logging fails. 3) Mitigation: make the MySQL connection a singleton (or use a connection-pool helper that reuses connections). 4) Customer impact is minimal — API limit tracking is broken (free calls until fixed).",
+    "diagnosis": "The CIAMedical SOAP API host exhausted its MySQL connection pool with 'Timeout expired. The timeout period elapsed prior to obtaining a connection from the pool. This may have occurred because all pooled connections were in use and max pool size was reached.' Other Classic hosts (4/5) had many users hitting MySQL with no effect. Impact was minimal \u2014 only the per-call count-logging failed (the API calls themselves still went through), so the only side effect was that customers got 'free' calls beyond their API limit. Mitigation: changed MySQL calls into a singleton, which silenced the noise.",
+    "playbook": "1) If logs on a SOAP API host (CIAMedical or similar) show 'MySql.Data.MySqlClient.MySqlException \u2026 all pooled connections were in use', check whether per-call logging is creating a new MySQL connection per request. 2) Confirm: API endpoint itself works, only count-logging fails. 3) Mitigation: make the MySQL connection a singleton (or use a connection-pool helper that reuses connections). 4) Customer impact is minimal \u2014 API limit tracking is broken (free calls until fixed).",
     "fix_status": "resolved",
     "fix_jira": null,
     "fix_template": null,
@@ -1606,8 +1606,8 @@
         }
       ]
     },
-    "diagnosis": "Customers reported Real-Time Sync from Method to QuickBooks Desktop was not working — QBDT instances showed as 'connected' but RT events were not triggering. Background, full, and changes syncs were unaffected. Root cause: DNS configuration for legacy-sync-services on prod-classic-1/2 resolved to a load balancer whose target group pointed to the WRONG machine, so RT-sync traffic was timing out or failing to reach the actual service. Temporary fix: added a host entry on prod-classic-1/2 to force traffic to the correct IP. Permanent fix: added the correct machine (prod-utility) to the target group, so DNS routing now works; the temporary host entries can be removed once the new routing is confirmed stable.",
-    "playbook": "1) If RT sync from Method→QBDT is down but background/full/changes sync still works, suspect a DNS routing problem (NOT an app-pool crash). 2) From prod-classic-1 and prod-classic-2, run `nslookup legacy-sync-services.method.int` and confirm the load balancer it resolves to has prod-utility in its target group. 3) Confirm via the canonical error: 'A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond'. 4) Mitigation: add an /etc/hosts (Linux) or hosts file (Windows) entry pointing legacy-sync-services to the correct prod-utility IP. 5) Permanent: AWS console → target group → add prod-utility, remove temp hosts entries.",
+    "diagnosis": "Customers reported Real-Time Sync from Method to QuickBooks Desktop was not working \u2014 QBDT instances showed as 'connected' but RT events were not triggering. Background, full, and changes syncs were unaffected. Root cause: DNS configuration for legacy-sync-services on prod-classic-1/2 resolved to a load balancer whose target group pointed to the WRONG machine, so RT-sync traffic was timing out or failing to reach the actual service. Temporary fix: added a host entry on prod-classic-1/2 to force traffic to the correct IP. Permanent fix: added the correct machine (prod-utility) to the target group, so DNS routing now works; the temporary host entries can be removed once the new routing is confirmed stable.",
+    "playbook": "1) If RT sync from Method\u2192QBDT is down but background/full/changes sync still works, suspect a DNS routing problem (NOT an app-pool crash). 2) From prod-classic-1 and prod-classic-2, run `nslookup legacy-sync-services.method.int` and confirm the load balancer it resolves to has prod-utility in its target group. 3) Confirm via the canonical error: 'A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond'. 4) Mitigation: add an /etc/hosts (Linux) or hosts file (Windows) entry pointing legacy-sync-services to the correct prod-utility IP. 5) Permanent: AWS console \u2192 target group \u2192 add prod-utility, remove temp hosts entries.",
     "fix_status": "resolved",
     "fix_jira": "PL-61643",
     "fix_template": null,
@@ -1620,7 +1620,7 @@
   },
   {
     "id": "ki-qbo-sync-datadog-mass-transit-blockage",
-    "title": "QBO Sync silently fails to enqueue to RabbitMQ â€” Datadog trace + old MassTransit blockage",
+    "title": "QBO Sync silently fails to enqueue to RabbitMQ \u00e2\u20ac\u201d Datadog trace + old MassTransit blockage",
     "first_seen": "2026-04-30T14:00:00Z",
     "last_seen": "2026-04-30T20:30:00Z",
     "occurrences": 1,
@@ -1646,7 +1646,7 @@
       ]
     },
     "diagnosis": "Real-time QBO sync goes silently dark: calls to the QBO Sync API are not landing in RabbitMQ for consumers to process. Recycling the app pool on Sync (Util 2 & 3) is required for messages to enqueue again. Root cause: combination of (a) MassTransit being out of date on the project and (b) Datadog's trace causing a blockage in coordination with MassTransit that prevents messages from going into Rabbit. Mitigation: Datadog's trace has been removed from QBO Sync. A code change by Arash exists to help prevent recurrence when Datadog trace is reattached. MassTransit upgrade is planned as part of the AI Upgrade work.",
-    "playbook": "1) If QBO real-time sync is reported as down, check RabbitMQ inbound queue depth for the QBO Sync exchange â€” if the publisher side is silent (no messages landing), this is the pattern. 2) Confirm by checking whether Datadog trace was recently re-enabled on QBO Sync (configuration / deploy history). 3) Mitigation: recycle app pools on Sync Util 2 & 3 (this clears the blockage temporarily). 4) Long-term: keep Datadog trace OFF on QBO Sync until MassTransit is upgraded (tracked under AI Upgrade).",
+    "playbook": "1) If QBO real-time sync is reported as down, check RabbitMQ inbound queue depth for the QBO Sync exchange \u00e2\u20ac\u201d if the publisher side is silent (no messages landing), this is the pattern. 2) Confirm by checking whether Datadog trace was recently re-enabled on QBO Sync (configuration / deploy history). 3) Mitigation: recycle app pools on Sync Util 2 & 3 (this clears the blockage temporarily). 4) Long-term: keep Datadog trace OFF on QBO Sync until MassTransit is upgraded (tracked under AI Upgrade).",
     "fix_status": "mitigated",
     "fix_jira": null,
     "fix_template": null,
@@ -1658,7 +1658,7 @@
   },
   {
     "id": "ki-rabbitmq-audittrail-healthcheck-connection-leak",
-    "title": "RabbitMQ cluster memory leak — AuditTrail API health check holds persistent broker connection on every check (PL-57675)",
+    "title": "RabbitMQ cluster memory leak \u2014 AuditTrail API health check holds persistent broker connection on every check (PL-57675)",
     "first_seen": "2025-09-29T00:00:00Z",
     "last_seen": "2025-10-03T00:00:00Z",
     "occurrences": 1,
@@ -1694,7 +1694,7 @@
         }
       ]
     },
-    "diagnosis": "The RabbitMQ cluster experienced prolonged high memory usage (4 days) traced to a connection leak in the AuditTrail API. Its health check was misconfigured to open a persistent connection to the broker on every probe; with frequent probes, the open-connection count grew continuously and consumed RMQ memory. Manual node restarts temporarily relieved memory pressure. The investigation was initially hampered because the old AWS Classic Load Balancer did not pass true client IPs. Resolution: replaced the CLB with an NLB to expose client IPs, identified MSL03/MSL04 as the offending services, fixed the AuditTrail health check, deployed. Long-term: PL-57581 migrates the RMQ cluster to new Ubuntu machines with the latest broker version. No customer impact during the incident — only internal alerting noise and manual restarts.",
+    "diagnosis": "The RabbitMQ cluster experienced prolonged high memory usage (4 days) traced to a connection leak in the AuditTrail API. Its health check was misconfigured to open a persistent connection to the broker on every probe; with frequent probes, the open-connection count grew continuously and consumed RMQ memory. Manual node restarts temporarily relieved memory pressure. The investigation was initially hampered because the old AWS Classic Load Balancer did not pass true client IPs. Resolution: replaced the CLB with an NLB to expose client IPs, identified MSL03/MSL04 as the offending services, fixed the AuditTrail health check, deployed. Long-term: PL-57581 migrates the RMQ cluster to new Ubuntu machines with the latest broker version. No customer impact during the incident \u2014 only internal alerting noise and manual restarts.",
     "playbook": "1) On 'RabbitMQ memory growing / high memory' alerts, list the open RMQ connections by client IP. If a single host has dozens-to-hundreds of connections, that's the leak source. 2) If client IPs are masked by a CLB, fail back to the NLB-exposed view (or restart the LB to capture true IPs). 3) Identify the offending service (often AuditTrail API on MSL03/MSL04) and confirm via its health check route. 4) Mitigation: fix the health check to close its broker connection after probing (per PL-57675), redeploy. 5) Long-term: PL-57581 RMQ upgrade migration.",
     "fix_status": "resolved",
     "fix_jira": "PL-57675",
@@ -1788,8 +1788,8 @@
         }
       ]
     },
-    "diagnosis": "Sporadic platform slowness correlates with Redis CPU/latency spikes. Cause: CacheClearEventConsumer clears cache entries by pattern matching (e.g., 'UserContext:account:identity*', 'PreferenceContext:account:identity*'). On Redis/Valkey, pattern deletes require scanning the full keyspace to locate matching keys. Under high cache invalidation rates (coordinated user/permission changes), this generates burst SCAN commands across multiple shards, saturating Redis and degrading API response times for all customers. Duplicate cache-clear messages for the same account/identity are not coalesced â€” the same expensive scan executes many times in rapid succession.",
-    "playbook": "1) Confirm via Datadog Redis metrics: CPU spike + elevated SCAN command rate in the alert window. 2) Check for burst of CacheClearEventConsumer log entries. 3) Mitigation (short-term): no immediate fix â€” slowness resolves when the cache-clear burst subsides. 4) Long-term fix is tracked in PL-62474: (a) replace pattern-scan deletes with tag-based deletes maintaining Redis Set tags; (b) implement message coalescing so burst dupes collapse; (c) add Redis SCAN-rate alerting. Set CachingOptions.RunLegacyCacheClearPatternFallback=true during rollout, flush legacy untagged keys post-deploy, then disable the fallback.",
+    "diagnosis": "Sporadic platform slowness correlates with Redis CPU/latency spikes. Cause: CacheClearEventConsumer clears cache entries by pattern matching (e.g., 'UserContext:account:identity*', 'PreferenceContext:account:identity*'). On Redis/Valkey, pattern deletes require scanning the full keyspace to locate matching keys. Under high cache invalidation rates (coordinated user/permission changes), this generates burst SCAN commands across multiple shards, saturating Redis and degrading API response times for all customers. Duplicate cache-clear messages for the same account/identity are not coalesced \u00e2\u20ac\u201d the same expensive scan executes many times in rapid succession.",
+    "playbook": "1) Confirm via Datadog Redis metrics: CPU spike + elevated SCAN command rate in the alert window. 2) Check for burst of CacheClearEventConsumer log entries. 3) Mitigation (short-term): no immediate fix \u00e2\u20ac\u201d slowness resolves when the cache-clear burst subsides. 4) Long-term fix is tracked in PL-62474: (a) replace pattern-scan deletes with tag-based deletes maintaining Redis Set tags; (b) implement message coalescing so burst dupes collapse; (c) add Redis SCAN-rate alerting. Set CachingOptions.RunLegacyCacheClearPatternFallback=true during rollout, flush legacy untagged keys post-deploy, then disable the fallback.",
     "fix_status": "in-progress",
     "fix_jira": "PL-62474",
     "fix_template": null,
@@ -1831,7 +1831,7 @@
       ]
     },
     "diagnosis": "During the 8:55 AM scheduled release rotation, a frontend bug triggered a burst of ~1.7k requests to the GetUtcOffsetFromTimezone endpoint. Those requests returned 401 Unauthorized; method-ui was configured to throw .NET exceptions for 401s, and .NET exceptions are computationally expensive. Because the deploy was mid-rotation, only one node was in the LB. That single node's IIS saturated almost instantly, the app-pool queue overflowed, and the platform showed white screens / freezes for ~45 min. User refreshes amplified the load. Action items per PIR: extend deploy/deregister delay by +60s, change method-ui to return response codes instead of throwing exceptions for 401, add WAF rate-limit rules based on Athena log analysis, optimize GetUtcOffsetFromTimezone, consider keeping a spare node during the deploy rotation.",
-    "playbook": "1) On 'white screen' / IIS-saturation alerts during a release window, check whether the LB shows only one healthy node (mid-rotation single-node state). 2) Search ES for a burst of 401s in the window — especially for GetUtcOffsetFromTimezone or any endpoint that returns 401 for unauthenticated calls. 3) If both signals hit, the pattern is confirmed. 4) Mitigation: bring an additional node into the target group, or pause the rotation, until the burst subsides. 5) Long-term: confirm WAF rate-limits are enforced and method-ui no longer throws .NET exceptions for non-2xx HTTP status (action item from this PIR).",
+    "playbook": "1) On 'white screen' / IIS-saturation alerts during a release window, check whether the LB shows only one healthy node (mid-rotation single-node state). 2) Search ES for a burst of 401s in the window \u2014 especially for GetUtcOffsetFromTimezone or any endpoint that returns 401 for unauthenticated calls. 3) If both signals hit, the pattern is confirmed. 4) Mitigation: bring an additional node into the target group, or pause the rotation, until the burst subsides. 5) Long-term: confirm WAF rate-limits are enforced and method-ui no longer throws .NET exceptions for non-2xx HTTP status (action item from this PIR).",
     "fix_status": "in-progress",
     "fix_jira": null,
     "fix_template": null,
@@ -1885,7 +1885,7 @@
   },
   {
     "id": "ki-restapi-redoc-cdn-link-broken",
-    "title": "REST API developer docs blank page — CDN removed redoc.standalone.js (PL-58656)",
+    "title": "REST API developer docs blank page \u2014 CDN removed redoc.standalone.js (PL-58656)",
     "first_seen": "2025-12-15T00:00:00Z",
     "last_seen": "2025-12-15T02:00:00Z",
     "occurrences": 1,
@@ -1915,8 +1915,8 @@
         }
       ]
     },
-    "diagnosis": "The CDN hosting redoc.standalone.js (used by Method's REST API developer-docs page to render the API spec) removed the file at the location we were referencing, so the docs page rendered as a blank white page. REST API itself was unaffected — only the developer-docs UI was down. Discovered internally before any customer reported it; hotfixed by repointing the script tag to redoc's new CDN location.",
-    "playbook": "1) On 'REST API docs blank page' reports, view-source the docs page and check for the redoc.standalone.js <script> tag — if the URL returns 404, the CDN has moved the file. 2) Hotfix: update the script tag to redoc's current CDN URL (or self-host redoc.standalone.js in Method's static assets to remove the third-party CDN dependency). 3) The REST API endpoints themselves are unaffected — communicate that to customers if asked.",
+    "diagnosis": "The CDN hosting redoc.standalone.js (used by Method's REST API developer-docs page to render the API spec) removed the file at the location we were referencing, so the docs page rendered as a blank white page. REST API itself was unaffected \u2014 only the developer-docs UI was down. Discovered internally before any customer reported it; hotfixed by repointing the script tag to redoc's new CDN location.",
+    "playbook": "1) On 'REST API docs blank page' reports, view-source the docs page and check for the redoc.standalone.js <script> tag \u2014 if the URL returns 404, the CDN has moved the file. 2) Hotfix: update the script tag to redoc's current CDN URL (or self-host redoc.standalone.js in Method's static assets to remove the third-party CDN dependency). 3) The REST API endpoints themselves are unaffected \u2014 communicate that to customers if asked.",
     "fix_status": "resolved",
     "fix_jira": "PL-58656",
     "fix_template": null,
@@ -2016,7 +2016,7 @@
   },
   {
     "id": "ki-runtime-ms-account-caching-broken-servicemap",
-    "title": "runtime-core repeatedly calls ms-account endpoint after PL-57225 broke ServiceMap cache → platform slowness (PL-57626 hotfix)",
+    "title": "runtime-core repeatedly calls ms-account endpoint after PL-57225 broke ServiceMap cache \u2192 platform slowness (PL-57626 hotfix)",
     "first_seen": "2025-09-30T13:00:00Z",
     "last_seen": "2025-09-30T17:35:00Z",
     "occurrences": 1,
@@ -2046,7 +2046,7 @@
         }
       ]
     },
-    "diagnosis": "A runtime-core change in PL-57225 (app-publish / app-update logic) modified ServiceMap class caching behavior such that runtime-core skipped its in-memory cache for the ms-account lookup and queried ms-account on every request. Excess runtime→ms-account traffic increased load on backend systems and caused platform-wide slowness for ~4h35m, particularly during app publish/update operations. Hotfix PL-57626 restored proper caching.",
+    "diagnosis": "A runtime-core change in PL-57225 (app-publish / app-update logic) modified ServiceMap class caching behavior such that runtime-core skipped its in-memory cache for the ms-account lookup and queried ms-account on every request. Excess runtime\u2192ms-account traffic increased load on backend systems and caused platform-wide slowness for ~4h35m, particularly during app publish/update operations. Hotfix PL-57626 restored proper caching.",
     "playbook": "1) On platform slowness alerts after a runtime-core release, check the request rate from runtime-core to ms-account in Datadog. If it's 10-100x baseline, ServiceMap caching is broken. 2) Verify the most recent runtime-core deploy touched ServiceMap or related cache code (check PL-57225 / PL-57626 history). 3) Mitigation: deploy a hotfix that restores the original ServiceMap caching, or roll back the offending PR. 4) Verify in Warehouse and prod that the request rate returned to baseline.",
     "fix_status": "resolved",
     "fix_jira": "PL-57626",
@@ -2091,7 +2091,7 @@
         }
       ]
     },
-    "diagnosis": "Some emails from customers with authenticated domains were not being properly authenticated and were going through the wrong SendGrid sub-user. Investigation found that during a server-patching restart, an old SendGrid sub-user subscriber agent on linux-prod-1 and linux-prod-2 (that had been disabled and removed from the service catalog) came back to life. So instead of 4 valid agents, 5 total were running — 1 of which was the invalid old one — and ~20% of outbound was being directed to that wrong sub-user. Fix: removed the code and disabled the service.",
+    "diagnosis": "Some emails from customers with authenticated domains were not being properly authenticated and were going through the wrong SendGrid sub-user. Investigation found that during a server-patching restart, an old SendGrid sub-user subscriber agent on linux-prod-1 and linux-prod-2 (that had been disabled and removed from the service catalog) came back to life. So instead of 4 valid agents, 5 total were running \u2014 1 of which was the invalid old one \u2014 and ~20% of outbound was being directed to that wrong sub-user. Fix: removed the code and disabled the service.",
     "playbook": "1) On 'authenticated-domain emails landing in spam / wrong sender' reports, check the live SendGrid subscriber agents on linux-prod-1/2. If there are more than 4, an old agent has been reactivated. 2) Mitigation: disable / remove the extra agent. 3) Long-term: confirm the agent's code and service have been fully removed (not just disabled) so a patching restart can't bring it back.",
     "fix_status": "resolved",
     "fix_jira": "PL-45779",
@@ -2164,7 +2164,7 @@
   },
   {
     "id": "ki-shuttle-third-party-platform-outage",
-    "title": "Shuttle (third-party payment platform) outages disrupt Method payment widget / webhooks / portal — recurring",
+    "title": "Shuttle (third-party payment platform) outages disrupt Method payment widget / webhooks / portal \u2014 recurring",
     "first_seen": "2024-01-19T17:00:00Z",
     "last_seen": "2024-10-08T20:00:00Z",
     "occurrences": 4,
@@ -2207,8 +2207,8 @@
         }
       ]
     },
-    "diagnosis": "Method's payment integration depends on the third-party Shuttle platform. Shuttle has produced multiple recurring outages with the same Method-side signal — payment widget returns 504 / black screen / 500, webhooks stop, sometimes the Shuttle dev portal can't log in. Confirmed events: 2023-11-15 (PL-44065, bad Shuttle release E008 null), 2024-01-19 (~12h, Shuttle datacenter routing failure), 2024-02-14 (PL-45556, BOLT-1178, England Logistics specific config issue from Shuttle), 2024-10-08 (PL-49765, 24h full Shuttle outage from DB restore failure), 2024-10-29 (~48h Authorize.Net gateway behind Shuttle failing OAuth refresh during 7-day maintenance window). Pattern is third-party — Method has no remediation beyond communicating to customers and verifying the issue resolves on Shuttle's side. Action item history: investigate moving away from Shuttle and improving long-window alerting for third-party silent outages.",
-    "playbook": "1) On 'payments failing' / 'BOLT-1178' / 'Payment widget 504' reports, first check Shuttle's status page — if they have an open incident, this is the third-party pattern. 2) Confirm the Method-side signal: 504 gateway / 500 internal server error on the payment widget; webhook delivery dropping. 3) Mitigation: there's no Method-side fix during a Shuttle outage. Communicate the workaround to customers (wait for Shuttle to recover; processing resumes automatically). 4) Track recurrence — if Shuttle outages persist, escalate the 'move away from Shuttle' workstream.",
+    "diagnosis": "Method's payment integration depends on the third-party Shuttle platform. Shuttle has produced multiple recurring outages with the same Method-side signal \u2014 payment widget returns 504 / black screen / 500, webhooks stop, sometimes the Shuttle dev portal can't log in. Confirmed events: 2023-11-15 (PL-44065, bad Shuttle release E008 null), 2024-01-19 (~12h, Shuttle datacenter routing failure), 2024-02-14 (PL-45556, BOLT-1178, England Logistics specific config issue from Shuttle), 2024-10-08 (PL-49765, 24h full Shuttle outage from DB restore failure), 2024-10-29 (~48h Authorize.Net gateway behind Shuttle failing OAuth refresh during 7-day maintenance window). Pattern is third-party \u2014 Method has no remediation beyond communicating to customers and verifying the issue resolves on Shuttle's side. Action item history: investigate moving away from Shuttle and improving long-window alerting for third-party silent outages.",
+    "playbook": "1) On 'payments failing' / 'BOLT-1178' / 'Payment widget 504' reports, first check Shuttle's status page \u2014 if they have an open incident, this is the third-party pattern. 2) Confirm the Method-side signal: 504 gateway / 500 internal server error on the payment widget; webhook delivery dropping. 3) Mitigation: there's no Method-side fix during a Shuttle outage. Communicate the workaround to customers (wait for Shuttle to recover; processing resumes automatically). 4) Track recurrence \u2014 if Shuttle outages persist, escalate the 'move away from Shuttle' workstream.",
     "fix_status": "needs-human",
     "fix_jira": null,
     "fix_template": null,
@@ -2251,7 +2251,7 @@
       ]
     },
     "diagnosis": "Admin team released a hotfix for the sign-in path. During the 2-minute deploy window, ~29 users got 400 errors on sign-in; the error logs pointed to HMAC validation failing. Users were able to sign in successfully shortly after. Action item: implement a sign-in fail-safe so HMAC checks can survive mid-release state without 400-ing customers.",
-    "playbook": "1) On a brief burst of sign-in 400s during/right after a release window, check whether the release touched the sign-in path. 2) Search for 'HMAC' in the sign-in logs in the window — if HMAC validation is throwing, this is the pattern. 3) No immediate action needed in most cases (transient; resolves within minutes). 4) Long-term: confirm the fail-safe action item is in place so this doesn't recur on the next sign-in hotfix.",
+    "playbook": "1) On a brief burst of sign-in 400s during/right after a release window, check whether the release touched the sign-in path. 2) Search for 'HMAC' in the sign-in logs in the window \u2014 if HMAC validation is throwing, this is the pattern. 3) No immediate action needed in most cases (transient; resolves within minutes). 4) Long-term: confirm the fail-safe action item is in place so this doesn't recur on the next sign-in hotfix.",
     "fix_status": "needs-human",
     "fix_jira": "PL-53896",
     "fix_template": null,
@@ -2388,8 +2388,8 @@
         }
       ]
     },
-    "diagnosis": "The PL-58920 fix for an IndexOutOfRangeException added explicit column selection on entity retrieval queries: .Select(columnNames) where columnNames came from PrimaryTableFields (entity metadata). TenantId is a system-level DB column not exposed in entity metadata, so it was excluded from the query results — entity was read with TenantId=null, and subsequent updates persisted that null back. Data impact: ~30 records across 3 accounts (out of ~8.2M update operations in the Dec 22-29 window). PL-59906 was a hotfix removing the explicit column selection. PL-59920 backfills/repairs the corrupted records.",
-    "playbook": "1) If reports/audit-trail show TenantId=null on recently-updated entity records, check whether PL-58920-style column-restriction logic was deployed recently. 2) Confirm via DB: query the relevant entity table for TenantId IS NULL on rows updated in the window. 3) Hotfix: remove explicit column selection in entity retrieval — system columns (TenantId, etc.) MUST be in the result set. 4) Cleanup: run the PL-59920-style migration to restore TenantId from AuditTrail records. 5) Long-term: any entity-retrieval code that restricts columns must explicitly include system columns.",
+    "diagnosis": "The PL-58920 fix for an IndexOutOfRangeException added explicit column selection on entity retrieval queries: .Select(columnNames) where columnNames came from PrimaryTableFields (entity metadata). TenantId is a system-level DB column not exposed in entity metadata, so it was excluded from the query results \u2014 entity was read with TenantId=null, and subsequent updates persisted that null back. Data impact: ~30 records across 3 accounts (out of ~8.2M update operations in the Dec 22-29 window). PL-59906 was a hotfix removing the explicit column selection. PL-59920 backfills/repairs the corrupted records.",
+    "playbook": "1) If reports/audit-trail show TenantId=null on recently-updated entity records, check whether PL-58920-style column-restriction logic was deployed recently. 2) Confirm via DB: query the relevant entity table for TenantId IS NULL on rows updated in the window. 3) Hotfix: remove explicit column selection in entity retrieval \u2014 system columns (TenantId, etc.) MUST be in the result set. 4) Cleanup: run the PL-59920-style migration to restore TenantId from AuditTrail records. 5) Long-term: any entity-retrieval code that restricts columns must explicitly include system columns.",
     "fix_status": "resolved",
     "fix_jira": "PL-59906",
     "fix_template": null,
@@ -2437,7 +2437,7 @@
       ]
     },
     "diagnosis": "A new node had been added to the AWS target group for App-Builder, but the TFS release definition was not updated to include the new machine, so the new node never received the latest application code. Customers saw intermittent failures in Grid Builder v2 (load balancer routed some requests to the stale node). Mitigation: updated the primary TFS release definition to include the new machine; also updated all future-ready release definitions; verified successful deploy across all nodes.",
-    "playbook": "1) On intermittent failures in any TFS-built service (App-Builder, etc.) immediately after target-group changes, list the target-group members in AWS and cross-check against the TFS release definition's deployment targets. 2) Confirm by sampling a request and identifying which node served it — if mismatched nodes return different behavior, this is the pattern. 3) Mitigation: redeploy via the corrected TFS release definition (or temporarily remove the stale node from the target group). 4) Long-term: any time a node is added to an AWS target group, DevOps must update every TFS release definition that targets that group.",
+    "playbook": "1) On intermittent failures in any TFS-built service (App-Builder, etc.) immediately after target-group changes, list the target-group members in AWS and cross-check against the TFS release definition's deployment targets. 2) Confirm by sampling a request and identifying which node served it \u2014 if mismatched nodes return different behavior, this is the pattern. 3) Mitigation: redeploy via the corrected TFS release definition (or temporarily remove the stale node from the target group). 4) Long-term: any time a node is added to an AWS target group, DevOps must update every TFS release definition that targets that group.",
     "fix_status": "resolved",
     "fix_jira": null,
     "fix_template": null,
@@ -2481,7 +2481,7 @@
       ]
     },
     "diagnosis": "During the morning tables-fields release on 2023-11-29, the deploy failed health check on MSN02 (MSN01 was healthy). swat reports started coming in about the screen designer being unresponsive. Recycling the app pool unblocked the rollback. Investigation found that ms-archive-api on MSN02 had also been silently failing since 2023-11-23 (no logs/activity), while its heartbeat/health check stayed green. Root cause: Aqueel patched .NET Framework on MSN02 on the night of 2023-11-22 without rebooting the server. The patch required app pools to be recycled (or the server rebooted) before some services would resume functioning correctly. Action: monthly patching paused; long-term, patching steps must include auto-recycle/restart of app pools and ideally a server reboot.",
-    "playbook": "1) On 'tables-fields / screen designer unresponsive' or new release failing health check on one MSN host but not another, check whether Windows .NET Framework patching was recently applied without a reboot. 2) Confirm via Application Event Logs on the failing MSN — look for errors on the date matching the patch (e.g., Aqueel's Nov 22 patch). 3) Mitigation: recycle the affected app pool (Aqueel's Nov 29 step), then re-deploy. 4) Long-term: confirm the patching procedure now includes app-pool recycle + server reboot.",
+    "playbook": "1) On 'tables-fields / screen designer unresponsive' or new release failing health check on one MSN host but not another, check whether Windows .NET Framework patching was recently applied without a reboot. 2) Confirm via Application Event Logs on the failing MSN \u2014 look for errors on the date matching the patch (e.g., Aqueel's Nov 22 patch). 3) Mitigation: recycle the affected app pool (Aqueel's Nov 29 step), then re-deploy. 4) Long-term: confirm the patching procedure now includes app-pool recycle + server reboot.",
     "fix_status": "resolved",
     "fix_jira": "PL-44252",
     "fix_template": null,
@@ -2539,8 +2539,8 @@
         }
       ]
     },
-    "diagnosis": "Yahoo/AOL automated systems intermittently block Method's outbound SendGrid IPs when one IP sends 'too much mail' or 'too much bad quality mail' (e.g., spam complaints). Pattern: a single customer (often newly authenticated domain user) sends a large campaign (~10-20k recipients), the IP gets flagged, deliverability drops for all customers behind that IP. Mitigations: disable the flagged IP, divert traffic to backup IPs — but the diversion can propagate the block to the backup IP (PL-47997→PL-47999). Confirmed events: PL-45894 (Mar 19 2024, majesticturbodallas, ~12h), PL-47997 (Jul 25 2024, IP 167.89.91.86, ~14h), PL-47999 (Jul 26 2024, IP 149.72.215.137 after diversion, 30min). Long-term work: IP warm-up monitoring, bulk-email-limit/queue-fairness policy.",
-    "playbook": "1) On 'Yahoo/AOL deliverability drop' or 'emails to Yahoo failing' reports, check the SendGrid suppression / block list and the Yahoo postmaster page for the affected IPs. 2) Identify which customer drove the volume (usually a single newly-authenticated domain sending tens of thousands of recipients). 3) Mitigation: disable the flagged IP, divert traffic to a different IP — but monitor that traffic doesn't propagate the block to the new IP. 4) Long-term: enforce bulk-email-limit + queue-fairness policy; alert on per-IP send volume.",
+    "diagnosis": "Yahoo/AOL automated systems intermittently block Method's outbound SendGrid IPs when one IP sends 'too much mail' or 'too much bad quality mail' (e.g., spam complaints). Pattern: a single customer (often newly authenticated domain user) sends a large campaign (~10-20k recipients), the IP gets flagged, deliverability drops for all customers behind that IP. Mitigations: disable the flagged IP, divert traffic to backup IPs \u2014 but the diversion can propagate the block to the backup IP (PL-47997\u2192PL-47999). Confirmed events: PL-45894 (Mar 19 2024, majesticturbodallas, ~12h), PL-47997 (Jul 25 2024, IP 167.89.91.86, ~14h), PL-47999 (Jul 26 2024, IP 149.72.215.137 after diversion, 30min). Long-term work: IP warm-up monitoring, bulk-email-limit/queue-fairness policy.",
+    "playbook": "1) On 'Yahoo/AOL deliverability drop' or 'emails to Yahoo failing' reports, check the SendGrid suppression / block list and the Yahoo postmaster page for the affected IPs. 2) Identify which customer drove the volume (usually a single newly-authenticated domain sending tens of thousands of recipients). 3) Mitigation: disable the flagged IP, divert traffic to a different IP \u2014 but monitor that traffic doesn't propagate the block to the new IP. 4) Long-term: enforce bulk-email-limit + queue-fairness policy; alert on per-IP send volume.",
     "fix_status": "mitigated",
     "fix_jira": "PL-47997",
     "fix_template": null,
