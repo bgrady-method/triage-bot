@@ -455,12 +455,6 @@
       ],
       "any_of": [
         {
-          "contains": "MongoDB"
-        },
-        {
-          "contains": "mongod"
-        },
-        {
           "contains": "rs01"
         },
         {
@@ -532,6 +526,39 @@
       "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report",
       "https://method.atlassian.net/browse/PL-44270",
       "https://method.atlassian.net/browse/PL-44341"
+    ]
+  },
+  {
+    "id": "ki-oauth-token-db-bloat",
+    "title": "oauth_token MongoDB at ~6 TB: daily MongoDB-Backup-Status-bot warning fire (5 GB advisory threshold)",
+    "first_seen": "2026-05-31T10:39:07Z",
+    "last_seen": "2026-06-01T10:31:18Z",
+    "occurrences": 2,
+    "match": {
+      "channels": [
+        "alert-system"
+      ],
+      "any_of": [
+        {
+          "contains": "MongoDB Backup Completed with Warning"
+        },
+        {
+          "regex": "Backup for database .?oauth_token.?"
+        },
+        {
+          "regex": "oauth_token.*GB.*exceeds 5GB"
+        }
+      ]
+    },
+    "diagnosis": "Daily backup-completion notification from B05PN7JG87L (hypothesized MongoDB-Backup-Status bot per the 2026-05-31 investigation) flags the oauth_token Mongo DB as oversized whenever its on-disk size exceeds the 5 GB advisory threshold. Backup itself COMPLETES SUCCESSFULLY (white-check-mark in alert text); the warning is purely informational about future backup-window cost/throughput. Observed sizes: 6000.81 GB (2026-05-31T10:39:07Z) -> 6008.22 GB (2026-06-01T10:31:18Z) = +7.41 GB in 23h52m, ~1199x the 5 GB threshold. Underlying root cause hypothesis (UNCONFIRMED): IdentityServer4 (oauth2 service) expired-access-token / refresh-token / persisted-grant cleanup job is not running, so the PersistedGrants / ReferenceTokens / DeviceFlowCodes collections accumulate indefinitely. The Method-JWT Redis cache is a separate concern -- this DB is the IdentityServer4 EF-Core operational store. Growth rate of ~7 GB/day extrapolates to ~2.5 TB/year of unbounded growth on top of the existing ~6 TB. The 5 GB threshold is a single global advisory tuned for typical Method tenant DBs (tens of MB to single-digit GB); oauth_token is the largest non-tenant Mongo DB in the fleet and will fire this monitor every day until either the cleanup runs or the advisory is excepted for this DB. No service outage and no customer-visible impact today; backup throughput cost is the only present concern.",
+    "playbook": "1) Verify alert is from bot_id B05PN7JG87L on #alert-system with text starting ':white_check_mark: *MongoDB Backup Completed with Warning*' -- this means BACKUP SUCCEEDED, the warning is informational. 2) Compare current GB to prior days' fires (incident-log.jsonl: alert_hash 280112c3596d9bcc on 2026-05-31 = 6000.81 GB; this entry tracks subsequent fires). If growth rate jumps materially (>20 GB/day), escalate -- otherwise treat as known steady-state. 3) Root-cause investigation (when capacity for it): SSH to the mongod cluster hosting oauth_token and run: mongo oauth_token --eval 'db.PersistedGrants.count(); db.ReferenceTokens.count(); db.DeviceFlowCodes.count()'; then check the Expiration field distribution to confirm whether expired grants are accumulating. 4) Fix options for owner team (oauth2 / ms-authentication-api): (a) enable IdentityServer4 TokenCleanupService (built-in, off by default in the EF-Core store); (b) add a scheduled Mongo TTL index on the Expiration field; (c) one-time deleteMany for already-expired grants to reclaim the bulk of the 6 TB. 5) Monitoring fix: either raise the 5 GB advisory threshold globally (loses small-DB signal), or add oauth_token to a per-DB exception list on the backup-status bot.",
+    "fix_status": "needs-human",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.85,
+    "last_notified_at": "2026-05-31T11:15:00Z",
+    "references": [
+      "docs/investigations/2026-05-31-280112c3596d9bcc.md"
     ]
   },
   {
