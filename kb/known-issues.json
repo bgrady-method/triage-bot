@@ -1535,8 +1535,8 @@
     "id": "ki-oauth-token-db-bloat",
     "title": "oauth_token MongoDB at ~6 TB: daily MongoDB-Backup-Status-bot warning fire (5 GB advisory threshold)",
     "first_seen": "2026-05-31T10:39:07Z",
-    "last_seen": "2026-06-02T10:44:42Z",
-    "occurrences": 3,
+    "last_seen": "2026-06-03T10:32:16Z",
+    "occurrences": 4,
     "match": {
       "channels": [
         "alert-system"
@@ -1562,7 +1562,8 @@
     "last_notified_at": "2026-06-02T11:25:45Z",
     "references": [
       "docs/investigations/2026-05-31-280112c3596d9bcc.md",
-      "docs/investigations/2026-06-02-b4e6b0b1d18ef175.md"
+      "docs/investigations/2026-06-02-b4e6b0b1d18ef175.md",
+      "docs/investigations/2026-06-03-2628d10294feaca0.md"
     ]
   },
   {
