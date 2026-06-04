@@ -42,7 +42,12 @@ If no obvious service stands out, try a different dimension:
 
 # By exception type
 --field fields.Exception
+
+# By the actual human-readable error message — DO THIS EARLY
+--field Error.keyword
 ```
+
+**`Error.keyword` is the most under-rated aggregation.** `Level.keyword` only tells you "lots of errors of severity X." `Exception.keyword` collapses the .NET type. `Error.keyword` surfaces the actual *distinct human-readable error messages* — which is how you find the smoking gun in a multi-cause incident. For example, on 2026-06-04 we initially focused on a 6,892-count `GetProductFeatureFlag` symptom; aggregating by `Error.keyword` surfaced the 75-count `Error Calling Url: http://microservices.method.int/...Statuscode: BadGateway` AND the 88-count Newtonsoft `Unexpected character '<'` pattern — which revealed the *root cause* was a DNS recurrence, not the symptom service. Always include `Error.keyword` in your first aggregation sweep — the second- and third-place entries are usually more diagnostic than the top one. See `ki-html-error-response-newtonsoft-deserialize-pattern` for the canonical 502→HTML→Newtonsoft chain.
 
 For a time shape (spike vs steady creep), there's no equivalent flag in `es_search.py` — fall back to running aggregations over multiple narrower windows or open Kibana for the visual.
 

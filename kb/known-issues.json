@@ -659,10 +659,11 @@
   },
   {
     "id": "ki-dns-microservices-method-int-pps-quota",
-    "title": "DNS resolution failures for *.method.int on Windows fleet â€” AWS Route53 1024 PPS link-local quota exceeded on DCs",
+    "title": "DNS resolution failures for *.method.int on Windows fleet — AWS Route53 1024 PPS link-local quota exceeded on DCs",
     "first_seen": "2026-05-14T00:00:00Z",
-    "last_seen": "2026-05-20T20:30:00Z",
-    "occurrences": 1,
+    "last_seen": "2026-06-04T13:02:00Z",
+    "occurrences": 2,
+    "last_notified_at": "2026-06-04T13:30:00Z",
     "match": {
       "channels": [
         "alert-system",
@@ -688,18 +689,30 @@
         },
         {
           "regex": "DNS.*resolution.*fail"
+        },
+        {
+          "contains": "Statuscode: BadGateway"
+        },
+        {
+          "contains": "StatusCode:502 Message:<html>"
+        },
+        {
+          "contains": "MSAuth Call Failed"
+        },
+        {
+          "contains": "MSIdentity Call Failed"
         }
       ]
     },
-    "diagnosis": "Every Windows EC2 instance forwards DNS to two AD domain controllers, which then forward *.method.int queries to AWS Route53 Resolver at 172.31.0.2. That destination counts against the AWS per-ENI 1024 PPS link-local quota (shared with 169.254.169.253, IMDS, NTP, Windows Licensing). Combined query rate from 11 Windows hosts pushes DCs' link-local PPS over the cap during bursts; AWS silently drops the excess packets at the VPC fabric. DCs' conditional forwarder for method.int had UseRecursion=True, so on forwarder timeout the DC falls back to root-hint recursion. Root hints can't resolve .int (reserved TLD; no public method.int zone), so they return NXDOMAIN, which the DC negatively caches. Windows DNS clients then cache the negative response for 15 minutes (MaxNegativeTtl), extending visible outage well past the actual packet-drop bursts. ENA linklocal_allowance_exceeded confirms shaping events; CloudWatch NetworkPacketsOut on prod-dc-01 doubled (1,557 â†’ 2,982) at incident time. Affected services: report-generation API, classic API, ms-gateway-api, microservices nodes. NOTE: this can present as ki-2026-05-21-gateway-microservices-timeout (Ocelot timeouts) â€” check DNS first when both fire.",
-    "playbook": "1) Check ENA metrics on Windows DCs (prod-dc-01, prod-dc-02): pps_allowance_exceeded, linklocal_allowance_exceeded. If non-zero in the alert window, this is the issue. 2) Check Datadog for NetworkPacketsOut spike on DCs. 3) Confirm the conditional forwarder now points to Route 53 Resolver inbound endpoint (rslvr-in-33bec0891b854ea8b at 172.31.223.154 / 172.31.168.212) with UseRecursion=$false â€” the PIR's action items state this was completed on 2026-05-20/21. 4) If the endpoint path was reverted, recycle DNS clients on affected hosts to clear the 15-min negative cache. 5) Long-term per PIR: reduce Windows MaxNegativeTtl from 15 minutes to 30 seconds; enable DNS client logging; collect Datadog throttling metrics (bw_*_allowance_exceeded, pps_allowance_exceeded, conntrack_allowance_exceeded, linklocal_allowance_exceeded).",
+    "diagnosis": "Every Windows EC2 instance forwards DNS to two AD domain controllers (prod-dc-01, prod-dc-02), which then forward *.method.int queries to AWS Route53 Resolver at 172.31.0.2. That destination counts against the AWS per-ENI 1024 PPS link-local quota (shared with 169.254.169.253, IMDS, NTP, Windows Licensing). Combined query rate from 11 Windows hosts pushes DCs' link-local PPS over the cap during bursts; AWS silently drops the excess packets at the VPC fabric. DCs' conditional forwarder for method.int had UseRecursion=True, so on forwarder timeout the DC falls back to root-hint recursion. Root hints can't resolve .int (reserved TLD; no public method.int zone), so they return NXDOMAIN, which the DC negatively caches. Windows DNS clients then cache the negative response for 15 minutes (MaxNegativeTtl), extending visible outage well past the actual packet-drop bursts. ENA linklocal_allowance_exceeded confirms shaping events; CloudWatch NetworkPacketsOut on prod-dc-01 doubled (1,557 -> 2,982) at incident time. Affected services: report-generation API, classic API, ms-gateway-api, microservices nodes, MSAuth, MSIdentity, AuthService feature-flag fetches. NOTE: this can present as ki-2026-05-21-gateway-microservices-timeout (Ocelot timeouts) — check DNS first when both fire. \n\n==== 2026-06-04 RECURRENCE ====\nFired again 2026-06-04 ~13:02Z (09:02 EDT). Sudden onset with the same upstream signature. Nelson De Miranda posted '#swat we're down' at 13:01:32Z; runtime PROD-NEW5/6 logged 7,000+ errors in the next 30 min. Confirmed via ES `Error.keyword` aggregation showing: 6,892× 'Error Fetching Release Feature Flag: V1TokenSessionHardening' (downstream symptom on AuthService); 88× 'Unexpected character encountered while parsing value: <' (Newtonsoft deserializer choking on '<html>...502 Bad Gateway</html>' responses); 75× 'Error Calling Url: http://microservices.method.int/analytics/health/heartbeat Statuscode: BadGateway'; 68× 'MSAuth Call Failed. StatusCode:502 Message:<html>...'; 56× 'MSIdentity Call Failed. StatusCode:502...'. ZERO commits in 12h on legacy-authentication-api / ms-authentication-api / ms-preferences-api / runtime-core / ms-gateway-api — rules out code regression. A method-platform-ui frontend deploy (PR #5820 'add prompt before publishing app') merged 2026-06-03 was suspected and a revert opened (PR #5870) but the diff is a 40-line confirmation modal with no backend coupling and the revert was never merged; not load-bearing.\n\nMost likely cause of recurrence: conditional-forwarder config drifted or was reverted on one or both DCs between 2026-05-21 (PIR's stated remediation date) and 2026-06-04. The PIR action items 'reduce MaxNegativeTtl' and 'enable DNS client logging' were still in-progress, so the negative-cache window remained at 15 minutes and the DC-side change had no automated drift detection.",
+    "playbook": "1) Check ENA metrics on Windows DCs (prod-dc-01, prod-dc-02): pps_allowance_exceeded, linklocal_allowance_exceeded. If non-zero in the alert window, this is the issue. 2) Check Datadog for NetworkPacketsOut spike on DCs (the 2026-05 incident saw a 2x jump 1,557 -> 2,982). 3) Confirm the conditional forwarder on EACH DC points to Route 53 Resolver inbound endpoint (rslvr-in-33bec0891b854ea8b at 172.31.223.154 / 172.31.168.212) with UseRecursion=$false. If the endpoint path drifted/reverted on either DC, that's the root cause of recurrence — fix the forwarder config on both, then flush DNS clients on affected hosts (`ipconfig /flushdns` on Windows hosts, `Clear-DnsServerCache` on the DCs themselves) to clear the 15-minute negative cache. 4) Cross-check: if ES Error.keyword aggregation in the incident window shows BOTH 'Statuscode: BadGateway' AND 'Unexpected character encountered while parsing value: <' (the Newtonsoft pattern), the chain is confirmed — calling service receives '<html>...502 Bad Gateway</html>' as response, hands it to Newtonsoft, gets the parse error downstream. The Newtonsoft errors are not a separate bug; once 502s stop they stop too. 5) DO NOT chase a method-platform-ui or m-one revert as the fix — the symptom is at the backend AuthService → microservices.method.int hop, not the frontend. 6) Long-term per PIR: reduce Windows MaxNegativeTtl from 15 minutes to 30 seconds; enable DNS client logging; collect Datadog throttling metrics (bw_*_allowance_exceeded, pps_allowance_exceeded, conntrack_allowance_exceeded, linklocal_allowance_exceeded); add a forwarder-config drift alarm so we know in minutes (not hours) if a DC's conditional forwarder gets reverted again.",
     "fix_status": "in-progress",
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.95,
-    "last_notified_at": null,
     "references": [
-      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report"
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report",
+      "Triage report 2026-06-04 — Nelson De Miranda #swat thread 09:01 EDT; ES Error.keyword aggregation surfaced 502-BadGateway + Newtonsoft signature; rules out PR #5820 / PR #5870 frontend revert as a cause."
     ]
   },
   {
@@ -880,6 +893,51 @@
     "references": [
       "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report",
       "https://method.atlassian.net/browse/PL-62491"
+    ]
+  },
+  {
+    "id": "ki-html-error-response-newtonsoft-deserialize-pattern",
+    "title": "Diagnostic pattern: 'Unexpected character encountered while parsing value: <' means a backend service received an HTML error page (502/503/504) where it expected JSON — look upstream, not at the deserializer",
+    "first_seen": "2026-06-04T13:02:00Z",
+    "last_seen": "2026-06-04T13:30:00Z",
+    "occurrences": 1,
+    "last_notified_at": "2026-06-04T13:30:00Z",
+    "match": {
+      "channels": [
+        "alert-system",
+        "alert-runtime-monitoring",
+        "alert-frontend-errors",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "Unexpected character encountered while parsing value: <"
+        },
+        {
+          "contains": "Newtonsoft.Json.JsonReaderException"
+        },
+        {
+          "contains": "StatusCode:502 Message:<html>"
+        },
+        {
+          "contains": "Statuscode: BadGateway"
+        },
+        {
+          "contains": "Statuscode: ServiceUnavailable"
+        },
+        {
+          "regex": "Path '', line 0, position 0"
+        }
+      ]
+    },
+    "diagnosis": "When you see `Newtonsoft.Json.JsonReaderException: Unexpected character encountered while parsing value: <. Path '', line 0, position 0` in .NET service logs, the calling service is receiving an HTML error page (typically `<html><head><title>502 Bad Gateway</title>...` from nginx, or 503/504 variants) where it expected a JSON response from an HTTP API. Newtonsoft sees the first character `<`, which isn't valid JSON, and immediately throws. The Newtonsoft exception is the SYMPTOM — the ROOT CAUSE is the upstream service or network path returning HTML instead of JSON. Common root causes Method has seen: (1) ki-dns-microservices-method-int-pps-quota — when *.method.int names fail DNS resolution, calls to `http://microservices.method.int/...` get 502 from upstream proxy. (2) IIS app pool recycle on the called service — brief 502 window while the pool warms back up. (3) Load balancer health checks marking nodes unhealthy. (4) Real 5xx from the upstream service. The fact that the failing call was made over HTTP and the response was 'HTML' is the load-bearing evidence; do NOT spend time debugging the Newtonsoft code path itself. Cross-reference: search ES for the exact Url that was called (often present in a sibling `Error.keyword` aggregation field like 'Error Calling Url: http://...'), and identify which upstream service or network hop is returning 502.",
+    "playbook": "1) Aggregate ES errors by `Error.keyword` in the incident window (NOT by `Level.keyword` — that just tells you there are errors, not which kind). Look for the SECOND-place error pattern: typically 'Error Calling Url: http://<hostname>/...' with a non-2xx status code. The hostname identifies the failing upstream. 2) If the hostname is `microservices.method.int` or another internal `*.method.int` name: match ki-dns-microservices-method-int-pps-quota and run that playbook. 3) If the hostname is a specific external service or LB hostname: check that service's Datadog dashboard or health endpoint; check for recent deploys on the upstream. 4) Count the ratio of Newtonsoft-parse-errors to '502' errors in the window — they should be roughly proportional. If 502s are much higher (10×+), some callers are silently failing without surfacing the deserialize error. 5) When 502s drop, Newtonsoft errors drop with them — they're not independent bugs.",
+    "fix_status": "diagnostic-aid",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.95,
+    "references": [
+      "Triage report 2026-06-04 — first surfaced when 6,892 AuthService.GetProductFeatureFlag timeouts on PROD-NEW5/6 were correlated to 88 Newtonsoft parse errors + 75 microservices.method.int 502s + 124 MSAuth/MSIdentity 502s; root cause was ki-dns-microservices-method-int-pps-quota."
     ]
   },
   {
