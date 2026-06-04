@@ -327,10 +327,17 @@ Branch on `channel_name` per `playbooks/channel-guidance.md`:
 
 Use the group's full `time_window` (from earliest alert to now) for all queries — not just the primary's timestamp. This ensures signals from satellite alerts are captured.
 
+**ES log investigation — required reading order** (per `playbooks/es-investigate.md` Step 3.5):
+
+1. First sweep: aggregate by `Level.keyword`, `Exception.keyword`, AND `Error.keyword` — all three. The second- and third-place buckets in `Error.keyword` are usually more diagnostic than the top one.
+2. Then **read the FULL `Exception` field AND the full `message` field on 2–3 sample records** before proposing a root-cause hypothesis. .NET stack traces are inline in `Exception` and pin the failing code path (often including the upstream URL being called when the exception threw). The `message` field contains pipe-delimited context not present in structured fields.
+3. The cost of reading the full stack is essentially zero; the cost of NOT reading it is hours of false leads (see the 2026-06-04 incident case study in `playbooks/es-investigate.md` Step 3.5).
+
 Always include in your investigation:
 - Time window queried (group span)
 - Service(s) affected (from text, monitors, and log results)
 - Top exception/error message + count
+- **Full stack trace from at least one sample record (cited in the investigation report)** — abbreviating to "TaskCanceledException" without showing where it originated is not enough
 - One representative trace id or request id
 - Comparison vs 24h-ago baseline (golden signals)
 - Recent deploys correlated to the start time, if any

@@ -65,6 +65,26 @@ python scripts/es_search.py search \
 
 Each hit's `_source.fields.RequestId` (or `_source.trace`) is the correlation id. Grab one.
 
+### Step 3.5 — READ THE FULL STACK TRACE AND MESSAGE (don't skip this)
+
+Before you propose a root-cause hypothesis, **pick 2–3 sample records and read the full `Exception` field AND the full `message` field**, not just the truncated 200-char snippet that `es_search.py search` shows at the top of the JSON. The stack trace and the formatted log line are usually the most diagnostic piece of evidence in the entire investigation — and they're cheap to read because they're already in the response you have.
+
+```bash
+# Pull 2-3 representative records, then read every field on each:
+python scripts/es_search.py search --query 'Level:Error AND <your-filter>' --from now-30m | \
+  python -c "import json,sys; d=json.load(sys.stdin); [print('---'); print(json.dumps(h['_source'], indent=2)) for h in d['hits']['hits'][:3]]"
+```
+
+What you're looking for in each sample:
+
+- **Full `Exception` field** — `.NET` exceptions include the stack trace inline (`System.Net.Http.HttpRequestException ... at System.Net.Http.HttpClient.SendAsync(...) at MyService.UpstreamCall(...) at ...`). The stack tells you which code path is failing — including the **URL or hostname being called** when the exception was thrown. If the stack ends in `HttpClient.SendAsync` or `TaskCanceledException`, the failure is at an HTTP hop; the calling method name reveals which upstream. This often pins the root cause immediately.
+- **Full `message` field** — the raw formatted log line. Method's .NET services log as `<timestamp>|<hostname>|<level>|<thread>|<Context>|<Action>|<request_id>|<correlation>|<Error>|<Exception>`. The pipe-delimited fields between `Action` and `Error` often carry parameters, account names, or URLs you can't get from the structured fields alone.
+- **`Error` field** vs **`Exception` field** — these are different. `Error` is the human-readable message ("Error Fetching Release Feature Flag: V1TokenSessionHardening"); `Exception` is the .NET exception type + stack. Read **both**.
+
+**Why this matters (2026-06-04 case study):** during the swat triage we aggregated by `Level`, `hostname`, `Exception`, and `Error` — but only truncated 200 chars of the `Exception` field. The full stack trace, had we read it, showed `TaskCanceledException` originating from an `HttpClient.SendAsync` call to `microservices.method.int` — which would have pinned the DNS recurrence in minutes instead of 30. The cost of reading the full stack on 2 sample records is essentially zero; the cost of NOT reading it is hours of false leads.
+
+Cross-reference: `ki-html-error-response-newtonsoft-deserialize-pattern` and `ki-dns-microservices-method-int-pps-quota` both bake the "look at the full stack and message" lesson into their playbooks.
+
 ## Step 4 — Expand to the full request
 
 ```bash
