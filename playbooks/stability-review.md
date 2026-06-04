@@ -13,6 +13,16 @@ Every report this playbook produces — monthly stability-review, ad-hoc availab
 
 Headline numbers in the Executive Summary always carry industry context inline. A raw "99.34%" without "≈ 1 notch below the 99.9% peer SLA standard, concentrated in 4 named incidents" is misleading.
 
+## Mandatory input freshness (every report this playbook produces)
+
+Two upstream sources must be current at the moment of writing the report. Stale inputs produce confident-but-wrong findings — a failure mode we've seen first-hand.
+
+1. **PIRs are current.** Every stability-review run (and any ad-hoc report this playbook covers) MUST fetch the canonical PIR Confluence blog live via `mcp__claude_ai_Atlassian__getConfluencePage` and merge any new entries into `kb/known-issues.json` before starting analysis. The weekly `pir-ingest` snapshot is the floor, not the ceiling. New entries between Monday's pir-ingest and the report run must show up in the report. The Executive Summary always includes a `PIR sync: +N entries` line so the reader knows the analysis ran against a fresh snapshot. See `stability-review-prompt.md` Phase 0a.5 for the exact procedure.
+
+2. **Service-repo code is current.** Any `git log` / `git grep` / `git show` against a cloned service repo MUST be preceded by `git fetch origin <default-branch> --quiet` for that repo, per `CLAUDE.md`'s "Hard rule." Read via `git show origin/<default-branch>:<path>` — never the local working tree. Stable repos are stale: assume that without a fresh fetch, the version you're reading is days or weeks behind production.
+
+Failing either freshness gate fails the report's quality bar — same severity as missing a five-whys or undecidable substitution.
+
 ## When to use
 
 - The `stability-review` routine fires on its monthly cron (`23 9 1-7 * 2` — first Tuesday of the month, 09:23 local).

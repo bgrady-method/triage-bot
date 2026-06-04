@@ -69,6 +69,27 @@ cat references/methodology/postmortem-template.md
 
 If any of these files is missing, post `🔴 stability-review: missing required reference <path> — exiting` to `#triage-bot-health` and exit. Do not commit a partial report.
 
+### 0a.5 — PIR sync (mandatory; reuses pir-ingest logic)
+
+Before any analysis, fetch the canonical PIR Confluence blog **live** and merge any new entries into `kb/known-issues.json`. Do **NOT** rely on the last weekly `pir-ingest` snapshot — between Monday's run and now, new PIRs may have landed. Stability-review's findings and Trend Analysis lean heavily on PIR-derived entries; running against a stale KB undermines the entire report.
+
+Run Steps 1–5 from `routines/pir-ingest.yaml` inline (do not duplicate; read the routine yaml and execute its steps verbatim):
+
+1. **Fetch** via `mcp__claude_ai_Atlassian__getConfluencePage` (cloudId=`method.atlassian.net`, pageId=`133496969`, contentType=`blog`, contentFormat=`markdown`).
+2. **Parse** incident blocks (`---`-delimited; require all three of `Incident/Alert`, `Prepared by`, `Duration` non-empty — skip template stubs).
+3. **Dedup** against `kb/known-issues.json` by (a) title overlap, (b) matching `fix_jira`, (c) Confluence pageId `133496969` substring in `references[]`.
+4. **Synthesize** new entries per pir-ingest's Step 4 schema — `confidence: 0.95`, `references: [PIR URL]`.
+5. **Write** to `kb/known-issues.json` sorted by `id`. Stage with `git add` — the commit lands in Phase 9 with the rest of the cycle.
+
+After the sync, count new entries as `PIR_SYNC_NEW`:
+
+- If 0: log `PIR sync: 0 new entries` and proceed.
+- If ≥1: include `PIR sync: +${PIR_SYNC_NEW} entries — analysis runs against fresher snapshot than last pir-ingest` in the Executive Summary. The Findings or Trend Analysis section should cite any of the new entries that bear on the report's clusters.
+
+Cost: one Atlassian MCP fetch (~190KB), one JSON parse, one git write. ~10–30 seconds; immaterial against a 20-minute stability-review run.
+
+If the Atlassian MCP fetch fails (auth, network, page deleted), post `🟡 stability-review: PIR sync failed — running against last pir-ingest snapshot (potentially stale)` to `#triage-bot-health` and proceed with the analysis. Don't block on the fetch failure, but make the staleness visible in the Exec Summary.
+
 ### 0a.6 — Hard rule: fetch master before reading any cloned repo
 
 Per `CLAUDE.md` "Hard rule" section: before reading, grepping, or `git log`-ing any cloned repo at `C:\MethodDev\<repo>`, run `git -C C:/MethodDev/<repo> fetch origin <default-branch> --quiet` first, then read via `git show origin/<default-branch>:<path>` / `git log origin/<default-branch>` / `git grep <pattern> origin/<default-branch>`. The local working tree may be days or weeks stale; stability-review reads many service repos in Phases 2–3 and stale repos produce fictional findings.
@@ -363,6 +384,7 @@ Quality gate before writing:
 - [ ] Every calculation shows substitution.
 - [ ] Every Jira reference uses ticket keys (no free-text "see the deadlock ticket").
 - [ ] No PII in quotes.
+- [ ] **Phase 0a.5 PIR sync ran successfully**; Executive Summary contains a `PIR sync: +N entries` line (even when N=0). If the sync failed, a `🟡 PIR sync failed` warning is documented in the Executive Summary and a `#triage-bot-health` post was made.
 - [ ] **Industry-comparison section present** with: (a) tier benchmark table 99.99%/99.95%/99.9%/99.5%, (b) Method-against-tiers row per metric with annualized-if-sustained column, (c) explicit annualization caveat naming P0-count-per-window, (d) concentration-vs-distribution call.
 - [ ] Executive Summary's headline availability numbers have **industry context inline** ("X% — N notches below/at/above the 99.9% peer norm") — never bare percentages.
 - [ ] Each cluster cites at least one `docs/messages/` entry (`needs-human` DM, `kb-update`, or `health-status` correlate) **OR** explicitly explains why the message corpus produced no signal for that cluster.
