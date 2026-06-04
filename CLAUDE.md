@@ -187,8 +187,22 @@ Memorize these — they shape "is this a P0?":
 
 ## How the routine should use this file
 
+### Hard rule — always pull master before reading code
+
+Before reading, grepping, or `git log`-ing any cloned repo at `C:\MethodDev\<repo>`, you MUST first run `git -C C:/MethodDev/<repo> fetch origin <default-branch> --quiet` in that repo. Read using `git show origin/<default-branch>:<path>`, `git log origin/<default-branch>`, or `git grep <pattern> origin/<default-branch>` — NOT the local working tree, which may be stale by days or weeks.
+
+This applies to every process — triage, stability-review, pir-ingest, daily-digest, ad-hoc investigations, any agent reading this file.
+
+**Per-cycle cache:** if you already fetched the same repo earlier in this cycle, skip the re-fetch.
+
+**Fetch failure is non-blocking:** if `git fetch` fails (auth, network, repo not present locally), log `repo-fetch-failed: <repo> — proceeding with potentially stale state` and continue. Don't block the cycle on it.
+
+**Why this rule exists:** on 2026-06-04, an active swat incident triage almost dead-ended on a wrong root cause because the local `method-platform-ui` clone was 22 days stale. Reading from `origin/<default-branch>` after a `git fetch` is the only honest way to reason about "what's currently in production."
+
+### Standard usage
+
 1. `cat CLAUDE.md` (this file) at the start of every poll cycle, after `prompt.md`. Hold it in working context for the duration of the cycle.
-2. For each alert: identify the named service(s) from the alert text. For each: `cat <repo>/CLAUDE.md` from the cloned repo. Skip repos whose CLAUDE.md is missing — fall back to `README.md` + `git log --since="7 days ago" --oneline`.
+2. For each alert: identify the named service(s) from the alert text. For each: **`git -C C:/MethodDev/<repo> fetch origin master --quiet && git -C C:/MethodDev/<repo> show origin/master:CLAUDE.md`** (or main, depending on the repo's default branch). Skip repos whose CLAUDE.md is missing — fall back to `git log origin/master --since="7 days ago" --oneline` + `git show origin/master:README.md`.
 3. For infrastructure-shaped alerts (IIS, RabbitMQ, Redis, ES, SQL cluster), fetch the relevant `methodcrm/DeveloperTools/method-infrastructure/<file>.md` (DeveloperTools is not cloned — use `gh api 'repos/methodcrm/DeveloperTools/contents/method-infrastructure/<file>.md' --jq '.content' | base64 -d`).
 4. When in doubt about impact, fetch `08-interdependencies.md` the same way.
 5. Don't load every CLAUDE.md proactively — context budget matters. Lazy-load by service-name match.

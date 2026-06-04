@@ -13,6 +13,8 @@ You must have, before running anything:
 2. **Time window** — when did this start? Default `now-30m` for fresh alerts; use the alert's own timestamp as the upper bound.
 3. **Symptom** — alert fired / latency / errors / no-data / customer-report / deploy-related / unknown.
 
+**If you'll be running `git log`, `git grep`, or reading source files** in any cloned service repo (e.g., to correlate a deploy or grep for the failing code path), first run `git -C C:/MethodDev/<repo> fetch origin <default-branch> --quiet` per CLAUDE.md's "Hard rule." Read via `git show origin/<default-branch>:<path>`, `git log origin/<default-branch>`, or `git grep <pattern> origin/<default-branch>` — the local working tree may be days/weeks stale and produces wrong answers (e.g., reading 22-day-old code while a relevant deploy happened yesterday).
+
 ## Step 1 — What's already firing?
 
 ```bash

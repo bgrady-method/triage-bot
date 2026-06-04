@@ -12,6 +12,8 @@ When the alert is about a logged exception, a vague pattern ("requests failing i
 2. **Time window** — when did it start? Default `now-30m`. Use ES date math (`now-30m`, `now/d`, etc).
 3. **Service / endpoint / user hint** — anything that narrows.
 
+**If you'll be running `git log`, `git grep`, or reading source files** in any cloned service repo (e.g., to find the source line of an exception in the ES results), first run `git -C C:/MethodDev/<repo> fetch origin <default-branch> --quiet` per CLAUDE.md's "Hard rule." Read via `git show origin/<default-branch>:<path>` or `git log origin/<default-branch>`. The local working tree may be days/weeks stale and the file path in the ES stack trace may point at code that has since moved or been refactored.
+
 ## Step 1 — Confirm logs are flowing
 
 ```bash

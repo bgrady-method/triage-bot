@@ -69,6 +69,12 @@ cat references/methodology/postmortem-template.md
 
 If any of these files is missing, post `🔴 stability-review: missing required reference <path> — exiting` to `#triage-bot-health` and exit. Do not commit a partial report.
 
+### 0a.6 — Hard rule: fetch master before reading any cloned repo
+
+Per `CLAUDE.md` "Hard rule" section: before reading, grepping, or `git log`-ing any cloned repo at `C:\MethodDev\<repo>`, run `git -C C:/MethodDev/<repo> fetch origin <default-branch> --quiet` first, then read via `git show origin/<default-branch>:<path>` / `git log origin/<default-branch>` / `git grep <pattern> origin/<default-branch>`. The local working tree may be days or weeks stale; stability-review reads many service repos in Phases 2–3 and stale repos produce fictional findings.
+
+Per-cycle cache: track which repos you've fetched this run; skip re-fetch. Fetch failure is non-blocking — log `repo-fetch-failed: <repo> — proceeding with potentially stale state` and continue.
+
 ### 0b. Config + kill-switch
 
 ```bash

@@ -29,6 +29,8 @@ prompt: |
   git config user.name "triage-bot"
   ```
 
+  Per CLAUDE.md "Hard rule": pir-ingest doesn't typically read service-repo code, but the kb/known-issues.json dedup step depends on the current main branch state. Pull this repo's own master before reading kb/known-issues.json: `git fetch origin main --quiet && git checkout origin/main -- kb/known-issues.json 2>/dev/null || true`. If any deduplication logic ever needs to consult service-repo code (e.g., grepping for the matching error string in the referenced repo to refine match patterns), apply the same fetch-before-read rule to that repo.
+
   ## Step 1 — Fetch the PIR Confluence page
 
   Use the Atlassian MCP tool to fetch the PIR blog:

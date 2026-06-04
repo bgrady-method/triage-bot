@@ -98,6 +98,8 @@ For infrastructure-shaped alerts (IIS, RabbitMQ, Redis, ES, SQL cluster),
 read the relevant file under `DeveloperTools/method-infrastructure/` — see
 the index in CLAUDE.md.
 
+**Hard rule — fetch master before reading any cloned repo.** Per `CLAUDE.md` "Hard rule" section: before reading, grepping, or `git log`-ing any repo at `C:\MethodDev\<repo>`, run `git -C C:/MethodDev/<repo> fetch origin <default-branch> --quiet` first, then read via `git show origin/<default-branch>:<path>` / `git log origin/<default-branch>` / `git grep <pattern> origin/<default-branch>`. The local working tree may be days or weeks stale and produces fictional answers. Per-cycle cache: skip re-fetch if you already fetched the repo this cycle. Fetch failure is non-blocking — log `repo-fetch-failed: <repo> — proceeding with potentially stale state` and continue.
+
 Then read the config:
 
 ```
