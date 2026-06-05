@@ -126,8 +126,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-06-05T10:34:13Z",
-    "occurrences": 263,
+    "last_seen": "2026-06-05T12:32:12Z",
+    "occurrences": 265,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -150,12 +150,16 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.88,
-    "last_notified_at": "2026-06-04T13:05:00Z",
+    "last_notified_at": "2026-06-05T13:15:00Z",
     "prior_fix_status": "needs-ops-decision",
     "notes": [
       {
         "ts": "2026-06-04T13:05:00Z",
         "note": "2026-06-04 13:00Z catch-up triage: 5 new occurrences (F1/F2/F3/F4 chronic-baseline + OUTAGE surge at ~100x chronic magnitude). Operators engaged in #swat 12:59:51Z. Gateway 5XX rate peaked ~1000/30s 12:54-13:00Z; subsiding by 13:03Z. No deploys in last 48h on critical-path repos. fix_status temporarily set to 'active-outage' for this cycle — revert to prior in next cycle if surge resolves."
+      },
+      {
+        "ts": "2026-06-05T13:15:00Z",
+        "note": "2026-06-05 13:09Z triage: 2 new occurrences in alert-frontend-errors (12:30:12Z + 12:32:12Z, both B011R3D650X). Monitor 77419271 last_triggered 12:32:11Z (1s pre-alignment with G1 second alert). DD logs aggregated 100 XHR errors across ~50 distinct accounts in 12:25-12:35Z window — top: gopowertrain2 (10), indianaautomotiveequipment (8), shedsunlimited (7), maconstructiongroup (6), redeagleinternational (5). All paths under /gateway/syncutil/syncwidget/{account}/GetSyncWidgetInfoAsync — chronic ki-21 shape. method-ui DD version tag master.2026-06-02_13:48:27z (no recent UI deploy). Last notified 24h 10min ago — past suppression window, DM resurfaced. fix_status retained active-outage-deploy-regression-2026-06-04 (operator not signaled cleared). 9th same-day cluster post-OUTAGE; cluster cadence 5→3→2→5→5→5→2→2→2."
       }
     ]
   },
