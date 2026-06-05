@@ -126,8 +126,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-06-05T17:33:13Z",
-    "occurrences": 270,
+    "last_seen": "2026-06-05T19:22:13Z",
+    "occurrences": 272,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -164,6 +164,10 @@
       {
         "ts": "2026-06-05T15:10:00Z",
         "note": "2026-06-05 15:09Z triage: 3 new occurrences in alert-frontend-errors (14:40:13Z + 14:44:12Z + 15:07:12Z, all B011R3D650X). Monitor 77419271 last_triggered 15:10:11Z (still Warn). DD log sample (5 records, 14:30-15:10Z): XHR errors on EnglandLogistics, atWork, leontineserver, indianaautomotiveequipment, seriantinspections — all under /gateway/syncutil/syncwidget/{account}/GetSyncWidgetInfoAsync (chronic ki-21 shape). One signalr/ping error mixed in (notifications.method.me — atypical, but minor). method-ui DD version tag master.2026-06-02_13:48:27z UNCHANGED (no UI deploy). last_notified_at 13:15Z (~2h ago, within 24h suppression window), fix_status active-outage-deploy-regression-2026-06-04 unchanged. SUPPRESS — gate_reason=known-issue-window. 10th same-day ki-21 cluster post-OUTAGE; cadence 5→3→2→5→5→5→2→2→2→3 (chronic baseline, residual fading mostly resolved). Concurrent with Yuri's 14:44Z swat post 'reverting last night release from prod' and runtime-core p95 spike 15:01-15:06Z (G3/G4 ki-rtc-p95) — context only, not causally linked to ki-21 (which is a gateway-microservices-timeout chronic, not a UI or runtime-core regression)."
+      },
+      {
+        "ts": "2026-06-05T20:09:00Z",
+        "note": "2026-06-05 20:08Z triage: 2 new occurrences in alert-frontend-errors (19:21:13Z primary 507bb338 + 19:22:13Z satellite de7a4a43, both B011R3D650X). Monitor 77419271 last_triggered 19:22:11Z (2s pre-aligned with satellite), now OK. DD log sample 19:20-19:25Z = 100 XHR errors across diffuse accounts (top: elmusa 9, uspropaint 7, EnglandLogistics 6, manotickheatingandcoolinginc 4, gtsimulators 4, solsticeag 4) — same diffuse ki-21 shape. last_notified_at 2026-06-05T18:19:44Z (1h49m ago) inside 24h suppression window; occurrences 272 not %10 (would be 280); fix_status unchanged → SUPPRESS gate_reason=known-issue-window. Today's ki-21 cadence post-OUTAGE: 13:15Z DM, 15:09Z suppress (3-msg), 16:09Z suppress (9-msg LARGEST), 17:29Z resurface (2-msg %10=270), 18:29Z DID NOT FIRE (95-min gap), 19:21Z this cycle (1h52m from 17:29Z — cadence broke but residual not cleared). Cluster cadence size 9→3→9→2→(skip)→2 — fading but still firing every ~1-2h. Chronic-residual-post-rollback framing from 18:08Z cycle holds (Melo rollback 14:44-15:24Z 2026-06-04). 11th same-day ki-21 cluster. No fix_status flip recommended yet — pattern needs to clear for full 24h cycle before declaring resolved."
       }
     ]
   },
