@@ -126,8 +126,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-06-05T12:32:12Z",
-    "occurrences": 265,
+    "last_seen": "2026-06-05T15:07:12Z",
+    "occurrences": 268,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -160,6 +160,10 @@
       {
         "ts": "2026-06-05T13:15:00Z",
         "note": "2026-06-05 13:09Z triage: 2 new occurrences in alert-frontend-errors (12:30:12Z + 12:32:12Z, both B011R3D650X). Monitor 77419271 last_triggered 12:32:11Z (1s pre-alignment with G1 second alert). DD logs aggregated 100 XHR errors across ~50 distinct accounts in 12:25-12:35Z window — top: gopowertrain2 (10), indianaautomotiveequipment (8), shedsunlimited (7), maconstructiongroup (6), redeagleinternational (5). All paths under /gateway/syncutil/syncwidget/{account}/GetSyncWidgetInfoAsync — chronic ki-21 shape. method-ui DD version tag master.2026-06-02_13:48:27z (no recent UI deploy). Last notified 24h 10min ago — past suppression window, DM resurfaced. fix_status retained active-outage-deploy-regression-2026-06-04 (operator not signaled cleared). 9th same-day cluster post-OUTAGE; cluster cadence 5→3→2→5→5→5→2→2→2."
+      },
+      {
+        "ts": "2026-06-05T15:10:00Z",
+        "note": "2026-06-05 15:09Z triage: 3 new occurrences in alert-frontend-errors (14:40:13Z + 14:44:12Z + 15:07:12Z, all B011R3D650X). Monitor 77419271 last_triggered 15:10:11Z (still Warn). DD log sample (5 records, 14:30-15:10Z): XHR errors on EnglandLogistics, atWork, leontineserver, indianaautomotiveequipment, seriantinspections — all under /gateway/syncutil/syncwidget/{account}/GetSyncWidgetInfoAsync (chronic ki-21 shape). One signalr/ping error mixed in (notifications.method.me — atypical, but minor). method-ui DD version tag master.2026-06-02_13:48:27z UNCHANGED (no UI deploy). last_notified_at 13:15Z (~2h ago, within 24h suppression window), fix_status active-outage-deploy-regression-2026-06-04 unchanged. SUPPRESS — gate_reason=known-issue-window. 10th same-day ki-21 cluster post-OUTAGE; cadence 5→3→2→5→5→5→2→2→2→3 (chronic baseline, residual fading mostly resolved). Concurrent with Yuri's 14:44Z swat post 'reverting last night release from prod' and runtime-core p95 spike 15:01-15:06Z (G3/G4 ki-rtc-p95) — context only, not causally linked to ki-21 (which is a gateway-microservices-timeout chronic, not a UI or runtime-core regression)."
       }
     ]
   },
@@ -167,8 +171,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-06-04T13:05:00Z",
-    "occurrences": 68,
+    "last_seen": "2026-06-05T15:06:25Z",
+    "occurrences": 83,
     "match": {
       "channels": [
         "alert-system",
@@ -204,7 +208,18 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.85,
-    "last_notified_at": "2026-06-03T14:14:49Z"
+    "last_notified_at": "2026-06-05T15:11:30Z",
+    "prior_last_notified_at": "2026-06-03T14:14:49Z",
+    "notes": [
+      {
+        "ts": "2026-06-05T15:11:30Z",
+        "note": "2026-06-05 15:11Z triage (G4): 5 new occurrences in alert-system (14:47:27Z + 14:53:33Z + 15:05:29Z + 15:05:53Z + 15:06:25Z, all B011R3D650X Datadog bot). DD monitor 17872725 (runtime-core-api p90) in Alert state last_triggered 15:05:45Z aligns with 15:05:29Z + 15:05:53Z fires; DD monitor 117279738 (RTC Action Execution p95) in Alert state last_triggered 15:06:18Z aligns with 15:06:25Z fire. Earlier 14:47/14:53 fires don't show in DD monitors API (overall_state recovered between fires) — assumed same monitors firing repeatedly during sustained spike. ES Level:Error 14:30-15:10Z = 0 runtime-core errors (`service:runtime-core-api status:error` 14:55-15:10Z = empty in DD logs). LATENCY-ONLY consistent with ki-rtc-p95 signature. Spike window 14:47-15:06 brackets Yuri's 14:44Z swat revert announcement — plausibly cold-start latency from revert deploy (cf. ki-runtime-core-ansible-redis-deploy-burst) OR coincident chronic ki-rtc-p95. last_notified_at 2026-06-03T14:14:49Z (~49h ago, past 24h suppression window). DM resurfaced. occ 68->73. last_notified_at bumped to NOW. fix_status 'investigating' unchanged. G3 (cross-channel cluster 15:01-15:04Z) will hit same KB but suppress on 24h window since this G4 just bumped last_notified_at."
+      },
+      {
+        "ts": "2026-06-05T15:13:30Z",
+        "note": "2026-06-05 15:13Z triage (G3, cross-channel cluster): 10 new occurrences (1 primary 9bb547f12a6fec60 alert-system 15:01:26Z + 9 satellites across alert-system + alert-runtime-monitoring at 15:01:26/15:02:03/15:03:36×2/15:04:10/15:04:31×2/15:04:32×2). B05PN7JG87L = alert-system Datadog forwarder, B063S8NBW0M = alert-runtime-monitoring Datadog forwarder, B03GBAMHUTB = Flow Designer Connector to alert-system. Synchronized timestamps across both channels (B05P/B063 at 15:01:26.376/15:01:26.598, 15:03:36.532/15:03:36.729, 15:04:31.375/15:04:31.574, 15:04:32.469/15:04:32.717) confirm same DD monitor firing forwarded to both channels. Same KB hit as G4 — runtime-core RTC p95/p90 spike. last_notified_at just bumped to 15:11:30Z by G4 → 24h suppression window applies → SUPPRESS, gate_reason=known-issue-window. occ 73->83. last_seen stays at 15:06:25Z (G4's latest > G3's latest 15:04:32Z). Cluster spans 3.1min (15:01:26→15:04:32), 10 alerts — densest co-firing burst of this KB to date."
+      }
+    ]
   },
   {
     "id": "ki-2026-05-28-mobile-asyncstorage-securestore-keychain",
@@ -1210,13 +1225,14 @@
       ]
     },
     "diagnosis": "Backend services calling `http://microservices.method.int/<virtual-app>/...` receive HTTP 502 Bad Gateway responses with the bare nginx default error page (`<html><head><title>502 Bad Gateway</title></head>...`) as the response body. The DNS layer is fine — `microservices.method.int` resolved successfully and the connection reached the nginx reverse proxy. The 502 means nginx couldn't reach its upstream: typically the IIS application pool serving the requested virtual app is down, recycling, slow, or has crashed. Distinct from ki-dns-microservices-method-int-pps-quota — that one's a DNS-layer failure with `Name or service not known` / `NXDOMAIN` errors and 15-minute negative-cache plateaus in the error timeline. THIS one shows steady-state error rate (not 15-min plateaus) and nginx HTML 502 bodies (not DNS-resolver errors).\n\nDownstream symptoms in calling services: (a) the called service receives the HTML page where it expected JSON, hands it to Newtonsoft, gets `JsonReaderException: Unexpected character encountered while parsing value: <. Path '', line 0, position 0` (matches ki-html-error-response-newtonsoft-deserialize-pattern); (b) any path through the failing virtual app shows the same 502; (c) downstream timeouts and TaskCanceledExceptions on calling code that has tight HTTP client timeouts.\n\nWhich virtual apps run on this proxy: per CLAUDE.md, the `microservices` IIS pool hosts `archive`, `calendar-sync`, `import`, `sync`, `tables-fields`, `gmailaddon`. Per the 2026-06-04 incident also: `analytics/health/heartbeat`, MSAuth, MSIdentity. A pool recycle on `microservices` blasts all of these at once. The 2026-06-04 incident affected MSAuth + MSIdentity + analytics health heartbeat with steady 200-500 errors/min sustained for ~30+ minutes.",
-    "playbook": "**Layer-confirmation first.** Verify it's HTTP-layer (this entry) not DNS-layer (ki-dns-microservices-method-int-pps-quota): grep the alert window for `Name or service not known`, `NXDOMAIN`, `linklocal_allowance_exceeded`. If ANY of those are present, the DNS entry takes priority. If only `502`, `BadGateway`, and nginx HTML bodies are present, you're in HTTP-layer territory — this entry.\n\n1) Identify which virtual apps are failing. Aggregate ES errors by the URL path being called: `aggregate --field Error.keyword --query '\"microservices.method.int\"'`. If ALL paths under the hostname are 502ing, suspect a pool-level issue or proxy-level issue. If only specific virtual apps are 502ing, suspect a backend-service issue specific to those.\n\n2) Check IIS application pool state on the microservices.methodlocal.int IIS nodes. From an admin shell on either node: `Get-IISAppPool` or `appcmd list apppool`. Look for pools in `Stopped` state, or with a recent restart timestamp matching the incident onset. Also check `Get-WebAppPoolState <name>` for individual pools.\n\n3) Check nginx access + error logs on the microservices proxy. The `error.log` will show the actual upstream failure reason: connection refused (pool fully down), upstream timeout (pool slow / thread pool exhausted), 5xx from upstream (backend bad), or `no live upstreams` (LB removed all backends).\n\n4) Check Datadog APM and host metrics for the upstream services. If the backend is .NET on IIS, check `IIS_W3SVC_W3WP.Bytes Total/sec`, CPU, worker process restart count. If a w3wp recycle happened at the incident onset, that's it.\n\n5) Mitigation while diagnosing: from the IIS admin shell, `Restart-WebAppPool <name>` will recycle the failing pool. If unsure which pool, recycle the whole `microservices` pool — per CLAUDE.md that affects `archive`, `calendar-sync`, `import`, `sync`, `tables-fields`, `gmailaddon` together, but if they're already 502ing it's a strict improvement.\n\n6) Long-term: add Datadog APM service-level health checks on each virtual app under microservices.method.int (so the bot can see which one is the actual upstream cause without needing to grep nginx logs); add Datadog monitors on IIS w3wp restart count per pool with alerts when restarts exceed N/hour.",
+    "playbook": "**STEP 0 — Read the #swat thread before anything else.** If the incident is currently in #swat and human responders are active, scan the thread for engineer messages naming a service for rollback ('rolling back X', 'reverting X', 'X is the deploy that broke'). Engineer attribution is the fastest path to root cause — Method deploys via Azure DevOps / TFS (NOT GitHub), so `gh api` shows zero commits even when a deploy regression caused the incident. The 2026-06-04 case: Yuri Zirianov posted 'reverting ms-account' at 14:03 UTC; recovery confirmed by Nelson at 14:08 UTC (5 min later). Without reading the swat thread, the bot has no programmatic way to know what was deployed.\n\n**Step 1 — Layer-confirmation.** Verify it's HTTP-layer (this entry) not DNS-layer (ki-dns-microservices-method-int-pps-quota): grep the alert window for `Name or service not known`, `NXDOMAIN`, `linklocal_allowance_exceeded`. If ANY are present, the DNS entry takes priority. If only `502`, `BadGateway`, and nginx HTML bodies are present, you're in HTTP-layer territory — this entry.\n\n2) **Check the failing upstream service's DD APM hit-rate, not just error rate.** A service going from baseline rate to near-zero hits for 3+ minutes is a P0 signal even with zero errors logged. The error-rate monitor will miss a service that's crashed because no traces get produced to count. Query: `sum:trace.aspnet_core.request.hits{service:<svc>,env:prod}.as_count().rollup(sum,300)` over the incident window — look for the drop, not the spike.\n\n3) Identify which virtual apps are failing. Aggregate ES errors by the URL path being called: `aggregate --field Error.keyword --query '\"microservices.method.int\"'`. If ALL paths under the hostname are 502ing, suspect a pool-level issue or proxy-level issue. If only specific virtual apps are 502ing, suspect a backend-service issue specific to those. The 2026-06-04 case had `account/v3/cluster`-related errors (ClusterInfo lookups) — match `ki-ms-account-api-cluster-info-deploy-failure` if you see those.\n\n4) Check IIS application pool state on the microservices.methodlocal.int IIS nodes. From an admin shell on either node: `Get-IISAppPool` or `appcmd list apppool`. Look for pools in `Stopped` state, or with a recent restart timestamp matching the incident onset. Also check `Get-WebAppPoolState <name>` for individual pools.\n\n5) Check nginx access + error logs on the microservices proxy. The `error.log` will show the actual upstream failure reason: connection refused (pool fully down), upstream timeout (pool slow / thread pool exhausted), 5xx from upstream (backend bad), or `no live upstreams` (LB removed all backends).\n\n6) Check Datadog APM and host metrics for the upstream services. If the backend is .NET on IIS, check `IIS_W3SVC_W3WP.Bytes Total/sec`, CPU, worker process restart count. If a w3wp recycle happened at the incident onset, that's it.\n\n7) Mitigation while diagnosing: from the IIS admin shell, `Restart-WebAppPool <name>` will recycle the failing pool. If unsure which pool, recycle the whole `microservices` pool — per CLAUDE.md that affects `archive`, `calendar-sync`, `import`, `sync`, `tables-fields`, `gmailaddon` together, but if they're already 502ing it's a strict improvement.\n\n8) Long-term: add Datadog APM service-level health checks on each virtual app under microservices.method.int (so the bot can see which one is the actual upstream cause without needing to grep nginx logs); add Datadog monitors on IIS w3wp restart count per pool with alerts when restarts exceed N/hour; tag TFS deploys as DD Events so deploy-correlation overlays work.",
     "fix_status": "diagnostic-aid",
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.9,
     "references": [
-      "2026-06-04 triage report — Nelson De Miranda #swat thread 09:01 EDT; ES Error.keyword aggregation surfaced 75x microservices.method.int 502s + 68x MSAuth 502 + 56x MSIdentity 502 + 88x Newtonsoft + 6,892x downstream AuthService TaskCanceledException. Initially misattributed to ki-dns-microservices-method-int-pps-quota (DNS) before user correction — the symptom shape (calls to microservices.method.int failing) matched both KB entries but the mechanism evidence (no DNS-resolver errors, sustained steady-state error rate not 15-min plateaus) was specifically HTTP-layer."
+      "2026-06-04 triage report — Nelson De Miranda #swat thread 09:01 EDT; ES Error.keyword aggregation surfaced 75x microservices.method.int 502s + 68x MSAuth 502 + 56x MSIdentity 502 + 88x Newtonsoft + 6,892x downstream AuthService TaskCanceledException. Initially misattributed to ki-dns-microservices-method-int-pps-quota (DNS) before user correction — the symptom shape (calls to microservices.method.int failing) matched both KB entries but the mechanism evidence (no DNS-resolver errors, sustained steady-state error rate not 15-min plateaus) was specifically HTTP-layer.",
+      "2026-06-04 root cause: ms-account-api deploy via TFS broke the ClusterInfo lookup endpoint. Yuri Zirianov 'reverting ms-account' at 14:03 UTC → Nelson 'feels like we're back online?' at 14:08 UTC (5 min later). Subset signature is captured in the new entry ki-ms-account-api-cluster-info-deploy-failure. Engineering tickets to file: circuit breaker (Polly) on calls to *.method.int; Content-Type validation before Newtonsoft.DeserializeObject; stale-while-revalidate ClusterInfo cache; TFS-to-DD deploy event integration."
     ]
   },
   {
@@ -1403,6 +1419,43 @@
     "last_notified_at": null,
     "references": [
       "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report"
+    ]
+  },
+  {
+    "id": "ki-ms-account-api-cluster-info-deploy-failure",
+    "title": "ms-account-api ClusterInfo / DbCluster lookup endpoint failing — downstream services can't resolve tenant DB clusters; usually caused by a TFS deploy regression",
+    "first_seen": "2026-06-04T13:00:00Z",
+    "last_seen": "2026-06-04T14:08:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-system",
+        "alert-runtime-monitoring",
+        "alert-frontend-errors",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "Could not determine DbClusterKey"
+        },
+        {
+          "contains": "Could not fetch ClusterInfo from account microservice"
+        },
+        {
+          "regex": "Connect on AlocetSystem,[^:]+: Could not fetch ClusterInfo"
+        }
+      ]
+    },
+    "diagnosis": "ms-account-api (Account.Api solution; per CLAUDE.md owns AlocetSystem cluster registry) serves the ClusterInfo lookup endpoint via V3ClusterController.GetAccountClusterInfoAsync at GET /v3/cluster/account?databaseName=<name>&client=<id>. Downstream services call this to determine which SQL cluster (C1-C5) a tenant DB lives on; without a successful ClusterInfo response they cannot open the tenant connection and cascade-fail every account-scoped operation. When ms-account-api returns 5xx or fails to respond in the timeout window, the failure shows up downstream as: (a) AuthService.GetProductFeatureFlag → TaskCanceledException (can't determine tenant for flag scope); (b) runtime-core → 'Could not determine DbClusterKey'; (c) SyncEngine → 'Could not fetch ClusterInfo from account microservice. dbName : <account>' with InvalidSyncResultException; (d) MSAuth/MSIdentity 502s from nginx (the call to ms-account-api at the microservices.method.int proxy fails to reach upstream). The proximate symptom is widespread microservices.method.int 502s and Newtonsoft 'Unexpected character <' deserialize errors — those are downstream of the ms-account-api deploy break.\n\nMethod deploys ms-account-api via Azure DevOps / TFS, NOT GitHub. The `gh api` will show NO recent commits even when a deploy regression caused the incident — because the deploy ran against an artifact built from an existing master commit on a separate schedule. Verify deploys via TFS Build IDs and the Method-Status-Deployment dashboard. On 2026-06-04 the most recent ms-account-api merges before the failed deploy were PR #1013 (PL-62910 IDOR fix re-release, June 2 — touches AccountStatusService) and PR #1014 (PL-62800 health check rework, May 29 — touches Startup.cs / Program.cs, high-risk startup wiring). PR #1014 is the more likely culprit per startup-wiring blast radius but requires TFS Build ID to confirm.",
+    "playbook": "**STEP 0 — Read the #swat thread FIRST.** Search the incident's swat thread for engineer messages naming a service for rollback (e.g., 'rolling back X', 'reverting X', 'X is the deploy that broke'). Engineer attribution beats every other signal for deploy-regression incidents because Method's TFS-based deploy pipeline is invisible to gh API. On 2026-06-04: Yuri's 'reverting ms-account' at 14:03 UTC → Nelson 'feels like we're back' at 14:08 UTC (5 min). If engineers have already named ms-account-api, your job is to verify and document, not re-derive.\n\n1) Confirm the signature in ES: aggregate by Error.keyword over the alert window. Look for the co-occurrence of `Could not determine DbClusterKey` AND `Could not fetch ClusterInfo from account microservice` AND nginx-style 502s on `microservices.method.int`. All three together = ms-account-api ClusterInfo break.\n\n2) Check ms-account-api's DD APM HIT-RATE, not just error-rate. `sum:trace.aspnet_core.request.hits{service:ms-account-api,env:prod}.as_count().rollup(sum,300)` over the alert window — a drop from baseline to near-zero for 3+ minutes is a P0 signal even when zero errors are logged (a service that crashed and stopped emitting traces shows zero hits AND zero errors). The DD monitors `Service ms-account-api has a high p90 latency on env:prod` and `... high average latency` will transition state at recovery time — use those modified timestamps to bracket the failure window.\n\n3) Check IIS app pool state on MSL03 / MSL04 / MSL05 (the microservices nodes that host ms-account-api). `Get-IISAppPoolState <ms-account-pool>` from an admin shell. Look for: Stopped state, or recent w3wp.exe Application Event Log entries with Event ID 1000 (.NET unhandled exception during startup) or 1026 (.NET runtime crash).\n\n4) Pull recent TFS Build IDs for ms-account-api from Azure DevOps. Identify which Build ran today, what git SHA it covered, and whether the deploy pipeline successfully passed /health/check verification post-deploy. PR #1014 introduced a /health/check that exposes Build/Release fields specifically for this kind of correlation — use it.\n\n5) Mitigation: redeploy the previous known-good TFS artifact. Per 2026-06-04 this takes ~5 minutes to fully recover (faster than IIS pool recycles or DNS flushes). DO NOT attempt code-level fixes during the incident — get the bad bits off prod first.\n\n6) Long-term (file as Jiras): A1) Wrap `HttpClient.SendAsync` to `*.method.int` hosts with Polly circuit breaker (5 consecutive 5xx, 30s open window). A2) Validate `Content-Type: application/json` before calling Newtonsoft.DeserializeObject — return typed `UpstreamRespondedWithHtml` error instead. A3) Add a per-account ClusterInfo cache with 5-min stale-while-revalidate in AuthService / runtime-core / SyncEngine. B1) Wire TFS deploys to post DD Events tagged `deploy: service:<svc> commit:<sha>` so deploy-correlation overlays work. B2) Add traffic-drop monitors (hits going from N/s to <10% of baseline for 3+min) on critical services. B4) Use the BuildMetadata that PR #1014 added to do canary deploys (one worker, verify SHA on /health/check, then roll the rest).",
+    "fix_status": "diagnostic-aid",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.9,
+    "references": [
+      "2026-06-04 #swat thread: Michael Melo 14:11Z 'investigating'; Michael Melo 14:15Z 'rolling back preferences'; Michael Melo 14:26Z 'rolling back everything released today'; Michael Melo 14:31Z 'rolling back some projects can take ~45 mins'; Michael Melo 15:00Z 'rollback complete did not resolve' (after ms-preferences); Yuri Zirianov 15:03Z 'reverting ms-account'; Nelson De Miranda 15:08Z 'feels like we're back online?'; Michael Melo 15:10Z 'we should be back up'. Sequence proves ms-preferences rollback failed → ms-account revert succeeded.",
+      "Related bot KB entries: ki-microservices-method-int-upstream-502-bad-gateway (the broader 502 cascade pattern), ki-html-error-response-newtonsoft-deserialize-pattern (the Newtonsoft symptom on calling services), ki-dns-microservices-method-int-pps-quota (a DIFFERENT layer — DNS — explicitly NOT this incident).",
+      "Code references — ms-account-api: V3ClusterController.cs (the ClusterInfo endpoint), AutofacModule.cs (DI registration), Startup.cs (PR #1014 wiring changes), BuildMetadata.cs (PR #1014 added — usable for canary correlation)."
     ]
   },
   {
