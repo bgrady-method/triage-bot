@@ -1,0 +1,1 @@
+{"ts": "2026-06-06T11:19:53Z", "channel_id": "D0647LD5FND", "channel_name": "self-dm", "recipient": "self-dm", "message_type": "known-issue-recurrence", "alert_hash": "c36d004fb9e875cf", "thread_ts": null, "body": "(see DM at methodme.slack.com/archives/D0647LD5FND/p1780744773269899 — ki-21 fix_status flip notification, occurrence #273, gate=known-issue-fix-status-changed)"}
