@@ -126,8 +126,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-06-08T20:04:13Z",
-    "occurrences": 313,
+    "last_seen": "2026-06-08T20:50:12Z",
+    "occurrences": 323,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -180,6 +180,10 @@
       {
         "ts": "2026-06-08T19:08:00Z",
         "note": "2026-06-08 19:08Z triage (G1, alert-frontend-errors 6-alert cluster 18:15:13-18:38:13Z, bot B011R3D650X): chronic ki-21 syncutil/syncwidget XHR errors. DD monitor 77419271 last_triggered 18:38:12Z (1s pre-aligned with last alert) confirms attribution. DD logs sampled 18:14-18:40Z = 200-cap with 107 distinct accounts in window (top: AvantSleep 9, bindersincCo1 9, georgiapowdercoating3 6, wildcatstriping 4, certusa 4, stwsincCo1 4, boschfamilybrewingcompanyllc 4, thornelCo1 4) all on /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync — canonical ki-21 shape, widest single-cluster account fan-out today. Status_code:0 (gateway timeout). last_notified_at 2026-06-08T12:07:35Z = ~7h ago, within 24h suppression. SUPPRESS gate_reason=known-issue-window. occ 303->309. last_seen 18:38:13Z. 9th ki-21 cluster today. Concurrent with BSN4EQX43 Centreon pair G2 (18:27/18:32Z) — 6th cross-channel co-firing ki-21+other today (Centreon overlap during cluster); supports shared upstream hypothesis."
+      },
+      {
+        "ts": "2026-06-08T21:08:00Z",
+        "note": "2026-06-08 21:08Z triage (G1, alert-frontend-errors 10-alert cluster 20:14:13-20:50:12Z, bot B011R3D650X): chronic ki-21 syncutil/syncwidget XHR errors. DD monitor 77419271 currently Warn, last_triggered_ts 21:08:11Z (live attribution). DD logs 20:10-20:55Z aggregated 200-sample cap saturated with 92 distinct accounts (top: multiseal2 11, moderncompressorsales 10, EnglandLogistics 9, redeagleinternational 9, suntreksolar 8, sobremesamanagement2 8, hylprojectsolutionsinc 6, AvantSleep 4, proairkc 4, bluewatercas3 4). All paths /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync, status_code:0. **3rd consecutive sample-cap-saturated cluster within a 3-hour window** (18:14-18:40Z 107 distinct, 19:25-20:08Z 95 distinct, 20:10-20:55Z 92 distinct) — highest sustained gateway-fan-out density since 2026-06-04 OUTAGE day. AvantSleep repeat-affected across all 3 consecutive clusters. method-ui DD version master.2026-06-05_10:51:48z unchanged (no UI deploy). last_notified_at 12:07:35Z = ~9h ago, within 24h suppression → SUPPRESS gate_reason=known-issue-window. occ 313 → 323. last_seen 20:50:12Z. 6th ki-21 cluster of UTC day. Cumulative 28 alerts vs ~16.5/day baseline = ~70% above baseline. Stability-review escalation candidate: 3-consecutive-cap-saturation density flag."
       }
     ]
   },
