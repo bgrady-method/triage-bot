@@ -126,8 +126,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-06-08T14:05:13Z",
-    "occurrences": 280,
+    "last_seen": "2026-06-08T14:56:13Z",
+    "occurrences": 295,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -172,6 +172,10 @@
       {
         "ts": "2026-06-08T13:07:49Z",
         "note": "2026-06-08 13:07Z triage (G1, alert-frontend-errors 2-alert cluster 12:12:13-12:14:13Z, bot B011R3D650X): chronic ki-21 syncutil/syncwidget XHR errors. DD logs sampled 12:05-12:15Z = 5 distinct accounts (infinitimedia, catalystsuretypartners, medallionfence, shedsunlimited, manotickheatingandcoolinginc) all on GET /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync — canonical pattern. last_notified_at 2026-06-08T12:07:35Z = 60min ago (well within 24h suppression) → SUPPRESS gate_reason=known-issue-window. occ 277→278, last_seen 2026-06-08T12:14:13Z, last_notified_at unchanged. Same root cause as prior cycle 12:07Z (317b55e7554ce975)."
+      },
+      {
+        "ts": "2026-06-08T15:08:00Z",
+        "note": "2026-06-08 15:08Z triage cycle bumps ki-21 occ 280 -> 295 across 3 groups (G1 alert-frontend B011R3D650X 11 alerts 14:10:12-14:56:13Z densest ki-21 cluster of the day; G3 alert-system B03GBAMHUTB Centreon paired-fire 14:13:17+14:13:23Z 0 JWT-Retrieval-Failed hits = ki-29 ruled out, cascade hypothesis; G5 alert-system B03GBAMHUTB 14:55:15+15:00:14Z time-locked to ki-24 sustained burst 14:54-15:01Z). Last DM 12:07:35Z = ~3h ago, within 24h suppression window. SUPPRESS gate_reason=known-issue-window. NEW: 3rd cross-channel co-firing of ki-21 + ki-24 today (1st last cycle 13:56Z, 2nd 14:11-14:13Z G2+G3 this cycle mini-burst, 3rd 14:54-15:04Z G4+G5+G6 sustained burst) — hypothesis that ki-21 and ki-24 share upstream root cause is hardening. last_seen 14:56:13Z."
       }
     ]
   },
@@ -179,8 +183,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-06-08T13:51:29Z",
-    "occurrences": 91,
+    "last_seen": "2026-06-08T15:04:31Z",
+    "occurrences": 97,
     "match": {
       "channels": [
         "alert-system",
@@ -234,6 +238,10 @@
       {
         "ts": "2026-06-08T13:07:49Z",
         "note": "2026-06-08 13:07Z triage (G2+G3 both ki-24 alert-system clusters). G2 (4 alerts, B011R3D650X, 12:31:28-12:39:36Z) primary 7a9a44941f6774ec — DD monitor 115456700 (RTC Screen Load p95) last_triggered 12:37:20Z confirms; metric p95 spiked 6.13s @ 12:28:20Z → peak 10.56s @ 12:29:50Z (ratio 2.52, bracket ≥2.0 → +3 metric_breach), second mini-burst 4.29-6.53s @ 12:35:50-12:36:00Z. Latency-only confirmed: ES Level:Error runtime-core 12:25-13:10Z = 0. NOTE — G2 contains dual-monitor overlay: 12:31/12:37 alerts = monitor 115456700 (ki-24), 12:39:35+12:39:36 alerts = monitor 236570583 (ki-29 chronic JWT-NRE-synthetic watchdog noise) co-firing. Primary attribution to ki-24 per metric-breach severity. last_notified_at 2026-06-07T11:22:03Z = 25h45m ago, past 24h suppression → DM, last_notified_at bumped to 2026-06-08T13:07:49Z. occ 88→89. fix_status investigating unchanged. G3 (1 alert, B05PN7JG87L Datadog forwarder, 13:05:31Z, hash 49a2932e1331b4ac) — attributed to ki-24 on evidence: p95 RTC Screen Load spiked 8.11s @ 13:07:50Z + 8.24s @ 13:08:00Z, RTC Action Execution 5.77s @ 13:07:50Z + 4.79s @ 13:08:00Z (both endpoints spiking simultaneously = canonical ki-24 shared-upstream signature). G3 follows G2's DM by ~25min so falls inside the now-current 24h suppression → SUPPRESS gate_reason=known-issue-window. occ 89→90. last_seen 2026-06-08T13:05:31Z."
+      },
+      {
+        "ts": "2026-06-08T15:08:00Z",
+        "note": "2026-06-08 15:08Z triage cycle bumps ki-24 occ 91 -> 97 across 3 groups (G2 alert-system B05PN7JG87L 14:11:16+14:12:11+14:17:56Z RTC mini-burst peak 3.97s @ 14:12:00Z; G4 alert-system B05PN7JG87L 14:54:56Z singleton sustained-burst onset; G6 alert-system B011R3D650X 14:59:28+15:04:31Z monitor 115456700 last_triggered 15:04:20Z direct alignment within 11s). DD metric RTC Screen Load p95: sustained burst 14:54:40-15:01:20Z = 13 breach points peak 8.11s @ 14:57:00Z (ratio 1.70 over 3.0s threshold). RTC Action Execution p95 co-spiked: peaks 3.97s @ 14:56:40Z + 4.79s @ 15:00:00Z = canonical ki-24 dual-endpoint shared-upstream signature. Latency-only confirmed (ES 0 errors 14:05-15:10Z). Last DM 13:07:49Z = ~2h ago, within 24h suppression window. SUPPRESS gate_reason=known-issue-window. **Soft-recommend fix_status flip to 'needs-ops-decision'**: today's ki-24 count is now 91+6=97 across 6 clusters today (12:31Z DM, 13:05Z, last-cycle G2, this-cycle G2+G4+G6) = 6 clusters by 15:07Z UTC vs 3.5/day historical baseline = 1.7x on-pace through ~73% of day. Standing ask #10 escalation criterion (3rd ki-24 cluster today by mid-cycle) was hit last cycle and is now hit by 5th. One more cycle's data justifies fix_status flip. last_seen 15:04:31Z."
       }
     ]
   },
