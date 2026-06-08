@@ -126,8 +126,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-06-08T17:41:13Z",
-    "occurrences": 303,
+    "last_seen": "2026-06-08T18:38:13Z",
+    "occurrences": 309,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -176,6 +176,10 @@
       {
         "ts": "2026-06-08T15:08:00Z",
         "note": "2026-06-08 15:08Z triage cycle bumps ki-21 occ 280 -> 295 across 3 groups (G1 alert-frontend B011R3D650X 11 alerts 14:10:12-14:56:13Z densest ki-21 cluster of the day; G3 alert-system B03GBAMHUTB Centreon paired-fire 14:13:17+14:13:23Z 0 JWT-Retrieval-Failed hits = ki-29 ruled out, cascade hypothesis; G5 alert-system B03GBAMHUTB 14:55:15+15:00:14Z time-locked to ki-24 sustained burst 14:54-15:01Z). Last DM 12:07:35Z = ~3h ago, within 24h suppression window. SUPPRESS gate_reason=known-issue-window. NEW: 3rd cross-channel co-firing of ki-21 + ki-24 today (1st last cycle 13:56Z, 2nd 14:11-14:13Z G2+G3 this cycle mini-burst, 3rd 14:54-15:04Z G4+G5+G6 sustained burst) — hypothesis that ki-21 and ki-24 share upstream root cause is hardening. last_seen 14:56:13Z."
+      },
+      {
+        "ts": "2026-06-08T19:08:00Z",
+        "note": "2026-06-08 19:08Z triage (G1, alert-frontend-errors 6-alert cluster 18:15:13-18:38:13Z, bot B011R3D650X): chronic ki-21 syncutil/syncwidget XHR errors. DD monitor 77419271 last_triggered 18:38:12Z (1s pre-aligned with last alert) confirms attribution. DD logs sampled 18:14-18:40Z = 200-cap with 107 distinct accounts in window (top: AvantSleep 9, bindersincCo1 9, georgiapowdercoating3 6, wildcatstriping 4, certusa 4, stwsincCo1 4, boschfamilybrewingcompanyllc 4, thornelCo1 4) all on /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync — canonical ki-21 shape, widest single-cluster account fan-out today. Status_code:0 (gateway timeout). last_notified_at 2026-06-08T12:07:35Z = ~7h ago, within 24h suppression. SUPPRESS gate_reason=known-issue-window. occ 303->309. last_seen 18:38:13Z. 9th ki-21 cluster today. Concurrent with BSN4EQX43 Centreon pair G2 (18:27/18:32Z) — 6th cross-channel co-firing ki-21+other today (Centreon overlap during cluster); supports shared upstream hypothesis."
       }
     ]
   },
@@ -183,8 +187,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-06-08T17:08:31Z",
-    "occurrences": 100,
+    "last_seen": "2026-06-08T19:01:28Z",
+    "occurrences": 102,
     "match": {
       "channels": [
         "alert-system",
@@ -242,6 +246,10 @@
       {
         "ts": "2026-06-08T15:08:00Z",
         "note": "2026-06-08 15:08Z triage cycle bumps ki-24 occ 91 -> 97 across 3 groups (G2 alert-system B05PN7JG87L 14:11:16+14:12:11+14:17:56Z RTC mini-burst peak 3.97s @ 14:12:00Z; G4 alert-system B05PN7JG87L 14:54:56Z singleton sustained-burst onset; G6 alert-system B011R3D650X 14:59:28+15:04:31Z monitor 115456700 last_triggered 15:04:20Z direct alignment within 11s). DD metric RTC Screen Load p95: sustained burst 14:54:40-15:01:20Z = 13 breach points peak 8.11s @ 14:57:00Z (ratio 1.70 over 3.0s threshold). RTC Action Execution p95 co-spiked: peaks 3.97s @ 14:56:40Z + 4.79s @ 15:00:00Z = canonical ki-24 dual-endpoint shared-upstream signature. Latency-only confirmed (ES 0 errors 14:05-15:10Z). Last DM 13:07:49Z = ~2h ago, within 24h suppression window. SUPPRESS gate_reason=known-issue-window. **Soft-recommend fix_status flip to 'needs-ops-decision'**: today's ki-24 count is now 91+6=97 across 6 clusters today (12:31Z DM, 13:05Z, last-cycle G2, this-cycle G2+G4+G6) = 6 clusters by 15:07Z UTC vs 3.5/day historical baseline = 1.7x on-pace through ~73% of day. Standing ask #10 escalation criterion (3rd ki-24 cluster today by mid-cycle) was hit last cycle and is now hit by 5th. One more cycle's data justifies fix_status flip. last_seen 15:04:31Z."
+      },
+      {
+        "ts": "2026-06-08T19:08:00Z",
+        "note": "2026-06-08 19:08Z triage (G3, alert-system 2-alert cluster 18:56:34+19:01:28Z, bot B011R3D650X). DD monitor 115456700 (RTC Screen Load p95) last_triggered 19:01:20Z (8s pre-aligned with sat) — direct attribution. DD metric: p95 burst 2.74->10.23s @ 18:53:10-18:54:00Z (TWO 10.23s peaks at 18:53:20+18:54:00Z — ratio 2.41 over 3s threshold, bracket >=2.0 -> +3 metric_breach signal). Secondary 3.57s @ 19:07:20Z (ratio 0.19, mini-breach). Today's worst p95 peak so far (10.23s vs 7.275s @ 18:08Z cycle, vs 8.11s @ 15:08Z cycle). Latency-only consistent with ki-24 signature. last_notified_at 2026-06-08T18:18:17Z (50min ago, 10x resurface DM occ=100) — within 24h suppression. occ 100->102 (not %10). SUPPRESS gate_reason=known-issue-window. last_seen 19:01:28Z. 7th ki-24 cluster today. Note: severity (10.23s peak) escalates the soft-recommend fix_status flip to 'needs-ops-decision' — today's 7-cluster trajectory + worst-peak-of-day data should be in next stability-review."
       }
     ]
   },
