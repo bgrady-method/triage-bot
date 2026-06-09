@@ -268,6 +268,16 @@ python scripts/match_kb.py --kb kb/known-issues.json --channel <channel_name> --
 
 ### 4. Investigation
 
+#### 4.0a Active-swat-incident shortcut — read the swat thread first
+
+If `channel_name == "swat"` for any group in this cycle OR a `#swat` post landed in the last 60 minutes (check via Slack MCP `conversations.history` on channel `C01L5K42GQ6`), read the trailing 90 minutes of the swat thread BEFORE per-channel investigation. Engineer messages naming a service for rollback (`'rolling back X'`, `'reverting X'`, `'X is the deploy that broke'`) are the fastest path to root cause for deploy-regression incidents.
+
+**Why this is necessary:** Method deploys via Azure DevOps / TFS, not GitHub. `gh api` shows zero commits in the last 12 hours even when a deploy regression caused the outage. The bot has no other programmatic signal of "what was deployed today." Engineer attribution beats every other signal for deploy-correlation.
+
+**Important caveat — engineers iterate.** The first service they name for rollback is often wrong. The 2026-06-04 case: ms-preferences was named first (wrong); ms-account named second (correct, resolved in 5 min). Treat engineer-named targets as strong priors to **verify** with mechanism evidence (DD APM hit-rate drop on the named service; ES error signature; IIS pool restart on the hosting node), not as proof.
+
+Once the swat thread gives you a candidate service, jump to verification per `ki-microservices-method-int-upstream-502-bad-gateway` step 2 and `ki-ms-account-api-cluster-info-deploy-failure` for the canonical 502-cascade signatures.
+
 #### 4.0 DD monitors — always first
 
 Before doing any channel-specific investigation, always run the monitors scan:
