@@ -126,8 +126,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-06-09T21:07:50Z",
-    "occurrences": 357,
+    "last_seen": "2026-06-10T15:07:27Z",
+    "occurrences": 359,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -185,6 +185,10 @@
       {
         "ts": "2026-06-08T21:08:00Z",
         "note": "2026-06-08 21:08Z triage (G1, alert-frontend-errors 10-alert cluster 20:14:13-20:50:12Z, bot B011R3D650X): chronic ki-21 syncutil/syncwidget XHR errors. DD monitor 77419271 currently Warn, last_triggered_ts 21:08:11Z (live attribution). DD logs 20:10-20:55Z aggregated 200-sample cap saturated with 92 distinct accounts (top: multiseal2 11, moderncompressorsales 10, EnglandLogistics 9, redeagleinternational 9, suntreksolar 8, sobremesamanagement2 8, hylprojectsolutionsinc 6, AvantSleep 4, proairkc 4, bluewatercas3 4). All paths /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync, status_code:0. **3rd consecutive sample-cap-saturated cluster within a 3-hour window** (18:14-18:40Z 107 distinct, 19:25-20:08Z 95 distinct, 20:10-20:55Z 92 distinct) — highest sustained gateway-fan-out density since 2026-06-04 OUTAGE day. AvantSleep repeat-affected across all 3 consecutive clusters. method-ui DD version master.2026-06-05_10:51:48z unchanged (no UI deploy). last_notified_at 12:07:35Z = ~9h ago, within 24h suppression → SUPPRESS gate_reason=known-issue-window. occ 313 → 323. last_seen 20:50:12Z. 6th ki-21 cluster of UTC day. Cumulative 28 alerts vs ~16.5/day baseline = ~70% above baseline. Stability-review escalation candidate: 3-consecutive-cap-saturation density flag."
+      },
+      {
+        "ts": "2026-06-10T15:20:48Z",
+        "note": "2026-06-10 15:08Z triage: 2 ki-21 groups. G2 (alert-frontend-errors 14-alert cluster 14:24:13-15:07:13Z, bot B011R3D650X): DD method-ui XHR error logs 14:24-15:07Z = 200-sample-cap saturated, 91 distinct accounts (top acentel 13, diversair 11, sdsautomation 10, innuwindow2 6, yoderbilt 6, acheerfulgiver 6, EnglandLogistics 6, shasep 6, CunninghamPianoCo 6), all on GET /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync status_code:0 — canonical chronic ki-21 shape (91 distinct ~ recent 92-107 chronic baseline, NOT the 100x 2026-06-04 OUTAGE surge). Monitor 77419271 Warn, last_triggered 15:09:11Z. G3 (alert-system 6-alert cluster 14:43:27-15:07:27Z, bot B011R3D650X ki-21 alert-system variant lineage). occ 357->358 (G2)->359 (G3). last_notified_at 2026-06-09T17:33:34Z = 21h34m ago, within 24h suppression -> SUPPRESS both, gate_reason=known-issue-window. fix_status chronic-residual-post-rollback-2026-06-05 unchanged. ES gateway-timeout query returned 0 (ES reachable, 379 shards/142ms — index/field-name mismatch, not an outage; DD account fan-out is canonical confirmation). Concurrent with ki-24 G1 (RTC p95 anomalous-severity burst) -> per precedence_note, treat as shared-upstream: microservices.methodlocal.int pool + runtime-core RTC backpressure (Redis errors 92 in window). Cross-channel co-fire (alert-frontend + alert-system ki-21 + alert-runtime-monitoring ki-24) — recurrent shared-upstream pattern."
       }
     ]
   },
@@ -192,8 +196,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-06-09T21:07:50Z",
-    "occurrences": 118,
+    "last_seen": "2026-06-10T14:50:52Z",
+    "occurrences": 119,
     "match": {
       "channels": [
         "alert-system",
@@ -256,6 +260,10 @@
       {
         "ts": "2026-06-08T19:08:00Z",
         "note": "2026-06-08 19:08Z triage (G3, alert-system 2-alert cluster 18:56:34+19:01:28Z, bot B011R3D650X). DD monitor 115456700 (RTC Screen Load p95) last_triggered 19:01:20Z (8s pre-aligned with sat) — direct attribution. DD metric: p95 burst 2.74->10.23s @ 18:53:10-18:54:00Z (TWO 10.23s peaks at 18:53:20+18:54:00Z — ratio 2.41 over 3s threshold, bracket >=2.0 -> +3 metric_breach signal). Secondary 3.57s @ 19:07:20Z (ratio 0.19, mini-breach). Today's worst p95 peak so far (10.23s vs 7.275s @ 18:08Z cycle, vs 8.11s @ 15:08Z cycle). Latency-only consistent with ki-24 signature. last_notified_at 2026-06-08T18:18:17Z (50min ago, 10x resurface DM occ=100) — within 24h suppression. occ 100->102 (not %10). SUPPRESS gate_reason=known-issue-window. last_seen 19:01:28Z. 7th ki-24 cluster today. Note: severity (10.23s peak) escalates the soft-recommend fix_status flip to 'needs-ops-decision' — today's 7-cluster trajectory + worst-peak-of-day data should be in next stability-review."
+      },
+      {
+        "ts": "2026-06-10T15:20:48Z",
+        "note": "2026-06-10 15:08Z triage (G1, alert-runtime-monitoring 8-alert cluster 14:10:53-14:50:52Z, bot B063S8NBW0M): ki-24 RTC p95 recurring CONFIRMED + ANOMALOUS SEVERITY. DD metric RTC Screen Load p95 peaked 8.90s @15:00:00Z and 15.08s @15:09:20Z; Action Execution p95 10.72s @15:09:20Z; multiple 4-8s breaches 14:38-15:00Z. runtime-core status:error logs = 0 in window (latency-only signature holds). Redis command errors (monitor 227940275 'Redis Errors is High' in ALERT, last_triggered 15:10:35Z) = 63 @15:09:00Z + 17 @14:59:20Z + 11 @15:09:20Z = ~92 total, time-locked to the two p95 bursts. This is the LARGEST Redis-error corroboration yet during a ki-24 event (vs 19 total first observed 2026-06-09 13:xxZ) — hardens the runtime-core/Redis backpressure shared-upstream hypothesis. occ 118->119 (%10=9, no resurface). last_notified_at 2026-06-09T15:08:00Z = 23h59m55s ago = ~5 SECONDS inside 24h suppression window -> SUPPRESS gate_reason=known-issue-window (razor-thin; would have DM'd 5s later). fix_status 'investigating' unchanged. STABILITY-REVIEW: severity (15s p95, 5x threshold) + 92 Redis errors + 5-second suppression margin = strong case for the proposed severity-based escalation override on the ki-24 suppression window. Concurrent with ki-21 G2+G3 -> shared-upstream co-fire (see precedence_note)."
       }
     ]
   },
