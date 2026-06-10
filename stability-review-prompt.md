@@ -302,6 +302,68 @@ If a cluster has zero matching investigation reports despite `≥2` alert_hashes
 
 ---
 
+## Phase 3c — Recommendation tracker (prior-month follow-through)
+
+Recommendations from prior stability-reviews decay if they aren't tracked. Each month's report has historically produced 5–15 engineering recommendations; without a follow-through loop, they sit in the markdown and never become Jira tickets, never get owners, never ship. This phase closes that loop.
+
+### 3c.1 Find the prior month's report
+
+```bash
+PRIOR_MONTH_DIR=$(date -u -d "1 month ago" +%Y-%m 2>/dev/null || date -u -v-1m +%Y-%m)
+ls stability-reviews/${PRIOR_MONTH_DIR}/*-report.md 2>/dev/null | tail -1
+```
+
+If no prior-month report exists (first run, or skipped month), log `recommendation-tracker: no prior report — skipping` and proceed to Phase 4.
+
+### 3c.2 Extract recommendations
+
+Read the prior report's Recommendations section. For each recommendation, capture:
+- A short slug (3–6 words, e.g., "polly-circuit-breaker-microservices-int", "tfs-deploy-dd-events")
+- The one-line description
+- The cited Jira ticket if any (the recommendation may end with `→ NCNG-XXXX` or `→ PL-XXXX`)
+- The proposed owner (team or service)
+
+### 3c.3 Look up status
+
+For each recommendation:
+
+- **If a Jira key is cited**: `getJiraIssue` and capture `status` (Open / In Progress / Done / Won't Do) and `updated`.
+- **If no Jira key is cited**: search Jira for the recommendation's text via `searchJiraIssuesUsingJql`:
+
+```
+project in (NCNG, PL) AND
+  text ~ "<recommendation noun phrase>" AND
+  created >= "<prior report date - 7 days>"
+ORDER BY created DESC
+```
+
+If found, capture the key + status. If not found, the recommendation is **unfiled** — note this explicitly.
+
+### 3c.4 Compose tracker section
+
+Add a section to this month's report between Findings and Open Follow-ups:
+
+```markdown
+## Recommendation tracker (from {prior-month-report-filename})
+
+| Recommendation | Jira | Status | Updated | Notes |
+|---|---|---|---|---|
+| Polly circuit breakers on microservices.int calls | NCNG-1502 | In Progress | 2026-07-02 | runtime-core ticket; gateway pending |
+| TFS → DD deploy events | unfiled | n/a | n/a | **No Jira ticket — open** |
+| ClusterInfo stale-while-revalidate cache | PL-63010 | Done | 2026-06-22 | Shipped; verify with next ms-account-api deploy |
+| ... | | | | |
+
+**Summary**: {N} recommendations from prior report — {N_done} done, {N_in_progress} in progress, {N_open} open with Jira, {N_unfiled} unfiled (no ticket). Unfiled count > 0 is a process gap — file the tickets manually and reference this report.
+```
+
+### 3c.5 Escalate persistent unfiled recommendations
+
+If the same recommendation appears unfiled in **two consecutive monthly reports**, surface it in the Executive Summary with priority `P1 — chronic unfiled`. Recommendations that never become tickets are recommendations that never ship.
+
+If the same recommendation is `In Progress` for **three consecutive monthly reports** without status change, also escalate — that's a stalled ticket, surface for owner review.
+
+---
+
 ## Phase 4 — Jira read-only cross-reference
 
 For each cluster, run JQL via Atlassian MCP per the templates in `playbooks/stability-review.md` Step 5:
@@ -363,9 +425,10 @@ Use `references/methodology/postmortem-template.md` as the structure. Sections i
 2. Methodology
 3. Findings (one per cluster, ordered by ICE descending)
 4. **Industry comparison (required — see "Mandatory framing" below)**
-5. Trend Analysis (skip if no prior report; if prior reports exist, list them and check status of their recommendations)
-6. Open Follow-ups
-7. Appendix: raw queries
+5. **Recommendation tracker (required if prior-month report exists — see Phase 3c)**
+6. Trend Analysis (skip if no prior report; if prior reports exist, list them and check status of their recommendations)
+7. Open Follow-ups
+8. Appendix: raw queries
 
 ### Mandatory framing (applies to every report this routine writes)
 
@@ -387,6 +450,7 @@ Quality gate before writing:
 - [ ] **Phase 0a.5 PIR sync ran successfully**; Executive Summary contains a `PIR sync: +N entries` line (even when N=0). If the sync failed, a `🟡 PIR sync failed` warning is documented in the Executive Summary and a `#triage-bot-health` post was made.
 - [ ] **Industry-comparison section present** with: (a) tier benchmark table 99.99%/99.95%/99.9%/99.5%, (b) Method-against-tiers row per metric with annualized-if-sustained column, (c) explicit annualization caveat naming P0-count-per-window, (d) concentration-vs-distribution call.
 - [ ] Executive Summary's headline availability numbers have **industry context inline** ("X% — N notches below/at/above the 99.9% peer norm") — never bare percentages.
+- [ ] **Recommendation tracker section present** if a prior-month report exists. Each prior recommendation has a row with Jira key (or `unfiled`), status, and last-updated date. Unfiled-count and chronic-unfiled escalations are surfaced in the Executive Summary.
 - [ ] Each cluster cites at least one `docs/messages/` entry (`needs-human` DM, `kb-update`, or `health-status` correlate) **OR** explicitly explains why the message corpus produced no signal for that cluster.
 - [ ] Each Phase-3 finding includes a trend-delta value (`Δ_freq = …`) **OR** a `(ES unavailable)` marker if 3a was deferred.
 - [ ] Each Phase-3c finding cites a concrete `request_id` (real trace), not just an aggregate.

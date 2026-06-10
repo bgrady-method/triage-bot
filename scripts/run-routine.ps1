@@ -59,10 +59,21 @@ $claude = 'C:\Users\MachineUser\.local\bin\claude.exe'
 $gh = 'C:\Program Files\GitHub CLI\gh.exe'
 $exitCode = 1
 
+# Stability-review is a once-monthly deep cross-service synthesis over
+# a 30-day data corpus (digest, investigations, KB, message corpus,
+# fresh DD/ES queries, Jira, PIRs) plus 5-whys + architecture-lens +
+# industry-framing + recommendation tracker. Default Haiku is undersized
+# for that workload; pin to Sonnet for the depth without paying Opus.
+# Other routines (triage, heartbeat, pir-ingest) stay on the default.
+$modelArgs = @()
+if ($Routine -eq 'stability-review') {
+    $modelArgs = @('--model', 'sonnet')
+}
+
 try {
     # Pipe $null so claude.exe sees an immediate EOF on stdin instead of
     # waiting 3s for input it'll never get from Task Scheduler.
-    $null | & $claude -p $prompt --output-format json *>&1 | Out-File -FilePath $outFile -Encoding utf8
+    $null | & $claude -p $prompt @modelArgs --output-format json *>&1 | Out-File -FilePath $outFile -Encoding utf8
     $exitCode = $LASTEXITCODE
 } catch {
     "Exception: $($_.Exception.Message)" | Out-File -FilePath $outFile -Encoding utf8 -Append

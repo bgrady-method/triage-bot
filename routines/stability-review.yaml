@@ -93,3 +93,10 @@ settings:
   timeout_minutes: 30          # 30-day synthesis is heavier than a single triage cycle
   max_concurrent_runs: 1       # cron fires once a month; single run in flight
   unrestricted_branch_push: false
+  # scripts/run-routine.ps1 invokes this routine with `--model sonnet`.
+  # Rationale: stability-review is a once-monthly deep cross-service synthesis
+  # (30-day data corpus + 5-whys + architecture lens + industry framing +
+  # recommendation tracker). Default Haiku is undersized for the depth;
+  # Sonnet provides the analysis quality without paying for Opus on a 30-min
+  # monthly run. Triage / heartbeat / pir-ingest stay on the default model.
+  model: sonnet
