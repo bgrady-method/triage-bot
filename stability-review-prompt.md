@@ -126,10 +126,27 @@ Translate `WINDOW_START` and `WINDOW_END` to ISO-8601 for human-readable use in 
 
 Per `playbooks/stability-review.md` Step 0:
 
+`ts` is an ISO-8601 string in `kb/incident-log.jsonl` (e.g. `"ts":"2026-06-10T17:15:52Z"`), not a unix integer. Use Python's JSON parser — the previous `awk` regex matched `"ts":<number>` only and silently returned ~1% of the real count.
+
 ```bash
-LINES_IN_WINDOW=$(awk -v from="$WINDOW_START" -v to="$WINDOW_END" \
-  '/"ts"/ { match($0, /"ts":[ ]?([0-9]+)/, a); if (a[1] >= from && a[1] <= to) c++ } END { print c+0 }' \
-  kb/incident-log.jsonl)
+LINES_IN_WINDOW=$(python -c "
+import json, sys
+from datetime import datetime, timezone
+start = datetime.fromtimestamp($WINDOW_START, tz=timezone.utc)
+end   = datetime.fromtimestamp($WINDOW_END,   tz=timezone.utc)
+count = 0
+with open('kb/incident-log.jsonl') as f:
+    for line in f:
+        line = line.strip()
+        if not line: continue
+        try: ts = json.loads(line).get('ts')
+        except Exception: continue
+        if not isinstance(ts, str): continue
+        try: dt = datetime.fromisoformat(ts.replace('Z','+00:00'))
+        except Exception: continue
+        if start <= dt <= end: count += 1
+print(count)
+")
 ```
 
 - If `LINES_IN_WINDOW < 10`: post `🟡 stability-review ${YYYY_MM}: only ${LINES_IN_WINDOW} incident-log lines in window — skipping (need ≥10)` to `#triage-bot-health` and exit.
