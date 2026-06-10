@@ -103,4 +103,18 @@ $entry = [pscustomobject]@{
     output_file = $outFile
 } | ConvertTo-Json -Compress
 Add-Content -Path $runsLog -Value $entry -Encoding utf8
+
+# Rotate logs older than 7 days. logs/ accumulates 100+ JSON files
+# per week from hourly triage cycles; keeping more than a week of
+# detail wastes disk and slows git/grep on the directory. runs.jsonl
+# (the rolled-up activity index) is preserved regardless of age.
+try {
+    $cutoff = (Get-Date).AddDays(-7)
+    Get-ChildItem -Path $logDir -File -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name -ne 'runs.jsonl' -and $_.LastWriteTime -lt $cutoff } |
+        Remove-Item -Force -ErrorAction SilentlyContinue
+} catch {
+    # Best-effort cleanup — don't fail the routine if rotation hiccups.
+}
+
 exit $exitCode

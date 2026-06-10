@@ -9,3 +9,11 @@ node_modules/
 .dev.vars
 .DS_Store
 *.log
+# Bot-generated transient artifacts. Routine outputs land in logs/
+# (cycle JSON, runs.jsonl) and .claude/ holds PIR sync cache, DM
+# bodies, intermediate Python helpers, settings.local.json. None
+# are load-bearing for bot operation — they regenerate on next run.
+# .claude/settings.local.json is user-local IDE config and shouldn't
+# be committed.
+.claude/
+logs/
