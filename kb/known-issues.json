@@ -142,7 +142,8 @@
         {
           "contains": "monitors/77419271"
         }
-      ]
+      ],
+      "precedence_note": "2026-06-10: When ki-21 and ki-24 (ki-2026-05-24-runtime-core-rtc-p95-recurring) both fire in the same 60-min window with ≥2 alerts each, treat as shared-upstream signal — investigate microservices.methodlocal.int pool state, runtime-core RTC backpressure, and ms-account-api / ms-preferences-api ClusterInfo lookup health together before classifying either independently. Repeated cross-channel co-firing (observed 3+ cycles per day this week) hardens the shared-upstream hypothesis; treating each as independent leads to wrong root-cause attribution."
     },
     "diagnosis": "Frontend XHR errors (status_code:0, 'Failed to load') reported to DataDog RUM by method-ui are symptoms â€” the actual failure happens upstream in ms-gateway-api's Ocelot ResponderMiddleware, which raises RequestTimedOutError / TaskCanceledException while waiting for microservices.methodlocal.int (the .NET Framework Tier-3 IIS pool) to respond. Affected paths span multiple owned services on that pool: /syncutil/syncwidget/{account}/GetSyncWidgetInfoAsync, /preferences/v3/User, /account/learning/progress, /account/banners/queue. The pattern is chronic â€” Ocelot warning volume in the 17:00 UTC hour was 1072 today vs 1064 24h ago (+0.7%), so the underlying timeout rate is steady-state, not a regression. DataDog monitor 77419271 ('Unusual number of XHR errors for account: {{@account_name.name}}') trips whenever a single account's user session bunches >40 such XHR errors within 5 min. NOTE: this *may* be downstream of ki-dns-microservices-method-int-pps-quota â€” DNS resolution failures on the Windows fleet manifest as Ocelot timeouts. Cross-reference both before concluding root cause.\n\n2026-06-04 12:50Z surge (100x chronic baseline) traced to ms-account-api release at 12:30Z. Issue started 20 min post-deploy. Initial rollback of preferences + 'everything released today' did NOT resolve; targeted ms-account revert initiated 14:03Z. Runtime made 90K calls to ms-preferences-api in 30 min during surge -> 502 bad gateway. Lesson: when ki-21 shape fires at >10x chronic magnitude, always check ms-account / ms-preferences-api deploys explicitly (both currently absent from routines/triage.yaml repos:).",
     "playbook": "1) Confirm chronic baseline by comparing ES Ocelot.Responder.Middleware Warning volume in the alert window vs the same window 24h ago â€” if delta < 20%, it's the chronic pattern (no new incident). 2) Aggregate timeouts by RequestPath: if dominant paths are all under upstream microservices.methodlocal.int, it's pool-level. 3) **Check ki-dns-microservices-method-int-pps-quota first** â€” DNS bursts on the Windows fleet present here as Ocelot timeouts. 4) If DNS is clean: identify which downstream microservice owns the slow path via Ocelot config in ms-gateway-api/gateway/API/ocelot.*.json. 5) Decision tree for the fix: (a) raise per-route Ocelot timeout (cheapest, masks symptom â€” appropriate if Ben prefers user-facing reliability over visibility), (b) scale microservices IIS pool / shorten recycle interval (medium cost, addresses cold-start tail), (c) profile the upstream microservice (sync-util / preferences / account) under prod load to find the slow path â€” root-cause fix but expensive.",
@@ -220,7 +221,8 @@
         {
           "regex": "post_/api/v1/runtime/_actionid_"
         }
-      ]
+      ],
+      "precedence_note": "2026-06-10: When ki-24 and ki-21 (ki-2026-05-21-gateway-microservices-timeout) both fire in the same 60-min window with ≥2 alerts each, treat as shared-upstream signal — see ki-2026-05-21-gateway-microservices-timeout precedence_note. Root cause is more likely upstream (microservices.methodlocal.int pool, ms-account-api ClusterInfo lookup, runtime-core RTC backpressure shared with gateway) than endpoint-specific."
     },
     "diagnosis": "DD monitors 115456700 (RTC Screen Load p95 > 3s) and 117279738 (RTC Action Execution p95 > 3s) â€” both query `trace.aspnet_core.request{env:prod,service:runtime-core-api,resource_name:post_/api/v1/runtime/...}` â€” fire repeatedly with brief but severe p95 spikes. Signature is latency-only: zero error logs in window, monitor returns to OK shortly after. Confirmed pattern observed 2026-05-23 17:50â€“17:52Z (10.72s peak), and again across 2026-05-24 03:00â€“09:00Z (peaks: Action Execution 13.32s @03:28Z; Screen Load 24.38s @05:46Z, 15.80s @08:06Z, 7.74s @08:20Z, plus 10+ smaller spikes; Action Execution also 10.56s @04:42Z, 4.04s @08:08Z). Both endpoints (Screen Load + Action Execution) are runtime-core-api's hottest write paths; same service, distinct resource names, but co-firing pattern strongly suggests shared upstream contention (SQL/Mongo/Redis hot account, GC pause, or per-tenant burst) rather than endpoint-specific code. No deploys to runtime-core since 2026-05-06 (17+ days), so this is NOT a code regression. Likely candidates: (1) noisy-neighbor tenant burst saturating a per-DB connection pool; (2) RTC SQL query plan regression on a frequently-loaded screen; (3) GC pause from a recently-grown working set. DD APM trace search (not yet wired into dd_search.py) would pinpoint the slow span.",
     "playbook": "1) Confirm pattern: run `dd_search.py metric --query 'p95:trace.aspnet_core.request{env:prod,service:runtime-core-api,resource_name:post_/api/v1/runtime/load/_screenid*}' --from-unix <window>` â€” if multiple > 3s points cluster in window, this is the pattern. 2) Confirm latency-only: `dd_search.py logs --query 'service:runtime-core-api status:error env:prod' --from <window>` should return 0 results. If error logs are present, this is a DIFFERENT incident â€” fall back to runtime-core CLAUDE.md. 3) If pattern confirmed, the diagnostic gap is identifying the slow span: open https://app.datadoghq.com/apm/traces?query=service%3Aruntime-core-api%20%40duration%3A%3E5s and inspect outlier traces in the spike window â€” look for SQL query, Mongo aggregation, or Redis SCAN dominating duration. Tag breakdown by `@account_name` or per-tenant DB name. 4) Mitigation options pending root cause: (a) increase monitor threshold to 4s if spikes are universally <4s and short-duration (cheapest, masks); (b) add per-resource_name circuit breaker in runtime-core (medium); (c) profile slowest accounts and apply targeted SQL/Mongo index fixes (root cause, expensive). 5) Cross-check ki-2026-05-21-gateway-microservices-timeout (different service) and ki-dns-microservices-method-int-pps-quota (could chain into runtime-core via downstream calls).",
@@ -269,17 +271,37 @@
         "alert-frontend-errors",
         "alert-runtime-monitoring"
       ],
+      "all_of": [
+        {
+          "regex": "(AsyncStorage|SecureStore|ERR_KEY_CHAIN)"
+        }
+      ],
       "any_of": [
         {
           "contains": "Failed to migrate from AsyncStorage to SecureStore"
         },
         {
-          "contains": "ERR_KEY_CHAIN"
+          "all_of": [
+            {
+              "contains": "ERR_KEY_CHAIN"
+            },
+            {
+              "regex": "Method/2\\.1\\."
+            }
+          ]
         },
         {
-          "contains": "AsyncStorage to SecureStore"
+          "all_of": [
+            {
+              "contains": "AsyncStorage"
+            },
+            {
+              "contains": "SecureStore"
+            }
+          ]
         }
-      ]
+      ],
+      "tightening_note": "2026-06-10: required at least one of AsyncStorage/SecureStore/ERR_KEY_CHAIN in all_of, then require either the canonical 'Failed to migrate' phrase OR ERR_KEY_CHAIN + Method/2.1.x version-pinning OR both AsyncStorage and SecureStore mentioned together. Confidence 0.8 retained — root cause unconfirmed without mobile-team trace."
     },
     "diagnosis": "Client-side error from the Method native mobile app (iOS, observed UA Method/2.1.537 CFNetwork/Darwin). The app's one-time AsyncStorage->SecureStore storage migration fails with the iOS keychain error code ERR_KEY_CHAIN, logged server-side via mobilenative.method.me POST /apps/v1/logging/mobile (MethodUI.Controllers.LoggingController relay; dd_service 'nonprod/apps' on PROD-NEW-04/5/6 - ingestion hosts only, not a server fault). Volume on 2026-05-28: ~0 in the 08-11Z window, 826 in 11-13Z, ~4859 in the 13:48-14:08Z window (accelerating ~240/min), 5996 total for the UTC day vs ~3 in the 24h-ago baseline (~80x). Surfaced via Datadog error-tracking new-issue monitor 227951254 (Alert state). Server-side has no fix - the migration/keychain access is client-side in the mobile app.",
     "playbook": "1) Confirm volume + app version in ES: level:(ERROR OR FATAL) AND fields.dd_service:\"nonprod/apps\" AND message:\"Failed to migrate from AsyncStorage\" -- check fields.UserAgent for app version (e.g. Method/2.1.537) and OS (CFNetwork/Darwin = iOS). 2) This is a CLIENT bug: route to the mobile team. Likely cause is a missing/incorrect iOS keychain access group or entitlement, or a SecureStore key collision, introduced by the storage-migration code path in the suspected release (2.1.537). 3) Mitigation options for mobile team: ship a patch that wraps the migration in a try/catch and falls back to AsyncStorage (do not block app start on keychain), or fix the keychain entitlement. 4) Server side: no action beyond monitoring volume; consider whether the /apps/v1/logging/mobile pipeline should down-rank this to WARN to avoid error-tracking noise.",
@@ -741,7 +763,8 @@
         {
           "regex": "DNS.*resolution.*fail"
         }
-      ]
+      ],
+      "precedence_note": "2026-06-10: Takes precedence over ki-microservices-method-int-upstream-502-bad-gateway IF any DNS-layer mechanism evidence is present (NXDOMAIN, Name or service not known, remote name could not be resolved, linklocal_allowance_exceeded, ENA pps_allowance_exceeded). Without DNS-layer evidence — even if microservices.method.int hostnames appear in the failing URLs — prefer ki-microservices-method-int-upstream-502-bad-gateway. The 2026-06-04 incident was initially misattributed to this entry because the symptom shape (calls to microservices.method.int failing) matched; the actual layer was HTTP, not DNS."
     },
     "diagnosis": "Every Windows EC2 instance forwards DNS to two AD domain controllers (prod-dc-01, prod-dc-02), which then forward *.method.int queries to AWS Route53 Resolver at 172.31.0.2. That destination counts against the AWS per-ENI 1024 PPS link-local quota (shared with 169.254.169.253, IMDS, NTP, Windows Licensing). Combined query rate from 11 Windows hosts pushes DCs' link-local PPS over the cap during bursts; AWS silently drops the excess packets at the VPC fabric. DCs' conditional forwarder for method.int had UseRecursion=True, so on forwarder timeout the DC falls back to root-hint recursion. Root hints can't resolve .int (reserved TLD; no public method.int zone), so they return NXDOMAIN, which the DC negatively caches. Windows DNS clients then cache the negative response for 15 minutes (MaxNegativeTtl), extending visible outage well past the actual packet-drop bursts. ENA linklocal_allowance_exceeded confirms shaping events; CloudWatch NetworkPacketsOut on prod-dc-01 doubled (1,557 -> 2,982) at incident time. Affected services: report-generation API, classic API, ms-gateway-api, microservices nodes.\n\n==== HOW TO RECOGNIZE THIS (vs HTTP-layer 502 failures on the same hostname) ====\nThis KB entry matches ONLY incidents where the DNS layer itself failed. Mandatory mechanism evidence: the alert window must include at least one of (a) `Name or service not known` / `remote name could not be resolved` / `NXDOMAIN` error strings, (b) ENA `linklocal_allowance_exceeded` non-zero on prod-dc-01 or prod-dc-02, or (c) DNS query timeout logs. A 502 Bad Gateway HTTP response with nginx HTML body (`<html>...502 Bad Gateway</html>`) on a `microservices.method.int` URL is NOT this issue — it means DNS resolved, the connection reached the proxy, and the proxy returned 502 because its upstream was unreachable/unhealthy. Match HTTP-layer 502 patterns to `ki-microservices-method-int-upstream-502-bad-gateway` instead.\n\nThe error rate signature also differs: this DNS issue produces step-function recovery (sharp drops every 15 minutes as the negative cache expires on each Windows host). An HTTP-layer upstream failure produces sustained steady-state errors for the duration of the upstream's degradation. Use the time-shape to disambiguate when only some of the evidence is present.\n\nNOTE: this can present similarly to ki-2026-05-21-gateway-microservices-timeout (Ocelot timeouts) — both involve calls to microservices.method.int failing. Check the layer-specific evidence before matching either.",
     "playbook": "**Before applying this playbook, verify the mechanism.** Confirm at least one DNS-layer error string is present in the alert window: `Name or service not known`, `remote name could not be resolved`, `NXDOMAIN`, or non-zero ENA `linklocal_allowance_exceeded` on the DCs. A 502 Bad Gateway with nginx HTML body is NOT sufficient — that's an HTTP-layer signal that means DNS already resolved successfully. If only the 502 signature is present, match `ki-microservices-method-int-upstream-502-bad-gateway` instead.\n\n1) Check ENA metrics on Windows DCs (prod-dc-01, prod-dc-02): pps_allowance_exceeded, linklocal_allowance_exceeded. Non-zero in the alert window IS the confirmation. 2) Check Datadog for NetworkPacketsOut spike on DCs (the 2026-05 incident saw a 2x jump 1,557 -> 2,982). 3) Confirm the conditional forwarder on EACH DC points to Route 53 Resolver inbound endpoint (rslvr-in-33bec0891b854ea8b at 172.31.223.154 / 172.31.168.212) with UseRecursion=$false. The PIR action items state this was completed on 2026-05-20/21. 4) If the endpoint path drifted/reverted on either DC, that's the root cause — fix the forwarder config on both, then flush DNS clients on affected hosts (`ipconfig /flushdns`) and DCs (`Clear-DnsServerCache`) to clear the 15-minute negative cache. 5) Long-term per PIR: reduce Windows MaxNegativeTtl from 15 minutes to 30 seconds; enable DNS client logging; collect Datadog throttling metrics (bw_*_allowance_exceeded, pps_allowance_exceeded, conntrack_allowance_exceeded, linklocal_allowance_exceeded); add a forwarder-config drift alarm so we know in minutes (not hours) if a DC's conditional forwarder gets reverted again.",
@@ -764,32 +787,33 @@
         "alert-runtime-monitoring",
         "swat"
       ],
+      "all_of": [
+        {
+          "regex": "EDA[. ]Orchestrator"
+        }
+      ],
       "any_of": [
         {
           "contains": "PL-57695"
         },
         {
-          "contains": "EDA Orchestrator"
+          "regex": "EDA.*timeout.*(1.minute|60.s|60s)"
         },
         {
-          "contains": "EDA.Orchestrator.Api"
-        },
-        {
-          "contains": "prod-msl-03"
-        },
-        {
-          "contains": "prod-msl-04"
-        },
-        {
-          "contains": "prod-msl-05"
-        },
-        {
-          "regex": "EDA.*timeout.*1.minute"
+          "all_of": [
+            {
+              "regex": "prod-msl-(03|04|05)"
+            },
+            {
+              "contains": "timeout"
+            }
+          ]
         },
         {
           "regex": "Gary account"
         }
-      ]
+      ],
+      "tightening_note": "2026-06-10: require EDA Orchestrator mention in all_of, then require specific 1-minute timeout pattern OR prod-msl host + timeout pattern together. Prevents firing on bare 'timeout' + 'EDA.Orchestrator.Api' which would catch any EDA latency."
     },
     "diagnosis": "The platform experienced intermittent slowness for ~1 hour on 2025-10-06. Datadog metrics + Logstash traced it to the EDA Orchestrator API timing out after a fixed 1 minute, which then delayed upstream runtime-core request processing. EDA Orchestrator is only enabled for the 'Gary accounts' cohort, so only those accounts saw the impact. Root cause was a load-balancing / deployment misconfiguration on prod-msl-03/04/05 — fixed under PL-57695.",
     "playbook": "1) On runtime-core slowness alerts that affect only the Gary-accounts cohort, check the EDA Orchestrator API (eda.methodlocal.int health) for elevated latency / 1-minute timeouts on prod-msl-03/04/05. 2) If timing out, confirm the LB target group includes all three nodes and they all return healthy at the same EDA endpoint. 3) Mitigation: re-balance the EDA Orchestrator deploy across all three nodes (or restart any failing node). 4) PL-57695 was the long-term fix — confirm that LB/deploy config is still correct.",
@@ -1119,23 +1143,23 @@
         "alert-runtime-monitoring",
         "swat"
       ],
-      "any_of": [
+      "all_of": [
         {
           "contains": "methodintegration.com"
-        },
+        }
+      ],
+      "any_of": [
         {
           "contains": "GoDaddy"
         },
         {
-          "regex": "domain.*overdue"
+          "contains": "parking page"
         },
         {
-          "regex": "domain.*payment"
-        },
-        {
-          "regex": "Report Generation"
+          "regex": "domain.*(overdue|expired|payment)"
         }
-      ]
+      ],
+      "tightening_note": "2026-06-10: required methodintegration.com hostname in all_of and removed bare 'Report Generation' match (too broad — would fire on any Report-Generation-related alert). Mechanism evidence (GoDaddy/parking page/domain-expired language) still must be present in any_of."
     },
     "diagnosis": "Method Classic, Report Generation, and Tables & Fields all suddenly broke. Root cause: the methodintegration.com domain registration payment was overdue on GoDaddy and GoDaddy redirected the domain to their parking page. Action items: Paul purchased the domain for three years, ops@method.me was added as an admin on the GoDaddy account, and the credentials were added to Passbolt.",
     "playbook": "1) On unexplained simultaneous outages of Classic + Report Generation + Tables & Fields with no recent deploy, immediately check whether any Method-owned domain (especially methodintegration.com) has changed DNS / redirects to a registrar parking page. 2) Visit the domain in a browser — if it shows GoDaddy / registrar parking, payment is overdue. 3) Mitigation: pay the domain immediately; DNS will repropagate within minutes-to-hours. 4) Long-term: confirm ops@method.me is on the registrar account, credentials in Passbolt, and renewal is multi-year.",
@@ -1681,23 +1705,40 @@
         "alert-runtime-monitoring",
         "alert-system"
       ],
+      "all_of": [
+        {
+          "contains": "MySql"
+        }
+      ],
       "any_of": [
         {
-          "contains": "CIAMedical"
-        },
-        {
-          "contains": "MySqlException"
-        },
-        {
-          "contains": "Failed to log a message"
+          "all_of": [
+            {
+              "contains": "CIAMedical"
+            },
+            {
+              "regex": "(pool|MySqlException)"
+            }
+          ]
         },
         {
           "contains": "max pool size was reached"
         },
         {
           "regex": "MySql.*Timeout.*connection.*pool"
+        },
+        {
+          "all_of": [
+            {
+              "contains": "Failed to log"
+            },
+            {
+              "contains": "MySql"
+            }
+          ]
         }
-      ]
+      ],
+      "tightening_note": "2026-06-10: required MySql in all_of (any pool/connection issue mentioning MySql), then CIAMedical-scoped OR explicit pool-exhaustion message OR 'Failed to log' + MySql together. Prevents firing on any unrelated MySQL exception without CIAMedical or logging context."
     },
     "diagnosis": "The CIAMedical SOAP API host exhausted its MySQL connection pool with 'Timeout expired. The timeout period elapsed prior to obtaining a connection from the pool. This may have occurred because all pooled connections were in use and max pool size was reached.' Other Classic hosts (4/5) had many users hitting MySQL with no effect. Impact was minimal — only the per-call count-logging failed (the API calls themselves still went through), so the only side effect was that customers got 'free' calls beyond their API limit. Mitigation: changed MySQL calls into a singleton, which silenced the noise.",
     "playbook": "1) If logs on a SOAP API host (CIAMedical or similar) show 'MySql.Data.MySqlClient.MySqlException … all pooled connections were in use', check whether per-call logging is creating a new MySQL connection per request. 2) Confirm: API endpoint itself works, only count-logging fails. 3) Mitigation: make the MySQL connection a singleton (or use a connection-pool helper that reuses connections). 4) Customer impact is minimal — API limit tracking is broken (free calls until fixed).",
@@ -2122,18 +2163,20 @@
           "contains": "redoc.standalone.js"
         },
         {
-          "contains": "RestAPI"
+          "regex": "redoc.*(404|CDN|missing|broken)"
         },
         {
-          "contains": "Rest API developer documents"
-        },
-        {
-          "regex": "REST.API.*blank"
-        },
-        {
-          "regex": "redoc.*CDN"
+          "all_of": [
+            {
+              "contains": "REST API"
+            },
+            {
+              "regex": "(blank|404|not found|missing)"
+            }
+          ]
         }
-      ]
+      ],
+      "tightening_note": "2026-06-10: removed bare 'RestAPI' / 'Rest API developer documents' matches and the loose 'REST.API.*blank' regex. Required either explicit redoc.standalone.js / PL-58656 evidence OR a REST API + missing-asset signal in conjunction. Prevents firing on any unrelated REST API outage."
     },
     "diagnosis": "The CDN hosting redoc.standalone.js (used by Method's REST API developer-docs page to render the API spec) removed the file at the location we were referencing, so the docs page rendered as a blank white page. REST API itself was unaffected — only the developer-docs UI was down. Discovered internally before any customer reported it; hotfixed by repointing the script tag to redoc's new CDN location.",
     "playbook": "1) On 'REST API docs blank page' reports, view-source the docs page and check for the redoc.standalone.js <script> tag — if the URL returns 404, the CDN has moved the file. 2) Hotfix: update the script tag to redoc's current CDN URL (or self-host redoc.standalone.js in Method's static assets to remove the third-party CDN dependency). 3) The REST API endpoints themselves are unaffected — communicate that to customers if asked.",
