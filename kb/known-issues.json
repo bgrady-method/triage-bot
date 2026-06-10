@@ -126,8 +126,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-06-10T19:05:51Z",
-    "occurrences": 364,
+    "last_seen": "2026-06-10T20:08:12Z",
+    "occurrences": 369,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -197,6 +197,10 @@
       {
         "ts": "2026-06-10T17:12:33Z",
         "note": "2026-06-10 17:08Z triage (G1, alert-frontend-errors 5-alert cluster 16:11:13-16:19:12Z, bot B011R3D650X): chronic ki-21 syncutil/syncwidget XHR errors. DD monitor 77419271 last_triggered 16:19:11Z (1s pre-aligned with last alert c08596 16:19:12Z). DD method-ui XHR logs 16:05-16:21Z = 200-sample-cap saturated, 106 distinct accounts (top: EnglandLogistics 9, Flexmark 6, suntreksolar 5, fleeteforce 5, tropicallogistixCo1 5, primroseventuresllc 5, aswsouth 5), all on GET /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync status_code:0 -- canonical chronic ki-21 shape (106 distinct ~ recent 91-107 chronic baseline, NOT the 100x 2026-06-04 OUTAGE surge). last_notified_at 2026-06-10T16:18:24Z = ONLY ~49min ago (prior cycle occ-360 hit-10 resurface DM), well within 24h suppression window; occ 360->361 (not a multiple of 10); fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window. Concurrent with ki-24 monitor 115456700 (RTC Screen Load p95) in Alert at 17:08Z -> per precedence_note treat as shared-upstream co-fire (microservices.methodlocal.int pool + runtime-core RTC backpressure); no NEW alert-system Slack messages this cycle so ki-24 not separately grouped. last_seen 16:19:12Z."
+      },
+      {
+        "ts": "2026-06-10T20:19:30Z",
+        "note": "2026-06-10 20:19Z triage: 5 ki-21 groups this cycle (A alert-system 19:10:28+36Z, B alert-frontend 19:49:12+19:50:13Z, F alert-frontend 20:05:12Z, G alert-system 20:07:34Z, H alert-frontend 20:08:12Z; all bot B011R3D650X). DD method-ui XHR logs 19:10-20:10Z = 200-sample-cap, 91 distinct accounts (top AvantSleep 9, andys 7, goodchemistry 6, sierraconveyor2 6, crslaboratories 6), all /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync status_code:0 -- canonical chronic shape (91 ~ recent 91-107 baseline, NOT 100x OUTAGE). Monitor 77419271 Warn, last_triggered 20:08:11Z. 5XX-by-service all below 30 threshold (no cascade). ms-account-api avg-latency monitor 65493111 Warn (2.31s @20:02Z) peaks with ki-24 RTC burst = shared-upstream corroboration (account paths). Alert-system groups A (19:10Z) + G (20:07Z) have RTC calm (~1-1.6s) -> attributed ki-21 not ki-24 (A aligns Redis monitor 19:10:35Z, G aligns watchdog 236570583 20:07:33Z -- coincident). occ 364->369 (not %10). last_notified_at 2026-06-10T16:18:24Z = ~4h ago, within 24h suppression -> SUPPRESS all, gate_reason=known-issue-window. fix_status chronic-residual-post-rollback-2026-06-05 unchanged. Concurrent ki-24 RTC burst (C/D/E) -> 4th shared-upstream co-fire today. last_seen 20:08:12Z."
       }
     ]
   },
@@ -204,8 +208,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-06-10T18:42:14Z",
-    "occurrences": 125,
+    "last_seen": "2026-06-10T20:04:23Z",
+    "occurrences": 128,
     "match": {
       "channels": [
         "alert-system",
@@ -276,6 +280,10 @@
       {
         "ts": "2026-06-10T16:18:24Z",
         "note": "2026-06-10 16:07Z triage (G-SYS, alert-system 4-alert cluster 15:10:43-15:16:33Z, bot B011R3D650X): ki-24 RTC p95 recurring CONFIRMED. DD metric RTC Screen Load p95 peaked 15.55s with 8 breach points >3s in 15:05-15:20Z window (ratio (15.55-3)/3=4.18, bracket >=2.0 -> +3 metric_breach). DD monitor 115456700 (RTC Screen Load p95) last_triggered 15:16:20Z (aligns alert 3b59 @15:16:33Z within 13s). runtime-core status:error logs = 0 in window (latency-only signature holds). Redis errors monitor 227940275 last_triggered 15:15:35Z; trace.redis.command.errors summed 74 in window (time-locked to the p95 burst) -- corroborates runtime-core/Redis backpressure shared-upstream hypothesis. last_notified_at 2026-06-09T15:08:00Z = ~25h ago, PAST 24h suppression window -> DM, gate_reason=null (window elapsed), last_notified_at bumped to now. (occ 119->120 also %10==0 but window-expiry gate fires first.) fix_status investigating unchanged. Concurrent with ki-21 G-FE (93-account syncwidget fan-out) -> shared-upstream co-fire per precedence_note. last_seen 15:16:33Z."
+      },
+      {
+        "ts": "2026-06-10T20:19:30Z",
+        "note": "2026-06-10 20:19Z triage: 3 ki-24 groups this cycle (C alert-runtime-monitoring 19:53:24Z, D alert-system 19:58:28Z, E alert-runtime-monitoring 20:02:56+20:04:23Z; C/E bot B063S8NBW0M, D bot B011R3D650X). DD metric RTC Screen Load p95 peak 19.03s @20:01:00Z (30 breaches >3s), Action Execution p95 peak 21.87s @20:00:00Z (23 breaches) -- dual-endpoint sustained burst 19:54:20-20:02:00Z = canonical ki-24 shared-upstream signature, ANOMALOUS SEVERITY (19-22s, high end of range; prior recent worst ~15.55s). Latency-only confirmed: 5XX-by-service all below 30 threshold, ES 0 docs. ms-account-api avg-latency monitor 65493111 Warn (2.31s @20:02Z) time-locked to RTC peak = shared-upstream (runtime-core->ms-account). Redis errors minor this cycle (peak 7 @19:04Z, below 10 threshold). Group D (alert-system 19:58:28Z) INSIDE the burst -> ki-24 alert-system variant. No deploys (runtime-core last 2026-05-06). occ 125->128 (not %10). last_notified_at 2026-06-10T16:18:24Z = ~4h ago, within 24h suppression -> SUPPRESS all, gate_reason=known-issue-window. fix_status 'investigating' unchanged. Concurrent ki-21 (A/B/F/G/H) -> shared-upstream co-fire. last_seen 20:04:23Z."
       }
     ]
   },
