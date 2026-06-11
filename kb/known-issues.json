@@ -126,8 +126,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-06-11T19:18:00Z",
-    "occurrences": 382,
+    "last_seen": "2026-06-11T19:47:13Z",
+    "occurrences": 383,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -205,6 +205,10 @@
       {
         "ts": "2026-06-11T15:20:02Z",
         "note": "2026-06-11 15:08Z triage (G-B, alert-frontend-errors 4-alert cluster 14:49:13-14:57:13Z, bot B011R3D650X): chronic ki-21 syncutil/syncwidget XHR errors. DD method-ui XHR logs 14:45-15:00Z = 200-sample-cap saturated, 98 distinct accounts (top gopowertrain2 9, worcestercountygold 8, southshoredesigncenter 8, fifoil 6, EnglandLogistics 6, atWork 6, redeagleinternational 6), all GET /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync status_code:0 -- canonical chronic shape (98 ~ recent 91-107 baseline, NOT 100x OUTAGE). Monitor 77419271 last_triggered 14:57:12Z (1s pre-aligned w/ last alert 14:57:13Z). 5XX-by-service all below 30 threshold (ms-email 4, eda_orchestrator 8, gateway 6, ms-scheduler 6, rest-api 2 -- background, no cascade). last_notified_at 2026-06-10T21:14:34Z = ~22h59m ago, WITHIN 24h suppression window (1h from expiry); occ 378->379 (not %10); fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window. Shared-upstream co-fire with ki-24 G-A this cycle (runtime-core host high-CPU + RTC p95 6.33s @14:42Z) -- recurrent pattern per precedence_note. last_seen 14:57:13Z."
+      },
+      {
+        "ts": "2026-06-11T20:11:00Z",
+        "note": "2026-06-11 20:08Z triage (G1, alert-frontend-errors 9-alert cluster 19:10:13-19:47:13Z, bot B011R3D650X): chronic ki-21 syncutil/syncwidget XHR errors. DD monitor 77419271 last_triggered 19:47:12Z (1s pre-aligned w/ last alert 19:47:13Z), now OK. DD method-ui XHR logs 19:08-20:09Z = 200-sample-cap saturated, 92 distinct accounts (top holeintheroof2 15, mauihomeelements 10, antaressaddle 9, gtsimulators 8, commair 7, advancedpoolcoatings1 6, mobilitycityofmilpitas 6), 180/200=90% on GET /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync origin:network 'Failed to load' (status_code:0 gateway timeout) -- canonical chronic shape (92 ~ recent 91-107 baseline, NOT 100x OUTAGE; top-account 15 diffuse, no concentration). ES Level:Error sweep 19:08-20:09Z = 75 errors all chronic background (timezone-config America/New_York 29, QBO TimeActivity-unsupported 5, InvalidAccountException 4, ReportGeneration NRE) -- no Ocelot/gateway/runtime-core signature (ES field-mismatch for ki-21; DD account fan-out canonical). ES ki-21 alert-text + Ocelot-timeout queries both 0 hits (documented field-mismatch). last_notified_at 2026-06-11T16:17:49Z = ~3h54m ago, WITHIN 24h suppression window; occ 382->383 (not %10); fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window. NO ki-24 co-fire this cycle: RTC monitors 115456700/117279738 OK, last_triggered 16:02/16:06Z (quiet); no 5XX/Redis/deploy alerts firing. last_seen 19:47:13Z."
       }
     ]
   },
