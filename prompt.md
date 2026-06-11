@@ -263,7 +263,26 @@ python scripts/match_kb.py --kb kb/known-issues.json --channel <channel_name> --
 ```
 
 - **False-alarm hit** → `classification = "false-alarm"`. Update entry's `last_seen` + `occurrences`. Action: thread-reply on the **primary** alert with `🤖 known false alarm — <reason>`. Skip to step 7.
-- **Known-issue hit** → `classification = "known-issue-recurrence"`. Update entry's `last_seen` + `occurrences`. Action: DM yourself with the playbook + this-week occurrence count + `fix_jira` link. Skip to step 7.
+- **Known-issue hit** → `classification = "known-issue-recurrence"`. Update entry's `last_seen` + `occurrences`. **Before jumping to step 7, run ONE ES aggregate query to confirm the recurrence and to source the Kibana URL for the DM:**
+
+  ```bash
+  ES_QUERY="$(python scripts/kb_to_es_query.py --kb-id <ki-id>)"
+  python scripts/es_search.py aggregate \
+    --query "$ES_QUERY" --from "${alert_start_iso}" --to "${alert_end_iso}" \
+    --field "fields.dd_service.keyword" --top 5
+  ```
+
+  Capture: total hits in window, top-3 services by hit count. These populate the DM's Evidence section (step 7).
+
+  Build the Kibana URL from `KIBANA_BASE_URL` + the same `$ES_QUERY` + the alert window — every KIR DM gets a working Kibana link, no exceptions.
+
+  If `scripts/kb_to_es_query.py` is missing or returns an error, fall back to the first non-regex `contains` pattern from the KB entry's `match.any_of` (or, if all clauses are regex, the entry's title-first-clause). Don't skip the ES query — degraded query is fine; missing query is not.
+
+  If `es_search.py` itself errors (HTTP 4xx/5xx), still build the Kibana URL (URL construction doesn't depend on a successful query), and write the prescribed `Kibana: ES queries failed (HTTP <code>)` evidence line.
+
+  Then: DM yourself with the playbook + this-week occurrence count + `fix_jira` link + Evidence section (step 7).
+
+  **Rationale.** KIR alerts still warrant fresh evidence. The diagnosis is in the KB; the current magnitude and concentration are not. One ES query so Ben sees current breadth without leaving the DM. ~5–10 KIR DMs/hour during ki-21 storms = ~5–10 extra ES queries/hour at peak, well within Elastic Cloud quota.
 - **No hit** → continue to step 4.
 
 ### 4. Investigation
@@ -367,6 +386,7 @@ Always include in your investigation:
 2. `$KIBANA_BASE_URL` is different from `$ELK_BASE_URL`. The latter is the ES REST API endpoint that `es_search.py` queries; the former is the Kibana UI host for human-clickable links.
 3. If `$KIBANA_BASE_URL` is not set in the env: write the evidence line as `Kibana: URL unavailable (set KIBANA_BASE_URL in .env)`. **Do NOT write "Kibana: unavailable — VPN down"** or any variant that implies ES/Kibana depends on VPN/SSH — they do not.
 4. If `es_search.py` returned data but the link can't be built, the data is still in the investigation report; surface that fact instead of pretending ES was unreachable.
+5. **Every cycle that reaches DM construction has run at least one ES query** — full investigation (step 4) for new alerts, KIR shortcut (step 3) for known-issue recurrences. There is no "env set but unused" case. If you find yourself wanting to write "not used this cycle" or any variant, you skipped the step-3 KIR ES query — go back and run it. The two prescribed strings in rules 3 and 4 are the **only** acceptable non-URL states for the Kibana evidence line; do not invent a third.
 
 Build `evidence_links = [(label, url), ...]` — these all appear in the final DM. If ES queries actually failed (HTTP 4xx/5xx from `es_search.py`), say so explicitly: `Kibana: ES queries failed (HTTP <code>)`. Don't conflate "URL builder couldn't run" with "ES is down".
 
@@ -544,7 +564,8 @@ Always commit `docs/actionable/<UTC-date>.md` in the same cycle's commit as the 
    - **Elif `entry.fix_status` changed since `last_notified_at`** (status flipped to in-progress / resolved / needs-ops-decision since we last DM'd): DM. Set `last_notified_at = now`. `gate_reason = "known-issue-fix-status-changed"`.
    - **Else: suppress the DM.** `suppressed_dm = true`, `gate_reason = "known-issue-window"`. Append a `known-issue-recurrence` section to `docs/actionable/<UTC-date>.md` per the Helper format above. The body includes matched_kb id, occurrences count, hypothesis (one line — usually the entry's title), and link to the investigation file.
 
-3. **If DMing**, send the message:
+3. **If DMing**, send the message. The `Evidence:` section is **required** — populate it from the step-3 ES query and KB-derived URLs. If a field genuinely can't be filled, write `n/a — <reason>` per existing convention; never invent a third state.
+
 ```
 📒 *known issue recurrence* — `<ki-id>`
 This is occurrence #<N> in the last 7 days.
@@ -554,6 +575,12 @@ Open Jira: <fix_jira if present>
 Source alerts (<M> total):
   • <permalink-1>
   • <permalink-2>
+
+Evidence:
+  • DD monitor: https://app.datadoghq.com/monitors/<id>   (or `n/a — monitor id not in alert text`)
+  • DD logs: https://app.datadoghq.com/logs?query=<encoded>&from_ts=<ms>&to_ts=<ms>&live=false
+  • Kibana: <substituted KIBANA_BASE_URL link built from step-3 ES query + alert window>
+  • This-window concentration: <top-3 services from step-3 ES aggregate, one line, e.g. "method-ui 142 | gateway 87 | runtime-core 41">
 ```
 
 **new-with-clear-fix** (DM only in v0.6):
