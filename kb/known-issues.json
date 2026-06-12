@@ -126,8 +126,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-06-12T07:47:13Z",
-    "occurrences": 386,
+    "last_seen": "2026-06-12T11:59:12Z",
+    "occurrences": 387,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -209,6 +209,10 @@
       {
         "ts": "2026-06-11T20:11:00Z",
         "note": "2026-06-11 20:08Z triage (G1, alert-frontend-errors 9-alert cluster 19:10:13-19:47:13Z, bot B011R3D650X): chronic ki-21 syncutil/syncwidget XHR errors. DD monitor 77419271 last_triggered 19:47:12Z (1s pre-aligned w/ last alert 19:47:13Z), now OK. DD method-ui XHR logs 19:08-20:09Z = 200-sample-cap saturated, 92 distinct accounts (top holeintheroof2 15, mauihomeelements 10, antaressaddle 9, gtsimulators 8, commair 7, advancedpoolcoatings1 6, mobilitycityofmilpitas 6), 180/200=90% on GET /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync origin:network 'Failed to load' (status_code:0 gateway timeout) -- canonical chronic shape (92 ~ recent 91-107 baseline, NOT 100x OUTAGE; top-account 15 diffuse, no concentration). ES Level:Error sweep 19:08-20:09Z = 75 errors all chronic background (timezone-config America/New_York 29, QBO TimeActivity-unsupported 5, InvalidAccountException 4, ReportGeneration NRE) -- no Ocelot/gateway/runtime-core signature (ES field-mismatch for ki-21; DD account fan-out canonical). ES ki-21 alert-text + Ocelot-timeout queries both 0 hits (documented field-mismatch). last_notified_at 2026-06-11T16:17:49Z = ~3h54m ago, WITHIN 24h suppression window; occ 382->383 (not %10); fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window. NO ki-24 co-fire this cycle: RTC monitors 115456700/117279738 OK, last_triggered 16:02/16:06Z (quiet); no 5XX/Redis/deploy alerts firing. last_seen 19:47:13Z."
+      },
+      {
+        "ts": "2026-06-12T12:10:00Z",
+        "note": "2026-06-12 12:08Z triage (FE-G1, alert-frontend-errors 2-alert cluster 11:54:12Z primary c85c8cdc + 11:59:12Z satellite 0150f039, bot B011R3D650X): chronic ki-21 syncutil/syncwidget XHR errors. DD monitor 77419271 last_triggered 11:59:11Z (1s pre-aligned w/ satellite), now OK (recovered). DD method-ui XHR logs 11:50-12:10Z = 200-sample-cap saturated, 71 distinct accounts (top gopowertrain2 15, georgiapowdercoating3 14, GLW2021 13, foxmark 8, thirtysixbbackgroundchecks 8, elitecrane 7, shedsunlimited 6), 100% status_code:0 origin:network, all GET /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync -- canonical chronic shape (71 distinct ~ recent 91-107 baseline, top-account 7.5% diffuse no concentration, NOT 100x OUTAGE). 5XX-by-service (gateway/runtime-core/ms-account/ms-preferences) 0 rows in window -> no cascade. NO ki-24 co-fire: RTC monitors 115456700 last 04:03Z / 117279738 last Jun11 16:06Z both quiet, ms-account latency monitors OK. ES ki-21 query (XHR-alert-text OR monitors/77419271) 0 hits (documented field-mismatch; DD account fan-out canonical). last_notified_at 2026-06-11T16:17:49Z = ~19h50m ago, WITHIN 24h suppression window; occ 386->387 (not %10); fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window. last_seen 11:59:12Z."
       }
     ]
   },
