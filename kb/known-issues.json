@@ -126,8 +126,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-06-12T11:59:12Z",
-    "occurrences": 387,
+    "last_seen": "2026-06-12T14:15:03Z",
+    "occurrences": 388,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -220,8 +220,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-06-12T04:03:27Z",
-    "occurrences": 141,
+    "last_seen": "2026-06-12T14:15:03Z",
+    "occurrences": 142,
     "match": {
       "channels": [
         "alert-system",
