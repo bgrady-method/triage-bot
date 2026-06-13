@@ -236,8 +236,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-06-12T14:56:17Z",
-    "occurrences": 143,
+    "last_seen": "2026-06-13T10:35:32Z",
+    "occurrences": 145,
     "match": {
       "channels": [
         "alert-system",
@@ -316,6 +316,10 @@
       {
         "ts": "2026-06-11T15:20:02Z",
         "note": "2026-06-11 15:08Z triage (G-A, alert-system 5-alert cluster 14:34:51-14:56:51Z bot B05PN7JG87L + 1 Flow Designer/Centreon co-fire B03GBAMHUTB 14:40:18Z): NEW ALERT SHAPE -- runtime-core-api host HIGH-CPU alert (not the usual RTC p95 monitor). Engineer Ismael Sagullo posted top-level in #alert-system 14:41:37Z: 'runtime-core-api is causing the high cpu alert' (operator engaged + root-cause attributed). DD runtime.dotnet.cpu.percent by host: rt-02 max 79.9% (peaks 14:34-14:42Z + 79.9% @15:06Z), rt-04 77.3%, rt-01 59.8%, rt-03 69.7%; fleet avg 32.7% vs 30.3% baseline 24h-ago (+2.4 avg, modestly elevated -- per-node peaks are the trip, not fleet-wide saturation). LATENCY/RESOURCE-ONLY confirmed: runtime-core-api status:error = 0 in window; avg request latency flat ~0.2s (peak 0.55s). Coincident RTC Screen Load p95 breaches >3s: 14:42Z 6.33s, 14:57Z 4.50s, 15:00Z 3.85s (monitor 115456700 stayed OK, last_triggered 12:55Z -- single-point spikes too brief to sustain 5-min p95). Same service + same nodes + 0 errors + no deploy (runtime-core last commit 2026-05-06, 36d) => attributed to chronic ki-24 runtime-core resource pressure manifesting as CPU, NOT a regression. last_notified_at 2026-06-11T11:22:03Z = ~3.9h ago, WITHIN 24h suppression; occ 134->135 (not %10); fix_status investigating unchanged -> SUPPRESS gate_reason=known-issue-window. Shared-upstream co-fire with ki-21 G-B. STABILITY-REVIEW FLAG: ki-24 now tripping a host-CPU monitor in addition to RTC p95 -- escalating-footprint signal; recommend identifying the runtime-core CPU monitor_id and adding it as a tight match-rule, and prioritizing the long-pending APM-trace root-cause profiling. No fix_status flip this cycle (single CPU-alert cluster; needs corroboration)."
+      },
+      {
+        "ts": "2026-06-13T11:08:00Z",
+        "note": "2026-06-13 11:08Z triage (manual run; cron stalled since 06-12 22:08Z). Two ki-24 groups in #alert-system, both latency-only, MILD severity. G-A (4 alerts, B011R3D650X Datadog bot, 10:14:27-10:25:28Z, primary 3f02667d5cc8cfb5): RTC Screen Load p95 brushed threshold -- 3.97s@10:11:40Z + 3.41s@10:18:40Z (only 2 breaches >3s, max ratio 0.32); monitor 115456700 last_triggered 10:25:20Z aligns last alert @10:25:28Z (delta 8s); Action Execution p95 stayed <3s (max 2.15s) = single-endpoint, NOT dual. G-B (1 alert, B05PN7JG87L forwarder, 10:35:32Z, hash 3d27ae16ad703864): RTC Action Execution MAX latency 14.69s@10:33:40Z single slow request (p95 stayed 2.15s -> bypassed the 5/10-min averaging monitor 117279738, canonical B05PN7JG87L burst signature); Screen Load max 3.15-3.7s@10:29-10:37Z. Latency-only confirmed both: 0 runtime-core status:error logs 10:10-11:00Z, 0 5XX, 0 Redis cmd errors (vs 74-92 in severe events), CPU flat (rt-02 max 6.9%). No deploy (runtime-core last 2026-05-06). NO ki-21 co-fire (alert-frontend-errors empty; monitor 77419271 last_triggered 2026-06-12T21:36Z) and no ki-29 -> isolated chronic RTC latency, not shared-upstream. ES down HTTP 401 (~9th obs, dev_team auth) -- confirmation via DD metric per playbook step 1. last_notified_at 2026-06-12T11:22:00Z = 23.76h ago, WITHIN 24h suppression (15 min short) -> SUPPRESS both, gate_reason=known-issue-window. occ 143->145 (+1/group; neither 144 nor 145 %10). fix_status investigating unchanged. last_seen 10:35:32Z. B05PN7JG87L still unidentified (n=6 lifetime fires, all runtime-core RTC events)."
       }
     ]
   },
