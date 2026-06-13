@@ -126,8 +126,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-06-13T18:55:12Z",
-    "occurrences": 397,
+    "last_seen": "2026-06-13T19:15:13Z",
+    "occurrences": 398,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -233,6 +233,10 @@
       {
         "ts": "2026-06-13T19:10:00Z",
         "note": "2026-06-13 19:08Z triage (FE group 9a0cb08d91de29dd, alert-frontend-errors 4-alert cluster 18:24:14-18:55:12Z, bot B011R3D650X, block-only): chronic ki-21 syncutil/syncwidget XHR errors. DD monitor 77419271 last_triggered 18:55:11Z (1s pre-aligned w/ last alert 18:55:12Z), now OK (recovered). DD method-ui XHR logs 18:14-19:09Z = 200-sample-cap saturated, 43 distinct accounts, 82% on GetSyncWidgetInfoAsync, 100% origin:network 'Failed to load' (198 status_code:0 + 2 explicit 504 gateway timeout) -- canonical chronic shape but MORE CONCENTRATED than usual: top EnglandLogistics 52 (~26%, chronic repeat-offender), haydenfire1 25 (~12.5%), getbold 17, GraysLakeIllinois 10. 43 distinct is below recent 68-107 baseline -> this 55-min window dominated by a few heavy sessions (EnglandLogistics/haydenfire1) rather than broad fan-out; still NOT the 100x OUTAGE surge, no new incident. 5XX-by-service logs 0 in window -> no cascade. NO ki-24 co-fire: RTC 115456700 last 2026-06-13T10:25Z / 117279738 last Jun-11, both OK; ms-account 65493111 OK; Redis 227940275 OK. ES DOWN HTTP 401 (user dev_team rejected, ~10th consecutive cycle) -- es_search + kb_to_es_query-result blocked at ES (kb_to_es_query.py itself OK); DD account fan-out canonical (documented field-mismatch: ki-21 lives in DD RUM not Serilog). last_notified_at 2026-06-12T16:24:42Z = ~26h44m ago, PAST 24h suppression window -> RESURFACE DM, gate_reason=null, last_notified_at bumped to 2026-06-13T19:10:00Z. occ 396->397 (not %10). fix_status chronic-residual-post-rollback-2026-06-05 unchanged. last_seen 18:55:12Z. First ki-21 cluster of the UTC day (cron had been quiet/ki-24-only earlier today)."
+      },
+      {
+        "ts": "2026-06-13T20:08:00Z",
+        "note": "2026-06-13 20:08Z triage (FE group 4315047fc5891089, alert-frontend-errors 2-alert cluster 19:13:12Z primary 4315047fc5891089 + 19:15:13Z satellite 073ddf718fca4bc1, bot B011R3D650X, block-only): chronic ki-21 syncutil/syncwidget XHR errors. DD monitor 77419271 last_triggered 19:15:11Z (2s pre-aligned w/ satellite 19:15:13Z), now OK (recovered). DD method-ui XHR logs 19:08-20:10Z = 200-sample-cap saturated, 39 distinct accounts, 187/200=93.5% GetSyncWidgetInfoAsync, 100% status_code:0 origin:network 'Failed to load' (gateway timeout) -- canonical chronic shape but CONCENTRATED on top sessions aandmdiscountfurniture4 43 (~21.5%) + getbold 25 (~12.5%), primroseventuresllc 14, eliteautosounds2 14, rowinplumbinginc 13; 39 distinct below recent 68-107 baseline (similar to prior 19:08Z cycle's 43-concentrated window) -- NOT 100x OUTAGE surge. 5XX monitor 70171778 OK since 2026-06-12T15:32Z -> no cascade. NO ki-24 co-fire: RTC 115456700 last 2026-06-13T10:25Z / 117279738 last Jun-11 OK; ms-account 65493111 OK; Redis 227940275 OK. ES DOWN HTTP 401 (user dev_team rejected, ~11th consecutive cycle) -- es_search blocked; DD account fan-out canonical (documented field-mismatch: ki-21 lives in DD RUM not Serilog). last_notified_at 2026-06-13T19:10:00Z = ~58min ago, WITHIN 24h suppression window; occ 397->398 (not %10); fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window. last_seen 19:15:13Z. 2nd ki-21 cluster of UTC day (18min after prior 18:24-18:55Z cluster)."
       }
     ]
   },
