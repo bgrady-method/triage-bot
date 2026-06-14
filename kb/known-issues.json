@@ -244,8 +244,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-06-14T11:20:07Z",
-    "occurrences": 146,
+    "last_seen": "2026-06-14T12:43:34Z",
+    "occurrences": 147,
     "match": {
       "channels": [
         "alert-system",
@@ -328,6 +328,10 @@
       {
         "ts": "2026-06-13T11:08:00Z",
         "note": "2026-06-13 11:08Z triage (manual run; cron stalled since 06-12 22:08Z). Two ki-24 groups in #alert-system, both latency-only, MILD severity. G-A (4 alerts, B011R3D650X Datadog bot, 10:14:27-10:25:28Z, primary 3f02667d5cc8cfb5): RTC Screen Load p95 brushed threshold -- 3.97s@10:11:40Z + 3.41s@10:18:40Z (only 2 breaches >3s, max ratio 0.32); monitor 115456700 last_triggered 10:25:20Z aligns last alert @10:25:28Z (delta 8s); Action Execution p95 stayed <3s (max 2.15s) = single-endpoint, NOT dual. G-B (1 alert, B05PN7JG87L forwarder, 10:35:32Z, hash 3d27ae16ad703864): RTC Action Execution MAX latency 14.69s@10:33:40Z single slow request (p95 stayed 2.15s -> bypassed the 5/10-min averaging monitor 117279738, canonical B05PN7JG87L burst signature); Screen Load max 3.15-3.7s@10:29-10:37Z. Latency-only confirmed both: 0 runtime-core status:error logs 10:10-11:00Z, 0 5XX, 0 Redis cmd errors (vs 74-92 in severe events), CPU flat (rt-02 max 6.9%). No deploy (runtime-core last 2026-05-06). NO ki-21 co-fire (alert-frontend-errors empty; monitor 77419271 last_triggered 2026-06-12T21:36Z) and no ki-29 -> isolated chronic RTC latency, not shared-upstream. ES down HTTP 401 (~9th obs, dev_team auth) -- confirmation via DD metric per playbook step 1. last_notified_at 2026-06-12T11:22:00Z = 23.76h ago, WITHIN 24h suppression (15 min short) -> SUPPRESS both, gate_reason=known-issue-window. occ 143->145 (+1/group; neither 144 nor 145 %10). fix_status investigating unchanged. last_seen 10:35:32Z. B05PN7JG87L still unidentified (n=6 lifetime fires, all runtime-core RTC events)."
+      },
+      {
+        "ts": "2026-06-14T13:07:35Z",
+        "note": "2026-06-14 13:07Z triage (group 7bb92aed3678479f, 3-alert #alert-system cluster 12:32:32-12:43:34Z, bot B011R3D650X, block-only empty text). Single-endpoint, latency-only, moderate-high single-point severity. DD metric: RTC Screen Load p95 peak 13.53s (3 one-min breaches >3s; monitor 115456700 last_triggered 12:37:20Z aligns satellite alert 12:37:26Z), now recovered ~0.4-0.7s. Action Execution p95 max 1.64s (0 breaches) => SINGLE-endpoint, not the dual-endpoint shared-upstream severe signature. Latency-only confirmed: 5XX-by-service sum=1 (one oauth2 blip) in window; ES down (HTTP 401) so DD-metric confirmation per playbook step 2. ms-account-api avg latency monitor 65493111 fired 12:41:51Z, peak 4.34s time-locked to RTC spike = shared-upstream satellite (runtime-core->ms-account), not independent. Watchdog 236570583 'New issue to review' fired 12:43:33Z (currently Alert) = same anomaly cluster (generic apm/infra watchdog; exact story unread - no events API in dd_search, ES 401). Primary 12:32:32Z alert likely synthetics 123495390 'Midnight run' No-Data probe gap (benign) - grouped by empty-fingerprint heuristic. No ki-21 co-fire (alert-frontend-errors empty; monitor 77419271 last_triggered 2026-06-13T19:15Z). No deploy (runtime-core last 2026-05-06, chronic). last_notified_at 2026-06-14T11:20:07Z = ~1.8h ago, WITHIN 24h suppression -> SUPPRESS, gate_reason=known-issue-window. occ 146->147 (not %10). fix_status investigating unchanged."
       }
     ]
   },
