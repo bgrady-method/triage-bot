@@ -126,8 +126,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-06-15T18:52:13Z",
-    "occurrences": 408,
+    "last_seen": "2026-06-15T19:49:12Z",
+    "occurrences": 410,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -241,6 +241,10 @@
       {
         "ts": "2026-06-15T17:10:00Z",
         "note": "2026-06-15 17:08Z triage (FE group 54479773db4fe0d8, alert-frontend-errors 8-alert cluster 16:09:12-17:03:12Z, bot B011R3D650X, block-only): chronic ki-21 syncutil/syncwidget XHR timeouts. DD monitor 77419271 last_triggered 17:03:11Z (1s pre-aligned w/ last alert 17:03:12Z). DD method-ui status:error *xhr* logs 16:09-17:08Z = 200-sample-cap saturated, diffuse account fan-out (top allfloridagutters 15 ~7.5%, crslaboratories 8, aandmdiscountfurniture4 6, summitlaboratories2 6, EnglandLogistics 5, tanfirealarms 4) -- canonical chronic shape, NOT the 100x 2026-06-04 OUTAGE surge, no concentration. NO ki-24 co-fire: RTC 115456700 (last 13:06Z) / 117279738 (last Jun-11) OK; ms-account 65493111 / Redis 227940275 OK; 5XX monitor 70171778 OK (last 01:15Z) -> no cascade. ES DOWN HTTP 401 (user dev_team rejected, ~15th consecutive day) -- es_search blocked; DD account fan-out canonical (documented field-mismatch: ki-21 lives in DD RUM not Serilog). last_notified_at 2026-06-14T21:13:00Z = ~19h55m ago, WITHIN 24h suppression window; occ 405->406 (not %10); fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window. last_seen 17:03:12Z."
+      },
+      {
+        "ts": "2026-06-15T20:08:00Z",
+        "note": "2026-06-15 20:08Z triage: 2 ki-21 FE groups (one continuous XHR-timeout window split by channel interleaving). Group C (7dab448d462a7b61 + sats 4faf76e9/20c78350, alert-frontend-errors 19:42:13-19:44:13Z); Group E (decafa0d44dc1fb9, alert-frontend-errors 19:49:12Z). DD monitor 77419271 last_triggered 19:49:11Z (1s pre-aligned w/ Group E). DD method-ui status:error *xhr* 19:40-19:52Z = 100-row cap, diffuse account fan-out (Treeform 8 ~8%, zuidemasepticservice 5, EnglandLogistics 3, sierrashredllc 3, +long tail) = canonical chronic shape, NOT the 2026-06-04 surge. ES DOWN 401 (ki-21 lives in DD RUM not Serilog, so ES-down does not blind it). last_notified_at 2026-06-14T21:13:00Z = ~22h55m ago, WITHIN 24h window; occ 408->409(C)->410(E). Group E lands occ 410 (%10==0 resurface) BUT Group C of same KB suppressed seconds earlier this cycle and 24h window opens in ~1h -> resurface intent already satisfied, both SUPPRESS gate_reason=known-issue-window (per 13:16Z same-cycle-dedup precedent). fix_status chronic-residual-post-rollback-2026-06-05 unchanged."
       }
     ]
   },
@@ -248,8 +252,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-06-15T18:56:36Z",
-    "occurrences": 152,
+    "last_seen": "2026-06-15T19:45:35Z",
+    "occurrences": 155,
     "match": {
       "channels": [
         "alert-system",
@@ -340,6 +344,10 @@
       {
         "ts": "2026-06-15T13:16:28Z",
         "note": "2026-06-15 13:16Z triage: TWO ki-24 groups, both latency-only, both dual-endpoint, MILD-MODERATE severity, NO Redis corroboration (0 cmd errors), NO deploy (runtime-core last 2026-05-06, 40d). Group A (38855342af2c2ae9, alert-runtime-monitoring 12:49:06Z, bot B063S8NBW0M): MAX-spike burst 12:42-12:56Z both endpoints (Screen Load MAX peak 30.8s @12:47:50Z, Action Exec MAX 19.84s @12:49:40Z); 5-min p95 stayed <3s so the alert-system p95 monitor 115456700 did NOT trip, only the MAX-sensitive runtime-monitoring forwarder. Group B (c8a8444d62422976 primary alert-system 13:02:27Z + satellite 17a45452792a4d93 13:06:28Z, bot B011R3D650X): sustained slow-request period 12:58-13:07Z (Screen Load MAX 17.59s @12:59:10Z, Action Exec MAX 20.24s @13:05:40Z) culminating in a 5-min p95 breach 13:05:20-13:06:40Z (Screen Load p95 peak 7.74s @13:06:00Z ratio 1.58 +2; Action Exec p95 peak 6.63s @13:06:20Z) -> monitor 115456700 last_triggered 13:06:20Z direct alignment with satellite @13:06:28Z. Latency-only confirmed: 0 runtime-core status:error, 0 5XX-by-service, 0 Redis cmd errors 12:40-13:10Z. ES down HTTP 401 (dev_team auth, chronic ~16th obs) -> DD-metric confirmation per playbook. No ki-21 co-fire (alert-frontend-errors empty this cycle), no swat. last_notified_at 2026-06-14T11:20:07Z = 25.94h ago, PAST 24h suppression window -> Group A DM, gate_reason=null, last_notified_at bumped to NOW. occ 148->149 (Group A) ->150 (Group B). Group B reaches occ 150 which is %10==0 (resurface trigger) BUT Group A DM'd this identical KB ~seconds earlier this same cycle, so the resurface intent (\"don't go invisible\") is already satisfied; a 2nd same-cycle DM for one root cause is exactly the noise the suppression window prevents -> Group B SUPPRESS gate_reason=known-issue-window, actionable-append. fix_status 'investigating' unchanged. last_seen 2026-06-15T13:06:28Z."
+      },
+      {
+        "ts": "2026-06-15T20:08:00Z",
+        "note": "2026-06-15 20:08Z triage: 3 ki-24 groups this cycle, ONE shared runtime-core RTC latency event (latency-only, self-recovered, no deploy/40d-stale, no 5XX cascade, steady ~87 hits/s). DD metric: Screen Load p95 5.59s @19:27:10Z + 3.74s @19:42:10Z (thr 3s); Action Exec p95 6.23s @19:27:10Z; only 4 runtime-core errors in 36m; 0 status:error logs. Group A (23a1617de2006184, alert-runtime-monitoring 19:28:51Z, bot B063S8NBW0M = MAX-sensitive forwarder) fired ~1.7m after the 19:27:10Z peak. Group B (28a36aac764c4df7 + sats 393c9262/ed63e6fc, alert-system 19:35:35-37Z burst) = Screen Load+Action+p90 monitors off the spike. Group D (02581409692216fe, alert-system 19:45:35Z) = the 19:42:10Z secondary breach tail. NRE ki-2026-06-15 ruled out for Group A (already fired 19:05:32Z, error-tracking .new() per issue.id won't re-fire). ES DOWN HTTP 401 (dev_team, ~15th day) -> DD-metric confirmation per playbook. last_notified_at 2026-06-15T13:16:28Z = ~6h52m ago, WITHIN 24h window; occ 152->155 (no %10 crossing); fix_status 'investigating' unchanged -> all 3 SUPPRESS gate_reason=known-issue-window, actionable-append."
       }
     ]
   },
