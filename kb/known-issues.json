@@ -126,8 +126,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-06-15T17:28:13Z",
-    "occurrences": 407,
+    "last_seen": "2026-06-15T18:52:13Z",
+    "occurrences": 408,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -248,8 +248,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-06-15T14:14:54Z",
-    "occurrences": 151,
+    "last_seen": "2026-06-15T18:56:36Z",
+    "occurrences": 152,
     "match": {
       "channels": [
         "alert-system",
@@ -471,8 +471,8 @@
     "id": "ki-2026-06-15-runtime-core-updateviews-linkedviatablename-nre",
     "title": "NullReferenceException in runtime-core UpdateViewsCommand when an IsLinked field has null LinkedViaTableName (reaches NormalizeViewName via RetrieveLinkedFieldsAsync) — PL-59777",
     "first_seen": "2026-06-15T16:05:32Z",
-    "last_seen": "2026-06-15T17:50:36Z",
-    "occurrences": 2,
+    "last_seen": "2026-06-15T19:05:32Z",
+    "occurrences": 3,
     "match": {
       "channels": [
         "alert-runtime-monitoring",
@@ -508,7 +508,7 @@
     "fix_jira": "PL-59777",
     "fix_template": null,
     "confidence": 0.85,
-    "last_notified_at": null,
+    "last_notified_at": "2026-06-15T19:08:00Z",
     "references": [
       "https://method.atlassian.net/browse/PL-59777",
       "https://app.datadoghq.com/monitors/227951254"
