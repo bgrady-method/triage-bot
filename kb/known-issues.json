@@ -2697,6 +2697,47 @@
     ]
   },
   {
+    "id": "ki-stockapp-shuttle-widget-cancel-invalid-receivepayment",
+    "title": "Invalid ReceivePayment accounting logs created when customer cancels from within the Shuttle payment widget — stock-app execution change didn't handle widget cancellations (PL-54549)",
+    "first_seen": "2025-05-13T00:00:00Z",
+    "last_seen": "2025-05-23T00:00:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-runtime-monitoring",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "ReceivePayment"
+        },
+        {
+          "contains": "PL-54549"
+        },
+        {
+          "regex": "(?i)invalid.*ReceivePayment"
+        },
+        {
+          "regex": "(?i)erroneous.*payment log"
+        },
+        {
+          "regex": "(?i)cancel.*shuttle widget"
+        }
+      ]
+    },
+    "diagnosis": "A change to the stock-app execution logic did not properly account for payment cancellations initiated from within the Shuttle payment widget, so the system erroneously created ReceivePayment accounting logs when a customer cancelled mid-widget. ReceivePayment is a highly sensitive accounting field. Impact: ~38 accounts likely affected, 86 total erroneous payment logs created (plus some additional ones manually corrected by customers). The defect went undetected because there was no automation and no logging that would catch erroneous accounting writes of this kind — it was customer-reported, not alert-driven. Per the PIR, root cause was process-level rather than infrastructural: (1) missing requirements and test cases, (2) team rushing to hit deadlines, and (3) limited team knowledge of stock-app edge cases. Tracked as PL-54549.",
+    "playbook": "1) On customer reports of incorrect/duplicate ReceivePayment (payment) accounting logs shortly after a stock-app or Shuttle-widget change, suspect a cancellation path the stock-app execution change didn't handle (specifically cancelling from within the widget). 2) Scope the blast radius — identify affected accounts and the erroneous logs (last incident: ~38 accounts / 86 logs) and coordinate manual correction of the accounting records with affected customers. 3) This is a code/process defect, not infra: confirm the offending stock-app change and add the missing cancellation test case before re-release. 4) Longer-term per PIR: invest in unified hybrid-app dev practices (training, collaboration, knowledge-sharing on stock apps) and add monitoring plus more detailed post-sprint checks so erroneous accounting writes are caught automatically (none existed at incident time).",
+    "fix_status": "resolved",
+    "fix_jira": "PL-54549",
+    "fix_template": null,
+    "confidence": 0.95,
+    "last_notified_at": null,
+    "references": [
+      "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report",
+      "https://method.atlassian.net/browse/PL-54549"
+    ]
+  },
+  {
     "id": "ki-tenantid-null-from-entity-metadata-select",
     "title": "Entity updates wrote TenantId=null because PL-58920 column-restriction excluded system columns (PL-59906 hotfix)",
     "first_seen": "2025-12-22T00:00:00Z",
