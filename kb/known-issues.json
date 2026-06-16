@@ -84,8 +84,8 @@
     "id": "ki-2026-04-25-ms-preferences-internal-tag-dependency",
     "title": "Method-wide outage during morning release when ms-preferences-api shipped [AllowInternal]/[AllowIdentity] tags before dependent services updated (PL-62401)",
     "first_seen": "2026-04-25T13:20:00Z",
-    "last_seen": "2026-04-25T14:53:00Z",
-    "occurrences": 1,
+    "last_seen": "2026-06-16T13:00:00Z",
+    "occurrences": 2,
     "match": {
       "channels": [
         "alert-system",
@@ -116,7 +116,7 @@
     "fix_jira": "PL-62401",
     "fix_template": null,
     "confidence": 0.95,
-    "last_notified_at": null,
+    "last_notified_at": "2026-06-16T13:12:00Z",
     "references": [
       "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report",
       "https://method.atlassian.net/browse/PL-62401"
