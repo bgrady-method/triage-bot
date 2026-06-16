@@ -84,7 +84,7 @@
     "id": "ki-2026-04-25-ms-preferences-internal-tag-dependency",
     "title": "Method-wide outage during morning release when ms-preferences-api shipped [AllowInternal]/[AllowIdentity] tags before dependent services updated (PL-62401)",
     "first_seen": "2026-04-25T13:20:00Z",
-    "last_seen": "2026-06-16T13:00:00Z",
+    "last_seen": "2026-06-16T13:30:00Z",
     "occurrences": 2,
     "match": {
       "channels": [
@@ -120,6 +120,12 @@
     "references": [
       "https://method.atlassian.net/wiki/spaces/SD/blog/2025/06/30/133496969/Post-Incident+Report",
       "https://method.atlassian.net/browse/PL-62401"
+    ],
+    "notes": [
+      {
+        "ts": "2026-06-16T14:18:40Z",
+        "note": "2026-06-16 14:08Z triage (Group A, 34-alert recovery-tail cluster 13:08:35-13:50:13Z: 24 #alert-system + 10 #alert-frontend-errors, bots B011R3D650X/B05PN7JG87L/B03GBAMHUTB; primary 9d2e40c6c9fed20c). These alerts are the DECAYING RECOVERY TAIL of THIS MORNING's occurrence #2 (the 12:55-13:03Z platform outage already investigated + DM'd as incident 0944c4e403ec723f at 13:12Z), NOT a third outage. DD evidence: gateway 5XX peaked 712/interval @12:56Z, fell to 1-2/interval (baseline) by 13:03Z; in the 13:08-14:08Z window only decaying tail bursts remain (ms-preferences final 33 @13:12Z, runtime-core 18 @13:10Z, a secondary rest-api ~42-error blip 13:19-13:38Z) plus chronic method-ui XHR-monitor noise (77419271 fired 13:50:12Z). occurrences deliberately NOT incremented (2 stays 2) to avoid double-counting a single incident and corrupting the occurrence/resurface signal; last_seen extended 13:00Z->13:30Z to reflect tail span. DM SUPPRESSED: last_notified_at 2026-06-16T13:12:00Z = ~1h ago, WITHIN 24h suppression window -> gate_reason=known-issue-window; logged to docs/actionable/2026-06-16.md. fix_status 'resolved' (PL-62401) unchanged. ES down HTTP 401."
+      }
     ]
   },
   {
@@ -252,8 +258,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-06-15T22:08:32Z",
-    "occurrences": 158,
+    "last_seen": "2026-06-16T14:18:40Z",
+    "occurrences": 159,
     "match": {
       "channels": [
         "alert-system",
@@ -290,8 +296,8 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.85,
-    "last_notified_at": "2026-06-15T13:16:28Z",
-    "prior_last_notified_at": "2026-06-14T11:20:07Z",
+    "last_notified_at": "2026-06-16T14:18:40Z",
+    "prior_last_notified_at": "2026-06-15T13:16:28Z",
     "notes": [
       {
         "ts": "2026-06-05T15:11:30Z",
@@ -348,6 +354,10 @@
       {
         "ts": "2026-06-15T20:08:00Z",
         "note": "2026-06-15 20:08Z triage: 3 ki-24 groups this cycle, ONE shared runtime-core RTC latency event (latency-only, self-recovered, no deploy/40d-stale, no 5XX cascade, steady ~87 hits/s). DD metric: Screen Load p95 5.59s @19:27:10Z + 3.74s @19:42:10Z (thr 3s); Action Exec p95 6.23s @19:27:10Z; only 4 runtime-core errors in 36m; 0 status:error logs. Group A (23a1617de2006184, alert-runtime-monitoring 19:28:51Z, bot B063S8NBW0M = MAX-sensitive forwarder) fired ~1.7m after the 19:27:10Z peak. Group B (28a36aac764c4df7 + sats 393c9262/ed63e6fc, alert-system 19:35:35-37Z burst) = Screen Load+Action+p90 monitors off the spike. Group D (02581409692216fe, alert-system 19:45:35Z) = the 19:42:10Z secondary breach tail. NRE ki-2026-06-15 ruled out for Group A (already fired 19:05:32Z, error-tracking .new() per issue.id won't re-fire). ES DOWN HTTP 401 (dev_team, ~15th day) -> DD-metric confirmation per playbook. last_notified_at 2026-06-15T13:16:28Z = ~6h52m ago, WITHIN 24h window; occ 152->155 (no %10 crossing); fix_status 'investigating' unchanged -> all 3 SUPPRESS gate_reason=known-issue-window, actionable-append."
+      },
+      {
+        "ts": "2026-06-16T14:18:40Z",
+        "note": "2026-06-16 14:08Z triage (Group B, alert-runtime-monitoring 5-alert cluster 13:08:48-13:35:34Z, bot B063S8NBW0M, block-only empty text; primary 4e9555915886ace0). Recurring RTC p95 latency, latency-only. DD metric RTC Screen Load p95 (resource post_/api/v1/runtime/load/_screenid*) intermittent breaches >3s across 13:05-14:08Z: 13:08=541s & 13:10=727s single-point spikes (outage-tail artifacts), then clean recurring spikes 3.5-5s @13:26/13:37/13:55-56/14:04 and 7.9-8.2s @14:07Z (monitor 115456700 last_triggered 14:10:20Z, still Alert at cycle time). runtime-core-api p90 healthy baseline 0.3-0.5s with same spike timestamps. Latency-only confirmed indirectly: 5XX-by-service in window is recovery-tail only (pref 33@13:12, runtime 18@13:10, rest-api ~42@13:19-38) and decays to gateway-baseline 1/interval; ES down HTTP 401 (chronic ~16d, dev_team auth) so DD-metric confirmation per playbook step 1. The 13:08/13:10 fires overlap the ms-preferences outage recovery tail (ki-2026-04-25 occ#2) but the monitor is the independent chronic RTC-p95 signature (continues firing 13:35 + 14:07 long after outage recovery ~13:03Z). last_notified_at 2026-06-15T13:16:28Z = ~24h51m ago, PAST 24h suppression window -> DM, gate_reason=null (daily resurface). occ 158->159. fix_status 'investigating' unchanged (no fix_jira; APM-trace root-cause profiling still pending per prior notes). No deploy (runtime-core chronic, last 2026-05-06). Shared-upstream co-fire with ki-2026-04-25 tail per precedence_note."
       }
     ]
   },
