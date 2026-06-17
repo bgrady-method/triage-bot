@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-06-17T18:14:23Z",
-    "occurrences": 429,
+    "last_seen": "2026-06-17T20:26:35Z",
+    "occurrences": 432,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -157,7 +157,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.88,
-    "last_notified_at": "2026-06-16T22:19:01Z",
+    "last_notified_at": "2026-06-17T19:14:48Z",
     "prior_fix_status": "needs-ops-decision",
     "notes": [
       {
@@ -262,8 +262,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-06-17T18:14:23Z",
-    "occurrences": 171,
+    "last_seen": "2026-06-17T20:26:35Z",
+    "occurrences": 173,
     "match": {
       "channels": [
         "alert-system",
@@ -572,6 +572,45 @@
     "fix_template": null,
     "confidence": 0.86,
     "last_notified_at": "2026-06-16T20:16:09Z"
+  },
+  {
+    "id": "ki-2026-06-17-classic-timezone-iana-id-not-found",
+    "title": "MethodUIClassic TimeZoneNotFoundException — IANA tz id (e.g. 'America/New_York') passed to Windows TimeZoneInfo.FindSystemTimeZoneById; default case throws instead of returning null",
+    "first_seen": "2026-06-03T00:00:00Z",
+    "last_seen": "2026-06-17T20:26:35Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-system",
+        "alert-frontend-errors",
+        "swat",
+        "team-incident-response"
+      ],
+      "any_of": [
+        {
+          "contains": "was not found on the local computer"
+        },
+        {
+          "contains": "TimeZoneNotFoundException"
+        },
+        {
+          "contains": "fncConverFromUTCTime"
+        },
+        {
+          "contains": "fncNativeFieldDateAndTime"
+        },
+        {
+          "regex": "America/[A-Za-z_]+ was not found"
+        }
+      ],
+      "note": "Discovered via ES on 2026-06-17 after Serilog/ES auth (chronic dev_team 401, ~17d) was restored. Did not fire its own Slack channel alert this cycle; surfaced during the alert-frontend-errors (ki-21) ES investigation. Historically bursty (ES: 06-03 ~23/h, 06-10 ~254/h, 06-17 396/h) but invisible during the 401 window."
+    },
+    "diagnosis": "Com.Method.Utils.TimeZoneLookup.GetSystemTimeZoneById(tzID) (legacy-common-core Method.Common/Com.Method/Utils/TimeZoneLookup.cs, line ~939) maps friendly names (EASTERN/CENTRAL/PACIFIC) to Windows tz ids, but its default case calls TimeZoneInfo.FindSystemTimeZoneById(tzID) directly. On the Windows classic hosts (PROD-CLASSIC-01/02) an IANA tz id such as 'America/New_York' is not a valid Windows id, so FindSystemTimeZoneById throws System.TimeZoneNotFoundException. Every caller (GetUtcOffset/IsDst/etc., lines ~189-312) expects null on an unknown id ('if (tz == null) return -1') rather than an exception, so the throw is unhandled and logged. 2026-06-17 19:08-20:10Z: 396 errors, 95% account=thestoragegroup (378), supplyshield (18), both PROD-CLASSIC-01 (200) + PROD-CLASSIC-02 (196); actions fncNativeFieldDateAndTime (288), fncConverFromUTCTime (70), fncConverToUTCTime (38). Account-data driven: the affected account's stored timezone value is an IANA id, not a Windows id or a friendly name.",
+    "playbook": "1) IMMEDIATE mitigation (no deploy): correct the stored timezone for the dominant account(s) (thestoragegroup, supplyshield) from the IANA id 'America/New_York' to the Windows id 'Eastern Standard Time' (or the friendly 'EASTERN' the switch already handles) in the account's classic timezone setting. This stops 95%+ of the volume. 2) DURABLE code fix (legacy-common-core TimeZoneLookup.GetSystemTimeZoneById default case): wrap FindSystemTimeZoneById in try/catch(TimeZoneNotFoundException); on failure, best-effort map common IANA ids -> Windows ids (America/New_York->Eastern Standard Time, America/Chicago->Central Standard Time, America/Denver->Mountain Standard Time, America/Los_Angeles->Pacific Standard Time) and otherwise return null to honour the existing caller null-contract. Single-file, ~18 lines. 3) Verify post-fix: ES query 'TimeZoneNotFoundException' over the classic indices should drop to ~0. 4) Note: classic deploys via TFS (invisible to git/gh) — confirm rollout with the classic deploy owner.",
+    "fix_status": "proposed",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.9
   },
   {
     "id": "ki-billingengine-api-key1-removed-in-refactor",
