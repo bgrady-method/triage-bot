@@ -133,7 +133,7 @@
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
     "last_seen": "2026-06-17T20:26:35Z",
-    "occurrences": 432,
+    "occurrences": 434,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -255,6 +255,10 @@
       {
         "ts": "2026-06-16T15:18:00Z",
         "note": "2026-06-16 15:18Z triage (hourly poll 14:03-15:08Z): TWO ki-21 groups (B alert-frontend-errors 2-alert 14:26:13+14:29:14Z; E alert-frontend-errors singleton 15:08:13Z; bot B011R3D650X, block-only empty text). Chronic-residual gateway->microservices.methodlocal.int XHR-timeout pattern. Monitor 77419271 ('Unusual number of XHR errors for account', = ki-21 match clause #1) last_triggered 15:10:11Z. DD method-ui XHR error logs (monitor query) in window: 36 distinct accounts in 50 sampled events, dominant path gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync (Ocelot proxy to sync-util via microservices.methodlocal.int) = canonical ki-21 signature; minor unrelated third-party noise (2x mapbox fetch). High account cardinality + low per-account count = platform-wide chronic fan-out, not an account-specific spike. account_impact.py: sampled accounts (shedsunlimited etc.) live on prod3-5 (clusters_unconfigured) -> not_found; user_count_source=cluster_lower_bound (platform-wide chronic). ES down HTTP 401. last_notified_at 2026-06-15T22:08:32Z = ~17h ago, WITHIN 24h suppression window -> SUPPRESS both, gate_reason=known-issue-window. occ 413->415 (+1/group; no %10 crossing). fix_status chronic-residual-post-rollback-2026-06-05 unchanged. Shared-upstream co-fire with ki-2026-05-24 (groups A,C,D) per precedence_note."
+      },
+      {
+        "ts": "2026-06-17T21:18:23Z",
+        "note": "2026-06-17 21:14Z triage (FE group 7eec675b429b2c86, alert-frontend-errors 2-alert cluster 20:13:13Z primary + 20:15:13Z satellite bc01724f, bot B011R3D650X, block-only empty text): chronic ki-21 syncutil/syncwidget XHR timeouts. DD method-ui status:error GetSyncWidgetInfoAsync logs 20:11-21:10Z = 200-sample-cap saturated, 97 distinct accounts (top sierrashredllc 16 ~8%, EnglandLogistics 9 chronic-repeat, aosolutions 7, artbrandsholdings 6, coastalwipers 5), status_code:0 gateway timeout -- canonical chronic shape (97 ~ recent 68-107 baseline, diffuse no concentration, NOT 100x OUTAGE surge). Monitor 77419271 recovered (not in firing list at cycle time). ES NOW REACHABLE (HTTP 200, was chronic 401 06-12->06-16) but 0 hits (documented field-mismatch: ki-21 lives in DD RUM not Serilog; DD account fan-out canonical). Two prior ki-21 groups already triaged this hour (20:27Z cycle: a9c3c6f2 + 372d884a). last_notified_at 2026-06-17T19:14:48Z = ~2h ago, WITHIN 24h suppression window; occ 432->434 (not %10); fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window. SHARED-UPSTREAM CO-FIRE with ki-24 group 643d4714 (4 alerts alert-runtime-monitoring, same 60-min window) per precedence_note. last_seen retained 2026-06-17T20:26:35Z."
       }
     ]
   },
@@ -262,8 +266,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-06-17T20:26:35Z",
-    "occurrences": 173,
+    "last_seen": "2026-06-17T20:41:57Z",
+    "occurrences": 177,
     "match": {
       "channels": [
         "alert-system",
@@ -366,6 +370,10 @@
       {
         "ts": "2026-06-16T15:18:00Z",
         "note": "2026-06-16 15:18Z triage (hourly poll 14:03-15:08Z): THREE ki-24 groups this cycle (A alert-system 6-alert burst 14:10:28-14:25:38Z bot B011R3D650X; C alert-system singleton 14:36:34Z; D alert-runtime-monitoring singleton 15:06:42Z bot B063S8NBW0M MAX-forwarder) — one shared runtime-core RTC latency event, latency-only, MODERATE severity. DD metric RTC Screen Load p95 (post_/api/v1/runtime/load/_screenid*): sustained recurring breaches >3s across window, peaks 9.04s@14:14:40Z + 9.62s@14:15:00Z (group-A burst), 5.50s@14:24-14:25Z, 5.50s@14:31-32Z (group-C tail), 6.43s@14:47:40Z, 6.73s@14:57:00Z, multiple 3-5s through 15:01:00Z (group-D tail). RTC Action Execution p95 co-spiking: 6.43s@14:07:20Z, 5.95s@14:15:00Z, 5.09s@14:57:00Z, 4.23s@14:25Z = canonical dual-endpoint shared-upstream signature. Monitor 115456700 last_triggered 14:22:20Z aligns the 14:14-14:25 burst. Latency-only confirmed: runtime-core-api status:error logs = 0 in window; 5XX-by-service latency-only (gateway 40 spread over 33 intervals ~1.2/int chronic baseline, ms-scheduler 28 chronic bg, runtime-core 8, rest-api 12 — no single-interval breach of the 30/5min threshold). No Redis-error corroboration (monitor 227940275 last_triggered 13:18Z pre-window). No deploy (runtime-core last 2026-05-06, 41d). Severity peak 9.62s vs recent worst ~30.8s = not anomalous, no override. ES down HTTP 401 (chronic ~16d, dev_team auth) -> DD-metric confirmation per playbook. last_notified_at 2026-06-16T14:18:40Z = ~59min ago, WITHIN 24h suppression window -> SUPPRESS all 3, gate_reason=known-issue-window. occ 159->162 (+1/group). Group A crosses occ=160 (%10==0 resurface trigger) BUT the resurface intent ('don't go invisible') is already satisfied by the 14:18:40Z DM ~59min earlier; re-DMing a latency-only chronic with no new severity <1h after the last DM is exactly the noise the 24h window prevents -> %10 overridden, SUPPRESS (precedent: 2026-06-15 Group B). fix_status 'investigating' unchanged. Shared-upstream co-fire with ki-2026-05-21 (groups B,E) per precedence_note."
+      },
+      {
+        "ts": "2026-06-17T21:18:23Z",
+        "note": "2026-06-17 21:14Z triage (group 643d47144ad20322, alert-runtime-monitoring 4-alert cluster 20:15:29-20:41:57Z, bot B063S8NBW0M MAX-forwarder, block-only empty text): recurring RTC p95 latency, latency-only, MILD-MODERATE. DD metric RTC Screen Load p95 peak 4.57s @20:17:00Z (ratio 0.52 over 3s thr, mild) + Action Execution p95 3.68s @20:17:00Z = canonical dual-endpoint co-spike; 20:41 satellites fired vs calmer p95 (1-3.5s) = MAX-forwarder single-slow-request spikes. Monitors 115456700/117279738 self-recovered (OK at cycle time). Latency-only CONFIRMED: runtime-core-api status:error logs = 0 in window. No Redis-error corroboration this cycle (lower severity than the 74-92-error 06-10 bursts). No deploy (runtime-core last prod 2026-05-06, 42d; GitHub merges != prod releases). ES reachable (HTTP 200) but ki-24 latency-only so no error rows. last_notified_at 2026-06-17T11:08:00Z = ~10h ago, WITHIN 24h suppression window; occ 173->177 (not %10); fix_status investigating unchanged -> SUPPRESS gate_reason=known-issue-window. SHARED-UPSTREAM CO-FIRE with ki-21 group 7eec675b (2 alerts alert-frontend-errors, same 60-min window) per precedence_note. last_seen 2026-06-17T20:41:57Z."
       }
     ]
   },
