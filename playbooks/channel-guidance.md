@@ -1,6 +1,6 @@
 # Per-channel investigation order
 
-Each of the four alert channels has a different upstream and a different signal-to-noise profile. The routine prompt branches on `channel_name` from the alert payload to pick the right starting playbook.
+Each alert channel has a different upstream and a different signal-to-noise profile. The routine prompt branches on `channel_name` from the alert payload to pick the right starting playbook. `swat` and `team-incident-response` are *incident-response* channels and share identical handling (investigate, self-DM only, never post).
 
 ## #alert-frontend-errors
 
@@ -53,6 +53,14 @@ Each of the four alert channels has a different upstream and a different signal-
 
 **Bias:** never auto-PR from SWAT. Always `needs-human`. The bot is a silent research assistant for swat — observes, investigates, DMs Ben. Never writes to the channel.
 
+## #team-incident-response
+
+**Source:** incident-response coordination channel (`C0B6233UN4S`). Mixes a Monitoring bot's automated SWAT investigation posts (CPU/host runbooks, etc.) with human coordination messages naming services for rollback / root-cause.
+
+**Treat exactly like #swat** — it is the second incident-response channel. **NEVER POST** (no thread replies, no top-level posts, no reactions); all output goes to Ben's self-DM. Bypass the suppression/escalation cap (humans are watching). Always `needs-human`; never auto-PR.
+
+**Investigation order:** same as #swat. Additionally, read the human coordination thread (per prompt step 4.0a) for `'rolling back X'` / `'reverting X'` pointers — treat engineer-named targets as strong priors to verify with mechanism evidence, not proof.
+
 ## Posting locations summary
 
 | Channel | Where the bot replies |
@@ -61,4 +69,5 @@ Each of the four alert channels has a different upstream and a different signal-
 | `alert-runtime-monitoring` | Self-DM |
 | `alert-system` | Self-DM |
 | `swat` | Self-DM (same as other alert channels). **Never post to #swat itself** — no thread replies, no top-level posts. |
+| `team-incident-response` | Self-DM (incident-response channel, same handling as #swat). **Never post to #team-incident-response itself** — no thread replies, no top-level posts. |
 | `triage-bot-health` | Heartbeat + failure summaries + cycle deferrals |

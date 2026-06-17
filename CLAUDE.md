@@ -151,6 +151,12 @@ These don't typically own alerts but matter for blast-radius reasoning. When `ru
 
 Plus `methodcrm/DeveloperTools/ClaudeCode/claude-plugin/references/incident/` has the canonical incident playbooks (`triage-process.md`, `classification.md`, `log-sources.md`, `bug-analysis-template.md`, `post-deploy.md`).
 
+## Ownership / alert routing
+
+`references/architecture/ownership.md` is the **authoritative owner map** — the M:Architecture "Ownership" screen (Teams, Components, Projects) exported from `AlocetSystem`, mapping every service / component / project to its owning team. Triage uses it in `prompt.md` step 4.1a to **identify** the team that owns each alerted service and to name which team it *would* tag.
+
+**Hard policy (prompt.md Hard rule #13): the routine NEVER tags a team** — no `@`-usergroup mention, no post to a team channel, no use of a team webhook. The owning team is routing metadata for Ben only; handles are always rendered as inert text. The live Slack webhook URLs from that screen are **scrubbed** from the committed copy (secrets).
+
 ## Domain glossary
 
 Common terms that appear in alerts and stack traces:
