@@ -248,6 +248,7 @@ def cmd_apply(g, a):
     folder_title = f"{cat['meta']['grafana_parent_folder']} / {cat['meta']['slo_folder']}"
     existing = {r["uid"]: r for r in g.jget("/api/v1/provisioning/alert-rules")}
     n_create = n_update = n_skip = 0
+    group_intervals = {}  # (folderUID, group) -> seconds, applied after rules exist
     for fn in sorted(os.listdir(GRAFANA_DIR)):
         if fn.startswith("_") or not fn.endswith(".json"):
             continue
@@ -255,6 +256,7 @@ def cmd_apply(g, a):
         for rule in obj.get("rules", []):
             if a.only and a.only not in rule["uid"]:
                 continue  # staged rollout: --only slo-4
+            interval_s = rule.pop("_group_interval_s", None)  # custom field, not part of the API payload
             unresolved = set()
             for q in rule["data"]:
                 u = q.get("datasourceUid")
@@ -280,6 +282,16 @@ def cmd_apply(g, a):
             ok = st in (200, 201)
             print(f"{action} {rule['uid']} -> {st}" + ("" if ok else f" {txt[:200]}"))
             n_create += ok and action == "CREATE"; n_update += ok and action == "update"
+            if ok and interval_s:
+                group_intervals[(folder_uid, rule["ruleGroup"])] = interval_s
+        # apply coarse eval intervals (e.g. the ES rule at 5m) — GET the group, set interval, PUT back
+    for (fuid, grp), secs_iv in group_intervals.items():
+        st, txt = g.api(f"/api/v1/provisioning/folder/{fuid}/rule-groups/{grp}")
+        if st != 200:
+            print(f"  group-interval {grp}: GET -> {st} {txt[:100]}"); continue
+        grp_obj = json.loads(txt); grp_obj["interval"] = secs_iv
+        st2, t2 = g.api(f"/api/v1/provisioning/folder/{fuid}/rule-groups/{grp}", data=grp_obj, method="PUT")
+        print(f"  group '{grp}' eval interval -> {secs_iv}s : {st2}" + ("" if st2 in (200, 201) else f" {t2[:120]}"))
     mode = "DRY-RUN (nothing written — pass --commit)" if not a.commit else "COMMITTED"
     only = f" [--only {a.only}]" if a.only else ""
     print(f"\n{mode}{only}: folder='{folder_title}' (uid={folder_uid}) create={n_create} update={n_update} skip={n_skip}")

@@ -6,23 +6,34 @@ This is the pick-up-later doc for the curated SLO alerting work. Design + runboo
 [`alerting-system-design.md`](alerting-system-design.md); the source of truth for rules is
 [`kb/slo-catalog.json`](../../kb/slo-catalog.json).
 
-> **One-line state (LIVE 2026-06-18):** **5 SLO alert rules + 2 dashboards are deployed in Grafana** under the
-> nested folder `Triage Bot / SLO` (+ a `Triage Bot / SLA` reporting placeholder). Every rule routes
-> **directly** to the `triage-bot-health` contact point via per-rule `notification_settings` (verified) — the
-> shared notification policy was **not touched** (policy hash identical before/after). Delivery proven
-> (webhook 200 + Grafana test-fire 200). The `triage-bot` Slack app + bot token are installed.
+> **One-line state (LIVE 2026-06-18, round 2):** **9 alert rules + 2 dashboards** in `Triage Bot / SLO`
+> (+ `Triage Bot / SLA` placeholder). All 9 verified **state=inactive / health=ok** (queries evaluate, none
+> firing). Every rule routes **directly** to `triage-bot-health` via per-rule `notification_settings` — the
+> shared notification policy is **untouched** (hash identical across both rounds). 2 of 6 deferred remain
+> (gateway), pending Datadog.
 
-## Live now (deployed)
-- **`Triage Bot / SLO`** folder: `slo-4-errors-fast` (P1), `slo-4-errors-slow` (P2), `slo-4-latency` (P2),
-  `slo-5-latency` (P2), `slo-7-errors-slow` (P2) — all `notification_settings.receiver=triage-bot-health`.
-- **Dashboards:** `Triage Bot — SLO Overview` (in `…/SLO`), `Triage Bot — SLA (reporting only)` (in `…/SLA`).
-- Built only from **InfluxDB SLOs with verified data** (SLO-4 screen, SLO-5 action, SLO-7 sync). Latency rules
-  use `mean` (no stored p95). Only `slo-4-errors-fast` pages (P1).
+## Live now (deployed) — 9 rules
+- **Round 1 (InfluxDB):** `slo-4-errors-fast` (P1), `slo-4-errors-slow` (P2), `slo-4-latency` (P2),
+  `slo-5-latency` (P2), `slo-7-errors-slow` (P2).
+- **Round 2:**
+  - `slo-1-auth-errors` (P2) — **ES** (`Elasticsearch` ds, `_index:method-microservices-authentication-* AND
+    level:Error`, ≥5/30m). **Light:** single query, own rule group at **5-min eval** (ES perf guardrail).
+  - `slo-8-subscriber-down` (**P1**) — `rabbitmq_queue` `consumers==0` on the live event-consumer queues
+    (subscriber down → event processing/cache-invalidation halts).
+  - `slo-8-consumer-lag` (P2) — `messages_ready > 1000` on those queues.
+  - `f2-dead-lettering` (P2) — `non_negative_difference(messages_ready) > 50/5m` on `*_error` queues (spike, not
+    the static backlogs; `publish_rate` is dead so depth-delta is the signal).
+- **Dashboards:** `Triage Bot — SLO Overview` (now incl. consumer + DLQ panels), `Triage Bot — SLA (reporting only)`.
+- Two P1 rules total (`slo-4-errors-fast`, `slo-8-subscriber-down`) — pager stays quiet.
 
 ## Still deferred (no rules emitted — no silent never-fire alerts)
-- **SLO-1/2/6** (sign-in, gateway, designer) → `deferred-needs-es-probe` (need `applogs-es` field confirmation).
-- **SLO-3** (gateway latency), **SLO-8** (subscriber/lag), **F2** (DLQ) → `deferred-no-datasource` (the metrics
-  aren't collected anywhere reachable; need a gateway request-duration metric / RabbitMQ exporter first).
+- **SLO-6 designer** → `deferred-no-recent-data`: `viewdesigner_request`/`view_request` have **no data for ~30
+  days** (last point 2026-05-19); the designer metric pipeline is dormant. Revive when it resumes.
+- **SLO-2 gateway availability / SLO-3 gateway latency** → `deferred-no-datasource`: gateway logs are
+  Warning-only (ki-21 noise), no status/duration; no gateway metric. **Datadog HAS the data**
+  (`trace.aspnet_core.request.duration{service:ms-gateway-api}`), but Grafana has no Datadog plugin
+  (install=server-admin). Path: install the Grafana Enterprise Datadog plugin → build like the rest, OR native
+  DD monitors → DD Slack integration to `#triage-bot-health`. (Gateway-down impact already shows via SLO-4/5/7.)
 
 ---
 

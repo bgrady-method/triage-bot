@@ -104,10 +104,22 @@ def expr_reduce(ref, input_ref, reducer="last"):
             "model": {"refId": ref, "type": "reduce", "reducer": reducer, "expression": input_ref}}
 
 
-def expr_threshold(ref, input_ref, gt):
+def expr_threshold(ref, input_ref, value, op="gt"):
     return {"refId": ref, "datasourceUid": "__expr__",
             "model": {"refId": ref, "type": "threshold", "expression": input_ref,
-                      "conditions": [{"evaluator": {"type": "gt", "params": [gt]}}]}}
+                      "conditions": [{"evaluator": {"type": op, "params": [value]}}]}}
+
+
+def es_hist_query(ref, datasource_name, lucene, window, interval="5m"):
+    """ES count over `window` bucketed by a date_histogram (so Grafana accepts it), reduced downstream."""
+    return {
+        "refId": ref, "relativeTimeRange": {"from": secs(window), "to": 0},
+        "datasourceUid": datasource_name,
+        "model": {"refId": ref, "query": lucene, "alias": "",
+                  "metrics": [{"id": "1", "type": "count"}],
+                  "bucketAggs": [{"id": "2", "type": "date_histogram", "field": "@timestamp",
+                                  "settings": {"interval": interval, "min_doc_count": "0"}}],
+                  "timeField": "@timestamp"}}
 
 
 def rule(uid, title, data, condition, for_, labels, annos):
@@ -171,6 +183,52 @@ def gen_influx_slo(slo, ladder_by_tier):
     return out
 
 
+def gen_es_absolute(slo):
+    """Light ES rule: absolute error count over a window, on its own coarse-eval rule group."""
+    ds = slo["datasource_es"]
+    a = slo["absolute"]
+    data = [es_hist_query("C", ds, slo["es_query"], a["window"]),
+            expr_reduce("R", "C", "sum"),
+            expr_threshold("COND", "R", a["count_gte"] - 1, "gt")]
+    summary = (f"{slo['id']} {slo['journey']}: >= {a['count_gte']} auth errors in {a['window']} "
+               f"(ES {slo['datasource_es']}, _index-scoped).")
+    r = rule(slo["rules"][0]["name"] if "rules" in slo else f"{slo['id'].lower()}-auth-errors",
+             f"{slo['id']} {slo['journey']} — auth errors ({a['severity']})",
+             data, "COND", a["window"], base_labels(slo, a["severity"]), annotations(slo, summary))
+    if slo.get("eval_interval_s"):
+        r["_group_interval_s"] = slo["eval_interval_s"]  # provisioner sets the rule-group interval, then strips this
+    return [r]
+
+
+def gen_rabbitmq(slo):
+    """Per-queue consumer/backlog rules: reduce each queue-series, threshold fires if ANY queue breaches."""
+    out = []
+    ds, meas, qre = slo["datasource_metric"], slo["measurement"], slo["queue_regex"]
+    for sub in slo["rules"]:
+        q = influxql_query("Q", ds,
+                           f'SELECT last("{sub["field"]}") FROM "{meas}" WHERE "queue" =~ /{qre}/ AND $timeFilter GROUP BY "queue"',
+                           sub["sustain"])
+        data = [q, expr_reduce("R", "Q", sub["reduce"]), expr_threshold("COND", "R", sub["value"], sub["op"])]
+        out.append(rule(sub["name"], f"{slo['id']} {slo['journey']} — {sub['name']} ({sub['severity']})",
+                        data, "COND", sub["sustain"], base_labels(slo, sub["severity"]),
+                        annotations(slo, f"{slo['id']}: {sub['desc']}")))
+    return out
+
+
+def gen_rabbitmq_dlq(slo):
+    """Dead-letter spike: non_negative_difference of messages_ready per _error queue; fire if any jumps."""
+    ds, meas = slo["datasource_metric"], slo["measurement"]
+    ql = (f'SELECT non_negative_difference(max("{slo["field"]}")) FROM "{meas}" '
+          f'WHERE "queue" =~ /{slo["queue_regex"]}/ AND $timeFilter GROUP BY time({slo["bucket"]}), "queue"')
+    data = [influxql_query("D", ds, ql, slo["sustain"]),
+            expr_reduce("R", "D", "max"),
+            expr_threshold("COND", "R", slo["value"], slo["op"])]
+    summary = (f"{slo['id']} {slo['journey']}: a *_error queue grew by > {slo['value']} messages in {slo['bucket']} "
+               f"(active dead-lettering, not the static baselines).")
+    return [rule("f2-dead-lettering", f"{slo['id']} {slo['journey']} ({slo['severity']})",
+                 data, "COND", slo["sustain"], base_labels(slo, slo["severity"]), annotations(slo, summary))]
+
+
 def _influx_target(ds_name, ql, refid="A"):
     return {"datasource": {"type": "influxdb", "uid": ds_name}, "query": ql,
             "rawQuery": True, "resultFormat": "time_series", "refId": refid}
@@ -197,7 +255,11 @@ def build_dashboard(cat):
               _panel(4, "Action exec — mean latency (ms)", 0, 11, 12, 8, "timeseries", "approutine_action_metrics",
                      'SELECT mean("mean") FROM "approutine_actions" WHERE $timeFilter GROUP BY time($__interval) fill(null)', "ms"),
               _panel(5, "QBO sync — error count (haserror)", 12, 11, 12, 8, "timeseries", "syncservice_metrics",
-                     'SELECT sum("count") FROM "syncservice_request" WHERE "haserror"=\'true\' AND $timeFilter GROUP BY time($__interval) fill(0)')]
+                     'SELECT sum("count") FROM "syncservice_request" WHERE "haserror"=\'true\' AND $timeFilter GROUP BY time($__interval) fill(0)'),
+              _panel(6, "Event-consumer queues — consumers", 0, 19, 12, 8, "timeseries", "InfluxDB",
+                     'SELECT last("consumers") FROM "rabbitmq_queue" WHERE "queue" =~ /^events\\.subscribers\\.(sync|analytics|audittrail|dataconsumer|tags)$|^method\\.account-user\\.change$/ AND $timeFilter GROUP BY time($__interval), "queue" fill(previous)'),
+              _panel(7, "DLQ (_error queues) — messages_ready", 12, 19, 12, 8, "timeseries", "InfluxDB",
+                     'SELECT max("messages_ready") FROM "rabbitmq_queue" WHERE "queue" =~ /_error$/ AND $timeFilter GROUP BY time($__interval), "queue" fill(previous)')]
     return {"target_folder": "slo",
             "dashboard": {"uid": "triage-bot-slo-overview", "title": "Triage Bot — SLO Overview",
                           "tags": ["triage-bot-slo"], "schemaVersion": 39, "version": 0, "refresh": "5m",
@@ -335,6 +397,12 @@ def generate(cat):
         kind = slo["kind"]
         if kind == "influx_slo":
             rules = gen_influx_slo(slo, ladder)
+        elif kind == "es_absolute":
+            rules = gen_es_absolute(slo)
+        elif kind == "influx_rabbitmq":
+            rules = gen_rabbitmq(slo)
+        elif kind == "influx_rabbitmq_dlq":
+            rules = gen_rabbitmq_dlq(slo)
         elif kind == "availability":
             rules = gen_availability(slo, ladder)
         elif kind in ("latency", "latency_and_errors"):

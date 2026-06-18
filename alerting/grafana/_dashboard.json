@@ -159,6 +159,70 @@
           "overrides": []
         },
         "options": {}
+      },
+      {
+        "id": 6,
+        "title": "Event-consumer queues \u2014 consumers",
+        "type": "timeseries",
+        "gridPos": {
+          "x": 0,
+          "y": 19,
+          "w": 12,
+          "h": 8
+        },
+        "datasource": {
+          "type": "influxdb",
+          "uid": "InfluxDB"
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "influxdb",
+              "uid": "InfluxDB"
+            },
+            "query": "SELECT last(\"consumers\") FROM \"rabbitmq_queue\" WHERE \"queue\" =~ /^events\\.subscribers\\.(sync|analytics|audittrail|dataconsumer|tags)$|^method\\.account-user\\.change$/ AND $timeFilter GROUP BY time($__interval), \"queue\" fill(previous)",
+            "rawQuery": true,
+            "resultFormat": "time_series",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {},
+          "overrides": []
+        },
+        "options": {}
+      },
+      {
+        "id": 7,
+        "title": "DLQ (_error queues) \u2014 messages_ready",
+        "type": "timeseries",
+        "gridPos": {
+          "x": 12,
+          "y": 19,
+          "w": 12,
+          "h": 8
+        },
+        "datasource": {
+          "type": "influxdb",
+          "uid": "InfluxDB"
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "influxdb",
+              "uid": "InfluxDB"
+            },
+            "query": "SELECT max(\"messages_ready\") FROM \"rabbitmq_queue\" WHERE \"queue\" =~ /_error$/ AND $timeFilter GROUP BY time($__interval), \"queue\" fill(previous)",
+            "rawQuery": true,
+            "resultFormat": "time_series",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {},
+          "overrides": []
+        },
+        "options": {}
       }
     ]
   }
