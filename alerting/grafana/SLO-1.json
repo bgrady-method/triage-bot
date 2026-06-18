@@ -1,0 +1,362 @@
+{
+  "folder": "SLO",
+  "slo": "SLO-1",
+  "build_status": "buildable-now",
+  "needs_probe": true,
+  "rules": [
+    {
+      "uid": "slo-1-fast",
+      "title": "SLO-1 Sign-in / authentication \u2014 fast burn (P1)",
+      "condition": "BURN",
+      "data": [
+        {
+          "refId": "ERR_L",
+          "relativeTimeRange": {
+            "from": 3600,
+            "to": 0
+          },
+          "datasourceUid": "applogs-es",
+          "model": {
+            "refId": "ERR_L",
+            "query": "service:(ms-authentication-api OR ms-gateway-api) AND tag:auth AND (level:Error OR Level:Error OR status:>=500)",
+            "alias": "",
+            "metrics": [
+              {
+                "id": "1",
+                "type": "count"
+              }
+            ],
+            "bucketAggs": [],
+            "timeField": "@timestamp"
+          }
+        },
+        {
+          "refId": "TOT_L",
+          "relativeTimeRange": {
+            "from": 3600,
+            "to": 0
+          },
+          "datasourceUid": "applogs-es",
+          "model": {
+            "refId": "TOT_L",
+            "query": "service:(ms-authentication-api OR ms-gateway-api) AND tag:auth",
+            "alias": "",
+            "metrics": [
+              {
+                "id": "1",
+                "type": "count"
+              }
+            ],
+            "bucketAggs": [],
+            "timeField": "@timestamp"
+          }
+        },
+        {
+          "refId": "EL",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "EL",
+            "type": "reduce",
+            "reducer": "last",
+            "expression": "ERR_L"
+          }
+        },
+        {
+          "refId": "TL",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "TL",
+            "type": "reduce",
+            "reducer": "last",
+            "expression": "TOT_L"
+          }
+        },
+        {
+          "refId": "ERR_S",
+          "relativeTimeRange": {
+            "from": 300,
+            "to": 0
+          },
+          "datasourceUid": "applogs-es",
+          "model": {
+            "refId": "ERR_S",
+            "query": "service:(ms-authentication-api OR ms-gateway-api) AND tag:auth AND (level:Error OR Level:Error OR status:>=500)",
+            "alias": "",
+            "metrics": [
+              {
+                "id": "1",
+                "type": "count"
+              }
+            ],
+            "bucketAggs": [],
+            "timeField": "@timestamp"
+          }
+        },
+        {
+          "refId": "TOT_S",
+          "relativeTimeRange": {
+            "from": 300,
+            "to": 0
+          },
+          "datasourceUid": "applogs-es",
+          "model": {
+            "refId": "TOT_S",
+            "query": "service:(ms-authentication-api OR ms-gateway-api) AND tag:auth",
+            "alias": "",
+            "metrics": [
+              {
+                "id": "1",
+                "type": "count"
+              }
+            ],
+            "bucketAggs": [],
+            "timeField": "@timestamp"
+          }
+        },
+        {
+          "refId": "ES",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "ES",
+            "type": "reduce",
+            "reducer": "last",
+            "expression": "ERR_S"
+          }
+        },
+        {
+          "refId": "TS",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "TS",
+            "type": "reduce",
+            "reducer": "last",
+            "expression": "TOT_S"
+          }
+        },
+        {
+          "refId": "BURN_RAW",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "BURN_RAW",
+            "type": "math",
+            "expression": "(${EL}/(${TL}+1) > 0.0144) && (${ES}/(${TS}+1) > 0.0144)"
+          }
+        },
+        {
+          "refId": "BURN",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "BURN",
+            "type": "threshold",
+            "expression": "BURN_RAW",
+            "conditions": [
+              {
+                "evaluator": {
+                  "type": "gt",
+                  "params": [
+                    0
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "noDataState": "OK",
+      "execErrState": "Error",
+      "for": "2m",
+      "labels": {
+        "slo": "SLO-1",
+        "severity": "P1",
+        "owner": "Admin",
+        "pager": "triage-bot"
+      },
+      "annotations": {
+        "summary": "SLO-1 Sign-in / authentication: error budget burning >= 14.4x over 1h+5m (target 0.999, page).",
+        "owner_team": "Admin",
+        "slo": "SLO-1",
+        "journey": "Sign-in / authentication",
+        "runbook": "references/architecture/alerting-system-design.md#rb-slo-1"
+      },
+      "ruleGroup": "slo-1-fast",
+      "isPaused": false
+    },
+    {
+      "uid": "slo-1-slow",
+      "title": "SLO-1 Sign-in / authentication \u2014 slow burn (P2)",
+      "condition": "BURN",
+      "data": [
+        {
+          "refId": "ERR_L",
+          "relativeTimeRange": {
+            "from": 86400,
+            "to": 0
+          },
+          "datasourceUid": "applogs-es",
+          "model": {
+            "refId": "ERR_L",
+            "query": "service:(ms-authentication-api OR ms-gateway-api) AND tag:auth AND (level:Error OR Level:Error OR status:>=500)",
+            "alias": "",
+            "metrics": [
+              {
+                "id": "1",
+                "type": "count"
+              }
+            ],
+            "bucketAggs": [],
+            "timeField": "@timestamp"
+          }
+        },
+        {
+          "refId": "TOT_L",
+          "relativeTimeRange": {
+            "from": 86400,
+            "to": 0
+          },
+          "datasourceUid": "applogs-es",
+          "model": {
+            "refId": "TOT_L",
+            "query": "service:(ms-authentication-api OR ms-gateway-api) AND tag:auth",
+            "alias": "",
+            "metrics": [
+              {
+                "id": "1",
+                "type": "count"
+              }
+            ],
+            "bucketAggs": [],
+            "timeField": "@timestamp"
+          }
+        },
+        {
+          "refId": "EL",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "EL",
+            "type": "reduce",
+            "reducer": "last",
+            "expression": "ERR_L"
+          }
+        },
+        {
+          "refId": "TL",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "TL",
+            "type": "reduce",
+            "reducer": "last",
+            "expression": "TOT_L"
+          }
+        },
+        {
+          "refId": "ERR_S",
+          "relativeTimeRange": {
+            "from": 7200,
+            "to": 0
+          },
+          "datasourceUid": "applogs-es",
+          "model": {
+            "refId": "ERR_S",
+            "query": "service:(ms-authentication-api OR ms-gateway-api) AND tag:auth AND (level:Error OR Level:Error OR status:>=500)",
+            "alias": "",
+            "metrics": [
+              {
+                "id": "1",
+                "type": "count"
+              }
+            ],
+            "bucketAggs": [],
+            "timeField": "@timestamp"
+          }
+        },
+        {
+          "refId": "TOT_S",
+          "relativeTimeRange": {
+            "from": 7200,
+            "to": 0
+          },
+          "datasourceUid": "applogs-es",
+          "model": {
+            "refId": "TOT_S",
+            "query": "service:(ms-authentication-api OR ms-gateway-api) AND tag:auth",
+            "alias": "",
+            "metrics": [
+              {
+                "id": "1",
+                "type": "count"
+              }
+            ],
+            "bucketAggs": [],
+            "timeField": "@timestamp"
+          }
+        },
+        {
+          "refId": "ES",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "ES",
+            "type": "reduce",
+            "reducer": "last",
+            "expression": "ERR_S"
+          }
+        },
+        {
+          "refId": "TS",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "TS",
+            "type": "reduce",
+            "reducer": "last",
+            "expression": "TOT_S"
+          }
+        },
+        {
+          "refId": "BURN_RAW",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "BURN_RAW",
+            "type": "math",
+            "expression": "(${EL}/(${TL}+1) > 0.003) && (${ES}/(${TS}+1) > 0.003)"
+          }
+        },
+        {
+          "refId": "BURN",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "BURN",
+            "type": "threshold",
+            "expression": "BURN_RAW",
+            "conditions": [
+              {
+                "evaluator": {
+                  "type": "gt",
+                  "params": [
+                    0
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "noDataState": "OK",
+      "execErrState": "Error",
+      "for": "15m",
+      "labels": {
+        "slo": "SLO-1",
+        "severity": "P2",
+        "owner": "Admin",
+        "pager": "triage-bot"
+      },
+      "annotations": {
+        "summary": "SLO-1 Sign-in / authentication: error budget burning >= 3x over 24h+2h (target 0.999, ticket).",
+        "owner_team": "Admin",
+        "slo": "SLO-1",
+        "journey": "Sign-in / authentication",
+        "runbook": "references/architecture/alerting-system-design.md#rb-slo-1"
+      },
+      "ruleGroup": "slo-1-slow",
+      "isPaused": false
+    }
+  ]
+}

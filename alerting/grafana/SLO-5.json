@@ -1,0 +1,430 @@
+{
+  "folder": "SLO",
+  "slo": "SLO-5",
+  "build_status": "buildable-now",
+  "needs_probe": true,
+  "rules": [
+    {
+      "uid": "slo-5-latency",
+      "title": "SLO-5 Action execution \u2014 p95 latency (P1)",
+      "condition": "COND",
+      "data": [
+        {
+          "refId": "P95",
+          "relativeTimeRange": {
+            "from": 600,
+            "to": 0
+          },
+          "datasourceUid": "approutine_action_metrics",
+          "model": {
+            "refId": "P95",
+            "query": "SELECT percentile(\"duration_ms\", 95) FROM \"action_execution\" WHERE $timeFilter GROUP BY time(1m)",
+            "rawQuery": true,
+            "resultFormat": "time_series"
+          }
+        },
+        {
+          "refId": "R",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "R",
+            "type": "reduce",
+            "reducer": "max",
+            "expression": "P95"
+          }
+        },
+        {
+          "refId": "COND",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "COND",
+            "type": "threshold",
+            "expression": "R",
+            "conditions": [
+              {
+                "evaluator": {
+                  "type": "gt",
+                  "params": [
+                    5000
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "noDataState": "OK",
+      "execErrState": "Error",
+      "for": "10m",
+      "labels": {
+        "slo": "SLO-5",
+        "severity": "P1",
+        "owner": "No Code Next Gen",
+        "pager": "triage-bot"
+      },
+      "annotations": {
+        "summary": "SLO-5 Action execution: p95 > 5000ms sustained 10m.",
+        "owner_team": "No Code Next Gen",
+        "slo": "SLO-5",
+        "journey": "Action execution",
+        "runbook": "references/architecture/alerting-system-design.md#rb-slo-5"
+      },
+      "ruleGroup": "slo-5-latency",
+      "isPaused": false
+    },
+    {
+      "uid": "slo-5-fast",
+      "title": "SLO-5 Action execution \u2014 fast burn (P1)",
+      "condition": "BURN",
+      "data": [
+        {
+          "refId": "ERR_L",
+          "relativeTimeRange": {
+            "from": 3600,
+            "to": 0
+          },
+          "datasourceUid": "applogs-es",
+          "model": {
+            "refId": "ERR_L",
+            "query": "service:runtime-core AND tag:action AND status:>=500",
+            "alias": "",
+            "metrics": [
+              {
+                "id": "1",
+                "type": "count"
+              }
+            ],
+            "bucketAggs": [],
+            "timeField": "@timestamp"
+          }
+        },
+        {
+          "refId": "TOT_L",
+          "relativeTimeRange": {
+            "from": 3600,
+            "to": 0
+          },
+          "datasourceUid": "applogs-es",
+          "model": {
+            "refId": "TOT_L",
+            "query": "service:runtime-core AND tag:action",
+            "alias": "",
+            "metrics": [
+              {
+                "id": "1",
+                "type": "count"
+              }
+            ],
+            "bucketAggs": [],
+            "timeField": "@timestamp"
+          }
+        },
+        {
+          "refId": "EL",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "EL",
+            "type": "reduce",
+            "reducer": "last",
+            "expression": "ERR_L"
+          }
+        },
+        {
+          "refId": "TL",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "TL",
+            "type": "reduce",
+            "reducer": "last",
+            "expression": "TOT_L"
+          }
+        },
+        {
+          "refId": "ERR_S",
+          "relativeTimeRange": {
+            "from": 300,
+            "to": 0
+          },
+          "datasourceUid": "applogs-es",
+          "model": {
+            "refId": "ERR_S",
+            "query": "service:runtime-core AND tag:action AND status:>=500",
+            "alias": "",
+            "metrics": [
+              {
+                "id": "1",
+                "type": "count"
+              }
+            ],
+            "bucketAggs": [],
+            "timeField": "@timestamp"
+          }
+        },
+        {
+          "refId": "TOT_S",
+          "relativeTimeRange": {
+            "from": 300,
+            "to": 0
+          },
+          "datasourceUid": "applogs-es",
+          "model": {
+            "refId": "TOT_S",
+            "query": "service:runtime-core AND tag:action",
+            "alias": "",
+            "metrics": [
+              {
+                "id": "1",
+                "type": "count"
+              }
+            ],
+            "bucketAggs": [],
+            "timeField": "@timestamp"
+          }
+        },
+        {
+          "refId": "ES",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "ES",
+            "type": "reduce",
+            "reducer": "last",
+            "expression": "ERR_S"
+          }
+        },
+        {
+          "refId": "TS",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "TS",
+            "type": "reduce",
+            "reducer": "last",
+            "expression": "TOT_S"
+          }
+        },
+        {
+          "refId": "BURN_RAW",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "BURN_RAW",
+            "type": "math",
+            "expression": "(${EL}/(${TL}+1) > 0.0144) && (${ES}/(${TS}+1) > 0.0144)"
+          }
+        },
+        {
+          "refId": "BURN",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "BURN",
+            "type": "threshold",
+            "expression": "BURN_RAW",
+            "conditions": [
+              {
+                "evaluator": {
+                  "type": "gt",
+                  "params": [
+                    0
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "noDataState": "OK",
+      "execErrState": "Error",
+      "for": "2m",
+      "labels": {
+        "slo": "SLO-5",
+        "severity": "P1",
+        "owner": "No Code Next Gen",
+        "pager": "triage-bot"
+      },
+      "annotations": {
+        "summary": "SLO-5 Action execution: error budget burning >= 14.4x over 1h+5m (target 0.999, page).",
+        "owner_team": "No Code Next Gen",
+        "slo": "SLO-5",
+        "journey": "Action execution",
+        "runbook": "references/architecture/alerting-system-design.md#rb-slo-5"
+      },
+      "ruleGroup": "slo-5-fast",
+      "isPaused": false
+    },
+    {
+      "uid": "slo-5-slow",
+      "title": "SLO-5 Action execution \u2014 slow burn (P2)",
+      "condition": "BURN",
+      "data": [
+        {
+          "refId": "ERR_L",
+          "relativeTimeRange": {
+            "from": 86400,
+            "to": 0
+          },
+          "datasourceUid": "applogs-es",
+          "model": {
+            "refId": "ERR_L",
+            "query": "service:runtime-core AND tag:action AND status:>=500",
+            "alias": "",
+            "metrics": [
+              {
+                "id": "1",
+                "type": "count"
+              }
+            ],
+            "bucketAggs": [],
+            "timeField": "@timestamp"
+          }
+        },
+        {
+          "refId": "TOT_L",
+          "relativeTimeRange": {
+            "from": 86400,
+            "to": 0
+          },
+          "datasourceUid": "applogs-es",
+          "model": {
+            "refId": "TOT_L",
+            "query": "service:runtime-core AND tag:action",
+            "alias": "",
+            "metrics": [
+              {
+                "id": "1",
+                "type": "count"
+              }
+            ],
+            "bucketAggs": [],
+            "timeField": "@timestamp"
+          }
+        },
+        {
+          "refId": "EL",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "EL",
+            "type": "reduce",
+            "reducer": "last",
+            "expression": "ERR_L"
+          }
+        },
+        {
+          "refId": "TL",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "TL",
+            "type": "reduce",
+            "reducer": "last",
+            "expression": "TOT_L"
+          }
+        },
+        {
+          "refId": "ERR_S",
+          "relativeTimeRange": {
+            "from": 7200,
+            "to": 0
+          },
+          "datasourceUid": "applogs-es",
+          "model": {
+            "refId": "ERR_S",
+            "query": "service:runtime-core AND tag:action AND status:>=500",
+            "alias": "",
+            "metrics": [
+              {
+                "id": "1",
+                "type": "count"
+              }
+            ],
+            "bucketAggs": [],
+            "timeField": "@timestamp"
+          }
+        },
+        {
+          "refId": "TOT_S",
+          "relativeTimeRange": {
+            "from": 7200,
+            "to": 0
+          },
+          "datasourceUid": "applogs-es",
+          "model": {
+            "refId": "TOT_S",
+            "query": "service:runtime-core AND tag:action",
+            "alias": "",
+            "metrics": [
+              {
+                "id": "1",
+                "type": "count"
+              }
+            ],
+            "bucketAggs": [],
+            "timeField": "@timestamp"
+          }
+        },
+        {
+          "refId": "ES",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "ES",
+            "type": "reduce",
+            "reducer": "last",
+            "expression": "ERR_S"
+          }
+        },
+        {
+          "refId": "TS",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "TS",
+            "type": "reduce",
+            "reducer": "last",
+            "expression": "TOT_S"
+          }
+        },
+        {
+          "refId": "BURN_RAW",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "BURN_RAW",
+            "type": "math",
+            "expression": "(${EL}/(${TL}+1) > 0.003) && (${ES}/(${TS}+1) > 0.003)"
+          }
+        },
+        {
+          "refId": "BURN",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "BURN",
+            "type": "threshold",
+            "expression": "BURN_RAW",
+            "conditions": [
+              {
+                "evaluator": {
+                  "type": "gt",
+                  "params": [
+                    0
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "noDataState": "OK",
+      "execErrState": "Error",
+      "for": "15m",
+      "labels": {
+        "slo": "SLO-5",
+        "severity": "P2",
+        "owner": "No Code Next Gen",
+        "pager": "triage-bot"
+      },
+      "annotations": {
+        "summary": "SLO-5 Action execution: error budget burning >= 3x over 24h+2h (target 0.999, ticket).",
+        "owner_team": "No Code Next Gen",
+        "slo": "SLO-5",
+        "journey": "Action execution",
+        "runbook": "references/architecture/alerting-system-design.md#rb-slo-5"
+      },
+      "ruleGroup": "slo-5-slow",
+      "isPaused": false
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "note": "Route everything labelled pager=triage-bot to the triage-bot-health contact point. Per-owner / XMatters routing is documented in the design doc for later \u2014 not active.",
+  "route": {
+    "receiver": "triage-bot-health",
+    "matchers": [
+      "pager=triage-bot"
+    ],
+    "group_by": [
+      "slo"
+    ],
+    "group_wait": "30s",
+    "group_interval": "5m",
+    "repeat_interval": "4h"
+  },
+  "inhibition": "A firing gateway-avail rule (SLO-2 parent) suppresses SLO-3/4/5 child notifications; rabbitmq-consumer-lag is suppressed while subscriber-heartbeat fires."
+}

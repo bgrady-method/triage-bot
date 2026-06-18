@@ -1,0 +1,192 @@
+{
+  "version": 1,
+  "_comment": "Source of truth for the curated SLO alerting system. Consumed by scripts/gen_grafana_alerts.py to emit Grafana provisioning payloads under alerting/grafana/. SEPARATE from the triage-bot escalation_score machinery. Design doc: references/architecture/alerting-system-design.md. NEVER put Slack webhook URLs or passwords here — webhook ids and datasource uids only.",
+  "meta": {
+    "notify_channel": "triage-bot-health",
+    "contact_point": "triage-bot-health",
+    "no_at_mentions": true,
+    "paging_target": "slack-only for now. A Grafana 'XMatters' contact point already exists (webhook). Route P1 there ONLY after this system demonstrates value AND the user explicitly authorizes paging.",
+    "window_days": 30,
+    "window_minutes": 43200,
+    "grafana_folder": "SLO",
+    "grafana_url_hint": "GRAFANA_URL may be a login page (…/grafana/login). The provisioner strips /login and auto-detects the API base (root /api vs /grafana/api).",
+    "es_field_note": "ES/Serilog: .NET Core services log severity in lowercase `level` (e.g. level:Error); older .NET Framework uses `Level`. Queries below use a case-tolerant form; confirm per index via `grafana_provision.py probe`.",
+    "burn_ladder": [
+      { "tier": "fast",        "burn": 14.4, "long_window": "1h",  "short_window": "5m",  "severity": "P1", "action": "page",   "for": "2m" },
+      { "tier": "fast_slower", "burn": 6,    "long_window": "6h",  "short_window": "30m", "severity": "P1", "action": "page",   "for": "5m" },
+      { "tier": "slow",        "burn": 3,    "long_window": "24h", "short_window": "2h",  "severity": "P2", "action": "ticket", "for": "15m" },
+      { "tier": "drift",       "burn": 1,    "long_window": "3d",  "short_window": null,  "severity": "P2", "action": "ticket", "for": "1h" }
+    ]
+  },
+
+  "slos": [
+    {
+      "id": "SLO-1", "journey": "Sign-in / authentication",
+      "kind": "availability",
+      "sli": { "good": "successful authentication (non-5xx on auth routes)", "valid": "all authentication attempts", "measurement_point": "ms-gateway-api auth routes / ms-authentication-api logs" },
+      "target": 0.999,
+      "datasource": { "error": "applogs-es", "total": "applogs-es" },
+      "queries": {
+        "error": "service:(ms-authentication-api OR ms-gateway-api) AND tag:auth AND (level:Error OR Level:Error OR status:>=500)",
+        "total": "service:(ms-authentication-api OR ms-gateway-api) AND tag:auth"
+      },
+      "ladder_tiers": ["fast", "slow"],
+      "owner": { "team": "Admin", "response": "Admin", "upkeep": "Admin", "eventual_channel": "#team-admin", "webhook_id": "B03U3LD1MS9" },
+      "runbook": "references/architecture/alerting-system-design.md#rb-slo-1",
+      "build_status": "buildable-now",
+      "needs_probe": true,
+      "probe_note": "Confirm auth log fields/tags in applogs-es; sign-in synthetic (Datadog) is corroboration only, not required for this rule."
+    },
+    {
+      "id": "SLO-2", "journey": "Gateway availability",
+      "kind": "availability",
+      "sli": { "good": "non-5xx gateway response", "valid": "all gateway requests", "measurement_point": "ms-gateway-api edge (Ocelot)" },
+      "target": 0.9995,
+      "datasource": { "error": "applogs-es", "total": "applogs-es" },
+      "queries": {
+        "error": "service:ms-gateway-api AND status:>=500",
+        "total": "service:ms-gateway-api"
+      },
+      "ladder_tiers": ["fast", "fast_slower", "slow"],
+      "parent": true,
+      "inhibits": ["SLO-3", "SLO-4", "SLO-5"],
+      "owner": { "team": "Admin", "response": "Admin", "upkeep": "Admin", "eventual_channel": "#team-admin", "webhook_id": "B03U3LD1MS9" },
+      "runbook": "references/architecture/alerting-system-design.md#rb-slo-2",
+      "build_status": "buildable-now",
+      "needs_probe": true,
+      "probe_note": "Confirm gateway status-code field name in applogs-es (status vs http.status_code vs StatusCode)."
+    },
+    {
+      "id": "SLO-3", "journey": "Gateway latency",
+      "kind": "latency",
+      "sli": { "good": "request with p95 ≤ 800ms", "valid": "all gateway requests", "measurement_point": "ms-gateway-api edge" },
+      "target_p95_ms": 800,
+      "datasource": { "metric": "Prometheus" },
+      "queries": {
+        "promql_p95": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{service=\"ms-gateway-api\"}[5m])) by (le)) * 1000"
+      },
+      "threshold_ms": 800, "sustain": "10m",
+      "ladder_tiers": [],
+      "owner": { "team": "Admin", "response": "Admin", "upkeep": "Admin", "eventual_channel": "#team-admin", "webhook_id": "B03U3LD1MS9" },
+      "runbook": "references/architecture/alerting-system-design.md#rb-slo-3",
+      "build_status": "needs-probe",
+      "needs_probe": true,
+      "probe_note": "No gateway_metrics InfluxDB datasource seen. Confirm gateway latency exists in Prometheus (metric+labels) OR derive from applogs-es request-duration field. If neither, this SLO is deferred."
+    },
+    {
+      "id": "SLO-4", "journey": "Screen runtime load",
+      "kind": "latency_and_errors",
+      "sli": { "good": "screen-load non-error AND p95 ≤ 3s", "valid": "all screen-load requests", "measurement_point": "runtime-core RTC (runtime route group)" },
+      "target": 0.999, "target_p95_ms": 3000,
+      "datasource": { "metric": "rtcapi_metrics", "error": "applogs-es", "total": "applogs-es" },
+      "queries": {
+        "influxql_p95": "SELECT percentile(\"duration_ms\", 95) FROM \"rtc_request\" WHERE \"endpoint\" =~ /screen|datatable/ AND $timeFilter GROUP BY time(1m)",
+        "error": "service:runtime-core AND tag:screen AND status:>=500",
+        "total": "service:runtime-core AND tag:screen"
+      },
+      "threshold_ms": 3000, "sustain": "10m",
+      "ladder_tiers": ["fast", "slow"],
+      "owner": { "team": "Vertical App Experience", "response": "Vertical App Experience", "upkeep": "Vertical App Experience", "eventual_channel": "shared B063S8NBW0M", "webhook_id": "B063S8NBW0M", "owner_note": "runtime-core split across 3 teams by host — see ownership_gaps; primary owner to confirm." },
+      "runbook": "references/architecture/alerting-system-design.md#rb-slo-4",
+      "build_status": "buildable-now",
+      "needs_probe": true,
+      "probe_note": "Confirm measurement+field in rtcapi_metrics (this is ki-24's RTC screen-load p95 signal). Placeholder: measurement rtc_request, field duration_ms."
+    },
+    {
+      "id": "SLO-5", "journey": "Action execution",
+      "kind": "latency_and_errors",
+      "sli": { "good": "action completes non-error AND p95 ≤ 5s", "valid": "all action executions", "measurement_point": "runtime-core / approutine action endpoints" },
+      "target": 0.999, "target_p95_ms": 5000,
+      "datasource": { "metric": "approutine_action_metrics", "error": "applogs-es", "total": "applogs-es" },
+      "queries": {
+        "influxql_p95": "SELECT percentile(\"duration_ms\", 95) FROM \"action_execution\" WHERE $timeFilter GROUP BY time(1m)",
+        "error": "service:runtime-core AND tag:action AND status:>=500",
+        "total": "service:runtime-core AND tag:action"
+      },
+      "threshold_ms": 5000, "sustain": "10m",
+      "ladder_tiers": ["fast", "slow"],
+      "owner": { "team": "No Code Next Gen", "response": "No Code Next Gen", "upkeep": "No Code Next Gen", "eventual_channel": "#team-no-code-next-gen", "webhook_id": "B08JW7L2ZRU" },
+      "runbook": "references/architecture/alerting-system-design.md#rb-slo-5",
+      "build_status": "buildable-now",
+      "needs_probe": true,
+      "probe_note": "Confirm measurement+field in approutine_action_metrics / rtcapi_metrics (RTC action-exec p95). Placeholder: action_execution.duration_ms."
+    },
+    {
+      "id": "SLO-6", "journey": "Designer / app-builder save",
+      "kind": "absolute_errors",
+      "sli": { "good": "save returns 2xx", "valid": "all save attempts", "measurement_point": "Designer.Core.Api save endpoints" },
+      "target": 0.999,
+      "datasource": { "error": "applogs-es" },
+      "queries": { "error": "service:runtime-core AND tag:designer-save AND status:>=500" },
+      "absolute": { "count_gte": 5, "window": "30m", "severity": "P2" },
+      "ladder_tiers": [],
+      "owner": { "team": "No Code Next Gen", "response": "No Code Next Gen", "upkeep": "No Code Next Gen", "eventual_channel": "#team-no-code-next-gen", "webhook_id": "B08JW7L2ZRU" },
+      "runbook": "references/architecture/alerting-system-design.md#rb-slo-6",
+      "build_status": "buildable-now",
+      "needs_probe": true,
+      "probe_note": "Low-volume journey — absolute count, not burn-rate. Confirm designer save log signature."
+    },
+    {
+      "id": "SLO-7", "journey": "QBO sync freshness",
+      "kind": "absolute_saturation",
+      "sli": { "good": "sync job completes < 15 min end-to-end", "valid": "all sync jobs", "measurement_point": "qbo-sync / syncservice queue age" },
+      "target": 0.99,
+      "datasource": { "metric": "syncservice_metrics" },
+      "queries": { "influxql_backlog": "SELECT max(\"oldest_unprocessed_age_s\") FROM \"sync_queue\" WHERE $timeFilter GROUP BY time(1m)" },
+      "absolute": { "value_gt": 1800, "window": "5m", "severity": "P2", "unit": "seconds" },
+      "ladder_tiers": [],
+      "owner": { "team": "Connect", "response": "Connect", "upkeep": "Connect", "eventual_channel": "#team-connect", "webhook_id": "B08KQ83KNQ0" },
+      "runbook": "references/architecture/alerting-system-design.md#rb-slo-7",
+      "build_status": "buildable-now",
+      "needs_probe": true,
+      "probe_note": "Confirm syncservice_metrics measurement+field for backlog age. Placeholder: sync_queue.oldest_unprocessed_age_s."
+    },
+    {
+      "id": "SLO-8", "journey": "Cache-invalidation timeliness (Runtime.Core.Subscriber)",
+      "kind": "leading_indicator",
+      "sli": { "good": "Subscriber alive AND consumer lag < 100", "valid": "continuous time", "measurement_point": "eda_metrics (RabbitMQ consumer + Subscriber heartbeat)" },
+      "target": 0.999,
+      "justification": "Cause-based alert, justified: F1 — when Subscriber stops, cache invalidation halts and users see stale screens for minutes with NO error-rate symptom. No symptom-level detector exists.",
+      "datasource": { "metric": "eda_metrics" },
+      "queries": {
+        "influxql_heartbeat": "SELECT count(\"value\") FROM \"subscriber_heartbeat\" WHERE $timeFilter",
+        "influxql_lag": "SELECT max(\"messages\") FROM \"consumer_lag\" WHERE \"consumer\" =~ /runtime.core.subscriber/ AND $timeFilter GROUP BY time(1m)"
+      },
+      "alerts": [
+        { "name": "subscriber-heartbeat", "kind": "no_data", "query": "influxql_heartbeat", "window": "5m", "severity": "P1" },
+        { "name": "rabbitmq-consumer-lag", "kind": "threshold", "query": "influxql_lag", "value_gt": 100, "sustain": "5m", "severity": "P2", "inhibited_by": "subscriber-heartbeat" }
+      ],
+      "ladder_tiers": [],
+      "owner": { "team": "CRM Experience", "response": "CRM Experience", "upkeep": "CRM Experience", "eventual_channel": "#team-customer-management", "webhook_id": "B08KH16DG4T" },
+      "runbook": "references/architecture/alerting-system-design.md#rb-slo-8",
+      "build_status": "needs-probe",
+      "needs_probe": true,
+      "probe_note": "Confirm eda_metrics measurements: subscriber_heartbeat, consumer_lag (messages, consumer tag)."
+    },
+    {
+      "id": "F2", "journey": "RabbitMQ dead-letter queue",
+      "kind": "leading_indicator",
+      "sli": { "good": "DLQ depth = 0", "valid": "continuous time", "measurement_point": "eda_metrics (DLQ depth)" },
+      "justification": "Cause-based alert, justified: F2 — async events dead-letter silently; AppRoutines stall with no edge symptom.",
+      "datasource": { "metric": "eda_metrics" },
+      "queries": { "influxql_dlq": "SELECT max(\"depth\") FROM \"dlq\" WHERE $timeFilter GROUP BY time(1m)" },
+      "alerts": [
+        { "name": "rabbitmq-dlq-nonzero", "kind": "threshold", "query": "influxql_dlq", "value_gt": 0, "sustain": "15m", "severity": "P2" }
+      ],
+      "ladder_tiers": [],
+      "owner": { "team": "Connect", "response": "Connect", "upkeep": "Connect", "eventual_channel": "#team-connect", "webhook_id": "B08KQ83KNQ0", "owner_note": "EDA stack = Integrations/Connect." },
+      "runbook": "references/architecture/alerting-system-design.md#rb-f2",
+      "build_status": "needs-probe",
+      "needs_probe": true,
+      "probe_note": "Confirm eda_metrics DLQ measurement+field. Placeholder: dlq.depth."
+    }
+  ],
+
+  "ownership_gaps": [
+    "runtime-core is one deployable split across 3 teams by host (runtime-core-api->Vertical App Experience, runtime-core-subscriber-api->CRM Experience, designer-core-api->No Code Next Gen); a single pool-stop (F6) hits all three — needs a designated primary owner / cross-team bridge.",
+    "DevOps team has no TeamSlackAlertChannel webhook in the ownership grid — infrastructure alerts (Redis/RabbitMQ broker/ES/SQL/IIS) have no eventual team channel (the one true orphan).",
+    "Components/projects mapped to teams that do not exist in the Teams grid: Impact, Stock Apps, Internal, Logstash, and blank/Department (empty team row).",
+    "Vertical App Experience and Transactions share one webhook (B063S8NBW0M) — per-team paging cannot distinguish them.",
+    "ms-search-api vs runtime-core Method.Search alias ambiguity (already flagged in CLAUDE.md) — search SLI owner unclear."
+  ]
+}

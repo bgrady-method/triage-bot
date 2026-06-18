@@ -1,0 +1,76 @@
+{
+  "folder": "SLO",
+  "slo": "SLO-7",
+  "build_status": "buildable-now",
+  "needs_probe": true,
+  "rules": [
+    {
+      "uid": "slo-7-absolute",
+      "title": "SLO-7 QBO sync freshness \u2014 P2",
+      "condition": "COND",
+      "data": [
+        {
+          "refId": "V",
+          "relativeTimeRange": {
+            "from": 300,
+            "to": 0
+          },
+          "datasourceUid": "syncservice_metrics",
+          "model": {
+            "refId": "V",
+            "query": "SELECT max(\"oldest_unprocessed_age_s\") FROM \"sync_queue\" WHERE $timeFilter GROUP BY time(1m)",
+            "rawQuery": true,
+            "resultFormat": "time_series"
+          }
+        },
+        {
+          "refId": "R",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "R",
+            "type": "reduce",
+            "reducer": "max",
+            "expression": "V"
+          }
+        },
+        {
+          "refId": "COND",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "COND",
+            "type": "threshold",
+            "expression": "R",
+            "conditions": [
+              {
+                "evaluator": {
+                  "type": "gt",
+                  "params": [
+                    1800
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "noDataState": "OK",
+      "execErrState": "Error",
+      "for": "5m",
+      "labels": {
+        "slo": "SLO-7",
+        "severity": "P2",
+        "owner": "Connect",
+        "pager": "triage-bot"
+      },
+      "annotations": {
+        "summary": "SLO-7 QBO sync freshness: value > 1800 seconds over 5m.",
+        "owner_team": "Connect",
+        "slo": "SLO-7",
+        "journey": "QBO sync freshness",
+        "runbook": "references/architecture/alerting-system-design.md#rb-slo-7"
+      },
+      "ruleGroup": "slo-7-absolute",
+      "isPaused": false
+    }
+  ]
+}

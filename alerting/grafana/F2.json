@@ -1,0 +1,76 @@
+{
+  "folder": "SLO",
+  "slo": "F2",
+  "build_status": "needs-probe",
+  "needs_probe": true,
+  "rules": [
+    {
+      "uid": "rabbitmq-dlq-nonzero",
+      "title": "F2 rabbitmq-dlq-nonzero (P2)",
+      "condition": "COND",
+      "data": [
+        {
+          "refId": "V",
+          "relativeTimeRange": {
+            "from": 900,
+            "to": 0
+          },
+          "datasourceUid": "eda_metrics",
+          "model": {
+            "refId": "V",
+            "query": "SELECT max(\"depth\") FROM \"dlq\" WHERE $timeFilter GROUP BY time(1m)",
+            "rawQuery": true,
+            "resultFormat": "time_series"
+          }
+        },
+        {
+          "refId": "R",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "R",
+            "type": "reduce",
+            "reducer": "max",
+            "expression": "V"
+          }
+        },
+        {
+          "refId": "COND",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "COND",
+            "type": "threshold",
+            "expression": "R",
+            "conditions": [
+              {
+                "evaluator": {
+                  "type": "gt",
+                  "params": [
+                    0
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "noDataState": "OK",
+      "execErrState": "Error",
+      "for": "15m",
+      "labels": {
+        "slo": "F2",
+        "severity": "P2",
+        "owner": "Connect",
+        "pager": "triage-bot"
+      },
+      "annotations": {
+        "summary": "rabbitmq-dlq-nonzero: value > 0 sustained 15m.",
+        "owner_team": "Connect",
+        "slo": "F2",
+        "journey": "RabbitMQ dead-letter queue",
+        "runbook": "references/architecture/alerting-system-design.md#rb-f2"
+      },
+      "ruleGroup": "rabbitmq-dlq-nonzero",
+      "isPaused": false
+    }
+  ]
+}

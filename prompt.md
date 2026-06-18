@@ -14,7 +14,7 @@ You have a working tree of this repo cloned at the routine root. You also have:
 
 - **Bash** for running scripts and all git operations. `git` is available; `gh` CLI is available and authenticated via the `GH_TOKEN` env var (`gh auth login --with-token <<< "$GH_TOKEN"` once at the start of each run if `gh` reports unauthenticated).
 - **Slack MCP** — `conversations.history`, `chat.postMessage`, `conversations.open`, `reactions.get`, `users.info`. There is no GitHub MCP — branch/commit/push/PR operations all go through `git`+`gh` in Bash with the `GH_TOKEN` secret.
-- Routine secrets in env: `DD_API_KEY`, `DD_APP_KEY`, `ELK_BASE_URL` (Elasticsearch REST endpoint — used by `scripts/es_search.py`), `KIBANA_BASE_URL` (Kibana UI host — used to build clickable evidence links; different host from `ELK_BASE_URL` on Elastic Cloud), `ELK_USER`, `ELK_PASS`, `GH_TOKEN`, `SSH_HOST`, `SSH_PORT`, `SSH_USER`, `SSH_PASS`, `SQL_HOST_PROD1`, `SQL_HOST_PROD2`, `SQL_USER`, `SQL_PASS_RO`, `SQL_DATABASE`, and `MONGO_URI_<NAME>` for each Mongo environment (warehouse, retail, delta, ...).
+- Routine secrets in env: `DD_API_KEY`, `DD_APP_KEY`, `ELK_BASE_URL` (Elasticsearch REST endpoint — used by `scripts/es_search.py`), `KIBANA_BASE_URL` (Kibana UI host — used to build clickable evidence links; different host from `ELK_BASE_URL` on Elastic Cloud), `ELK_USER`, `ELK_PASS`, `GH_TOKEN`, `SSH_HOST`, `SSH_PORT`, `SSH_USER`, `SSH_PASS`, `SQL_HOST_PROD1`, `SQL_HOST_PROD2`, `SQL_USER`, `SQL_PASS_RO`, `SQL_DATABASE`, and `MONGO_URI_<NAME>` for each Mongo environment (warehouse, retail, delta, ...). For the **alerting-system** track only: `GRAFANA_URL` (may be a login page — the provisioner strips `/login` and auto-detects the API mount), `GRAFANA_TOKEN` (service-account token, preferred) or `GRAFANA_USERNAME`/`GRAFANA_PASSWORD`, and `TRIAGE_BOT_HEALTH_WEBHOOK` (Slack webhook for the contact point).
 
 **Note on tool dependencies:** Elasticsearch (`scripts/es_search.py`) and Datadog (`scripts/dd_search.py`) operate over the **public Internet** via Elastic Cloud / Datadog SaaS — they do NOT depend on the SSH bastion or any internal-network connectivity. Do not report ES/Kibana as "unavailable" because of SSH/VPN status; those are independent. Only `scripts/sql_query.py` and `scripts/mongo_query.py` need the SSH tunnel.
 
@@ -23,6 +23,8 @@ Investigation helpers (all read-only, all share the same SSH bastion):
 - `scripts/es_search.py` — Elasticsearch / Logstash search and aggregation
 - `scripts/sql_query.py` — vetted SQL templates against prod1 (default) or prod2; never ad-hoc SQL
 - `scripts/mongo_query.py` — read-only Mongo (find / count / distinct / aggregate without `$out`/`$merge`); pass `--connection <name>` and `--account <db>`
+
+**Write tool (alerting-system track only — NOT used by the hourly triage cycle):** `scripts/grafana_provision.py` is the **sole sanctioned write tool** in this repo. It provisions the curated SLO alert set (`kb/slo-catalog.json` → `scripts/gen_grafana_alerts.py` → `alerting/grafana/`) into Grafana. It talks **only to Grafana** (reads InfluxDB/ES/Prometheus *through* datasources — never mutates Datadog/ES, so Hard Rule #3 stands). `apply` is **dry-run by default**; `--commit` writes. Design + runbooks: `references/architecture/alerting-system-design.md`; usage: `.claude/skills/grafana-alerting/SKILL.md`.
 
 ---
 
