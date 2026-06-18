@@ -6,10 +6,28 @@ This is the pick-up-later doc for the curated SLO alerting work. Design + runboo
 [`alerting-system-design.md`](alerting-system-design.md); the source of truth for rules is
 [`kb/slo-catalog.json`](../../kb/slo-catalog.json).
 
-> **One-line state:** design + as-code tooling are built and in PR #5; a Grafana service-account token is
-> provisioned; live datasource probes are done. **Nothing is live in Grafana** — no rules created, no
-> notifications wired. Blocked on (a) a `#triage-bot-health` Slack webhook and (b) a catalog query rewrite to
-> the *real* datasource schemas (probe results below).
+> **One-line state (LIVE 2026-06-18):** **5 SLO alert rules + 2 dashboards are deployed in Grafana** under the
+> nested folder `Triage Bot / SLO` (+ a `Triage Bot / SLA` reporting placeholder). Every rule routes
+> **directly** to the `triage-bot-health` contact point via per-rule `notification_settings` (verified) — the
+> shared notification policy was **not touched** (policy hash identical before/after). Delivery proven
+> (webhook 200 + Grafana test-fire 200). The `triage-bot` Slack app + bot token are installed.
+
+## Live now (deployed)
+- **`Triage Bot / SLO`** folder: `slo-4-errors-fast` (P1), `slo-4-errors-slow` (P2), `slo-4-latency` (P2),
+  `slo-5-latency` (P2), `slo-7-errors-slow` (P2) — all `notification_settings.receiver=triage-bot-health`.
+- **Dashboards:** `Triage Bot — SLO Overview` (in `…/SLO`), `Triage Bot — SLA (reporting only)` (in `…/SLA`).
+- Built only from **InfluxDB SLOs with verified data** (SLO-4 screen, SLO-5 action, SLO-7 sync). Latency rules
+  use `mean` (no stored p95). Only `slo-4-errors-fast` pages (P1).
+
+## Still deferred (no rules emitted — no silent never-fire alerts)
+- **SLO-1/2/6** (sign-in, gateway, designer) → `deferred-needs-es-probe` (need `applogs-es` field confirmation).
+- **SLO-3** (gateway latency), **SLO-8** (subscriber/lag), **F2** (DLQ) → `deferred-no-datasource` (the metrics
+  aren't collected anywhere reachable; need a gateway request-duration metric / RabbitMQ exporter first).
+
+---
+
+> **(historical) Prior one-line state:** design + tooling built; token provisioned; probes done; nothing live —
+> superseded by the deployment above.
 
 ---
 

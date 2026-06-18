@@ -1,0 +1,165 @@
+{
+  "target_folder": "slo",
+  "dashboard": {
+    "uid": "triage-bot-slo-overview",
+    "title": "Triage Bot \u2014 SLO Overview",
+    "tags": [
+      "triage-bot-slo"
+    ],
+    "schemaVersion": 39,
+    "version": 0,
+    "refresh": "5m",
+    "time": {
+      "from": "now-6h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "type": "text",
+        "gridPos": {
+          "x": 0,
+          "y": 0,
+          "w": 24,
+          "h": 3
+        },
+        "options": {
+          "mode": "markdown",
+          "content": "**Triage Bot \u2014 SLO Overview.** Owned by the triage-bot app; alerts route ONLY to **#triage-bot-health**. Rules live in *Triage Bot / SLO*. Runbooks: `references/architecture/alerting-system-design.md`."
+        }
+      },
+      {
+        "id": 2,
+        "title": "Screen RTC \u2014 mean latency (ms)",
+        "type": "timeseries",
+        "gridPos": {
+          "x": 0,
+          "y": 3,
+          "w": 12,
+          "h": 8
+        },
+        "datasource": {
+          "type": "influxdb",
+          "uid": "rtcapi_metrics"
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "influxdb",
+              "uid": "rtcapi_metrics"
+            },
+            "query": "SELECT mean(\"mean\") FROM \"rtcapi_request\" WHERE $timeFilter GROUP BY time($__interval) fill(null)",
+            "rawQuery": true,
+            "resultFormat": "time_series",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "ms"
+          },
+          "overrides": []
+        },
+        "options": {}
+      },
+      {
+        "id": 3,
+        "title": "Screen RTC \u2014 5xx count",
+        "type": "timeseries",
+        "gridPos": {
+          "x": 12,
+          "y": 3,
+          "w": 12,
+          "h": 8
+        },
+        "datasource": {
+          "type": "influxdb",
+          "uid": "rtcapi_metrics"
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "influxdb",
+              "uid": "rtcapi_metrics"
+            },
+            "query": "SELECT sum(\"count\") FROM \"rtcapi_request\" WHERE \"response_code\" =~ /^5/ AND $timeFilter GROUP BY time($__interval) fill(0)",
+            "rawQuery": true,
+            "resultFormat": "time_series",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {},
+          "overrides": []
+        },
+        "options": {}
+      },
+      {
+        "id": 4,
+        "title": "Action exec \u2014 mean latency (ms)",
+        "type": "timeseries",
+        "gridPos": {
+          "x": 0,
+          "y": 11,
+          "w": 12,
+          "h": 8
+        },
+        "datasource": {
+          "type": "influxdb",
+          "uid": "approutine_action_metrics"
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "influxdb",
+              "uid": "approutine_action_metrics"
+            },
+            "query": "SELECT mean(\"mean\") FROM \"approutine_actions\" WHERE $timeFilter GROUP BY time($__interval) fill(null)",
+            "rawQuery": true,
+            "resultFormat": "time_series",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "ms"
+          },
+          "overrides": []
+        },
+        "options": {}
+      },
+      {
+        "id": 5,
+        "title": "QBO sync \u2014 error count (haserror)",
+        "type": "timeseries",
+        "gridPos": {
+          "x": 12,
+          "y": 11,
+          "w": 12,
+          "h": 8
+        },
+        "datasource": {
+          "type": "influxdb",
+          "uid": "syncservice_metrics"
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "influxdb",
+              "uid": "syncservice_metrics"
+            },
+            "query": "SELECT sum(\"count\") FROM \"syncservice_request\" WHERE \"haserror\"='true' AND $timeFilter GROUP BY time($__interval) fill(0)",
+            "rawQuery": true,
+            "resultFormat": "time_series",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {},
+          "overrides": []
+        },
+        "options": {}
+      }
+    ]
+  }
+}

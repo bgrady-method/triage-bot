@@ -200,23 +200,52 @@ def cmd_contact_point_ensure(g, a):
     print(f"contact-point '{name}' -> {st} {txt[:120]}")
 
 
-def _ensure_folder(g, title, commit):
-    for f in g.jget("/api/folders"):
+def _find_folder(g, title, parent_uid):
+    path = "/api/folders" + (f"?parentUid={parent_uid}" if parent_uid else "")
+    for f in g.jget(path):
         if f["title"] == title:
             return f["uid"]
+    return None
+
+
+def _ensure_folder(g, title, commit, parent_uid=None):
+    uid = _find_folder(g, title, parent_uid)
+    if uid:
+        return uid
     if not commit:
         return None
-    st, txt = g.api("/api/folders", data={"title": title}, method="POST")
-    if st not in (200, 412):
+    body = {"title": title}
+    if parent_uid:
+        body["parentUid"] = parent_uid
+    st, txt = g.api("/api/folders", data=body, method="POST")
+    if st not in (200, 201, 412):
         raise SystemExit(f"create folder '{title}' -> {st}: {txt[:150]}")
     return json.loads(txt)["uid"]
 
 
+def _ensure_slo_folders(g, cat, commit):
+    """parent 'Triage Bot' -> subfolders 'SLO','SLA'. Returns (parent_uid, slo_uid, sla_uid)."""
+    parent = _ensure_folder(g, cat["meta"]["grafana_parent_folder"], commit)
+    slo = _ensure_folder(g, cat["meta"]["slo_folder"], commit, parent) if parent else None
+    sla = _ensure_folder(g, cat["meta"]["sla_folder"], commit, parent) if parent else None
+    return parent, slo, sla
+
+
+def _resolve_ds(dsobj, ds, unresolved):
+    """In-place: replace a datasource NAME placeholder in {type,uid} with the real uid."""
+    if isinstance(dsobj, dict):
+        u = dsobj.get("uid")
+        if u and u in ds:
+            dsobj["uid"] = ds[u]["uid"]
+        elif u and u != "__expr__" and u not in {d["uid"] for d in ds.values()}:
+            unresolved.add(u)
+
+
 def cmd_apply(g, a):
     cat = json.load(open(CATALOG, encoding="utf-8"))
-    folder_title = cat["meta"]["grafana_folder"]
     ds = _ds_by_name(g)
-    folder_uid = _ensure_folder(g, folder_title, a.commit)
+    parent_uid, folder_uid, _sla = _ensure_slo_folders(g, cat, a.commit)
+    folder_title = f"{cat['meta']['grafana_parent_folder']} / {cat['meta']['slo_folder']}"
     existing = {r["uid"]: r for r in g.jget("/api/v1/provisioning/alert-rules")}
     n_create = n_update = n_skip = 0
     for fn in sorted(os.listdir(GRAFANA_DIR)):
@@ -224,35 +253,63 @@ def cmd_apply(g, a):
             continue
         obj = json.load(open(os.path.join(GRAFANA_DIR, fn), encoding="utf-8"))
         for rule in obj.get("rules", []):
-            # resolve datasource NAMES -> uids (leave __expr__ alone)
-            unresolved = []
+            if a.only and a.only not in rule["uid"]:
+                continue  # staged rollout: --only slo-4
+            unresolved = set()
             for q in rule["data"]:
                 u = q.get("datasourceUid")
                 if u and u != "__expr__":
                     if u in ds:
                         q["datasourceUid"] = ds[u]["uid"]
                     elif u not in {d["uid"] for d in ds.values()}:
-                        unresolved.append(u)
+                        unresolved.add(u)
             rule["folderUID"] = folder_uid
             action = "update" if rule["uid"] in existing else "CREATE"
-            warn = f"  ⚠ unresolved datasource(s): {unresolved}" if unresolved else ""
-            probe = "  [needs_probe]" if obj.get("needs_probe") else ""
+            recv = (rule.get("notification_settings") or {}).get("receiver", "(default policy!)")
+            warn = f"  ⚠ unresolved datasource(s): {sorted(unresolved)}" if unresolved else ""
             if not a.commit:
-                print(f"[dry-run] {action:6} {rule['uid']:28} '{rule['title'][:48]}'{probe}{warn}")
+                print(f"[dry-run] {action:6} {rule['uid']:24} -> {recv}{warn}")
                 n_create += action == "CREATE"; n_update += action == "update"
                 continue
             if unresolved:
-                print(f"SKIP {rule['uid']} — unresolved datasource {unresolved} (run probe / fix catalog)")
-                n_skip += 1; continue
+                print(f"SKIP {rule['uid']} — unresolved datasource {sorted(unresolved)}"); n_skip += 1; continue
             if action == "CREATE":
                 st, txt = g.api("/api/v1/provisioning/alert-rules", data=rule, method="POST")
             else:
                 st, txt = g.api(f"/api/v1/provisioning/alert-rules/{rule['uid']}", data=rule, method="PUT")
             ok = st in (200, 201)
-            print(f"{action} {rule['uid']} -> {st}" + ("" if ok else f" {txt[:160]}"))
+            print(f"{action} {rule['uid']} -> {st}" + ("" if ok else f" {txt[:200]}"))
             n_create += ok and action == "CREATE"; n_update += ok and action == "update"
-    mode = "DRY-RUN (nothing written — pass --commit to apply)" if not a.commit else "COMMITTED"
-    print(f"\n{mode}: folder='{folder_title}' (uid={folder_uid}) create={n_create} update={n_update} skip={n_skip}")
+    mode = "DRY-RUN (nothing written — pass --commit)" if not a.commit else "COMMITTED"
+    only = f" [--only {a.only}]" if a.only else ""
+    print(f"\n{mode}{only}: folder='{folder_title}' (uid={folder_uid}) create={n_create} update={n_update} skip={n_skip}")
+
+
+def cmd_dashboard_ensure(g, a):
+    cat = json.load(open(CATALOG, encoding="utf-8"))
+    ds = _ds_by_name(g)
+    parent_uid, slo_uid, sla_uid = _ensure_slo_folders(g, cat, a.commit)
+    for fn in ("_dashboard.json", "_dashboard_sla.json"):
+        path = os.path.join(GRAFANA_DIR, fn)
+        if not os.path.exists(path):
+            continue
+        obj = json.load(open(path, encoding="utf-8"))
+        target = slo_uid if obj.get("target_folder") == "slo" else sla_uid
+        dash = obj["dashboard"]
+        unresolved = set()
+        for p in dash.get("panels", []):
+            _resolve_ds(p.get("datasource"), ds, unresolved)
+            for t in p.get("targets", []):
+                _resolve_ds(t.get("datasource"), ds, unresolved)
+        title = dash["title"]
+        if not a.commit:
+            print(f"[dry-run] upsert dashboard '{title}' -> folder uid={target}"
+                  + (f"  ⚠ unresolved ds {sorted(unresolved)}" if unresolved else ""))
+            continue
+        if unresolved:
+            print(f"SKIP dashboard '{title}' — unresolved ds {sorted(unresolved)}"); continue
+        st, txt = g.api("/api/dashboards/db", data={"dashboard": dash, "folderUid": target, "overwrite": True}, method="POST")
+        print(f"dashboard '{title}' -> {st}" + ("" if st in (200, 201) else f" {txt[:200]}"))
 
 
 def cmd_test_fire(g, a):
@@ -285,9 +342,10 @@ def cmd_test_fire(g, a):
 COMMANDS = {
     "health": cmd_health, "datasources": cmd_datasources, "contact-points": cmd_contact_points,
     "rules": cmd_rules, "probe": cmd_probe, "contact-point-ensure": cmd_contact_point_ensure,
-    "notification-policy-ensure": cmd_contact_point_ensure,  # policy bundled with contact-point spec
-    "apply": cmd_apply, "test-fire": cmd_test_fire,
+    "apply": cmd_apply, "dashboard-ensure": cmd_dashboard_ensure, "test-fire": cmd_test_fire,
 }
+# Note: no notification-policy command — rules carry notification_settings.receiver and route
+# DIRECTLY to the triage-bot-health contact point, so the shared policy tree is never touched.
 
 
 def main():
@@ -295,6 +353,7 @@ def main():
     ap.add_argument("command", choices=list(COMMANDS))
     ap.add_argument("--commit", action="store_true", help="actually write (default is dry-run for write cmds)")
     ap.add_argument("--rule", help="rule uid for test-fire")
+    ap.add_argument("--only", help="apply: only rules whose uid contains this substring (staged rollout)")
     ap.add_argument("--no-connect", action="store_true", help="(self-test) skip connecting to Grafana")
     a = ap.parse_args()
     if a.no_connect:

@@ -29,6 +29,10 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CATALOG = os.path.join(ROOT, "kb", "slo-catalog.json")
 OUTDIR = os.path.join(ROOT, "alerting", "grafana")
 
+# Set in generate() from meta.notification_receiver; attached to every rule so it
+# delivers DIRECTLY to that contact point and bypasses the shared notification policy.
+_NOTIFY_RECEIVER = None
+
 WINDOW_SECONDS = {"5m": 300, "30m": 1800, "1h": 3600, "2h": 7200, "6h": 21600,
                   "10m": 600, "15m": 900, "24h": 86400, "3d": 259200}
 
@@ -107,11 +111,109 @@ def expr_threshold(ref, input_ref, gt):
 
 
 def rule(uid, title, data, condition, for_, labels, annos):
-    return {
+    r = {
         "uid": uid, "title": title, "condition": condition, "data": data,
         "noDataState": "OK", "execErrState": "Error", "for": for_,
         "labels": labels, "annotations": annos, "ruleGroup": uid, "isPaused": False,
     }
+    if _NOTIFY_RECEIVER:
+        # Route straight to our contact point; bypasses the shared policy tree entirely.
+        r["notification_settings"] = {"receiver": _NOTIFY_RECEIVER, "group_by": ["alertname", "slo"]}
+    return r
+
+
+def influxql_count(meas, where_filter):
+    if where_filter:
+        return f'SELECT sum("count") FROM "{meas}" WHERE ({where_filter}) AND $timeFilter'
+    return f'SELECT sum("count") FROM "{meas}" WHERE $timeFilter'
+
+
+def gen_influx_slo(slo, ladder_by_tier):
+    """InfluxDB SLO: error-budget burn rules (sum(count) error/total) and/or a mean-latency threshold rule."""
+    out = []
+    ds = slo["datasource_metric"]
+    meas = slo["measurement"]
+    if "error" in slo:
+        budget = round(1.0 - slo["target"], 6)
+        ef = slo["error"]["filter"]
+        for tier_name in slo["error"]["ladder_tiers"]:
+            t = ladder_by_tier[tier_name]
+            thr = round(t["burn"] * budget, 8)
+            lw, sw = t["long_window"], t["short_window"]
+            data = [influxql_query("ERR_L", ds, influxql_count(meas, ef), lw),
+                    influxql_query("TOT_L", ds, influxql_count(meas, None), lw),
+                    expr_reduce("EL", "ERR_L", "last"), expr_reduce("TL", "TOT_L", "last")]
+            if sw:
+                data += [influxql_query("ERR_S", ds, influxql_count(meas, ef), sw),
+                         influxql_query("TOT_S", ds, influxql_count(meas, None), sw),
+                         expr_reduce("ES", "ERR_S", "last"), expr_reduce("TS", "TOT_S", "last")]
+                expr = f"(${{EL}}/(${{TL}}+1) > {thr}) && (${{ES}}/(${{TS}}+1) > {thr})"
+            else:
+                expr = f"${{EL}}/(${{TL}}+1) > {thr}"
+            data += [expr_math("BURN_RAW", expr), expr_threshold("BURN", "BURN_RAW", 0)]
+            summary = (f"{slo['id']} {slo['journey']}: error budget burning >= {t['burn']}x over {lw}"
+                       + (f"+{sw}" if sw else "") + f" (target {slo['target']}, {t['action']}).")
+            out.append(rule(f"{slo['id'].lower()}-errors-{tier_name}",
+                            f"{slo['id']} {slo['journey']} — error burn {tier_name} ({t['severity']})",
+                            data, "BURN", t["for"], base_labels(slo, t["severity"]), annotations(slo, summary)))
+    if "latency" in slo:
+        lat = slo["latency"]
+        agg, field = lat.get("agg", "mean"), lat["field"]
+        sustain, thr, sev = lat.get("sustain", "10m"), lat["threshold_ms"], lat.get("severity", "P2")
+        ql = f'SELECT {agg}("{field}") FROM "{meas}" WHERE $timeFilter'
+        data = [influxql_query("LAT", ds, ql, sustain), expr_reduce("R", "LAT", "last"),
+                expr_threshold("COND", "R", thr)]
+        summary = (f"{slo['id']} {slo['journey']}: {agg}('{field}') latency > {thr}ms sustained {sustain} "
+                   f"(mean-based — no stored p95).")
+        out.append(rule(f"{slo['id'].lower()}-latency",
+                        f"{slo['id']} {slo['journey']} — latency ({sev})",
+                        data, "COND", sustain, base_labels(slo, sev), annotations(slo, summary)))
+    return out
+
+
+def _influx_target(ds_name, ql, refid="A"):
+    return {"datasource": {"type": "influxdb", "uid": ds_name}, "query": ql,
+            "rawQuery": True, "resultFormat": "time_series", "refId": refid}
+
+
+def _panel(pid, title, x, y, w, h, ptype, ds_name, ql, unit=None):
+    fc = {"defaults": ({"unit": unit} if unit else {}), "overrides": []}
+    return {"id": pid, "title": title, "type": ptype, "gridPos": {"x": x, "y": y, "w": w, "h": h},
+            "datasource": {"type": "influxdb", "uid": ds_name},
+            "targets": [_influx_target(ds_name, ql)], "fieldConfig": fc, "options": {}}
+
+
+def build_dashboard(cat):
+    """One light SLO-overview dashboard (datasource referenced by NAME; provisioner resolves to uid)."""
+    panels = [{"id": 1, "type": "text", "gridPos": {"x": 0, "y": 0, "w": 24, "h": 3},
+               "options": {"mode": "markdown",
+                           "content": "**Triage Bot — SLO Overview.** Owned by the triage-bot app; alerts route "
+                                      "ONLY to **#triage-bot-health**. Rules live in *Triage Bot / SLO*. "
+                                      "Runbooks: `references/architecture/alerting-system-design.md`."}},
+              _panel(2, "Screen RTC — mean latency (ms)", 0, 3, 12, 8, "timeseries", "rtcapi_metrics",
+                     'SELECT mean("mean") FROM "rtcapi_request" WHERE $timeFilter GROUP BY time($__interval) fill(null)', "ms"),
+              _panel(3, "Screen RTC — 5xx count", 12, 3, 12, 8, "timeseries", "rtcapi_metrics",
+                     'SELECT sum("count") FROM "rtcapi_request" WHERE "response_code" =~ /^5/ AND $timeFilter GROUP BY time($__interval) fill(0)'),
+              _panel(4, "Action exec — mean latency (ms)", 0, 11, 12, 8, "timeseries", "approutine_action_metrics",
+                     'SELECT mean("mean") FROM "approutine_actions" WHERE $timeFilter GROUP BY time($__interval) fill(null)', "ms"),
+              _panel(5, "QBO sync — error count (haserror)", 12, 11, 12, 8, "timeseries", "syncservice_metrics",
+                     'SELECT sum("count") FROM "syncservice_request" WHERE "haserror"=\'true\' AND $timeFilter GROUP BY time($__interval) fill(0)')]
+    return {"target_folder": "slo",
+            "dashboard": {"uid": "triage-bot-slo-overview", "title": "Triage Bot — SLO Overview",
+                          "tags": ["triage-bot-slo"], "schemaVersion": 39, "version": 0, "refresh": "5m",
+                          "time": {"from": "now-6h", "to": "now"}, "panels": panels}}
+
+
+def build_sla_dashboard(cat):
+    return {"target_folder": "sla",
+            "dashboard": {"uid": "triage-bot-sla-readme", "title": "Triage Bot — SLA (reporting only)",
+                          "tags": ["triage-bot-sla"], "schemaVersion": 39, "version": 0,
+                          "panels": [{"id": 1, "type": "text", "gridPos": {"x": 0, "y": 0, "w": 24, "h": 6},
+                                      "options": {"mode": "markdown",
+                                                  "content": "**SLA folder — reporting only.** SLAs are contractual "
+                                                             "and are **never paged**. This folder is for attainment/"
+                                                             "reporting dashboards (added later); no alert rules live "
+                                                             "here. See references/architecture/alerting-system-design.md."}}]}}
 
 
 def gen_availability(slo, ladder_by_tier):
@@ -222,11 +324,18 @@ def gen_leading_indicator(slo):
 
 
 def generate(cat):
+    global _NOTIFY_RECEIVER
+    _NOTIFY_RECEIVER = cat["meta"].get("notification_receiver")
     ladder = {t["tier"]: t for t in cat["meta"]["burn_ladder"]}
+    slo_folder = f"{cat['meta']['grafana_parent_folder']} / {cat['meta']['slo_folder']}"
     files = {}
     for slo in cat["slos"]:
+        if str(slo.get("build_status", "")).startswith("deferred"):
+            continue  # no rules for deferred SLOs — avoids silent never-fire alerts
         kind = slo["kind"]
-        if kind == "availability":
+        if kind == "influx_slo":
+            rules = gen_influx_slo(slo, ladder)
+        elif kind == "availability":
             rules = gen_availability(slo, ladder)
         elif kind in ("latency", "latency_and_errors"):
             rules = gen_latency(slo, ladder)
@@ -236,30 +345,19 @@ def generate(cat):
             rules = gen_leading_indicator(slo)
         else:
             raise SystemExit(f"{slo['id']}: unknown kind '{kind}'")
-        files[f"{slo['id']}.json"] = {
-            "folder": cat["meta"]["grafana_folder"],
-            "slo": slo["id"], "build_status": slo.get("build_status"),
-            "needs_probe": slo.get("needs_probe", False),
-            "rules": rules,
-        }
-    # contact point + notification policy (delivery objects)
+        files[f"{slo['id']}.json"] = {"folder": slo_folder, "slo": slo["id"],
+                                      "build_status": slo.get("build_status"), "rules": rules}
+    # delivery objects
     files["_contact-point.json"] = {
-        "name": cat["meta"]["contact_point"],
-        "type": "slack",
-        "settings_note": "recipient = #triage-bot-health channel. NO @-mentions in the template. "
-                         "Webhook/token supplied at apply time from env, never committed.",
+        "name": cat["meta"]["contact_point"], "type": "slack",
+        "settings_note": "recipient = #triage-bot-health. NO @-mentions in the template. Webhook supplied at "
+                         "apply time from env (TRIAGE_BOT_HEALTH_WEBHOOK), never committed.",
         "message_template": "{{ .CommonLabels.slo }} [{{ .CommonLabels.severity }}] {{ .CommonAnnotations.summary }} "
-                            "(owner: {{ .CommonLabels.owner }}) runbook: {{ .CommonAnnotations.runbook }}",
+                            "(owner: {{ .CommonLabels.owner_team }}) runbook: {{ .CommonAnnotations.runbook }}",
     }
-    files["_notification-policy.json"] = {
-        "note": "Route everything labelled pager=triage-bot to the triage-bot-health contact point. "
-                "Per-owner / XMatters routing is documented in the design doc for later — not active.",
-        "route": {"receiver": cat["meta"]["contact_point"],
-                  "matchers": ["pager=triage-bot"],
-                  "group_by": ["slo"], "group_wait": "30s", "group_interval": "5m", "repeat_interval": "4h"},
-        "inhibition": "A firing gateway-avail rule (SLO-2 parent) suppresses SLO-3/4/5 child notifications; "
-                      "rabbitmq-consumer-lag is suppressed while subscriber-heartbeat fires.",
-    }
+    # dashboards (datasource referenced by NAME; provisioner resolves to uid + folder)
+    files["_dashboard.json"] = build_dashboard(cat)
+    files["_dashboard_sla.json"] = build_sla_dashboard(cat)
     return files
 
 
@@ -284,6 +382,14 @@ def main():
                 f.write(new)
             print(f"wrote alerting/grafana/{name}  ({len(obj.get('rules', []))} rules)" if "rules" in obj
                   else f"wrote alerting/grafana/{name}")
+    # prune stale generated files (e.g. now-deferred SLOs, old _notification-policy.json)
+    keep = set(files)
+    for fn in os.listdir(OUTDIR):
+        if fn.endswith(".json") and fn not in keep:
+            if args.check:
+                drift = True; print(f"STALE: {fn}")
+            else:
+                os.remove(os.path.join(OUTDIR, fn)); print(f"pruned alerting/grafana/{fn}")
     if args.check and drift:
         sys.exit(1)
     if args.check:

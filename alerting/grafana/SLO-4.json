@@ -1,80 +1,11 @@
 {
-  "folder": "SLO",
+  "folder": "Triage Bot / SLO",
   "slo": "SLO-4",
   "build_status": "buildable-now",
-  "needs_probe": true,
   "rules": [
     {
-      "uid": "slo-4-latency",
-      "title": "SLO-4 Screen runtime load \u2014 p95 latency (P1)",
-      "condition": "COND",
-      "data": [
-        {
-          "refId": "P95",
-          "relativeTimeRange": {
-            "from": 600,
-            "to": 0
-          },
-          "datasourceUid": "rtcapi_metrics",
-          "model": {
-            "refId": "P95",
-            "query": "SELECT percentile(\"duration_ms\", 95) FROM \"rtc_request\" WHERE \"endpoint\" =~ /screen|datatable/ AND $timeFilter GROUP BY time(1m)",
-            "rawQuery": true,
-            "resultFormat": "time_series"
-          }
-        },
-        {
-          "refId": "R",
-          "datasourceUid": "__expr__",
-          "model": {
-            "refId": "R",
-            "type": "reduce",
-            "reducer": "max",
-            "expression": "P95"
-          }
-        },
-        {
-          "refId": "COND",
-          "datasourceUid": "__expr__",
-          "model": {
-            "refId": "COND",
-            "type": "threshold",
-            "expression": "R",
-            "conditions": [
-              {
-                "evaluator": {
-                  "type": "gt",
-                  "params": [
-                    3000
-                  ]
-                }
-              }
-            ]
-          }
-        }
-      ],
-      "noDataState": "OK",
-      "execErrState": "Error",
-      "for": "10m",
-      "labels": {
-        "slo": "SLO-4",
-        "severity": "P1",
-        "owner": "Vertical App Experience",
-        "pager": "triage-bot"
-      },
-      "annotations": {
-        "summary": "SLO-4 Screen runtime load: p95 > 3000ms sustained 10m.",
-        "owner_team": "Vertical App Experience",
-        "slo": "SLO-4",
-        "journey": "Screen runtime load",
-        "runbook": "references/architecture/alerting-system-design.md#rb-slo-4"
-      },
-      "ruleGroup": "slo-4-latency",
-      "isPaused": false
-    },
-    {
-      "uid": "slo-4-fast",
-      "title": "SLO-4 Screen runtime load \u2014 fast burn (P1)",
+      "uid": "slo-4-errors-fast",
+      "title": "SLO-4 Screen runtime load \u2014 error burn fast (P1)",
       "condition": "BURN",
       "data": [
         {
@@ -83,19 +14,12 @@
             "from": 3600,
             "to": 0
           },
-          "datasourceUid": "applogs-es",
+          "datasourceUid": "rtcapi_metrics",
           "model": {
             "refId": "ERR_L",
-            "query": "service:runtime-core AND tag:screen AND status:>=500",
-            "alias": "",
-            "metrics": [
-              {
-                "id": "1",
-                "type": "count"
-              }
-            ],
-            "bucketAggs": [],
-            "timeField": "@timestamp"
+            "query": "SELECT sum(\"count\") FROM \"rtcapi_request\" WHERE (\"response_code\" =~ /^5/) AND $timeFilter",
+            "rawQuery": true,
+            "resultFormat": "time_series"
           }
         },
         {
@@ -104,19 +28,12 @@
             "from": 3600,
             "to": 0
           },
-          "datasourceUid": "applogs-es",
+          "datasourceUid": "rtcapi_metrics",
           "model": {
             "refId": "TOT_L",
-            "query": "service:runtime-core AND tag:screen",
-            "alias": "",
-            "metrics": [
-              {
-                "id": "1",
-                "type": "count"
-              }
-            ],
-            "bucketAggs": [],
-            "timeField": "@timestamp"
+            "query": "SELECT sum(\"count\") FROM \"rtcapi_request\" WHERE $timeFilter",
+            "rawQuery": true,
+            "resultFormat": "time_series"
           }
         },
         {
@@ -145,19 +62,12 @@
             "from": 300,
             "to": 0
           },
-          "datasourceUid": "applogs-es",
+          "datasourceUid": "rtcapi_metrics",
           "model": {
             "refId": "ERR_S",
-            "query": "service:runtime-core AND tag:screen AND status:>=500",
-            "alias": "",
-            "metrics": [
-              {
-                "id": "1",
-                "type": "count"
-              }
-            ],
-            "bucketAggs": [],
-            "timeField": "@timestamp"
+            "query": "SELECT sum(\"count\") FROM \"rtcapi_request\" WHERE (\"response_code\" =~ /^5/) AND $timeFilter",
+            "rawQuery": true,
+            "resultFormat": "time_series"
           }
         },
         {
@@ -166,19 +76,12 @@
             "from": 300,
             "to": 0
           },
-          "datasourceUid": "applogs-es",
+          "datasourceUid": "rtcapi_metrics",
           "model": {
             "refId": "TOT_S",
-            "query": "service:runtime-core AND tag:screen",
-            "alias": "",
-            "metrics": [
-              {
-                "id": "1",
-                "type": "count"
-              }
-            ],
-            "bucketAggs": [],
-            "timeField": "@timestamp"
+            "query": "SELECT sum(\"count\") FROM \"rtcapi_request\" WHERE $timeFilter",
+            "rawQuery": true,
+            "resultFormat": "time_series"
           }
         },
         {
@@ -246,12 +149,19 @@
         "journey": "Screen runtime load",
         "runbook": "references/architecture/alerting-system-design.md#rb-slo-4"
       },
-      "ruleGroup": "slo-4-fast",
-      "isPaused": false
+      "ruleGroup": "slo-4-errors-fast",
+      "isPaused": false,
+      "notification_settings": {
+        "receiver": "triage-bot-health",
+        "group_by": [
+          "alertname",
+          "slo"
+        ]
+      }
     },
     {
-      "uid": "slo-4-slow",
-      "title": "SLO-4 Screen runtime load \u2014 slow burn (P2)",
+      "uid": "slo-4-errors-slow",
+      "title": "SLO-4 Screen runtime load \u2014 error burn slow (P2)",
       "condition": "BURN",
       "data": [
         {
@@ -260,19 +170,12 @@
             "from": 86400,
             "to": 0
           },
-          "datasourceUid": "applogs-es",
+          "datasourceUid": "rtcapi_metrics",
           "model": {
             "refId": "ERR_L",
-            "query": "service:runtime-core AND tag:screen AND status:>=500",
-            "alias": "",
-            "metrics": [
-              {
-                "id": "1",
-                "type": "count"
-              }
-            ],
-            "bucketAggs": [],
-            "timeField": "@timestamp"
+            "query": "SELECT sum(\"count\") FROM \"rtcapi_request\" WHERE (\"response_code\" =~ /^5/) AND $timeFilter",
+            "rawQuery": true,
+            "resultFormat": "time_series"
           }
         },
         {
@@ -281,19 +184,12 @@
             "from": 86400,
             "to": 0
           },
-          "datasourceUid": "applogs-es",
+          "datasourceUid": "rtcapi_metrics",
           "model": {
             "refId": "TOT_L",
-            "query": "service:runtime-core AND tag:screen",
-            "alias": "",
-            "metrics": [
-              {
-                "id": "1",
-                "type": "count"
-              }
-            ],
-            "bucketAggs": [],
-            "timeField": "@timestamp"
+            "query": "SELECT sum(\"count\") FROM \"rtcapi_request\" WHERE $timeFilter",
+            "rawQuery": true,
+            "resultFormat": "time_series"
           }
         },
         {
@@ -322,19 +218,12 @@
             "from": 7200,
             "to": 0
           },
-          "datasourceUid": "applogs-es",
+          "datasourceUid": "rtcapi_metrics",
           "model": {
             "refId": "ERR_S",
-            "query": "service:runtime-core AND tag:screen AND status:>=500",
-            "alias": "",
-            "metrics": [
-              {
-                "id": "1",
-                "type": "count"
-              }
-            ],
-            "bucketAggs": [],
-            "timeField": "@timestamp"
+            "query": "SELECT sum(\"count\") FROM \"rtcapi_request\" WHERE (\"response_code\" =~ /^5/) AND $timeFilter",
+            "rawQuery": true,
+            "resultFormat": "time_series"
           }
         },
         {
@@ -343,19 +232,12 @@
             "from": 7200,
             "to": 0
           },
-          "datasourceUid": "applogs-es",
+          "datasourceUid": "rtcapi_metrics",
           "model": {
             "refId": "TOT_S",
-            "query": "service:runtime-core AND tag:screen",
-            "alias": "",
-            "metrics": [
-              {
-                "id": "1",
-                "type": "count"
-              }
-            ],
-            "bucketAggs": [],
-            "timeField": "@timestamp"
+            "query": "SELECT sum(\"count\") FROM \"rtcapi_request\" WHERE $timeFilter",
+            "rawQuery": true,
+            "resultFormat": "time_series"
           }
         },
         {
@@ -423,8 +305,90 @@
         "journey": "Screen runtime load",
         "runbook": "references/architecture/alerting-system-design.md#rb-slo-4"
       },
-      "ruleGroup": "slo-4-slow",
-      "isPaused": false
+      "ruleGroup": "slo-4-errors-slow",
+      "isPaused": false,
+      "notification_settings": {
+        "receiver": "triage-bot-health",
+        "group_by": [
+          "alertname",
+          "slo"
+        ]
+      }
+    },
+    {
+      "uid": "slo-4-latency",
+      "title": "SLO-4 Screen runtime load \u2014 latency (P2)",
+      "condition": "COND",
+      "data": [
+        {
+          "refId": "LAT",
+          "relativeTimeRange": {
+            "from": 600,
+            "to": 0
+          },
+          "datasourceUid": "rtcapi_metrics",
+          "model": {
+            "refId": "LAT",
+            "query": "SELECT mean(\"mean\") FROM \"rtcapi_request\" WHERE $timeFilter",
+            "rawQuery": true,
+            "resultFormat": "time_series"
+          }
+        },
+        {
+          "refId": "R",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "R",
+            "type": "reduce",
+            "reducer": "last",
+            "expression": "LAT"
+          }
+        },
+        {
+          "refId": "COND",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "COND",
+            "type": "threshold",
+            "expression": "R",
+            "conditions": [
+              {
+                "evaluator": {
+                  "type": "gt",
+                  "params": [
+                    1000
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "noDataState": "OK",
+      "execErrState": "Error",
+      "for": "10m",
+      "labels": {
+        "slo": "SLO-4",
+        "severity": "P2",
+        "owner": "Vertical App Experience",
+        "pager": "triage-bot"
+      },
+      "annotations": {
+        "summary": "SLO-4 Screen runtime load: mean('mean') latency > 1000ms sustained 10m (mean-based \u2014 no stored p95).",
+        "owner_team": "Vertical App Experience",
+        "slo": "SLO-4",
+        "journey": "Screen runtime load",
+        "runbook": "references/architecture/alerting-system-design.md#rb-slo-4"
+      },
+      "ruleGroup": "slo-4-latency",
+      "isPaused": false,
+      "notification_settings": {
+        "receiver": "triage-bot-health",
+        "group_by": [
+          "alertname",
+          "slo"
+        ]
+      }
     }
   ]
 }

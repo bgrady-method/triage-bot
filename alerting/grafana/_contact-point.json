@@ -1,6 +1,6 @@
 {
   "name": "triage-bot-health",
   "type": "slack",
-  "settings_note": "recipient = #triage-bot-health channel. NO @-mentions in the template. Webhook/token supplied at apply time from env, never committed.",
-  "message_template": "{{ .CommonLabels.slo }} [{{ .CommonLabels.severity }}] {{ .CommonAnnotations.summary }} (owner: {{ .CommonLabels.owner }}) runbook: {{ .CommonAnnotations.runbook }}"
+  "settings_note": "recipient = #triage-bot-health. NO @-mentions in the template. Webhook supplied at apply time from env (TRIAGE_BOT_HEALTH_WEBHOOK), never committed.",
+  "message_template": "{{ .CommonLabels.slo }} [{{ .CommonLabels.severity }}] {{ .CommonAnnotations.summary }} (owner: {{ .CommonLabels.owner_team }}) runbook: {{ .CommonAnnotations.runbook }}"
 }
