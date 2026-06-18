@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-06-18T20:22:12Z",
-    "occurrences": 469,
+    "last_seen": "2026-06-18T20:45:12Z",
+    "occurrences": 481,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -157,7 +157,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.88,
-    "last_notified_at": "2026-06-17T19:14:48Z",
+    "last_notified_at": "2026-06-18T21:09:00Z",
     "prior_fix_status": "needs-ops-decision",
     "notes": [
       {
@@ -632,8 +632,8 @@
     "id": "ki-2026-06-18-rainforest-webhook-inactive-account-500",
     "title": "runtime-core-api Rainforest inbound webhook endpoint returns 500 for inactive accounts (unhandled AccountNotActiveException → Svix retry storm)",
     "first_seen": "2026-06-18T16:23:00Z",
-    "last_seen": "2026-06-18T16:23:00Z",
-    "occurrences": 1,
+    "last_seen": "2026-06-18T21:04:40Z",
+    "occurrences": 2,
     "match": {
       "channels": [
         "alert-system"
@@ -659,7 +659,9 @@
     "fix_jira": null,
     "fix_template": "--- a/Runtime.Core.Api/Controllers/PaymentsController.Rainforest.cs\n+++ b/Runtime.Core.Api/Controllers/PaymentsController.Rainforest.cs\n@@ ProcessRainforestWebhookAsync — InitAsync/process try-catch\n             await _paymentService.SendRainforestWebhookSlackNotificationAsync(rainforestWebhookMessage, _context);\n                 return Ok();\n             }\n+            catch (AccountNotActiveException ex)\n+            {\n+                // Account is inactive — retrying this webhook will never succeed. The webhook is\n+                // already persisted above for debugging/requeue, so ack with 200 to stop Svix retries.\n+                _logger.LogWarning(ex, \"Rainforest webhook for inactive account {AccountId} — acking to halt retries. EventType: {EventType}\", accountId.Value, rainforestWebhookMessage?.EventType);\n+                return Ok();\n+            }\n             catch (Exception ex)\n             {\n                 _logger.LogError(ex, \"Failed to process webhook from Rainforest. EventType: {EventType}, AccountId: {AccountId}\", rainforestWebhookMessage?.EventType, accountId.Value);\n                 throw;\n             }\n",
     "confidence": 0.9,
-    "owning_team": "transactions"
+    "owning_team": "transactions",
+    "last_notified_at": "2026-06-18T21:09:00Z",
+    "recurrence_note": "Firing intermittently all day 2026-06-18 (16:23Z first KB'd; 16:49/17:47/20:34-21:04Z observed). occurrences undercounts — prior cycles couldn't DM (no token) so weren't bumped. First DM sent this cycle (21:09Z)."
   },
   {
     "id": "ki-billingengine-api-key1-removed-in-refactor",
