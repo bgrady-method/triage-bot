@@ -266,8 +266,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-06-17T22:07:54Z",
-    "occurrences": 178,
+    "last_seen": "2026-06-18T12:58:36Z",
+    "occurrences": 180,
     "match": {
       "channels": [
         "alert-system",
@@ -304,8 +304,8 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.85,
-    "last_notified_at": "2026-06-17T11:08:00Z",
-    "prior_last_notified_at": "2026-06-15T13:16:28Z",
+    "last_notified_at": "2026-06-18T13:09:00Z",
+    "prior_last_notified_at": "2026-06-17T11:08:00Z",
     "notes": [
       {
         "ts": "2026-06-05T15:11:30Z",
@@ -374,6 +374,10 @@
       {
         "ts": "2026-06-17T21:18:23Z",
         "note": "2026-06-17 21:14Z triage (group 643d47144ad20322, alert-runtime-monitoring 4-alert cluster 20:15:29-20:41:57Z, bot B063S8NBW0M MAX-forwarder, block-only empty text): recurring RTC p95 latency, latency-only, MILD-MODERATE. DD metric RTC Screen Load p95 peak 4.57s @20:17:00Z (ratio 0.52 over 3s thr, mild) + Action Execution p95 3.68s @20:17:00Z = canonical dual-endpoint co-spike; 20:41 satellites fired vs calmer p95 (1-3.5s) = MAX-forwarder single-slow-request spikes. Monitors 115456700/117279738 self-recovered (OK at cycle time). Latency-only CONFIRMED: runtime-core-api status:error logs = 0 in window. No Redis-error corroboration this cycle (lower severity than the 74-92-error 06-10 bursts). No deploy (runtime-core last prod 2026-05-06, 42d; GitHub merges != prod releases). ES reachable (HTTP 200) but ki-24 latency-only so no error rows. last_notified_at 2026-06-17T11:08:00Z = ~10h ago, WITHIN 24h suppression window; occ 173->177 (not %10); fix_status investigating unchanged -> SUPPRESS gate_reason=known-issue-window. SHARED-UPSTREAM CO-FIRE with ki-21 group 7eec675b (2 alerts alert-frontend-errors, same 60-min window) per precedence_note. last_seen 2026-06-17T20:41:57Z."
+      },
+      {
+        "ts": "2026-06-18T13:09:00Z",
+        "note": "2026-06-18 13:09Z triage (hourly poll 12:02-13:07Z): TWO ki-24 groups = one sustained runtime-core RTC contention window 12:10-13:07Z, latency-only, MODERATE-SEVERE MAX spikes. Group A (4b89c1297bcf47bf, alert-runtime-monitoring 12:25:05Z, bot B063S8NBW0M MAX-forwarder, block-only): RTC MAX-spike forward. Group B (d92209ce75a769d5 primary alert-system 12:52:38Z + satellite f8e05db1f625eb47 12:58:36Z, bot B011R3D650X = Redis Errors monitor 227940275): trace.redis.command.errors{service:nonprod/apps} burst 96 @12:51 (24h-ago baseline 0) tripped Redis monitor, CONCURRENT with RTC MAX burst 12:49-12:59Z = canonical RTC/Redis backpressure shared-upstream signature. DD metric: Screen Load p95 max 2.66s + Action Exec p95 max 2.74s BOTH <3s -> alert-system p95 monitors 115456700/117279738 did NOT trip (last_triggered 6-17/6-15); only MAX-sensitive runtime-monitoring forwarder fired. MAX spikes pervasive: Screen Load 14.12s@12:12, 24.23s@12:59, 26.25s@13:04; Action Exec 34.04s@12:26, 44.15s@12:43, 39.94s@12:50, 22.36s@12:58. Latency-only confirmed: ES runtime-core-api Error logs ~0 in window (11 total all-services, top ms-scheduler 6 chronic); 5XX-by-service all <=2/5min vs 30 threshold (runtime-core 0 5XX, gateway 9 chronic) = no cascade. No deploy (runtime-core last GitHub commit 2026-05-06, 43d; TFS-invisible). No ki-21 co-fire (alert-frontend-errors empty), no swat. ES back (17d 401 resolved). account_impact N/A (aggregate MAX alerts carry no @account_name; SSH/SQL now reachable - test acct returned clean not_found). last_notified_at 2026-06-17T11:08:00Z = ~26h ago, PAST 24h suppression -> Group A DM gate_reason=null, last_notified_at->2026-06-18T13:09:00Z. occ 178->179(A)->180(B). Group B hits occ 180 (%10==0 resurface) BUT Group A DM'd same KB mins earlier same cycle -> resurface intent satisfied, %10 overridden -> Group B SUPPRESS gate_reason=known-issue-window, actionable-append (precedent 2026-06-15 Group B / 2026-06-16). fix_status investigating unchanged. LESSON: Redis Errors monitor 227940275 (trace.redis.command.errors burst on nonprod/apps) is a recurring ki-24 backpressure corroboration but is NOT in ki-24 match.any_of -> a strict text match_kb on the alert-system Redis alert would miss it; recommend adding 'monitors/227940275' / 'Redis Errors is High' to ki-24 match patterns."
       }
     ]
   },
