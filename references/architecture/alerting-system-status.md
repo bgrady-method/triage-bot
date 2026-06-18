@@ -9,8 +9,9 @@ This is the pick-up-later doc for the curated SLO alerting work. Design + runboo
 > **One-line state (LIVE 2026-06-18, round 2):** **9 alert rules + 2 dashboards** in `Triage Bot / SLO`
 > (+ `Triage Bot / SLA` placeholder). All 9 verified **state=inactive / health=ok** (queries evaluate, none
 > firing). Every rule routes **directly** to `triage-bot-health` via per-rule `notification_settings` — the
-> shared notification policy is **untouched** (hash identical across both rounds). 2 of 6 deferred remain
-> (gateway), pending Datadog.
+> shared notification policy is **untouched** (hash identical across both rounds). **Next up (planned, approved
+> approach, NOT started — on hold):** gateway SLO-2/3 via native Datadog monitors — see "Next up" below and the
+> plan file `~/.claude/plans/role-you-are-a-wobbly-matsumoto.md`.
 
 ## Live now (deployed) — 9 rules
 - **Round 1 (InfluxDB):** `slo-4-errors-fast` (P1), `slo-4-errors-slow` (P2), `slo-4-latency` (P2),
@@ -28,12 +29,45 @@ This is the pick-up-later doc for the curated SLO alerting work. Design + runboo
 
 ## Still deferred (no rules emitted — no silent never-fire alerts)
 - **SLO-6 designer** → `deferred-no-recent-data`: `viewdesigner_request`/`view_request` have **no data for ~30
-  days** (last point 2026-05-19); the designer metric pipeline is dormant. Revive when it resumes.
-- **SLO-2 gateway availability / SLO-3 gateway latency** → `deferred-no-datasource`: gateway logs are
-  Warning-only (ki-21 noise), no status/duration; no gateway metric. **Datadog HAS the data**
-  (`trace.aspnet_core.request.duration{service:ms-gateway-api}`), but Grafana has no Datadog plugin
-  (install=server-admin). Path: install the Grafana Enterprise Datadog plugin → build like the rest, OR native
-  DD monitors → DD Slack integration to `#triage-bot-health`. (Gateway-down impact already shows via SLO-4/5/7.)
+  days** (last point 2026-05-19); the designer metric pipeline is dormant. Revive when it resumes. (Note: DD has
+  `designer-core-api` APM, so it could be revived via the Datadog path below if desired.)
+- **SLO-2 gateway availability / SLO-3 gateway latency** → planned via **native Datadog monitors** — see "Next up".
+
+---
+
+## Next up — gateway SLO-2/3 via Datadog (PLANNED, approved approach, NOT STARTED — on hold per user 2026-06-18)
+
+Full plan: `~/.claude/plans/role-you-are-a-wobbly-matsumoto.md`. Decisions locked with the user:
+**native Datadog monitors as-code** (no Grafana DD-plugin / server-admin), delivered to **#triage-bot-health by
+reusing our existing incoming webhook** via a Datadog webhook integration. Same isolation discipline (tagged,
+namespaced, one channel, scoped writer).
+
+**Verified Datadog data (2026-06-18), DD service = `gateway`** (NOT `ms-gateway-api` — that returns nothing):
+- Availability: `sum:trace.aspnet_core.request.errors{service:gateway}.as_count()` ÷
+  `…request.hits{…}.as_count()` → baseline **0.006%** (errors ≈12 / hits ≈217k per 1h). Healthy + quiet.
+- Latency: **`trace.aspnet_core.request{service:gateway}`** (NOTE: the `.duration` sub-metric returns no series;
+  the base metric does — `max` ≈ 2.6–8.4s). Confirm `avg`/`p95` aggregation + set threshold at impl.
+- DD also has APM for every service (auth, designer-core-api, rest-api, runtime-core-api, …) → same path could
+  host more SLOs later.
+
+**To build (when resumed):**
+- `scripts/dd_provision.py` (new) — sanctioned DD **writer**, alerting-track only; dry-run default; scoped to
+  monitors tagged `managed-by:triage-bot-slo`; subcommands `monitors`/`webhook-ensure`/`apply [--only]`/`test`.
+- `scripts/gen_dd_monitors.py` (new) → `alerting/datadog/*.json` from catalog `datadog_monitor` entries.
+- Catalog SLO-2 (P1, error-rate fast burn > 0.72% / 1h) + SLO-3 (P2, latency) as `kind: datadog_monitor`,
+  tagged `team:triage-bot`/`managed-by:triage-bot-slo`, recipient `@webhook-triage-bot-health`.
+- DD webhook integration `triage-bot-health` → `url=$TRIAGE_BOT_HEALTH_WEBHOOK`, payload `{"text": "..."}`.
+- `prompt.md` Hard-Rule-#3 carve-out for `dd_provision.py` (hourly cycle stays read-only on DD).
+
+**Blockers / prereqs to check first:**
+1. **`DD_APP_KEY` write scope** — all our DD use to date is read-only; creating monitors + the webhook integration
+   needs a write-scoped app key. Verify (dry-run create); if read-only, user grants write / provides a key.
+2. Confirm `avg`/`p95` aggregation works on `trace.aspnet_core.request{service:gateway}` to set SLO-3 threshold.
+
+**Execution order when resumed:** baseline probes (app-key write scope, SLO-3 agg/threshold) → build catalog+gen+
+dd_provision → `webhook-ensure --commit` + `test` (confirm delivery) → staged `apply --only slo-2 --commit`
+(verify tags + recipient + state OK + test notification lands) → `apply --commit` SLO-3 → confirm only our tagged
+monitors touched → commit + push.
 
 ---
 
