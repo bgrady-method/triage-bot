@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-06-18T18:08:00Z",
-    "occurrences": 460,
+    "last_seen": "2026-06-18T19:05:12Z",
+    "occurrences": 466,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -259,6 +259,10 @@
       {
         "ts": "2026-06-17T21:18:23Z",
         "note": "2026-06-17 21:14Z triage (FE group 7eec675b429b2c86, alert-frontend-errors 2-alert cluster 20:13:13Z primary + 20:15:13Z satellite bc01724f, bot B011R3D650X, block-only empty text): chronic ki-21 syncutil/syncwidget XHR timeouts. DD method-ui status:error GetSyncWidgetInfoAsync logs 20:11-21:10Z = 200-sample-cap saturated, 97 distinct accounts (top sierrashredllc 16 ~8%, EnglandLogistics 9 chronic-repeat, aosolutions 7, artbrandsholdings 6, coastalwipers 5), status_code:0 gateway timeout -- canonical chronic shape (97 ~ recent 68-107 baseline, diffuse no concentration, NOT 100x OUTAGE surge). Monitor 77419271 recovered (not in firing list at cycle time). ES NOW REACHABLE (HTTP 200, was chronic 401 06-12->06-16) but 0 hits (documented field-mismatch: ki-21 lives in DD RUM not Serilog; DD account fan-out canonical). Two prior ki-21 groups already triaged this hour (20:27Z cycle: a9c3c6f2 + 372d884a). last_notified_at 2026-06-17T19:14:48Z = ~2h ago, WITHIN 24h suppression window; occ 432->434 (not %10); fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window. SHARED-UPSTREAM CO-FIRE with ki-24 group 643d4714 (4 alerts alert-runtime-monitoring, same 60-min window) per precedence_note. last_seen retained 2026-06-17T20:26:35Z."
+      },
+      {
+        "ts": "2026-06-18T19:13:00Z",
+        "note": "2026-06-18 19:13Z triage (FE group 4e3f577f105b2e06, alert-frontend-errors 6-alert cluster 18:46:13Z primary +5 sats 18:49:12/18:50:12/18:51:12/19:03:13/19:05:12Z, bot B011R3D650X, block-only empty text): chronic ki-21 syncutil/syncwidget XHR timeouts. DD monitor 77419271 last_triggered 19:05:11Z (1s pre-aligned w/ last alert 19:05:12Z), now recovered (OK) -> live attribution. DD method-ui status:error GetSyncWidgetInfoAsync logs 18:40-19:10Z = 200-sample-cap saturated, 100 distinct accounts (top ctcitechnology5 11 ~5.5%, redeagleinternational 10 chronic-repeat, medallionfence 10, crslaboratories 7, cacompenv 6, gtsimulators 6, constructionmaterialspecialists 5), all status_code:0 gateway timeout -- canonical chronic shape (100 ~ recent 68-107 baseline, diffuse no concentration, NOT 100x 2026-06-04 OUTAGE surge). NO ki-24 co-fire: RTC monitors 115456700 (last 16:15Z) / 117279738 (last 06-15) OK; 5XX 70171778 OK (last 11:24Z, no cascade); ms-account 65493111 OK; Redis 227940275 OK -> no shared-upstream backpressure this window. ES reachable (HTTP 200) but 0 hits on KIR query (documented field-mismatch: ki-21 lives in DD RUM not Serilog; DD account fan-out is canonical). Owning team Admin (ms-gateway-api Ocelot) -- upstream slow path is ms-sync-util GetSyncWidgetInfoAsync owned by Integrations. occ 460->466. last_seen 19:05:12Z. last_notified_at left at 2026-06-17T19:14:48Z = ~23h58m ago, WITHIN 24h suppression window; occ 461-466 none %10 -> SUPPRESS gate_reason=known-issue-window. NOTE: prior cycle's occ-460 (%10) resurface DM remains QUEUED for re-send once SLACK_BOT_TOKEN is installed (last_notified_at intentionally not bumped). SEND PATH DOWN (no xoxb): 0 Slack messages; would-be content captured to docs/actionable/2026-06-18.md."
       }
     ]
   },
