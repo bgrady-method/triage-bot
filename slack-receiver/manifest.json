@@ -1,17 +1,18 @@
 {
   "_metadata": {
-    "purpose": "Slack app manifest for triage-bot. Paste this at https://api.slack.com/apps -> Create New App -> From manifest.",
+    "purpose": "Slack app manifest for triage-bot. Paste at https://api.slack.com/apps -> Create New App -> From manifest. This ONE app serves: (1) Grafana alerting delivery via Incoming Webhooks, (2) the triage bot's send identity (chat:write/im:write, used by scripts/slack_send.py). The async Events API trigger is PARKED — see slack-receiver/README.md to revive it later.",
     "after_install": [
-      "Copy the Signing Secret from Basic Information -> wrangler secret put SLACK_SIGNING_SECRET",
-      "Copy the Bot Token (xoxb-...) from OAuth & Permissions -> wrangler secret put SLACK_BOT_TOKEN",
-      "Set Event Subscriptions Request URL to the deployed Worker URL",
-      "Invite the bot to all 4 alert channels + #triage-bot-debug + #triage-bot-health + #triage-bot-requests",
-      "Fill the channel IDs into kb/config.json"
+      "OAuth & Permissions -> copy the Bot User OAuth Token (xoxb-...) -> put in .env as SLACK_BOT_TOKEN",
+      "Incoming Webhooks -> Add New Webhook to Workspace -> #triage-bot-health -> copy URL -> .env TRIAGE_BOT_HEALTH_WEBHOOK (one webhook per team channel later)",
+      "Invite @triage-bot to #triage-bot-health and the 3 public alert channels (alert-system, alert-frontend-errors, alert-runtime-monitoring). Do NOT invite to #swat or #team-incident-response.",
+      "Verify sending: python scripts/slack_send.py heartbeat --text \"triage-bot app online\"",
+      "Fill any new channel IDs into kb/config.json",
+      "(Parked) async trigger: add the event_subscriptions block from README + deploy the Cloudflare worker."
     ]
   },
   "display_information": {
     "name": "triage-bot",
-    "description": "Investigates production alerts and DMs Ben with findings",
+    "description": "Delivers Grafana alerts and posts triage-bot findings to Slack",
     "background_color": "#1f2937"
   },
   "features": {
@@ -23,10 +24,12 @@
   "oauth_config": {
     "scopes": {
       "bot": [
-        "channels:history",
-        "groups:history",
+        "incoming-webhook",
         "chat:write",
         "im:write",
+        "channels:history",
+        "channels:read",
+        "groups:history",
         "reactions:read",
         "users:read",
         "files:read"
@@ -34,13 +37,6 @@
     }
   },
   "settings": {
-    "event_subscriptions": {
-      "request_url": "https://REPLACE_WITH_DEPLOYED_WORKER_URL.workers.dev",
-      "bot_events": [
-        "message.channels",
-        "message.groups"
-      ]
-    },
     "interactivity": { "is_enabled": false },
     "org_deploy_enabled": false,
     "socket_mode_enabled": false,

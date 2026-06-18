@@ -84,7 +84,9 @@ schemas (from `SHOW MEASUREMENTS/FIELD KEYS/TAG VALUES`):
 
 ## 6. Outstanding work (in order)
 1. **[needs user] `#triage-bot-health` webhook** → add `TRIAGE_BOT_HEALTH_WEBHOOK=https://hooks.slack.com/services/…`
-   to `.env`. How-to: existing Slack app `T0BCB3M5W` → Incoming Webhooks → Add to #triage-bot-health.
+   to `.env`. Source: the dedicated **`triage-bot` Slack app** — install `slack-receiver/manifest.json`, then
+   Incoming Webhooks → Add to #triage-bot-health (see `slack-receiver/README.md`). The same app's bot token
+   (`SLACK_BOT_TOKEN`) is also the triage bot's send identity via `scripts/slack_send.py`.
 2. **Rewrite catalog queries** to the §5 schemas; mark SLO-3/8/F2 `build_status: "deferred-no-datasource"`.
 3. **Confirm `applogs-es`** index pattern + field names (`grafana_provision.py probe` extended, or `es_search.py
    mapping --index <pattern>`) to finalize SLO-1/2/6.
