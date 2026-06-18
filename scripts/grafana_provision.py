@@ -256,13 +256,30 @@ def cmd_apply(g, a):
 
 
 def cmd_test_fire(g, a):
+    spec = json.load(open(os.path.join(GRAFANA_DIR, "_contact-point.json"), encoding="utf-8"))
+    name = spec["name"]
+    webhook = os.environ.get("TRIAGE_BOT_HEALTH_WEBHOOK")
     if not a.commit:
-        print(f"[dry-run] would send a test notification for rule {a.rule} to #triage-bot-health. Pass --commit.")
+        print(f"[dry-run] would send a Grafana test notification to contact point '{name}' (#triage-bot-health). Pass --commit.")
         return
-    st, txt = g.api("/api/alertmanager/grafana/config/api/v1/receivers/test", method="POST",
-                    data={"alert": {"annotations": {"summary": "triage-bot SLO test-fire"},
-                                    "labels": {"slo": "TEST", "severity": "P3"}}})
-    print(f"test-fire -> {st} {txt[:160]}")
+    if not webhook:
+        raise SystemExit("TRIAGE_BOT_HEALTH_WEBHOOK not in env — needed to test the slack receiver config")
+    # Grafana 'test receiver' API: send a sample alert through the named contact point.
+    body = {
+        "receivers": [{
+            "name": name,
+            "grafana_managed_receiver_configs": [{
+                "name": name, "type": "slack", "disableResolveMessage": False,
+                "settings": {"recipient": "#triage-bot-health", "url": webhook, "text": spec["message_template"]},
+            }],
+        }],
+        "alert": {
+            "annotations": {"summary": "triage-bot SLO alerting — Grafana test-fire (owner: DevOps, inert text)"},
+            "labels": {"slo": "TEST", "severity": "P3", "owner": "DevOps", "pager": "triage-bot"},
+        },
+    }
+    st, txt = g.api("/api/alertmanager/grafana/config/api/v1/receivers/test", data=body, method="POST")
+    print(f"test-fire -> {st} {txt[:200] or '(empty = sent)'}")
 
 
 COMMANDS = {
