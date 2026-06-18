@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-06-18T12:23:21Z",
-    "occurrences": 444,
+    "last_seen": "2026-06-18T16:23:00Z",
+    "occurrences": 450,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -266,8 +266,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-06-18T14:50:23Z",
-    "occurrences": 182,
+    "last_seen": "2026-06-18T16:23:00Z",
+    "occurrences": 184,
     "match": {
       "channels": [
         "alert-system",
@@ -623,6 +623,39 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.9
+  },
+  {
+    "id": "ki-2026-06-18-rainforest-webhook-inactive-account-500",
+    "title": "runtime-core-api Rainforest inbound webhook endpoint returns 500 for inactive accounts (unhandled AccountNotActiveException → Svix retry storm)",
+    "first_seen": "2026-06-18T16:23:00Z",
+    "last_seen": "2026-06-18T16:23:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-system"
+      ],
+      "any_of": [
+        {
+          "contains": "/api/v1/payments/rainforest/events"
+        },
+        {
+          "contains": "monitors/295882867"
+        },
+        {
+          "contains": "AccountNotActiveException"
+        },
+        {
+          "contains": "Inbound Payment Endpoint 5xx"
+        }
+      ]
+    },
+    "diagnosis": "DD monitor 295882867 '[Rainforest] Inbound Payment Endpoint 5xx Error Rate > 5%' (service:runtime-core-api, team:transactions, severity:p2) tripped at 2026-06-18T15:44:07Z. APM showed ~13 5xx over ~70 requests in the hour (10-min windows >5%). ES (method-runtime-api index) pinned the cause: POST /api/v1/payments/rainforest/events throws an UNHANDLED Runtime.Core.Exceptions.AccountNotActiveException at Runtime.Core.Engine.Account.AccountContext.GetAccountDetailsAsync (AccountContext.cs:557) <- InitAsync (AccountContext.cs:106) <- ActionContext.InitAsync. Sample errorRef GLOBAL-20260618155643533, trace 6a34153b00000000cf38bcb499af81c2, host ip-172-31-206-255. In PaymentsController.Rainforest.cs the InitAsync/process try-catch logs and re-throws (`throw;`), so an inactive-account webhook becomes a 500. Rainforest/Svix retries webhooks on 5xx, producing the recurring low-volume 5xx bursts. NOTE: posts to @slack-alert-transactions (NOT a triage-monitored channel) — surfaced via the DD monitor scan, not a Slack alert.",
+    "playbook": "1) Confirm via DD monitor 295882867 + APM trace.aspnet_core.request.errors{service:runtime-core-api,resource_name:*rainforest*}. 2) Confirm mechanism in ES: query \"/api/v1/payments/rainforest/events\" level:Error — exception.Type should be AccountNotActiveException. 3) Fix: in ProcessRainforestWebhookAsync add a `catch (AccountNotActiveException)` that logs Warning and returns Ok() (webhook already persisted; retry can never succeed for an inactive account). See fix_template. 4) Consider the same non-retryable-ack pattern for other permanent failures (account not found, deserialization) so Svix doesn't retry-storm. 5) Optionally have ExtractAccountIdFromRainforestWebhookAsync / a pre-check short-circuit inactive accounts before InitAsync.",
+    "fix_status": "proposed",
+    "fix_jira": null,
+    "fix_template": "--- a/Runtime.Core.Api/Controllers/PaymentsController.Rainforest.cs\n+++ b/Runtime.Core.Api/Controllers/PaymentsController.Rainforest.cs\n@@ ProcessRainforestWebhookAsync — InitAsync/process try-catch\n             await _paymentService.SendRainforestWebhookSlackNotificationAsync(rainforestWebhookMessage, _context);\n                 return Ok();\n             }\n+            catch (AccountNotActiveException ex)\n+            {\n+                // Account is inactive — retrying this webhook will never succeed. The webhook is\n+                // already persisted above for debugging/requeue, so ack with 200 to stop Svix retries.\n+                _logger.LogWarning(ex, \"Rainforest webhook for inactive account {AccountId} — acking to halt retries. EventType: {EventType}\", accountId.Value, rainforestWebhookMessage?.EventType);\n+                return Ok();\n+            }\n             catch (Exception ex)\n             {\n                 _logger.LogError(ex, \"Failed to process webhook from Rainforest. EventType: {EventType}, AccountId: {AccountId}\", rainforestWebhookMessage?.EventType, accountId.Value);\n                 throw;\n             }\n",
+    "confidence": 0.9,
+    "owning_team": "transactions"
   },
   {
     "id": "ki-billingengine-api-key1-removed-in-refactor",
