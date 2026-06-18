@@ -271,14 +271,18 @@ python scripts/match_kb.py --kb kb/known-issues.json --channel <channel_name> --
   ES_QUERY="$(python scripts/kb_to_es_query.py --kb-id <ki-id>)"
   python scripts/es_search.py aggregate \
     --query "$ES_QUERY" --from "${alert_start_iso}" --to "${alert_end_iso}" \
-    --field "fields.dd_service.keyword" --top 5
+    --field "Application.keyword" --top 5
   ```
 
-  Capture: total hits in window, top-3 services by hit count. These populate the DM's Evidence section (step 7).
+  Capture: total hits in window, top-3 services by hit count. These populate the DM's Evidence section (step 7). Bucket by **`Application.keyword`** — that is the ES field holding the service name (e.g. `runtime-core-api`). `fields.dd_service.keyword` is a Datadog field and does NOT exist in ES (it returns empty buckets).
 
-  Build the Kibana URL from `KIBANA_BASE_URL` + the same `$ES_QUERY` + the alert window — every KIR DM gets a working Kibana link, no exceptions.
+  **Build a service-scoped ES query — this is what `kb_to_es_query.py` now emits, and what the Kibana link must use.** ES holds Serilog app logs; queries must reference real ES fields. Scope to the service with `Application:"<service>"` (the `<service>` you identified in step 4.1 / from the firing DD `service:` tag, e.g. `Application:"runtime-core-api"`), optionally narrowed with `and level:(Error OR Warn)`. **Never put a Datadog monitor display name (e.g. `"RTC Screen Load"`) or a `monitors/<id>` token into an ES/Kibana query** — those exist only in Slack alert text and Datadog, never in ES logs, so the query returns zero results. (This was a real bug: KB `match.any_of` literals are tuned to match Slack text, not ES logs.)
 
-  If `scripts/kb_to_es_query.py` is missing or returns an error, fall back to the first non-regex `contains` pattern from the KB entry's `match.any_of` (or, if all clauses are regex, the entry's title-first-clause). Don't skip the ES query — degraded query is fine; missing query is not.
+  Build the Kibana URL from `KIBANA_BASE_URL` + this service-scoped query + the alert window — every KIR DM gets a working Kibana link, no exceptions.
+
+  **Verify the `Application` value actually exists in ES.** ES naming does not always equal the repo/service name, and not every service logs to ES app-log indices. The aggregate above buckets by `Application.keyword` — if it returns **empty buckets**, the service has no ES footprint in the window. Known cases with **no ES footprint** (use Datadog as the evidence source, don't emit an empty Kibana link): latency-/metric-only monitors (APM p95 alerts — the metric isn't a log line); browser **XHR / RUM** errors (live in Datadog RUM, not ES); the gateway / Ocelot path. In these cases, scope the Kibana link to a service that *does* log (for concurrent context) or state `Kibana: n/a — <service> has no ES log footprint; primary signal in Datadog` and link the Datadog monitor/APM instead. When buckets are non-empty, the bucket keys ARE the valid `Application` values — use one of them verbatim in the Kibana link.
+
+  If `scripts/kb_to_es_query.py` is missing or returns an error, fall back to a service-scoped `Application:"<service>"` query (service from step 4.1), optionally `and level:(Error OR Warn)`. Don't skip the ES query — degraded query is fine; missing query is not. Never fall back to a raw `monitors/<id>` or monitor-name query.
 
   If `es_search.py` itself errors (HTTP 4xx/5xx), still build the Kibana URL (URL construction doesn't depend on a successful query), and write the prescribed `Kibana: ES queries failed (HTTP <code>)` evidence line.
 
@@ -393,7 +397,7 @@ Always include in your investigation:
 | Kibana | `<KIBANA_BASE_URL>/app/discover#/?_g=(time:(from:'<iso>',to:'<iso>'))&_a=(query:(language:kuery,query:'<url-encoded-query>'))` |
 
 **Kibana URL construction rules** (failures here have caused bad DMs):
-1. Read `$KIBANA_BASE_URL` from the environment when building the link. **Substitute the actual value into the URL string** — do NOT leave literal `${KIBANA_BASE_URL}` in the DM body, that's a bug. Example correct value: `https://ca8e80d7f930400fb386a29477353efa.kb.us-west-1.aws.found.io:9243`.
+1. Read `$KIBANA_BASE_URL` from the environment when building the link. **Substitute the actual value into the URL string** — do NOT leave literal `${KIBANA_BASE_URL}` in the DM body, that's a bug. The correct host is the friendly Kibana host `https://logstash.method.me` (the value of `$KIBANA_BASE_URL`). **Never emit the raw Elastic Cloud host** (`*.kb.*.aws.found.io:9243`) in a DM or report — always use `$KIBANA_BASE_URL` verbatim.
 2. `$KIBANA_BASE_URL` is different from `$ELK_BASE_URL`. The latter is the ES REST API endpoint that `es_search.py` queries; the former is the Kibana UI host for human-clickable links.
 3. If `$KIBANA_BASE_URL` is not set in the env: write the evidence line as `Kibana: URL unavailable (set KIBANA_BASE_URL in .env)`. **Do NOT write "Kibana: unavailable — VPN down"** or any variant that implies ES/Kibana depends on VPN/SSH — they do not.
 4. If `es_search.py` returned data but the link can't be built, the data is still in the investigation report; surface that fact instead of pretending ES was unreachable.
