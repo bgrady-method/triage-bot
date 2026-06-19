@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-06-18T22:02:13Z",
-    "occurrences": 485,
+    "last_seen": "2026-06-19T02:37:12Z",
+    "occurrences": 490,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -157,7 +157,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.88,
-    "last_notified_at": "2026-06-18T21:09:00Z",
+    "last_notified_at": "2026-06-19T11:21:37Z",
     "prior_fix_status": "needs-ops-decision",
     "notes": [
       {
@@ -662,6 +662,36 @@
     "owning_team": "transactions",
     "last_notified_at": "2026-06-18T21:09:00Z",
     "recurrence_note": "Firing intermittently all day 2026-06-18 (16:23Z first KB'd; 16:49/17:47/20:34-21:04Z observed). occurrences undercounts — prior cycles couldn't DM (no token) so weren't bumped. First DM sent this cycle (21:09Z)."
+  },
+  {
+    "id": "ki-2026-06-19-msl04-host-degraded-disk-cifs-varlog",
+    "title": "Host MSL04 degraded — SWAT auto-runbooks fire on disk pressure (CIFS SQL-data shares 85-87%, /var/log 7.4G) + CPU; ms-restapi-netcore co-located",
+    "first_seen": "2026-06-18T23:04:32Z",
+    "last_seen": "2026-06-19T06:35:04Z",
+    "occurrences": 13,
+    "match": {
+      "channels": [
+        "team-incident-response",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "swat-rb-disk-usage-linux-v1"
+        },
+        {
+          "contains": "MSL04"
+        },
+        {
+          "regex": "/mnt/sqlprod0[12]-data"
+        }
+      ]
+    },
+    "diagnosis": "Host MSL04 (i-0e2816d8ce604ea41) repeatedly reported degraded/warning by SWAT auto-runbooks (disk-usage, cpu-investigate, http-service-investigate on ms-restapi-netcore) across 2026-06-18T23:04Z -> 2026-06-19T06:35Z (13 fires). Root cause is disk pressure, NOT root fs (/ is healthy at 32%, 51G free): CIFS-mounted SQL data shares are near capacity — /mnt/sqlprod02-data-h 87% (135G free), /mnt/sqlprod01-data-f 85% (233G free), /mnt/sqlprod01-data-h 77% (478G free). /var/log is 7.4G, dominated by /var/log/aspnetcore/microservices/documents/documents.txt (1.8G), nginx access.log.1 (640M), and ~1.6G systemd journal. disk-usage runbook returns Status=TimedOut (the df/du walk over large CIFS mounts exceeds the runbook timeout) which itself keeps the host flagged degraded. ES shows 0 application errors under MachineName:MSL04 in the window — no user-facing impact yet; this is a proactive capacity warning.",
+    "playbook": "1) Rotate/truncate the offender logs first (cheapest, no coordination): /var/log/aspnetcore/microservices/documents/documents.txt (1.8G) + add logrotate for nginx access logs; `journalctl --vacuum=size=500M`. 2) The real risk is the CIFS SQL-data shares (sqlprod01/02) at 85-87% — write failures there would hit SQL workloads. Coordinate with DBA/DevOps to audit /mnt/sqlprod02-data-h and /mnt/sqlprod01-data-f for old/unused data. 3) The disk-usage runbook TimedOut status is a secondary symptom (slow df over big CIFS mounts) — once mounts are trimmed it should return Success; consider raising the runbook timeout if it keeps timing out. 4) Recurrence on MSL04 with the same signature = same capacity issue; suppress per known-issue window unless CIFS crosses ~90% or app errors appear under MachineName:MSL04.",
+    "fix_status": "needs-ops-decision",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.9
   },
   {
     "id": "ki-billingengine-api-key1-removed-in-refactor",
