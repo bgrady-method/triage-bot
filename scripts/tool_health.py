@@ -141,26 +141,6 @@ def check_es() -> dict:
     return _fail(f"unexpected response shape: {list(body)[:5]}")
 
 
-def check_vpn() -> dict:
-    host = os.environ.get("SSH_HOST")
-    port = os.environ.get("SSH_PORT")
-    if not host or not port:
-        return _skipped("SSH_HOST/SSH_PORT not set")
-    try:
-        port_i = int(port)
-    except ValueError:
-        return _fail(f"SSH_PORT not numeric: {port!r}")
-    started = time.monotonic()
-    try:
-        with socket.create_connection((host, port_i), timeout=TIMEOUT_SECONDS):
-            ms = int((time.monotonic() - started) * 1000)
-            return _ok(f"tcp connect {host}:{port_i} in {ms}ms")
-    except (TimeoutError, socket.timeout):
-        return _fail(f"timeout connecting {host}:{port_i}")
-    except OSError as e:
-        return _fail(f"connect failed {host}:{port_i}: {e}")
-
-
 def check_sql() -> dict:
     if not os.environ.get("SQL_HOST_PROD1"):
         return _skipped("SQL_HOST_PROD1 not set")
@@ -179,8 +159,6 @@ CHECK_FN = {
     "es": check_es,
     "sql": check_sql,
     "mongo": check_mongo,
-    # check_vpn() retained below as dead code for back-compat; not in default CHECKS.
-    "vpn": check_vpn,
 }
 
 

@@ -59,7 +59,7 @@ repos:
   # Add more service repos here in lockstep with routines/triage.yaml.
 
 mcp_connectors:
-  - slack       # post one-liner to #triage-bot-health, DM Exec Summary to Ben
+  - slack       # DM Ben the status one-liner + Exec Summary (self-DM)
   - github      # branch / commit / push handled via git+gh in Bash
   - atlassian   # NEW for triage-bot — read-only Jira (searchJiraIssuesUsingJql, getJiraIssue)
 

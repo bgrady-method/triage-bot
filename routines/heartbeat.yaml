@@ -1,11 +1,11 @@
 # Routine: heartbeat  (v0.7 — adds outbound-message logging)
 #
-# Runs every 6h. Posts a one-liner to #triage-bot-health summarizing the bot's
-# state, exercises each external tool the triage and stability-review routines
-# rely on, and enforces the daily spend cap by flipping kb/config.json.enabled
-# to false if today's spend exceeds the cap.
+# Runs every 6h. DMs Ben a one-liner summarizing the bot's state, exercises
+# each external tool the triage and stability-review routines rely on, and
+# enforces the daily spend cap by flipping kb/config.json.enabled to false if
+# today's spend exceeds the cap.
 #
-# This is the canary: if #triage-bot-health goes silent for >12h, OR the
+# This is the canary: if the heartbeat DM goes silent for >12h, OR the
 # heartbeat starts reporting tools as failing, Ben should investigate before
 # the next triage cycle wastes effort on a broken dependency.
 #
@@ -44,8 +44,7 @@ prompt: |
     - `gh`        — GitHub API auth (`gh api user`)
     - `dd`        — Datadog `/api/v1/validate`
     - `es`        — Elasticsearch `_cluster/health`
-    - `vpn`       — TCP connect to `$SSH_HOST:$SSH_PORT` (proxy for VPN reachability)
-    - `sql`       — reported `skipped` (script can't run a real SQL query without a driver; rely on `vpn`)
+    - `sql`       — reported `skipped` (script can't run a real SQL query without a driver)
     - `mongo`     — reported `skipped` (same reason)
 
   Then run the MCP-tool checks inline (Python can't make MCP calls):
@@ -63,9 +62,8 @@ prompt: |
   | gh        | ok / fail / skipped |
   | dd        | ok / fail / skipped |
   | es        | ok / fail / skipped |
-  | vpn       | ok / fail / skipped |
-  | sql       | (skipped — see vpn) |
-  | mongo     | (skipped — see vpn) |
+  | sql       | (skipped — no driver) |
+  | mongo     | (skipped — no driver) |
   | slack     | ok / fail |
   | jira      | ok / fail / skipped |
 
@@ -82,7 +80,7 @@ prompt: |
 
   2. If any tool check returned `fail`:
       - Post: `🟡 triage-bot alive but tools degraded · today: N alerts ($X.XX) · last poll <ago>`
-      - Add a second line: `tools: gh ✓ dd ✓ es ✗(timeout) vpn ✓ slack ✓ jira ✗(401)` (use ✓ for ok, ✗(reason) for fail, omit skipped tools or render as `~` if you want to call them out).
+      - Add a second line: `tools: gh ✓ dd ✓ es ✗(timeout) slack ✓ jira ✗(401)` (use ✓ for ok, ✗(reason) for fail, omit skipped tools or render as `~` if you want to call them out).
       - Mention the failing tools by name in line 2 so the reader can act without opening the script output.
 
   3. If `time_since_last_poll_cycle > 90 minutes`:
@@ -93,15 +91,27 @@ prompt: |
 
   Always keep the post under 4 lines.
 
+  ## Step 3.4 — Send the heartbeat as a DM to Ben
+
+  The heartbeat is now DM'd to Ben (not posted to a channel). Open the self-DM
+  and post via the Slack MCP, as Ben:
+
+  ```
+  mcp__slack__conversations.open users=$BEN_USER_ID   # BEN_USER_ID resolved in Step 2a
+  mcp__slack__chat.postMessage channel=<dm_channel_id> text="<the one-liner>" mrkdwn=true
+  ```
+
+  Never post the heartbeat to a public channel — it goes to Ben's DM only.
+
   ## Step 3.5 — Log the outbound message to disk
 
   Immediately after the `chat.postMessage` call returns success, append the
-  message to `docs/messages/<YYYY-MM-DD-of-send>/triage-bot-health.jsonl` so
-  the stability-review routine can synthesise across heartbeat output. Schema
+  message to `docs/messages/<YYYY-MM-DD-of-send>/self-dm.jsonl` so the
+  stability-review routine can synthesise across heartbeat output. Schema
   (one line, mirrors the format used by triage and stability-review):
 
   ```json
-  {"ts": "<iso-8601-utc>", "channel_id": "C0B0Q3KHC07", "channel_name": "#triage-bot-health", "recipient": "#triage-bot-health", "message_type": "health-status", "alert_hash": null, "thread_ts": null, "body": "<full message text exactly as sent>"}
+  {"ts": "<iso-8601-utc>", "channel_id": "<D… self-DM channel id>", "channel_name": "self-dm", "recipient": "self-dm", "message_type": "health-status", "alert_hash": null, "thread_ts": null, "body": "<full message text exactly as sent>"}
   ```
 
   Pseudocode:
@@ -109,7 +119,7 @@ prompt: |
   ```bash
   DATE_DIR="docs/messages/$(date -u +%Y-%m-%d)"
   mkdir -p "$DATE_DIR"
-  echo "$LINE" >> "$DATE_DIR/triage-bot-health.jsonl"
+  echo "$LINE" >> "$DATE_DIR/self-dm.jsonl"
   ```
 
   If the send failed, do NOT log — only log on success. Commit picks this
@@ -178,11 +188,6 @@ secrets:
   - ELK_USER
   - ELK_PASS
   - ELK_INDEX_GLOB            # default: logstash-*
-
-  # SSH bastion — the `vpn` check TCP-connects to SSH_HOST:SSH_PORT. The heartbeat
-  # does NOT need SSH_USER/SSH_PASS (it doesn't authenticate, just probes the port).
-  - SSH_HOST
-  - SSH_PORT
 
 settings:
   timeout_minutes: 8           # was 5 — tool checks can each take up to 8s

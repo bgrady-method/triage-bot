@@ -1,6 +1,6 @@
 # Per-channel investigation order
 
-Each alert channel has a different upstream and a different signal-to-noise profile. The routine prompt branches on `channel_name` from the alert payload to pick the right starting playbook. `swat` and `team-incident-response` are *incident-response* channels and share identical handling (investigate, self-DM only, never post).
+Each alert channel has a different upstream and a different signal-to-noise profile. The routine prompt branches on `channel_name` from the alert payload to pick the right starting playbook. Findings post to `#triage-results`. `swat` and `team-incident-response` are *incident-response* channels and share identical handling (investigate, findings → `#triage-results`, never post into the channel itself).
 
 ## #alert-frontend-errors
 
@@ -43,7 +43,7 @@ Each alert channel has a different upstream and a different signal-to-noise prof
 
 **Source:** human-posted P0/P1 incident posts. Sometimes structured (XMatters), often free-form ("API is down for customer X").
 
-**NEVER POST TO #swat.** No thread replies, no top-level posts, no reactions. SWAT is a human-incident-response channel; the bot adds noise there. All investigation output for swat alerts goes to Ben's self-DM, exactly like the other alert channels.
+**NEVER POST INTO #swat.** No thread replies, no top-level posts, no reactions. SWAT is a human-incident-response channel; the bot adds noise there. Findings for swat alerts post to `#triage-results`, exactly like the other alert channels.
 
 **Investigation order:**
 1. Run Datadog + ES in parallel, widest plausible window (`now-1h` minimum).
@@ -57,17 +57,20 @@ Each alert channel has a different upstream and a different signal-to-noise prof
 
 **Source:** incident-response coordination channel (`C0B6233UN4S`). Mixes a Monitoring bot's automated SWAT investigation posts (CPU/host runbooks, etc.) with human coordination messages naming services for rollback / root-cause.
 
-**Treat exactly like #swat** — it is the second incident-response channel. **NEVER POST** (no thread replies, no top-level posts, no reactions); all output goes to Ben's self-DM. Bypass the suppression/escalation cap (humans are watching). Always `needs-human`; never auto-PR.
+**Treat exactly like #swat** — it is the second incident-response channel. **NEVER POST into it** (no thread replies, no top-level posts, no reactions); findings post to `#triage-results` like every other channel. Bypass the suppression/escalation cap (humans are watching). Always `needs-human`; never auto-PR.
 
 **Investigation order:** same as #swat. Additionally, read the human coordination thread (per prompt step 4.0a) for `'rolling back X'` / `'reverting X'` pointers — treat engineer-named targets as strong priors to verify with mechanism evidence, not proof.
 
 ## Posting locations summary
 
-| Channel | Where the bot replies |
+Findings post to **`#triage-results`** (gated by the escalation/suppression logic — suppressed/low-score still go to `docs/actionable/<date>.md`). `false-alarm` replies go in the source channel's thread. Health/heartbeat, kb-update confirmations, and operational/error notices go to **Ben's DM**.
+
+| Channel (alert source) | Where the bot puts findings |
 |---|---|
-| `alert-frontend-errors` | Self-DM (bot acts as Ben via Slack MCP) |
-| `alert-runtime-monitoring` | Self-DM |
-| `alert-system` | Self-DM |
-| `swat` | Self-DM (same as other alert channels). **Never post to #swat itself** — no thread replies, no top-level posts. |
-| `team-incident-response` | Self-DM (incident-response channel, same handling as #swat). **Never post to #team-incident-response itself** — no thread replies, no top-level posts. |
-| `triage-bot-health` | Heartbeat + failure summaries + cycle deferrals |
+| `alert-frontend-errors` | `#triage-results` |
+| `alert-runtime-monitoring` | `#triage-results` |
+| `alert-system` | `#triage-results` |
+| `swat` | `#triage-results` (always notifies — `swat-bypass`). **Never post into #swat itself** — no thread replies, no top-level posts. |
+| `team-incident-response` | `#triage-results` (same handling as #swat). **Never post into #team-incident-response itself.** |
+| `false-alarm` (any source) | Thread reply in the **source** channel (`🤖 known false alarm — …`) |
+| Health / kb-update / errors | **Ben's DM** (`slack_send.py dm`) |

@@ -7,9 +7,8 @@ so outbound messages come from the `triage-bot` bot — NOT from Ben. (Reading S
 stays on the Slack MCP as Ben; only sending moves here.)
 
 Subcommands:
-  dm        --user <Uxxxx> --text <msg>            open an IM with a user and post (the new "DM Ben")
-  post      --channel <Cxxxx> --text <msg> [--thread-ts <ts>]   channel post / false-alarm thread reply
-  heartbeat --text <msg>                            post to #triage-bot-health
+  dm        --user <Uxxxx> --text <msg>            open an IM with a user and post (DM Ben: kb-update / health / operational)
+  post      --channel <Cxxxx> --text <msg> [--thread-ts <ts>]   triage findings → #triage-results; false-alarm thread reply → source channel
 
 Hard guards (defense in depth — these also live in prompt.md):
   * NEVER posts to #swat or #team-incident-response (resolved from kb/config.json). Refuses with exit 3.
@@ -76,7 +75,7 @@ def api(method, payload, token):
 def log_jsonl(channel_id, channel_name, recipient, msg_type, thread_ts, body):
     date_dir = os.path.join(ROOT, "docs", "messages", datetime.datetime.utcnow().strftime("%Y-%m-%d"))
     os.makedirs(date_dir, exist_ok=True)
-    slug = {"self-dm": "self-dm", "triage-bot-health": "triage-bot-health"}.get(recipient, recipient.lstrip("#"))
+    slug = {"self-dm": "self-dm"}.get(recipient, recipient.lstrip("#"))
     line = {"ts": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
             "channel_id": channel_id, "channel_name": channel_name, "recipient": recipient,
             "message_type": msg_type, "alert_hash": None, "thread_ts": thread_ts, "body": body}
@@ -96,8 +95,7 @@ def main():
     sub = ap.add_subparsers(dest="cmd", required=True)
     pd = sub.add_parser("dm"); pd.add_argument("--user", required=True); pd.add_argument("--text", required=True)
     pp = sub.add_parser("post"); pp.add_argument("--channel", required=True); pp.add_argument("--text", required=True); pp.add_argument("--thread-ts", dest="thread_ts")
-    ph = sub.add_parser("heartbeat"); ph.add_argument("--text", required=True)
-    for p in (pd, pp, ph):
+    for p in (pd, pp):
         p.add_argument("--type", default="other", help="message_type for the audit log")
         p.add_argument("--dry-run", action="store_true", help="validate guards + payload; do not send")
     a = ap.parse_args()
@@ -106,18 +104,7 @@ def main():
     id_to_name, name_to_id, forbidden = channel_maps(cfg)
     guard_text(a.text)  # @-mention guard runs for every path, before any network
 
-    if a.cmd == "heartbeat":
-        ch = name_to_id.get("triage-bot-health")
-        if not ch:
-            sys.stderr.write("triage-bot-health channel id missing from kb/config.json\n"); sys.exit(2)
-        guard_channel(ch, id_to_name, forbidden)
-        if a.dry_run:
-            print(f"[dry-run] heartbeat -> #triage-bot-health ({ch}): {a.text!r}"); return
-        api("chat.postMessage", {"channel": ch, "text": a.text, "mrkdwn": True}, token_or_die())
-        log_jsonl(ch, "#triage-bot-health", "triage-bot-health", a.type or "health-status", None, a.text)
-        print("sent: heartbeat -> #triage-bot-health")
-
-    elif a.cmd == "post":
+    if a.cmd == "post":
         guard_channel(a.channel, id_to_name, forbidden)
         name = id_to_name.get(a.channel, a.channel)
         if a.dry_run:
