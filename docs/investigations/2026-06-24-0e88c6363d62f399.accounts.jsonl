@@ -1,0 +1,4 @@
+{"account": "topstitchoffloridainc2", "clusters_unconfigured": ["prod3", "prod4", "prod5"], "status": "not_found", "note": "SSH bastion / cluster config down — named-only fallback"}
+{"account": "shedsunlimited", "clusters_unconfigured": ["prod3", "prod4", "prod5"], "status": "not_found"}
+{"account": "excelpoolservice", "clusters_unconfigured": ["prod3", "prod4", "prod5"], "status": "not_found", "licenses_from_jira": 20, "friendly_name": "Excel Pool Service, Inc."}
+{"account": "lappstructures", "clusters_unconfigured": ["prod3", "prod4", "prod5"], "status": "not_found"}

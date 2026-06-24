@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-06-24T15:23:17Z",
-    "occurrences": 502,
+    "last_seen": "2026-06-24T16:10:00Z",
+    "occurrences": 504,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -692,6 +692,45 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.9
+  },
+  {
+    "id": "ki-2026-06-24-qbdt-salestax-zero-on-save-release-regression",
+    "title": "QBDT sales tax calculates to 0 on Save after a release — silent value-correctness regression (AS-14253)",
+    "first_seen": "2026-06-24T15:56:00Z",
+    "last_seen": "2026-06-24T16:10:00Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "swat",
+        "team-incident-response"
+      ],
+      "any_of": [
+        {
+          "contains": "sales tax"
+        },
+        {
+          "contains": "Sales Tax Not Calculating"
+        },
+        {
+          "contains": "AS-14253"
+        },
+        {
+          "contains": "tax",
+          "and_contains": "QBDT"
+        },
+        {
+          "regex": "(sales\\s*tax|item\\s*tax).{0,40}(0|zero|not calculat)"
+        }
+      ]
+    },
+    "diagnosis": "A release changed the QBDT sales-tax calculation on transaction Save so the computed tax is zeroed before persistence. Tax is correctly selected at customer + item level but resets to 0 after Save, across estimates/invoices and stock/custom screens. Fails SILENTLY (HTTP 200 with wrong value) so no APM error-rate/latency/5XX monitor fires — only customer support tickets + swat surface it. Owned by Connect (Accounting Sync / QBDT).",
+    "playbook": "1) Confirm deploy correlation: ask Connect team which build shipped today touching sales-tax/transaction-save. 2) Mitigation = revert today's release (in progress for AS-14253). 3) Verify fix by saving a known taxable transaction (estimate/invoice) on a repro account (e.g. m11rnqbdt) and asserting tax != 0. 4) Because the failure is silent, do NOT rely on DD monitors to confirm recovery — use a transaction-save canary. 5) Post-incident: add a sales-tax-on-save SLO canary to the alerting-system catalog.",
+    "fix_status": "mitigation-in-progress-revert",
+    "fix_jira": "AS-14253",
+    "fix_template": null,
+    "confidence": 0.85,
+    "owning_team": "Connect",
+    "last_notified_at": "2026-06-24T16:10:00Z"
   },
   {
     "id": "ki-billingengine-api-key1-removed-in-refactor",
