@@ -439,7 +439,15 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.8,
-    "last_notified_at": "2026-05-29T16:22:59Z"
+    "last_notified_at": "2026-06-24T18:27:25Z",
+    "occurrences": 4,
+    "last_seen": "2026-06-24T18:10:00Z",
+    "notes": [
+      {
+        "ts": "2026-06-24T18:27:25Z",
+        "note": "2026-06-24 18:27Z triage (ES-sourced, degraded cycle — no Slack read access; detected via proactive ES sweep). ERR_KEY_CHAIN storm confirmed running since ≥10:00Z today (ES from:10:00Z returns ≥10,000 hits). In poll window (17:03-18:10Z): 4847 'Failed to migrate from AsyncStorage to SecureStore: ERR_KEY_CHAIN' out of 4961 nonprod/apps ES errors (97.7%). App version in new occurrence: Method/2.1.651 CFNetwork (iOS; was 2.1.537 in original May incident). The bug persists across app version bumps — still client-side keychain migration failure, no server-side fix shipped. 28x spike vs same-window yesterday (4961 vs 176). Owning team: Service Delivery (#team-service-delivery). This occurrence surfaced via ES proactive sweep because the Slack alerts (monitor 227951254 'New issue to review') post with empty bodies — the text-based KB matcher (match_kb.py) cannot match empty-body posts. COVERAGE GAP: bot needs ES confirmation step for empty-body 227951254 posts. last_notified_at bumped (prior: 2026-05-29T16:22:59Z, 25d ago, past 24h suppression). KIR posted to #triage-results."
+      }
+    ]
   },
   {
     "id": "ki-2026-05-29-methodsession-getaccountbysubdomain-nre",
