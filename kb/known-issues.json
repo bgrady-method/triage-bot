@@ -610,8 +610,8 @@
     "id": "ki-2026-06-17-classic-timezone-iana-id-not-found",
     "title": "MethodUIClassic TimeZoneNotFoundException — IANA tz id (e.g. 'America/New_York') passed to Windows TimeZoneInfo.FindSystemTimeZoneById; default case throws instead of returning null",
     "first_seen": "2026-06-03T00:00:00Z",
-    "last_seen": "2026-06-17T20:26:35Z",
-    "occurrences": 1,
+    "last_seen": "2026-06-24T20:13:00Z",
+    "occurrences": 2,
     "match": {
       "channels": [
         "alert-system",
@@ -643,7 +643,8 @@
     "fix_status": "proposed",
     "fix_jira": null,
     "fix_template": null,
-    "confidence": 0.9
+    "confidence": 0.9,
+    "last_notified_at": "2026-06-24T20:13:00Z"
   },
   {
     "id": "ki-2026-06-18-rainforest-webhook-inactive-account-500",
