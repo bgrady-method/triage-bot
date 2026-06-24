@@ -397,8 +397,8 @@
     "id": "ki-2026-05-28-mobile-asyncstorage-securestore-keychain",
     "title": "Method iOS app (v2.1.537): 'Failed to migrate from AsyncStorage to SecureStore' (ERR_KEY_CHAIN) storm",
     "first_seen": "2026-05-28T00:07:21Z",
-    "last_seen": "2026-06-24T18:10:00Z",
-    "occurrences": 4,
+    "last_seen": "2026-06-24T21:08:49Z",
+    "occurrences": 5,
     "match": {
       "channels": [
         "alert-system",
@@ -610,8 +610,8 @@
     "id": "ki-2026-06-17-classic-timezone-iana-id-not-found",
     "title": "MethodUIClassic TimeZoneNotFoundException — IANA tz id (e.g. 'America/New_York') passed to Windows TimeZoneInfo.FindSystemTimeZoneById; default case throws instead of returning null",
     "first_seen": "2026-06-03T00:00:00Z",
-    "last_seen": "2026-06-24T20:13:00Z",
-    "occurrences": 2,
+    "last_seen": "2026-06-24T21:08:49Z",
+    "occurrences": 3,
     "match": {
       "channels": [
         "alert-system",
