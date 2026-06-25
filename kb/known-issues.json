@@ -274,8 +274,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-06-25T15:08:15Z",
-    "occurrences": 203,
+    "last_seen": "2026-06-25T16:07:40Z",
+    "occurrences": 204,
     "match": {
       "channels": [
         "alert-system",
@@ -316,7 +316,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.85,
-    "last_notified_at": "2026-06-24T15:28:20Z",
+    "last_notified_at": "2026-06-25T16:07:40Z",
     "prior_last_notified_at": "2026-06-17T11:08:00Z",
     "notes": [
       {
@@ -397,8 +397,8 @@
     "id": "ki-2026-05-28-mobile-asyncstorage-securestore-keychain",
     "title": "Method iOS app (v2.1.537): 'Failed to migrate from AsyncStorage to SecureStore' (ERR_KEY_CHAIN) storm",
     "first_seen": "2026-05-28T00:07:21Z",
-    "last_seen": "2026-06-25T15:08:15Z",
-    "occurrences": 9,
+    "last_seen": "2026-06-25T16:07:40Z",
+    "occurrences": 10,
     "match": {
       "channels": [
         "alert-system",
@@ -446,7 +446,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.8,
-    "last_notified_at": "2026-06-24T18:27:25Z",
+    "last_notified_at": "2026-06-25T16:07:40Z",
     "notes": [
       {
         "ts": "2026-06-24T18:27:25Z",
@@ -616,8 +616,8 @@
     "id": "ki-2026-06-17-classic-timezone-iana-id-not-found",
     "title": "MethodUIClassic TimeZoneNotFoundException — IANA tz id (e.g. 'America/New_York') passed to Windows TimeZoneInfo.FindSystemTimeZoneById; default case throws instead of returning null",
     "first_seen": "2026-06-03T00:00:00Z",
-    "last_seen": "2026-06-24T21:08:49Z",
-    "occurrences": 3,
+    "last_seen": "2026-06-25T15:25:33Z",
+    "occurrences": 4,
     "match": {
       "channels": [
         "alert-system",
