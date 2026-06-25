@@ -397,8 +397,8 @@
     "id": "ki-2026-05-28-mobile-asyncstorage-securestore-keychain",
     "title": "Method iOS app (v2.1.537): 'Failed to migrate from AsyncStorage to SecureStore' (ERR_KEY_CHAIN) storm",
     "first_seen": "2026-05-28T00:07:21Z",
-    "last_seen": "2026-06-24T22:07:52Z",
-    "occurrences": 6,
+    "last_seen": "2026-06-25T13:09:11Z",
+    "occurrences": 7,
     "match": {
       "channels": [
         "alert-system",
@@ -458,8 +458,8 @@
     "id": "ki-2026-05-29-methodsession-getaccountbysubdomain-nre",
     "title": "method-platform-ui apps backend NRE in MethodSessionService.GetAccountBySubdomain() -> 'JWT Retrieval Failed' on subdomain-less synthetic monitor probes (Centreon + Datadog Watchdog noise)",
     "first_seen": "2026-05-29T12:49:31Z",
-    "last_seen": "2026-06-19T14:12:00Z",
-    "occurrences": 9,
+    "last_seen": "2026-06-25T13:09:11Z",
+    "occurrences": 10,
     "match": {
       "channels": [
         "alert-system"
@@ -476,6 +476,12 @@
         },
         {
           "contains": "monitors/236570583"
+        },
+        {
+          "contains": "monitors/299551647"
+        },
+        {
+          "contains": "methodportal.com/apps"
         }
       ]
     },
@@ -485,7 +491,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.85,
-    "last_notified_at": "2026-06-19T13:23:26Z"
+    "last_notified_at": "2026-06-25T13:09:11Z"
   },
   {
     "id": "ki-2026-06-02-purchase-history-unique-index-duplicate",
