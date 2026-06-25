@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-06-25T14:15:00Z",
-    "occurrences": 507,
+    "last_seen": "2026-06-25T18:35:00Z",
+    "occurrences": 508,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -157,7 +157,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.88,
-    "last_notified_at": "2026-06-24T15:28:20Z",
+    "last_notified_at": "2026-06-25T18:35:00Z",
     "prior_fix_status": "needs-ops-decision",
     "notes": [
       {
@@ -267,6 +267,10 @@
       {
         "ts": "2026-06-24T19:07:52Z",
         "note": "2026-06-24 19:07Z triage (degraded cycle, no Slack MCP): ki-21 occ#505 via DD monitor 77419271 last_triggered 18:55:11Z (OK now, self-recovered). DD method-ui XHR error logs expected canonical chronic shape (not queried in degraded mode). last_notified_at 2026-06-24T15:28:20Z = 3.66h ago, WITHIN 24h suppression window; occ 504->505 (505%10!=0); fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window. Synthetic hash bb0b74df4fca09d3 (channel C03TYHGRS23 + DD monitor ts 18:55:11Z)."
+      },
+      {
+        "ts": "2026-06-25T18:35:00Z",
+        "note": "2026-06-25 18:35Z triage: chronic ki-21 syncutil/syncwidget XHR errors. DD monitor 77419271 Warn, last_triggered 18:06:11Z. DD method-ui XHR logs 17:55-18:30Z = 50 events (cap not saturated -- moderate volume), 47/50 on GET /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync, 42 distinct accounts (top gtsimulators 4, StPeteClearWaterFL 3, metroemergencyupfittersllc 2, mobilitycityofhoustontx2026 2, tanfirealarms 2), 100% status_code:0 origin:network Failed to load (gateway timeout) -- canonical chronic ki-21 shape. 42 distinct is below recent 91-107 baseline (moderate cluster, not densest). last_notified_at 2026-06-24T15:28:20Z = 27h7m ago, PAST 24h suppression window -> RESURFACE POST, gate_reason=null, last_notified_at bumped to now. occ 507->508. fix_status chronic-residual-post-rollback-2026-06-05 unchanged. ki-24 RTC: CALM (monitor 115456700 OK, last_triggered 14:47Z; metric query returned no p95 data in window). No ki-24 co-fire this cycle. DEGRADED CYCLE (no Slack MCP, DD logs sourced). ES evidence_source: 0 hits expected (documented field-mismatch; ki-21 lives in DD RUM/method-ui logs, not Serilog). last_seen 18:06Z."
       }
     ]
   },
