@@ -1,0 +1,333 @@
+{
+  "title": "No Code Next Gen — SLO",
+  "description": "SLO dashboard for the No Code Next Gen team (owner: No Code Next Gen, #team-no-code-next-gen — inert text, no @-mention). Driven by the SLI/SLO/SLA analysis in references/architecture/alerting-system-design.md. Covers SLO-5 (action execution) and SLO-6 (designer save). Runbooks: alerting-system-design.md#rb-slo-5, #rb-slo-6. Source of truth: alerting/datadog/ncng-slo-dashboard.json in bgrady-method/triage-bot.",
+  "layout_type": "ordered",
+  "template_variables": [
+    {
+      "name": "env",
+      "prefix": "env",
+      "default": "prod"
+    }
+  ],
+  "widgets": [
+    {
+      "definition": {
+        "type": "note",
+        "background_color": "purple",
+        "content": "## No Code Next Gen — SLO\nOwner: **No Code Next Gen** · channel `#team-no-code-next-gen` (routing metadata only — no @-mentions).\n\n**SLO-5 — Action execution** (target **99.9%**, p95 ≤ **5s**): runtime-core-api action resources `post /api/v1/runtime/{actionid}/...`.\n**SLO-6 — Designer save** (target **99.9%**): designer-core-api save endpoint `post /api/v1/designer/{appid}/{screenid}/{versionid}`. *(Live in Datadog APM even though the InfluxDB designer pipeline is dormant.)*\n\nLatency uses the base `trace.aspnet_core.request` metric (seconds) — `.duration` returns no series. Scorecards evaluate over the last month (~30d). Runbooks: `alerting-system-design.md#rb-slo-5`, `#rb-slo-6`.",
+        "show_tick": false
+      }
+    },
+    {
+      "definition": {
+        "type": "group",
+        "layout_type": "ordered",
+        "title": "① SLO Scorecard (last 30d)",
+        "background_color": "vivid_purple",
+        "widgets": [
+          {
+            "definition": {
+              "type": "query_value",
+              "title": "SLO-5 Action exec — error % (budget ≤ 0.1%)",
+              "autoscale": false,
+              "custom_unit": "%",
+              "precision": 3,
+              "time": { "live_span": "1mo" },
+              "requests": [
+                {
+                  "response_format": "scalar",
+                  "queries": [
+                    { "name": "a", "data_source": "metrics", "aggregator": "sum", "query": "sum:trace.aspnet_core.request.errors{service:runtime-core-api,resource_name:post_/api/v1/runtime/_actionid_*,$env}.as_count()" },
+                    { "name": "b", "data_source": "metrics", "aggregator": "sum", "query": "sum:trace.aspnet_core.request.hits{service:runtime-core-api,resource_name:post_/api/v1/runtime/_actionid_*,$env}.as_count()" }
+                  ],
+                  "formulas": [ { "formula": "100 * default_zero(a) / b" } ],
+                  "conditional_formats": [
+                    { "comparator": ">=", "value": 0.1, "palette": "white_on_red" },
+                    { "comparator": ">=", "value": 0.05, "palette": "white_on_yellow" },
+                    { "comparator": "<", "value": 0.05, "palette": "white_on_green" }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "type": "query_value",
+              "title": "SLO-5 Action exec — p95 latency (s, obj ≤ 5s)",
+              "autoscale": false,
+              "custom_unit": "s",
+              "precision": 3,
+              "time": { "live_span": "1mo" },
+              "requests": [
+                {
+                  "response_format": "scalar",
+                  "queries": [
+                    { "name": "q1", "data_source": "metrics", "aggregator": "avg", "query": "p95:trace.aspnet_core.request{service:runtime-core-api,resource_name:post_/api/v1/runtime/_actionid_*,$env}" }
+                  ],
+                  "formulas": [ { "formula": "q1" } ],
+                  "conditional_formats": [
+                    { "comparator": ">=", "value": 5, "palette": "white_on_red" },
+                    { "comparator": "<", "value": 5, "palette": "white_on_green" }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "type": "query_value",
+              "title": "SLO-6 Designer save — error % (budget ≤ 0.1%)",
+              "autoscale": false,
+              "custom_unit": "%",
+              "precision": 3,
+              "time": { "live_span": "1mo" },
+              "requests": [
+                {
+                  "response_format": "scalar",
+                  "queries": [
+                    { "name": "a", "data_source": "metrics", "aggregator": "sum", "query": "sum:trace.aspnet_core.request.errors{service:designer-core-api,resource_name:post_/api/v1/designer/_appid_/_screenid_/_versionid,$env}.as_count()" },
+                    { "name": "b", "data_source": "metrics", "aggregator": "sum", "query": "sum:trace.aspnet_core.request.hits{service:designer-core-api,resource_name:post_/api/v1/designer/_appid_/_screenid_/_versionid,$env}.as_count()" }
+                  ],
+                  "formulas": [ { "formula": "100 * default_zero(a) / b" } ],
+                  "conditional_formats": [
+                    { "comparator": ">=", "value": 0.1, "palette": "white_on_red" },
+                    { "comparator": ">=", "value": 0.05, "palette": "white_on_yellow" },
+                    { "comparator": "<", "value": 0.05, "palette": "white_on_green" }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "type": "query_value",
+              "title": "SLO-6 Designer save — p95 latency (s)",
+              "autoscale": false,
+              "custom_unit": "s",
+              "precision": 3,
+              "time": { "live_span": "1mo" },
+              "requests": [
+                {
+                  "response_format": "scalar",
+                  "queries": [
+                    { "name": "q1", "data_source": "metrics", "aggregator": "avg", "query": "p95:trace.aspnet_core.request{service:designer-core-api,resource_name:post_/api/v1/designer/_appid_/_screenid_/_versionid,$env}" }
+                  ],
+                  "formulas": [ { "formula": "q1" } ],
+                  "conditional_formats": [
+                    { "comparator": ">=", "value": 5, "palette": "white_on_red" },
+                    { "comparator": "<", "value": 5, "palette": "white_on_green" }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "group",
+        "layout_type": "ordered",
+        "title": "② Action Execution — SLO-5 (runtime-core-api action resources)",
+        "background_color": "blue",
+        "widgets": [
+          {
+            "definition": {
+              "type": "query_value",
+              "title": "Action request rate (req/s)",
+              "autoscale": true,
+              "precision": 1,
+              "requests": [
+                {
+                  "response_format": "scalar",
+                  "queries": [
+                    { "name": "q1", "data_source": "metrics", "aggregator": "avg", "query": "sum:trace.aspnet_core.request.hits{service:runtime-core-api,resource_name:post_/api/v1/runtime/_actionid_*,$env}.as_rate()" }
+                  ],
+                  "formulas": [ { "formula": "q1" } ]
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Action requests by endpoint",
+              "show_legend": true,
+              "legend_layout": "auto",
+              "requests": [
+                {
+                  "response_format": "timeseries",
+                  "display_type": "bars",
+                  "queries": [
+                    { "name": "q1", "data_source": "metrics", "query": "sum:trace.aspnet_core.request.hits{service:runtime-core-api,resource_name:post_/api/v1/runtime/_actionid_*,$env} by {resource_name}.as_count()" }
+                  ],
+                  "formulas": [ { "formula": "q1" } ]
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Action errors by endpoint",
+              "show_legend": true,
+              "legend_layout": "auto",
+              "requests": [
+                {
+                  "response_format": "timeseries",
+                  "display_type": "bars",
+                  "style": { "palette": "warm" },
+                  "queries": [
+                    { "name": "q1", "data_source": "metrics", "query": "sum:trace.aspnet_core.request.errors{service:runtime-core-api,resource_name:post_/api/v1/runtime/_actionid_*,$env} by {resource_name}.as_count()" }
+                  ],
+                  "formulas": [ { "formula": "q1" } ]
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Action latency p50 / p95 / p99 (s) — 5s objective",
+              "show_legend": true,
+              "legend_layout": "auto",
+              "legend_columns": [ "avg", "max", "value" ],
+              "markers": [
+                { "value": "y = 5", "display_type": "error dashed", "label": "SLO-5 p95 ≤ 5s" }
+              ],
+              "yaxis": { "min": "0", "include_zero": true },
+              "requests": [
+                { "response_format": "timeseries", "display_type": "line", "queries": [ { "name": "q1", "data_source": "metrics", "query": "p50:trace.aspnet_core.request{service:runtime-core-api,resource_name:post_/api/v1/runtime/_actionid_*,$env}" } ], "formulas": [ { "formula": "q1" } ] },
+                { "response_format": "timeseries", "display_type": "line", "queries": [ { "name": "q2", "data_source": "metrics", "query": "p95:trace.aspnet_core.request{service:runtime-core-api,resource_name:post_/api/v1/runtime/_actionid_*,$env}" } ], "formulas": [ { "formula": "q2" } ] },
+                { "response_format": "timeseries", "display_type": "line", "queries": [ { "name": "q3", "data_source": "metrics", "query": "p99:trace.aspnet_core.request{service:runtime-core-api,resource_name:post_/api/v1/runtime/_actionid_*,$env}" } ], "formulas": [ { "formula": "q3" } ] }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "group",
+        "layout_type": "ordered",
+        "title": "③ Designer Save — SLO-6 (designer-core-api)",
+        "background_color": "green",
+        "widgets": [
+          {
+            "definition": {
+              "type": "query_value",
+              "title": "Designer save rate (req/s)",
+              "autoscale": true,
+              "precision": 2,
+              "requests": [
+                {
+                  "response_format": "scalar",
+                  "queries": [
+                    { "name": "q1", "data_source": "metrics", "aggregator": "avg", "query": "sum:trace.aspnet_core.request.hits{service:designer-core-api,resource_name:post_/api/v1/designer/_appid_/_screenid_/_versionid,$env}.as_rate()" }
+                  ],
+                  "formulas": [ { "formula": "q1" } ]
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Designer requests by endpoint",
+              "show_legend": true,
+              "legend_layout": "auto",
+              "requests": [
+                {
+                  "response_format": "timeseries",
+                  "display_type": "bars",
+                  "queries": [
+                    { "name": "q1", "data_source": "metrics", "query": "sum:trace.aspnet_core.request.hits{service:designer-core-api,$env} by {resource_name}.as_count()" }
+                  ],
+                  "formulas": [ { "formula": "q1" } ]
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Designer errors by endpoint",
+              "show_legend": true,
+              "legend_layout": "auto",
+              "requests": [
+                {
+                  "response_format": "timeseries",
+                  "display_type": "bars",
+                  "style": { "palette": "warm" },
+                  "queries": [
+                    { "name": "q1", "data_source": "metrics", "query": "sum:trace.aspnet_core.request.errors{service:designer-core-api,$env} by {resource_name}.as_count()" }
+                  ],
+                  "formulas": [ { "formula": "q1" } ]
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "Designer save latency p50 / p95 / p99 (s)",
+              "show_legend": true,
+              "legend_layout": "auto",
+              "yaxis": { "min": "0", "include_zero": true },
+              "requests": [
+                { "response_format": "timeseries", "display_type": "line", "queries": [ { "name": "q1", "data_source": "metrics", "query": "p50:trace.aspnet_core.request{service:designer-core-api,resource_name:post_/api/v1/designer/_appid_/_screenid_/_versionid,$env}" } ], "formulas": [ { "formula": "q1" } ] },
+                { "response_format": "timeseries", "display_type": "line", "queries": [ { "name": "q2", "data_source": "metrics", "query": "p95:trace.aspnet_core.request{service:designer-core-api,resource_name:post_/api/v1/designer/_appid_/_screenid_/_versionid,$env}" } ], "formulas": [ { "formula": "q2" } ] },
+                { "response_format": "timeseries", "display_type": "line", "queries": [ { "name": "q3", "data_source": "metrics", "query": "p99:trace.aspnet_core.request{service:designer-core-api,resource_name:post_/api/v1/designer/_appid_/_screenid_/_versionid,$env}" } ], "formulas": [ { "formula": "q3" } ] }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "group",
+        "layout_type": "ordered",
+        "title": "④ Service & App-Builder Overview",
+        "background_color": "gray",
+        "widgets": [
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "designer-core-api — requests & errors (whole service)",
+              "show_legend": true,
+              "legend_layout": "auto",
+              "requests": [
+                { "response_format": "timeseries", "display_type": "bars", "queries": [ { "name": "q1", "data_source": "metrics", "query": "sum:trace.aspnet_core.request.hits{service:designer-core-api,$env}.as_count()" } ], "formulas": [ { "formula": "q1", "alias": "requests" } ] },
+                { "response_format": "timeseries", "display_type": "line", "style": { "palette": "warm" }, "queries": [ { "name": "q2", "data_source": "metrics", "query": "sum:trace.aspnet_core.request.errors{service:designer-core-api,$env}.as_count()" } ], "formulas": [ { "formula": "q2", "alias": "errors" } ] }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "designer-core-api — p95 latency (s)",
+              "show_legend": true,
+              "legend_layout": "auto",
+              "yaxis": { "min": "0", "include_zero": true },
+              "requests": [
+                { "response_format": "timeseries", "display_type": "line", "queries": [ { "name": "q1", "data_source": "metrics", "query": "p95:trace.aspnet_core.request{service:designer-core-api,$env}" } ], "formulas": [ { "formula": "q1" } ] }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "type": "timeseries",
+              "title": "ms-apps-api — requests by endpoint (app-builder surface)",
+              "show_legend": true,
+              "legend_layout": "auto",
+              "requests": [
+                { "response_format": "timeseries", "display_type": "bars", "queries": [ { "name": "q1", "data_source": "metrics", "query": "sum:trace.aspnet_core.request.hits{service:ms-apps-api,$env} by {resource_name}.as_count()" } ], "formulas": [ { "formula": "q1" } ] }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
