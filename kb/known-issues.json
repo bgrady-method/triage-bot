@@ -409,8 +409,8 @@
     "id": "ki-2026-05-28-mobile-asyncstorage-securestore-keychain",
     "title": "Method iOS app (v2.1.537): 'Failed to migrate from AsyncStorage to SecureStore' (ERR_KEY_CHAIN) storm",
     "first_seen": "2026-05-28T00:07:21Z",
-    "last_seen": "2026-06-25T21:08:00Z",
-    "occurrences": 12,
+    "last_seen": "2026-06-25T22:08:15Z",
+    "occurrences": 13,
     "match": {
       "channels": [
         "alert-system",
