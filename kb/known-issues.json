@@ -628,8 +628,8 @@
     "id": "ki-2026-06-17-classic-timezone-iana-id-not-found",
     "title": "MethodUIClassic TimeZoneNotFoundException — IANA tz id (e.g. 'America/New_York') passed to Windows TimeZoneInfo.FindSystemTimeZoneById; default case throws instead of returning null",
     "first_seen": "2026-06-03T00:00:00Z",
-    "last_seen": "2026-06-25T15:25:33Z",
-    "occurrences": 4,
+    "last_seen": "2026-07-01T20:39:09Z",
+    "occurrences": 5,
     "match": {
       "channels": [
         "alert-system",
@@ -654,7 +654,7 @@
           "regex": "America/[A-Za-z_]+ was not found"
         }
       ],
-      "note": "Discovered via ES on 2026-06-17 after Serilog/ES auth (chronic dev_team 401, ~17d) was restored. Did not fire its own Slack channel alert this cycle; surfaced during the alert-frontend-errors (ki-21) ES investigation. Historically bursty (ES: 06-03 ~23/h, 06-10 ~254/h, 06-17 396/h) but invisible during the 401 window."
+      "note": "Discovered via ES on 2026-06-17 after Serilog/ES auth (chronic dev_team 401, ~17d) was restored. Did not fire its own Slack channel alert this cycle; surfaced during the alert-frontend-errors (ki-21) ES investigation. Historically bursty (ES: 06-03 ~23/h, 06-10 ~254/h, 06-17 396/h) but invisible during the 401 window. 2026-07-02 laptop-outage catch-up (bot dark 2026-06-26T05:34Z->07-02T12:34Z, ~6d7h): ES over 06-26->07-02 = 3,198 hits, unchanged signature — accounts thestoragegroup (2,869) + supplyshield (329) ONLY; hosts PROD-CLASSIC-01 (1,587) + PROD-CLASSIC-02 (1,611); type MethodUIClassic; latest 2026-07-01T20:39:09Z. Prior week (06-19->06-26) was 4,196, so the rate is flat-to-declining, not an outage spike. The 2026-07-02T12:44Z automated poll-cycle logged 'ki-17 ClassicTimezone: 0 hits' because it only checked its ~65-min poll window; the issue is very much alive over any multi-hour window. Still unfixed — mitigation (rewrite the two accounts' stored tz to 'Eastern Standard Time') not yet applied."
     },
     "diagnosis": "Com.Method.Utils.TimeZoneLookup.GetSystemTimeZoneById(tzID) (legacy-common-core Method.Common/Com.Method/Utils/TimeZoneLookup.cs, line ~939) maps friendly names (EASTERN/CENTRAL/PACIFIC) to Windows tz ids, but its default case calls TimeZoneInfo.FindSystemTimeZoneById(tzID) directly. On the Windows classic hosts (PROD-CLASSIC-01/02) an IANA tz id such as 'America/New_York' is not a valid Windows id, so FindSystemTimeZoneById throws System.TimeZoneNotFoundException. Every caller (GetUtcOffset/IsDst/etc., lines ~189-312) expects null on an unknown id ('if (tz == null) return -1') rather than an exception, so the throw is unhandled and logged. 2026-06-17 19:08-20:10Z: 396 errors, 95% account=thestoragegroup (378), supplyshield (18), both PROD-CLASSIC-01 (200) + PROD-CLASSIC-02 (196); actions fncNativeFieldDateAndTime (288), fncConverFromUTCTime (70), fncConverToUTCTime (38). Account-data driven: the affected account's stored timezone value is an IANA id, not a Windows id or a friendly name.",
     "playbook": "1) IMMEDIATE mitigation (no deploy): correct the stored timezone for the dominant account(s) (thestoragegroup, supplyshield) from the IANA id 'America/New_York' to the Windows id 'Eastern Standard Time' (or the friendly 'EASTERN' the switch already handles) in the account's classic timezone setting. This stops 95%+ of the volume. 2) DURABLE code fix (legacy-common-core TimeZoneLookup.GetSystemTimeZoneById default case): wrap FindSystemTimeZoneById in try/catch(TimeZoneNotFoundException); on failure, best-effort map common IANA ids -> Windows ids (America/New_York->Eastern Standard Time, America/Chicago->Central Standard Time, America/Denver->Mountain Standard Time, America/Los_Angeles->Pacific Standard Time) and otherwise return null to honour the existing caller null-contract. Single-file, ~18 lines. 3) Verify post-fix: ES query 'TimeZoneNotFoundException' over the classic indices should drop to ~0. 4) Note: classic deploys via TFS (invisible to git/gh) — confirm rollout with the classic deploy owner.",
@@ -768,6 +768,42 @@
     "owning_team": "Connect",
     "last_notified_at": "2026-06-24T17:20:08Z",
     "resolution": "Hotfix deployed by Yuri Zirianov 2026-06-24T16:32Z (\"completed\"); Harman/Inder confirmed resolved ~16:48Z and notified affected customers (swat thread 1782317390.260069)."
+  },
+  {
+    "id": "ki-2026-06-27-newimport-export-path-missing-503",
+    "title": "newimport-api (Method.Import.Api) health check returns 503 on both import nodes because the ExportFilePath dependency '/mnt/temp_backups/methodimport/' is missing or inaccessible",
+    "first_seen": "2026-06-27T08:44:35Z",
+    "last_seen": "2026-06-27T08:48:09Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "team-incident-response",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "ExportFilePath"
+        },
+        {
+          "contains": "/mnt/temp_backups/methodimport"
+        },
+        {
+          "contains": "Export path"
+        },
+        {
+          "contains": "newimport-api-netcore"
+        }
+      ],
+      "note": "Not a DD-monitor or polled-channel alert. Surfaced only via the automated SWAT self-service runbook 'swat-rb-linux-http-service-investigate-v1' posting to #team-incident-response during the 2026-06-26->07-02 laptop-outage catch-up. Both import nodes probed: MSL04 (i-0e2816d8ce604ea41, 172.31.120.89) at 2026-06-27T08:44:35Z and MSL03 (i-07b30098b71b36040, 172.31.94.57) at 2026-06-27T08:48:09Z."
+    },
+    "diagnosis": "Method.Import.Api /newimport/health/check returned HTTP 503 (overall status 'Unhealthy') on BOTH import hosts (MSL03, MSL04) at 2026-06-27T08:44-08:48Z. Exactly one dependency was unhealthy: 'ExportFilePath' -> 'Export path \\'/mnt/temp_backups/methodimport/\\' does not exist or is not accessible.' All other dependencies healthy on both nodes: Redis, RabbitMQ, Mongo (MethodImport db), and SQL connections c1-c5. The service process itself was up (systemd active, listening on 5090) — this is a filesystem/mount availability failure, not a crash or resource exhaustion. '/mnt/temp_backups' is a network mount (same CIFS/temp_backups family as ki-2026-06-19-msl04-host-degraded-disk-cifs-varlog); a dropped or unmounted share removes the export directory and fails the health probe. Impact: the health endpoint 503 makes the node look unhealthy to any LB/health consumer, and export/backup-dependent import operations cannot write. NOTE: the request-level DD monitors (299551459 ImportAPI 5xx P1, 299551465 P95 P2, 299551472 ImportSubscriber P1, 299551499 ImportCron P1) were all OK across the window — the 503 is health-probe-only and did not manifest as request 5xx, so this is invisible to the normal alert path.",
+    "playbook": "1) On each import host (MSL03, MSL04) verify the mount: 'mount | grep temp_backups' and 'ls -ld /mnt/temp_backups/methodimport/'. 2) If unmounted, remount the share (check /etc/fstab and the CIFS credentials) and confirm the dotnet process user can read/write. 3) If the directory is simply missing under a healthy mount: 'mkdir -p /mnt/temp_backups/methodimport/' with correct ownership/permissions. 4) Re-probe: 'curl -s http://<host>/newimport/health/check' should return 200. 5) DURABLE: this is health-probe-only and invisible to DD request monitors — add a DD/Grafana synthetic on the /newimport/health/check status so a future ExportFilePath failure pages without relying on the SWAT runbook. 6) Owner: Admin. Confirm whether the mount dropped as part of a host action during the 06-26->07-02 window; check for correlation with the MSL04 CIFS/disk issue (ki-2026-06-19).",
+    "fix_status": "needs-ops-decision",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.8,
+    "owning_team": "Admin",
+    "resolution": "Not confirmed recovered. As of 2026-07-02 all Import DD monitors (5xx/P95/subscriber/cron) are OK, but those are request-level and never saw the health-probe 503; mount state on MSL03/MSL04 not verifiable without SSH bastion (down this session). Needs an ops check of the /mnt/temp_backups mount on both nodes."
   },
   {
     "id": "ki-billingengine-api-key1-removed-in-refactor",
