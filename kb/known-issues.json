@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-02T20:05:12Z",
-    "occurrences": 518,
+    "last_seen": "2026-07-02T21:54:11Z",
+    "occurrences": 519,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -283,6 +283,10 @@
       {
         "ts": "2026-07-02T18:08:00Z",
         "note": "2026-07-02 18:08Z triage (degraded cycle, no Slack MCP): ki-21 occ#516 via DD monitor 77419271 last_triggered 17:58:11Z (OK now, self-recovered). DD method-ui XHR error logs sampled 17:17-18:08Z confirm canonical chronic shape (GET /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync, status_code:0, e.g. unitedoverheaddoorcorp2, primroseventuresllc, prostack). Synthetic hash afb89429652d0b48 (channel C03TYHGRS23 + DD monitor ts 17:58:11Z). last_notified_at 2026-07-02T12:43:53Z = ~5h15m ago, WITHIN 24h suppression window; occ 515->516 (516%10!=0); fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window. No ki-24 co-fire this cycle (RTC monitors quiet since 13:30:21Z)."
+      },
+      {
+        "ts": "2026-07-02T22:08:48Z",
+        "note": "2026-07-02 22:08Z triage (degraded cycle, no Slack MCP): occ#519 via DD monitor 77419271 last_triggered 21:54:11Z (OK now, self-recovered). Synthetic hash 815660ec81bae7d0 (channel C03TYHGRS23 + DD monitor ts 21:54:11Z). last_notified_at 2026-07-02T12:43:53Z = ~9h11m ago, WITHIN 24h suppression window; occ 518->519 (519%10!=0); fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window. No ki-24 co-fire this cycle (RTC monitors quiet since 13:30:21Z)."
       }
     ]
   },
@@ -874,8 +878,8 @@
     "id": "ki-2026-07-02-tables-fields-fieldtablenameref-null-linked-fields",
     "title": "ms-tables-fields-api ArgumentNullException on account-specific linked fields with null FieldTableNameRef -- App Update SaveViewBundleInternal fails 400 (chronic, account-specific)",
     "first_seen": "2026-05-28T17:27:49Z",
-    "last_seen": "2026-07-02T20:03:55Z",
-    "occurrences": 2,
+    "last_seen": "2026-07-02T22:06:24Z",
+    "occurrences": 3,
     "match": {
       "channels": [
         "alert-system",
@@ -915,6 +919,10 @@
       {
         "ts": "2026-07-02T20:10:00Z",
         "note": "Created this cycle from occ#2 (DD monitor 299251404 Alert 20:05:24Z, self-recovered by 20:10:25Z). Underlying burst 20:03:30-20:03:55Z: 6 APM request-errors (2.13% rate vs 1% threshold, 282 hits/5min window) but 160 ES/Serilog error-level log lines across exactly 3 traces, all account stellarair (apps Work Orders, Field Crew, Send Email; views Activity/ActivityJobItems). Full stack trace captured (ArgumentNullException at MetadataDataProvider.cs:1087). Score=5 (critical_path_service +3, metric_breach_magnitude +2 [ratio 1.13], novel_no_kb +2, recency_decay -2 [3rd fire of monitor 299251404 today]) >= threshold 4, daily needs-human cap 1/5 not breached -> POSTED to #triage-results. See docs/investigations/2026-07-02-4794baf85a3a8989.md."
+      },
+      {
+        "ts": "2026-07-02T22:08:48Z",
+        "note": "2026-07-02 22:08Z triage (degraded cycle, no Slack MCP): occ#3, monitor 299251404 re-fired 22:06:24Z (OK now, self-recovered). ES aggregate 21:08:48-22:08:48Z: 80 error-level hits, top buckets FieldTableNameRef Is Null (18), GetAllFields Failed (18), GetColumnForAllFields failed (18), FieldTableNameRef Is Null (Parameter 'FieldTableNameRef') (9), GetFieldList Failed (6) -- identical signature to occ#1-2. Synthetic hash 1a5178d460dcc1de (channel CPHHABKAA + DD monitor ts 22:06:24Z). last_notified_at 2026-07-02T20:10:00Z = ~1h56m ago, WITHIN 24h suppression window; occ 2->3 (3%10!=0); fix_status needs-human unchanged -> SUPPRESS gate_reason=known-issue-window."
       }
     ]
   },
