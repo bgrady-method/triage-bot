@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-02T17:07:12Z",
-    "occurrences": 515,
+    "last_seen": "2026-07-02T17:58:11Z",
+    "occurrences": 516,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -279,6 +279,10 @@
       {
         "ts": "2026-07-02T15:08:30Z",
         "note": "2026-07-02 15:08Z triage (degraded cycle, no Slack MCP): ki-21 occ#513 via DD monitor 77419271 last_triggered 14:48:11Z (OK now, self-recovered). DD method-ui XHR error logs sampled 14:30-15:08Z confirm canonical chronic shape (GET /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync, status_code:0). Synthetic hash a0dd3e461d0ff1f3 (channel C03TYHGRS23 + DD monitor ts 14:48:11Z). last_notified_at 2026-07-02T12:43:53Z = ~2h24m ago, WITHIN 24h suppression window; occ 512->513 (513%10!=0); fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window. No ki-24 co-fire this cycle (RTC monitors quiet since 13:30:21Z)."
+      },
+      {
+        "ts": "2026-07-02T18:08:00Z",
+        "note": "2026-07-02 18:08Z triage (degraded cycle, no Slack MCP): ki-21 occ#516 via DD monitor 77419271 last_triggered 17:58:11Z (OK now, self-recovered). DD method-ui XHR error logs sampled 17:17-18:08Z confirm canonical chronic shape (GET /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync, status_code:0, e.g. unitedoverheaddoorcorp2, primroseventuresllc, prostack). Synthetic hash afb89429652d0b48 (channel C03TYHGRS23 + DD monitor ts 17:58:11Z). last_notified_at 2026-07-02T12:43:53Z = ~5h15m ago, WITHIN 24h suppression window; occ 515->516 (516%10!=0); fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window. No ki-24 co-fire this cycle (RTC monitors quiet since 13:30:21Z)."
       }
     ]
   },
@@ -636,8 +640,8 @@
     "id": "ki-2026-06-17-classic-timezone-iana-id-not-found",
     "title": "MethodUIClassic TimeZoneNotFoundException — IANA tz id (e.g. 'America/New_York') passed to Windows TimeZoneInfo.FindSystemTimeZoneById; default case throws instead of returning null",
     "first_seen": "2026-06-03T00:00:00Z",
-    "last_seen": "2026-07-02T17:17:37Z",
-    "occurrences": 7,
+    "last_seen": "2026-07-02T18:08:00Z",
+    "occurrences": 8,
     "match": {
       "channels": [
         "alert-system",
@@ -670,7 +674,13 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.9,
-    "last_notified_at": "2026-07-02T16:08:11Z"
+    "last_notified_at": "2026-07-02T16:08:11Z",
+    "notes": [
+      {
+        "ts": "2026-07-02T18:08:00Z",
+        "note": "2026-07-02 18:08Z triage (degraded cycle, no Slack MCP): occ#8 via ES sweep 17:17:37-18:08:00Z = 196 hits, continuing thestoragegroup/PROD-CLASSIC pattern (same signature as occ#5-7). Synthetic hash 134076dffa56915a (channel CPHHABKAA + poll ts 18:08:00Z). last_notified_at 2026-07-02T16:08:11Z = ~2h ago, WITHIN 24h suppression window; occ 7->8 (8%10!=0); fix_status proposed unchanged -> SUPPRESS gate_reason=known-issue-window."
+      }
+    ]
   },
   {
     "id": "ki-2026-06-18-rainforest-webhook-inactive-account-500",
@@ -817,8 +827,8 @@
     "id": "ki-2026-07-02-miurl-agent-account-cluster-internal-lookup",
     "title": "miurl-agent 100%-failure calls to ms-account-api internal cluster-lookup endpoint (chronic, low-volume)",
     "first_seen": "2026-07-02T14:07:56Z",
-    "last_seen": "2026-07-02T16:32:56Z",
-    "occurrences": 3,
+    "last_seen": "2026-07-02T17:43:56Z",
+    "occurrences": 4,
     "match": {
       "channels": [
         "alert-system"
@@ -853,6 +863,10 @@
       {
         "ts": "2026-07-02T16:08:11Z",
         "note": "occ#3 (Warn, 15:49:56Z, de-escalated from Alert). Same signature: 7/7 errors on GET .../account/v3/cluster/internal/account, ~3.3% error rate over 60min window (vs 2% warn threshold). First notification (last_notified_at was null) -> POSTED to #triage-results. See docs/investigations/2026-07-02-0413ce621facac04.md."
+      },
+      {
+        "ts": "2026-07-02T18:08:00Z",
+        "note": "2026-07-02 18:08Z triage (degraded cycle, no Slack MCP): occ#4, monitor 302048396 re-fired 17:43:56Z (OK now, self-recovered). DD APM sum:trace.http.request.errors by resource_name 17:17-18:08Z = 9 total errors, 9/9 (100%) on GET .../account/v3/cluster/internal/account -- identical signature to occ#1-3, no new resource_name. Synthetic hash 76b314f9b1d01b77 (channel CPHHABKAA + DD monitor ts 17:43:56Z). last_notified_at 2026-07-02T16:08:11Z = ~2h ago, WITHIN 24h suppression window; occ 3->4 (4%10!=0); fix_status needs-human unchanged -> SUPPRESS gate_reason=known-issue-window."
       }
     ]
   },
