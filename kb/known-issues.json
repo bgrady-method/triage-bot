@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-02T14:48:11Z",
-    "occurrences": 513,
+    "last_seen": "2026-07-02T15:43:11Z",
+    "occurrences": 514,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -413,8 +413,8 @@
     "id": "ki-2026-05-28-mobile-asyncstorage-securestore-keychain",
     "title": "Method iOS app (v2.1.537): 'Failed to migrate from AsyncStorage to SecureStore' (ERR_KEY_CHAIN) storm",
     "first_seen": "2026-05-28T00:07:21Z",
-    "last_seen": "2026-07-02T15:08:30Z",
-    "occurrences": 17,
+    "last_seen": "2026-07-02T15:46:13Z",
+    "occurrences": 18,
     "match": {
       "channels": [
         "alert-system",
@@ -636,8 +636,8 @@
     "id": "ki-2026-06-17-classic-timezone-iana-id-not-found",
     "title": "MethodUIClassic TimeZoneNotFoundException — IANA tz id (e.g. 'America/New_York') passed to Windows TimeZoneInfo.FindSystemTimeZoneById; default case throws instead of returning null",
     "first_seen": "2026-06-03T00:00:00Z",
-    "last_seen": "2026-07-01T20:39:09Z",
-    "occurrences": 5,
+    "last_seen": "2026-07-02T16:03:27Z",
+    "occurrences": 6,
     "match": {
       "channels": [
         "alert-system",
@@ -670,7 +670,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.9,
-    "last_notified_at": "2026-06-24T20:13:00Z"
+    "last_notified_at": "2026-07-02T16:08:11Z"
   },
   {
     "id": "ki-2026-06-18-rainforest-webhook-inactive-account-500",
@@ -817,8 +817,8 @@
     "id": "ki-2026-07-02-miurl-agent-account-cluster-internal-lookup",
     "title": "miurl-agent 100%-failure calls to ms-account-api internal cluster-lookup endpoint (chronic, low-volume)",
     "first_seen": "2026-07-02T14:07:56Z",
-    "last_seen": "2026-07-02T14:49:56Z",
-    "occurrences": 1,
+    "last_seen": "2026-07-02T15:49:56Z",
+    "occurrences": 2,
     "match": {
       "channels": [
         "alert-system"
@@ -844,11 +844,15 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.65,
-    "last_notified_at": null,
+    "last_notified_at": "2026-07-02T16:08:11Z",
     "notes": [
       {
         "ts": "2026-07-02T15:08:30Z",
         "note": "Created this cycle from occ#2 (Alert, 14:49:56Z) after occ#1 (Warn, 14:07:56Z, docs/investigations/2026-07-02-041e7c3d19bba57f.md) explicitly recommended promotion on re-fire with the same resource_name signature. Both occurrences confirmed identical: 100% of errors on GET .../account/v3/cluster/internal/account. Score=2 (below escalation_score_threshold=4) -> actionable-high-borderline, no #triage-results post, no DM. See docs/investigations/2026-07-02-9dafa52b80dd7e8f.md for full occ#2 analysis."
+      },
+      {
+        "ts": "2026-07-02T16:08:11Z",
+        "note": "occ#3 (Warn, 15:49:56Z, de-escalated from Alert). Same signature: 7/7 errors on GET .../account/v3/cluster/internal/account, ~3.3% error rate over 60min window (vs 2% warn threshold). First notification (last_notified_at was null) -> POSTED to #triage-results. See docs/investigations/2026-07-02-0413ce621facac04.md."
       }
     ]
   },
