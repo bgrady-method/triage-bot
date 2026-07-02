@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-02T13:39:11Z",
-    "occurrences": 512,
+    "last_seen": "2026-07-02T14:48:11Z",
+    "occurrences": 513,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -275,6 +275,10 @@
       {
         "ts": "2026-06-25T20:08:00Z",
         "note": "2026-06-25 20:08Z triage (degraded cycle, no Slack MCP): ki-21 occ#509 via DD monitor 77419271 last_triggered 19:48:11Z (OK now, self-recovered). Synthetic hash 47fa66231ced225a (channel C03TYHGRS23 + DD monitor ts 19:48:11Z). last_notified_at 2026-06-25T18:35:00Z = 73min ago, WITHIN 24h suppression window; occ 508->509 (509%10!=0); fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window. ES sweep 19:10-20:08Z: 853 total errors (baseline per 18:00-19:10Z = 3385, current well below -- prod CALM post ImportAPI-P1 burst). approutine-subscriber: 550 errors (540 from synergyengineering UnprocessableRoutine ef5c58e3 Calc-Total-Hours, flat vs baseline 598/70min -- account-specific chronic, no monitor alert). ki-24 RTC monitor 115456700: last_triggered 18:49:20Z (handled in prior window as CALM). All critical-path monitors OK. Daily cap: 4/5."
+      },
+      {
+        "ts": "2026-07-02T15:08:30Z",
+        "note": "2026-07-02 15:08Z triage (degraded cycle, no Slack MCP): ki-21 occ#513 via DD monitor 77419271 last_triggered 14:48:11Z (OK now, self-recovered). DD method-ui XHR error logs sampled 14:30-15:08Z confirm canonical chronic shape (GET /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync, status_code:0). Synthetic hash a0dd3e461d0ff1f3 (channel C03TYHGRS23 + DD monitor ts 14:48:11Z). last_notified_at 2026-07-02T12:43:53Z = ~2h24m ago, WITHIN 24h suppression window; occ 512->513 (513%10!=0); fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window. No ki-24 co-fire this cycle (RTC monitors quiet since 13:30:21Z)."
       }
     ]
   },
@@ -409,8 +413,8 @@
     "id": "ki-2026-05-28-mobile-asyncstorage-securestore-keychain",
     "title": "Method iOS app (v2.1.537): 'Failed to migrate from AsyncStorage to SecureStore' (ERR_KEY_CHAIN) storm",
     "first_seen": "2026-05-28T00:07:21Z",
-    "last_seen": "2026-07-02T14:12:00Z",
-    "occurrences": 16,
+    "last_seen": "2026-07-02T15:08:30Z",
+    "occurrences": 17,
     "match": {
       "channels": [
         "alert-system",
@@ -463,6 +467,10 @@
       {
         "ts": "2026-06-24T18:27:25Z",
         "note": "2026-06-24 18:27Z triage (ES-sourced, degraded cycle — no Slack read access; detected via proactive ES sweep). ERR_KEY_CHAIN storm confirmed running since ≥10:00Z today (ES from:10:00Z returns ≥10,000 hits). In poll window (17:03-18:10Z): 4847 'Failed to migrate from AsyncStorage to SecureStore: ERR_KEY_CHAIN' out of 4961 nonprod/apps ES errors (97.7%). App version in new occurrence: Method/2.1.651 CFNetwork (iOS; was 2.1.537 in original May incident). The bug persists across app version bumps — still client-side keychain migration failure, no server-side fix shipped. 28x spike vs same-window yesterday (4961 vs 176). Owning team: Service Delivery (#team-service-delivery). This occurrence surfaced via ES proactive sweep because the Slack alerts (monitor 227951254 'New issue to review') post with empty bodies — the text-based KB matcher (match_kb.py) cannot match empty-body posts. COVERAGE GAP: bot needs ES confirmation step for empty-body 227951254 posts. last_notified_at bumped (prior: 2026-05-29T16:22:59Z, 25d ago, past 24h suppression). KIR posted to #triage-results."
+      },
+      {
+        "ts": "2026-07-02T15:08:30Z",
+        "note": "2026-07-02 15:08Z triage (degraded cycle, no Slack MCP): ki-28 occ#17. NOTE: evidence_source field says datadog_logs but the query dd_search.py logs 'service:nonprod/apps (ERR_KEY_CHAIN OR ...)' returned 0 hits over a full 7-day window even though DD Logs is otherwise flowing (wildcard sanity query returned fresh hits) -- likely a stale/wrong evidence_source field, since every actual investigation this KB has ever used es_search.py instead (see 2026-07-02-6e1ea59c0b765c41.md: 'ki-28 is ES-sourced, not RUM'). Fell back to the demonstrated ES query: fields.dd_service.keyword:\"nonprod/apps\" AND message:*ERR_KEY_CHAIN* -> 123 hits in the 14:12-15:08Z (56-min) window (~2.2/min), down sharply from ~42.9/min last cycle -- continued deceleration. Synthetic hash d9ef818a95ee7e1f (channel C03TYHGRS23 + window-end ts). last_notified_at 2026-07-02T12:43:53Z = ~2h24m ago, WITHIN 24h suppression window; occ 16->17 (not %10); fix_status needs-human unchanged -> SUPPRESS gate_reason=known-issue-window. Flagging the evidence_source field for correction to 'elasticsearch' in a future pass."
       }
     ]
   },
@@ -804,6 +812,45 @@
     "confidence": 0.8,
     "owning_team": "Admin",
     "resolution": "Not confirmed recovered. As of 2026-07-02 all Import DD monitors (5xx/P95/subscriber/cron) are OK, but those are request-level and never saw the health-probe 503; mount state on MSL03/MSL04 not verifiable without SSH bastion (down this session). Needs an ops check of the /mnt/temp_backups mount on both nodes."
+  },
+  {
+    "id": "ki-2026-07-02-miurl-agent-account-cluster-internal-lookup",
+    "title": "miurl-agent 100%-failure calls to ms-account-api internal cluster-lookup endpoint (chronic, low-volume)",
+    "first_seen": "2026-07-02T14:07:56Z",
+    "last_seen": "2026-07-02T14:49:56Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-system"
+      ],
+      "any_of": [
+        {
+          "contains": "[VAE][miurl-agent][P1]"
+        },
+        {
+          "contains": "monitors/302048396"
+        },
+        {
+          "regex": "miurl-agent.*error rate"
+        }
+      ]
+    },
+    "evidence_source": "datadog_apm",
+    "evidence_query": "sum:trace.http.request.errors{service:miurl-agent,env:prod} by {resource_name}.as_count() -- filter resource_name:get_microservices.methodlocal.int/account/v3/cluster/internal/account",
+    "evidence_threshold_s": null,
+    "diagnosis": "miurl-agent (best-guess mapping: legacy-miurl-consumer) makes a periodic outbound call to the internal ms-account-api endpoint GET microservices.methodlocal.int/account/v3/cluster/internal/account, and that call fails on 100% of the invocations sampled across two separate monitor fires (Warn 2026-07-02T14:07:56Z, Alert 2026-07-02T14:49:56Z) and a fully-saturated 72h hourly trend (73/73 hours nonzero, 415 total errors). miurl-agent's overall traffic is tiny (~30-35 hits/10min), so 2-3 failing calls is enough to cross the monitor's 5% service-wide error-rate threshold, producing intermittent Warn/Alert fires with no clear onset -- this is a pre-existing chronic dependency break, not a fresh regression. Root cause on the caller or callee side (stale/incorrect internal account reference, auth gap on the specific internal route, or a deprecated/moved endpoint) is NOT confirmed against source -- no repo access to miurl-agent/legacy-miurl-consumer in either investigation. Ownership is ambiguous: references/architecture/ownership.md maps the closest name match ('miurl') to team Transactions, but the DD monitor's own tags say team:vae/vae_swat:true -- flagged, not resolved.",
+    "playbook": "1) Confirm the fire is this signature: DD metric sum:trace.http.request.errors{service:miurl-agent,env:prod} by {resource_name} over the monitor's 10-min eval window -- if 100% of errors land on resource_name get_microservices.methodlocal.int/account/v3/cluster/internal/account, it's this KB, not a new incident. 2) Confirm chronicity: 72h hourly trend on the same resource_name filter -- expect most/all hourly buckets nonzero. 3) Check ms-account-api's own health/latency monitors for co-firing (would indicate a broader ms-account-api outage rather than this narrow single-caller break) -- none observed in either occurrence. 4) Do not re-derive root cause from scratch each fire -- the diagnosis is stable; only the magnitude (error count, service-wide %) changes. 5) File/escalate the underlying defect once repo access to miurl-agent/legacy-miurl-consumer is available -- neither occurrence could confirm the actual break (auth/stale-reference/deprecated route) against source.",
+    "fix_status": "needs-human",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.65,
+    "last_notified_at": null,
+    "notes": [
+      {
+        "ts": "2026-07-02T15:08:30Z",
+        "note": "Created this cycle from occ#2 (Alert, 14:49:56Z) after occ#1 (Warn, 14:07:56Z, docs/investigations/2026-07-02-041e7c3d19bba57f.md) explicitly recommended promotion on re-fire with the same resource_name signature. Both occurrences confirmed identical: 100% of errors on GET .../account/v3/cluster/internal/account. Score=2 (below escalation_score_threshold=4) -> actionable-high-borderline, no #triage-results post, no DM. See docs/investigations/2026-07-02-9dafa52b80dd7e8f.md for full occ#2 analysis."
+      }
+    ]
   },
   {
     "id": "ki-billingengine-api-key1-removed-in-refactor",
