@@ -976,6 +976,95 @@
     ]
   },
   {
+    "id": "ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata",
+    "title": "\"Method UI Grid and Dropdown Performance Test\" synthetics (team:qa, non-prod, 4 monitor-ID variants: Day run / Day run 2 / Evening run / Midnight run) chronically go No Data; never correlates to a real incident",
+    "first_seen": "2026-05-02T13:46:00Z",
+    "last_seen": "2026-07-03T12:30:00Z",
+    "occurrences": 13,
+    "match": {
+      "channels": [
+        "alert-system"
+      ],
+      "any_of": [
+        {
+          "contains": "Method UI Grid and Dropdown Performance Test"
+        },
+        {
+          "contains": "monitors/121308660"
+        },
+        {
+          "contains": "monitors/133625690"
+        },
+        {
+          "contains": "monitors/123495390"
+        },
+        {
+          "contains": "monitors/123495492"
+        }
+      ]
+    },
+    "evidence_source": "datadog_apm",
+    "evidence_query": "monitors {121308660,133625690,123495390,123495492} overall_state == 'No Data'",
+    "evidence_threshold_s": null,
+    "diagnosis": "Four DD synthetics monitors (Day run 121308660, Day run 2 133625690, Evening run 123495492, Midnight run 123495390; tag team:qa) covering the Method UI Grid and Dropdown browser performance check go to 'No Data' state chronically -- 13+ documented occurrences across the family since 2026-05-02. Every prior investigation reached the same conclusion: this is QA/synthetics browser-check infrastructure, carries no prod service tag, and has never once correlated in time with a concurrent alert-system/frontend/runtime-monitoring signal. Same class of chronic non-prod noise as the sibling 'Warehouse Dashboard Network Test' pattern (ki-2026-07-03-warehouse-dashboard-network-test-nodata), closed the same cycle for the same reason: repeatedly re-investigated from scratch with no KB entry to short-circuit it.",
+    "playbook": "1) Confirm shape: monitor ID is one of 121308660 / 133625690 / 123495390 / 123495492, name contains 'Method UI Grid and Dropdown Performance Test', tag team:qa, state 'No Data' (not 'Alert'). 2) Check whether any OTHER channel/monitor co-fired in the same window -- historically, never. 3) If it does co-occur with a real production signal, treat as coincidence unless a mechanism link is found. 4) No further action needed; log occurrence and move on.",
+    "fix_status": "confirmed-non-prod-noise",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.85,
+    "owning_team": "unmapped",
+    "last_notified_at": null,
+    "notes": [
+      {
+        "ts": "2026-07-03T13:09:00Z",
+        "note": "2026-07-03 13:09Z triage (degraded cycle, no Slack MCP): Midnight run variant (123495390) No Data 12:30:00Z, still No Data at scan time. 13th documented occurrence across the 4-monitor family since 2026-05-02 (grep of kb/incident-log.jsonl: 121308660 x5, 123495390 x2 prior + this one, 133625690 x5). No co-firing signal this cycle. Created this KB entry now (confidence 0.85) applying the same lesson as the Warehouse Dashboard Network Test entry written earlier today -- closing a gap that's existed since at least 2026-05-27. Synthetic hash 1e86972b804561e3 (channel CPHHABKAA + DD monitor ts 2026-07-03T12:30:00Z). Scored needs-human, novel_no_kb +2 only = 2 -> actionable-low-impact, NOT posted to #triage-results. See docs/investigations/2026-07-03-1e86972b804561e3.md."
+      }
+    ]
+  },
+  {
+    "id": "ki-2026-07-03-ms-scheduler-api-seriesid-negative-recordid",
+    "title": "ms-scheduler-api GetSeriesAsync throws InvalidOperationException when called with recordId=-1 for account lafittesseafood (chronic, single-account, ~10-21/day for 7+ days)",
+    "first_seen": "2026-06-26T00:00:00Z",
+    "last_seen": "2026-07-03T13:04:37Z",
+    "occurrences": 125,
+    "match": {
+      "channels": [
+        "alert-system"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/302054543"
+        },
+        {
+          "contains": "ms-scheduler-api error rate high"
+        },
+        {
+          "contains": "Failed to Get Series Id for record -1"
+        },
+        {
+          "regex": "SeriesDataProvider.*GetSeriesIdAsync"
+        }
+      ]
+    },
+    "evidence_source": "elasticsearch",
+    "evidence_query": "fields.dd_service.keyword:\"ms-scheduler-api\" AND fields.Account.keyword:\"lafittesseafood\"",
+    "evidence_threshold_s": null,
+    "diagnosis": "ms-scheduler-api's SeriesDataProvider.GetSeriesIdAsync (Scheduler.Core) is called with recordId=-1 for account lafittesseafood via API.Controllers.SeriesController.GetSeriesAsync (RequestPath /v1/series/getseries). The provider queries SQL expecting a row for that record and does not guard against the sentinel/invalid recordId=-1 before reading; SqlDataReader.GetValue() then throws System.InvalidOperationException ('Invalid attempt to read when no data is present'), which surfaces as System.Exception('Failed to Get Series Id for record -1 in table Activity'). ES confirms 125 identical occurrences over the last 7 days (2026-06-26 to 2026-07-03), steady daily volume (10-21/day), single account, single stack trace -- a chronic pre-existing bug, not a new incident. DD's '[CRM] ms-scheduler-api error rate high' monitor (302054543) is a newly-observed monitor that tripped for the first time today only because this service's low overall traffic makes its error-rate percentage sensitive to a handful of absolute errors (6 errors / 233 hits = 2.56% vs 2% threshold in the trigger window) -- the underlying bug itself did not spike.",
+    "playbook": "1) Confirm shape: DD monitor 302054543 in 'Alert' state, OR ES query fields.dd_service.keyword:\"ms-scheduler-api\" AND fields.Account.keyword:\"lafittesseafood\" returning the 'Failed to Get Series Id for record -1' signature. 2) Compute the error-rate ratio in DD (errors/hits over the alert's own last_10m window) -- historically marginal (~2.5%), not a severe spike; do not over-escalate on the DD monitor state alone. 3) The root cause is a single-account client/data issue (recordId=-1 being passed for lafittesseafood), not infra-wide -- do not extrapolate to other accounts without independent evidence. 4) File/bump a defect for CRM Experience (#team-customer-management) rather than re-diagnosing from scratch each cycle.",
+    "fix_status": "proposed",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.8,
+    "owning_team": "CRM Experience",
+    "last_notified_at": null,
+    "notes": [
+      {
+        "ts": "2026-07-03T13:09:00Z",
+        "note": "2026-07-03 13:09Z triage (degraded cycle, no Slack MCP): first-ever fire of DD monitor 302054543 at 13:06:23Z. ES recurrence check found 125 identical events over the trailing 7 days for account lafittesseafood, all the same GetSeriesIdAsync(recordId=-1) stack trace -- confirms this is a chronic single-account bug that a newly-added/newly-sensitive DD monitor just happened to catch today, not a fresh incident. Not classified new-with-clear-fix: ms-scheduler-api repo fetch failed (HTTP 403, methodcrm-org GH_TOKEN access gap, same chronic gap flagged for the Rainforest group this cycle), local cached ref is 2+ months stale (2026-04-30), so no diff could be proposed with confidence against current code. Created this KB entry now (confidence 0.8) so future recurrences are recognized without re-deriving the stack trace from scratch. Synthetic hash 631b9a7a6ec73770 (channel CPHHABKAA + DD monitor ts 2026-07-03T13:06:23Z). Scored needs-human, novel_no_kb +2 only (metric_breach_magnitude ratio 0.28, below the 0.5 bracket) = 2 -> actionable-low-impact, NOT posted to #triage-results. See docs/investigations/2026-07-03-631b9a7a6ec73770.md."
+      }
+    ]
+  },
+  {
     "id": "ki-2026-07-03-warehouse-dashboard-network-test-nodata",
     "title": "\"Warehouse Dashboard Network Test\" synthetics (team:qa, non-prod) go No Data daily ~09:31-10:01Z UTC; never correlates to a real incident",
     "first_seen": "2026-05-07T09:31:00Z",
