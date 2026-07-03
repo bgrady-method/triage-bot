@@ -977,10 +977,10 @@
   },
   {
     "id": "ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata",
-    "title": "\"Method UI Grid and Dropdown Performance Test\" synthetics (team:qa, non-prod, 4 monitor-ID variants: Day run / Day run 2 / Evening run / Midnight run) chronically go No Data; never correlates to a real incident",
+    "title": "\"Method UI Grid and Dropdown Performance Test\" synthetics (team:qa, non-prod, 5 monitor-ID variants: Day run / Day run 2 / Evening run / Midnight run / Release Run) chronically go No Data; never correlates to a real incident",
     "first_seen": "2026-05-02T13:46:00Z",
-    "last_seen": "2026-07-03T12:30:00Z",
-    "occurrences": 13,
+    "last_seen": "2026-07-03T13:46:00Z",
+    "occurrences": 14,
     "match": {
       "channels": [
         "alert-system"
@@ -1000,13 +1000,16 @@
         },
         {
           "contains": "monitors/123495492"
+        },
+        {
+          "contains": "monitors/142200330"
         }
       ]
     },
     "evidence_source": "datadog_apm",
-    "evidence_query": "monitors {121308660,133625690,123495390,123495492} overall_state == 'No Data'",
+    "evidence_query": "monitors {121308660,133625690,123495390,123495492,142200330} overall_state == 'No Data'",
     "evidence_threshold_s": null,
-    "diagnosis": "Four DD synthetics monitors (Day run 121308660, Day run 2 133625690, Evening run 123495492, Midnight run 123495390; tag team:qa) covering the Method UI Grid and Dropdown browser performance check go to 'No Data' state chronically -- 13+ documented occurrences across the family since 2026-05-02. Every prior investigation reached the same conclusion: this is QA/synthetics browser-check infrastructure, carries no prod service tag, and has never once correlated in time with a concurrent alert-system/frontend/runtime-monitoring signal. Same class of chronic non-prod noise as the sibling 'Warehouse Dashboard Network Test' pattern (ki-2026-07-03-warehouse-dashboard-network-test-nodata), closed the same cycle for the same reason: repeatedly re-investigated from scratch with no KB entry to short-circuit it.",
+    "diagnosis": "Five DD synthetics monitors (Day run 121308660, Day run 2 133625690, Evening run 123495492, Midnight run 123495390, Release Run 142200330; tag team:qa) covering the Method UI Grid and Dropdown browser performance check go to 'No Data' state chronically -- 14+ documented occurrences across the family since 2026-05-02. Every prior investigation reached the same conclusion: this is QA/synthetics browser-check infrastructure, carries no prod service tag, and has never once correlated in time with a concurrent alert-system/frontend/runtime-monitoring signal. Same class of chronic non-prod noise as the sibling 'Warehouse Dashboard Network Test' pattern (ki-2026-07-03-warehouse-dashboard-network-test-nodata), closed the same cycle for the same reason: repeatedly re-investigated from scratch with no KB entry to short-circuit it.",
     "playbook": "1) Confirm shape: monitor ID is one of 121308660 / 133625690 / 123495390 / 123495492, name contains 'Method UI Grid and Dropdown Performance Test', tag team:qa, state 'No Data' (not 'Alert'). 2) Check whether any OTHER channel/monitor co-fired in the same window -- historically, never. 3) If it does co-occur with a real production signal, treat as coincidence unless a mechanism link is found. 4) No further action needed; log occurrence and move on.",
     "fix_status": "confirmed-non-prod-noise",
     "fix_jira": null,
@@ -1018,6 +1021,10 @@
       {
         "ts": "2026-07-03T13:09:00Z",
         "note": "2026-07-03 13:09Z triage (degraded cycle, no Slack MCP): Midnight run variant (123495390) No Data 12:30:00Z, still No Data at scan time. 13th documented occurrence across the 4-monitor family since 2026-05-02 (grep of kb/incident-log.jsonl: 121308660 x5, 123495390 x2 prior + this one, 133625690 x5). No co-firing signal this cycle. Created this KB entry now (confidence 0.85) applying the same lesson as the Warehouse Dashboard Network Test entry written earlier today -- closing a gap that's existed since at least 2026-05-27. Synthetic hash 1e86972b804561e3 (channel CPHHABKAA + DD monitor ts 2026-07-03T12:30:00Z). Scored needs-human, novel_no_kb +2 only = 2 -> actionable-low-impact, NOT posted to #triage-results. See docs/investigations/2026-07-03-1e86972b804561e3.md."
+      },
+      {
+        "ts": "2026-07-03T14:08:00Z",
+        "note": "2026-07-03 14:08Z triage (degraded cycle, no Slack MCP): Release Run variant (142200330) went No Data 13:46:00Z, still No Data at scan time. Same team:qa non-prod signature as the other 4 family members; this monitor ID was NOT in the match any_of list yet (match_kb.py returned null at step-3 lookup), even though it co-fired with 121308660/133625690 as far back as 2026-05-26 (kb/incident-log.jsonl 2026-05-26T14:23:22Z poll-cycle note). Broadened match.any_of to add monitors/142200330 rather than create a near-duplicate KB entry for the same diagnosis. No co-firing signal with any prod service this cycle. Synthetic hash 19d2a6c9c4d592e9 (channel CPHHABKAA + DD monitor ts 2026-07-03T13:46:00Z). Scored needs-human, novel_no_kb +2 only = 2 -> actionable-high-borderline, NOT posted to #triage-results. See docs/investigations/2026-07-03-19d2a6c9c4d592e9.md."
       }
     ]
   },
