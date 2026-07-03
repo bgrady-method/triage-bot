@@ -1030,10 +1030,10 @@
   },
   {
     "id": "ki-2026-07-03-ms-scheduler-api-seriesid-negative-recordid",
-    "title": "ms-scheduler-api GetSeriesAsync throws InvalidOperationException when called with recordId=-1 for account lafittesseafood (chronic, single-account, ~10-21/day for 7+ days)",
+    "title": "ms-scheduler-api GetSeriesAsync throws InvalidOperationException when called with recordId=-1 (chronic, code-level missing-guard bug, now confirmed across multiple accounts, ~10-21+/day for 7+ days)",
     "first_seen": "2026-06-26T00:00:00Z",
-    "last_seen": "2026-07-03T13:04:37Z",
-    "occurrences": 125,
+    "last_seen": "2026-07-03T20:49:23Z",
+    "occurrences": 126,
     "match": {
       "channels": [
         "alert-system"
@@ -1054,20 +1054,24 @@
       ]
     },
     "evidence_source": "elasticsearch",
-    "evidence_query": "fields.dd_service.keyword:\"ms-scheduler-api\" AND fields.Account.keyword:\"lafittesseafood\"",
+    "evidence_query": "fields.dd_service.keyword:\"ms-scheduler-api\" AND fields.Error.keyword:\"Failed to Get Series Id for record -1 in table Activity\"",
     "evidence_threshold_s": null,
-    "diagnosis": "ms-scheduler-api's SeriesDataProvider.GetSeriesIdAsync (Scheduler.Core) is called with recordId=-1 for account lafittesseafood via API.Controllers.SeriesController.GetSeriesAsync (RequestPath /v1/series/getseries). The provider queries SQL expecting a row for that record and does not guard against the sentinel/invalid recordId=-1 before reading; SqlDataReader.GetValue() then throws System.InvalidOperationException ('Invalid attempt to read when no data is present'), which surfaces as System.Exception('Failed to Get Series Id for record -1 in table Activity'). ES confirms 125 identical occurrences over the last 7 days (2026-06-26 to 2026-07-03), steady daily volume (10-21/day), single account, single stack trace -- a chronic pre-existing bug, not a new incident. DD's '[CRM] ms-scheduler-api error rate high' monitor (302054543) is a newly-observed monitor that tripped for the first time today only because this service's low overall traffic makes its error-rate percentage sensitive to a handful of absolute errors (6 errors / 233 hits = 2.56% vs 2% threshold in the trigger window) -- the underlying bug itself did not spike.",
-    "playbook": "1) Confirm shape: DD monitor 302054543 in 'Alert' state, OR ES query fields.dd_service.keyword:\"ms-scheduler-api\" AND fields.Account.keyword:\"lafittesseafood\" returning the 'Failed to Get Series Id for record -1' signature. 2) Compute the error-rate ratio in DD (errors/hits over the alert's own last_10m window) -- historically marginal (~2.5%), not a severe spike; do not over-escalate on the DD monitor state alone. 3) The root cause is a single-account client/data issue (recordId=-1 being passed for lafittesseafood), not infra-wide -- do not extrapolate to other accounts without independent evidence. 4) File/bump a defect for CRM Experience (#team-customer-management) rather than re-diagnosing from scratch each cycle.",
+    "diagnosis": "ms-scheduler-api's SeriesDataProvider.GetSeriesIdAsync (Scheduler.Core) is called with recordId=-1 for account lafittesseafood via API.Controllers.SeriesController.GetSeriesAsync (RequestPath /v1/series/getseries). The provider queries SQL expecting a row for that record and does not guard against the sentinel/invalid recordId=-1 before reading; SqlDataReader.GetValue() then throws System.InvalidOperationException ('Invalid attempt to read when no data is present'), which surfaces as System.Exception('Failed to Get Series Id for record -1 in table Activity'). ES confirms 125 identical occurrences over the last 7 days (2026-06-26 to 2026-07-03), steady daily volume (10-21/day), single account, single stack trace -- a chronic pre-existing bug, not a new incident. DD's '[CRM] ms-scheduler-api error rate high' monitor (302054543) is a newly-observed monitor that tripped for the first time today only because this service's low overall traffic makes its error-rate percentage sensitive to a handful of absolute errors (6 errors / 233 hits = 2.56% vs 2% threshold in the trigger window) -- the underlying bug itself did not spike. UPDATE 2026-07-03T21:08Z: this cycle's ES recurrence check (13:04:37Z–21:08:31Z window) found 21 new identical-signature events spanning 6 distinct accounts (completeelectricalsolutions:8, foamtechinc:7, refexpertsandhvacllc:3, cooksmart2:1, farmxs:1, lafittesseafood:1) — lafittesseafood is now the smallest contributor, not the sole one. This upgrades the diagnosis from a single-account client/data issue to a code-level defect: SeriesDataProvider.GetSeriesIdAsync does not guard recordId=-1 before calling SqlDataReader.GetValue(), and reproduces for ANY account whose caller passes the -1 sentinel. Root cause location unchanged (SeriesDataProvider.cs:143 call site, :123 throw site; SeriesController.cs:100 entry point).",
+    "playbook": "1) Confirm shape: DD monitor 302054543 in 'Alert' state, OR ES query fields.dd_service.keyword:\"ms-scheduler-api\" AND fields.Account.keyword:\"lafittesseafood\" returning the 'Failed to Get Series Id for record -1' signature. 2) Compute the error-rate ratio in DD (errors/hits over the alert's own last_10m window) -- historically marginal (~2.5%), not a severe spike; do not over-escalate on the DD monitor state alone. 3) The root cause is a code-level missing-guard bug in SeriesDataProvider.GetSeriesIdAsync (not account-specific) -- as of 2026-07-03T21:08Z it has reproduced across 6 distinct accounts, not just lafittesseafood. Still not infra-wide (no elevated volume, no user-facing impact beyond scattered per-account 500s), but do not describe it as single-account going forward. 4) File/bump a defect for CRM Experience (#team-customer-management) rather than re-diagnosing from scratch each cycle.",
     "fix_status": "proposed",
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.8,
     "owning_team": "CRM Experience",
-    "last_notified_at": null,
+    "last_notified_at": "2026-07-03T21:08:31Z",
     "notes": [
       {
         "ts": "2026-07-03T13:09:00Z",
         "note": "2026-07-03 13:09Z triage (degraded cycle, no Slack MCP): first-ever fire of DD monitor 302054543 at 13:06:23Z. ES recurrence check found 125 identical events over the trailing 7 days for account lafittesseafood, all the same GetSeriesIdAsync(recordId=-1) stack trace -- confirms this is a chronic single-account bug that a newly-added/newly-sensitive DD monitor just happened to catch today, not a fresh incident. Not classified new-with-clear-fix: ms-scheduler-api repo fetch failed (HTTP 403, methodcrm-org GH_TOKEN access gap, same chronic gap flagged for the Rainforest group this cycle), local cached ref is 2+ months stale (2026-04-30), so no diff could be proposed with confidence against current code. Created this KB entry now (confidence 0.8) so future recurrences are recognized without re-deriving the stack trace from scratch. Synthetic hash 631b9a7a6ec73770 (channel CPHHABKAA + DD monitor ts 2026-07-03T13:06:23Z). Scored needs-human, novel_no_kb +2 only (metric_breach_magnitude ratio 0.28, below the 0.5 bracket) = 2 -> actionable-low-impact, NOT posted to #triage-results. See docs/investigations/2026-07-03-631b9a7a6ec73770.md."
+      },
+      {
+        "ts": "2026-07-03T21:08:31Z",
+        "note": "2026-07-03 21:08Z triage (degraded cycle, no Slack MCP): monitor 302054543 fired again at 20:39:23Z, self-recovered by scan time. ES recurrence check (kb_to_es_query.py, 13:04:37Z–21:08:31Z) found 21 new hits across 6 accounts (completeelectricalsolutions:8, foamtechinc:7, refexpertsandhvacllc:3, cooksmart2:1, farmxs:1, lafittesseafood:1) -- broadens the diagnosis from single-account to code-level bug (see diagnosis UPDATE). DD metric check: 7 errors clustered 20:23:00-20:28:50Z against ~399 hits in the surrounding 20-min band, consistent with the documented ~2.5% marginal-breach pattern. First-ever notify for this entry (last_notified_at was null) -- posted to #triage-results. Synthetic hash d20b7e1b29663dde (channel CPHHABKAA + DD monitor ts 2026-07-03T20:39:23Z). See docs/investigations/2026-07-03-d20b7e1b29663dde.md."
       }
     ]
   },
