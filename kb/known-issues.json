@@ -1151,8 +1151,8 @@
     "id": "ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap",
     "title": "New team:crm AMQP-consumer heartbeat/throughput-stall monitors (5 sibling IDs, created 2026-07-02) intermittently trip on quiet-period low-traffic dips, then self-recover within minutes — no corroborating errors",
     "first_seen": "2026-07-04T13:07:31Z",
-    "last_seen": "2026-07-04T17:51:21Z",
-    "occurrences": 9,
+    "last_seen": "2026-07-04T19:10:31Z",
+    "occurrences": 11,
     "match": {
       "channels": [
         "alert-system",
@@ -1198,7 +1198,7 @@
     "fix_template": null,
     "confidence": 0.82,
     "owning_team": "CRM Experience (runtime-core-subscriber-api, per ownership.md:454) / Admin (mobile-notifications-stack, per ownership.md:416) — split by service; DD monitor tags say team:crm for both, ownership.md disagrees for the mobile-notifications component",
-    "last_notified_at": "2026-07-04T17:12:00Z",
+    "last_notified_at": "2026-07-04T19:16:00Z",
     "notes": [
       {
         "ts": "2026-07-04T16:10:00Z",
@@ -1211,6 +1211,10 @@
       {
         "ts": "2026-07-04T18:09:00Z",
         "note": "5th rcs occurrence (7872dacb3e354d7f, 17:44:31Z) and 4th mns occurrence (002ccf1f6115e07a, 17:51:21Z) processed this cycle. Both self-recovered by scan time (18:09Z), same benign dip-then-burst shape as all prior occurrences -- the rcs duration deviation flagged last cycle (still-open at ~45min) did NOT repeat, supporting the benign-flap theory over an emerging real stall. Both suppressed per the 24h known-issue window (last_notified_at 17:12:00Z, set earlier this same UTC day). See docs/investigations/2026-07-04-7872dacb3e354d7f.md and docs/investigations/2026-07-04-002ccf1f6115e07a.md."
+      },
+      {
+        "ts": "2026-07-04T19:16:00Z",
+        "note": "5th mns occurrence (ebe3a8ad4fe3af2e, 19:10:21Z) and 6th rcs occurrence (dc4e2461e6aa97fa, 19:10:31Z) processed this cycle, in that ts order (mns synthetic ts sorts 10s earlier). mns crossed occurrences 9->10, hitting the every-10th-occurrence resurface rule (kb/config.json gate logic) even though last_notified_at (17:12:00Z) was still well inside the 24h suppression window -- POSTED to #triage-results per gate_reason=known-issue-occurrence-resurface. rcs then evaluated with last_notified_at just reset to ~now by the sibling's resurface, so it landed back inside the 24h window and was suppressed (gate_reason=known-issue-window) despite being a genuinely fresh occurrence -- an artifact of processing two matches against the same entry in one cycle, not a judgment call. rcs was notably still in Alert state (not yet self-recovered) at scan time, a mild duration echo of the 4th-occurrence deviation, but well under the ~1h escalation threshold. Both still 0 corroborating DD error logs. See docs/investigations/2026-07-04-ebe3a8ad4fe3af2e.md and docs/investigations/2026-07-04-dc4e2461e6aa97fa.md."
       }
     ]
   },
