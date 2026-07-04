@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-03T02:24:11Z",
-    "occurrences": 520,
+    "last_seen": "2026-07-04T20:38:11Z",
+    "occurrences": 521,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -157,7 +157,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.88,
-    "last_notified_at": "2026-07-03T11:08:18Z",
+    "last_notified_at": "2026-07-04T21:16:00Z",
     "prior_fix_status": "needs-ops-decision",
     "notes": [
       {
@@ -291,6 +291,10 @@
       {
         "ts": "2026-07-03T11:08:18Z",
         "note": "2026-07-03 11:08Z triage (degraded cycle, no Slack MCP): occ#520 via DD monitor 77419271 last_triggered 2026-07-03T02:24:11Z (OK now, self-recovered). DD method-ui XHR error logs sampled at scan time (11:06-11:08Z, live traffic, not the original 02:24Z window) confirm canonical chronic shape unchanged (GET /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync, status_code:0, e.g. steadfast2, shedsunlimited, leddy, shrinkwrappingsupplies, wholelogreclaimed3 -- diffuse, no concentration, NOT the 2026-06-04 100x OUTAGE surge). Synthetic hash bec21f1f508b3dc3 (channel C03TYHGRS23 + DD monitor ts 2026-07-03T02:24:11Z). last_notified_at was 2026-07-02T12:43:53Z (~22h40m ago, still within 24h suppression window on its own) BUT occ 519->520 hits %10==0 -> RESURFACE, gate_reason=known-issue-occurrence-resurface, last_notified_at bumped to now. fix_status chronic-residual-post-rollback-2026-06-05 unchanged. No ki-24 co-fire this cycle (RTC monitors quiet since 2026-07-02T13:30:21Z)."
+      },
+      {
+        "ts": "2026-07-04T21:16:00Z",
+        "note": "2026-07-04 21:16Z triage (degraded cycle, no Slack MCP): occ#521 via DD monitor 77419271 last_triggered 20:38:11Z (OK now, self-recovered). DD method-ui XHR error logs sampled 20:55-21:20Z (live traffic, original window aged out) confirm canonical chronic shape unchanged: GET /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync, status_code:0, diffuse accounts (flightsalesgroup, biomechanicsanalysisllc, haydenfire1, recollc) -- NOT the 2026-06-04 100x OUTAGE surge. Synthetic hash 7d65cd4eb4180f5e (channel C03TYHGRS23 + DD monitor ts 2026-07-04T20:38:11Z). last_notified_at was 2026-07-03T11:08:18Z (~34h ago) -- PAST 24h suppression window -> POST, gate_reason=null, last_notified_at bumped to now. fix_status chronic-residual-post-rollback-2026-06-05 unchanged. No ki-24 co-fire signal checked this cycle (RTC monitors not re-queried; chronic pattern, no new-signal warrant)."
       }
     ]
   },
@@ -934,8 +938,8 @@
     "id": "ki-2026-07-03-eda-consumer-amqp-stopped-publishing",
     "title": "[EDA][Consumer][P3] eda_consumer AMQP publish-hits monitor intermittently goes No Data (team:devops, self-recovering, no correlated pipeline impact)",
     "first_seen": "2026-06-20T10:21:00Z",
-    "last_seen": "2026-07-04T14:09:20Z",
-    "occurrences": 4,
+    "last_seen": "2026-07-04T20:47:26Z",
+    "occurrences": 5,
     "match": {
       "channels": [
         "alert-system",
@@ -980,6 +984,10 @@
       {
         "ts": "2026-07-04T14:09:20Z",
         "note": "2026-07-04 14:03Z triage (degraded cycle, no Slack MCP): 4th occurrence, monitor 296641466 No Data, last_triggered 14:03:26Z. Shape matches the KB's ORIGINAL benign pattern (occurrences 1-2), not the 3rd occurrence's escalated deviation: DD metric trace.amqp.command.hits{service:eda_consumer,env:prod} shows a genuine but shorter ~38min gap so far (last non-zero point 13:31:30Z, scan time 14:09:20Z) vs the 3rd occurrence's 80+min still-unresolved gap. Sibling P1 monitors 296632224/296636101 both OK, last_triggered 12:24:01-12:24:24Z (~1h39m before this fire, uncorrelated -- unlike the 3rd occurrence's timing overlap). service:eda_consumer status:error DD Logs = 0 hits 12:00-14:09Z. Synthetic hash 3225e259740067ec (channel CPHHABKAA + DD monitor ts 2026-07-04T14:03:26Z). Suppressed per known-issue gate: last_notified_at (2026-07-04T11:09:00Z) within 24h window, occurrences=4 not a 10th-occurrence resurface, fix_status unchanged since last notify. gate_reason=known-issue-window, appended to docs/actionable/2026-07-04.md. See docs/investigations/2026-07-04-3225e259740067ec.md."
+      },
+      {
+        "ts": "2026-07-04T21:16:00Z",
+        "note": "2026-07-04 21:16Z triage (degraded cycle, no Slack MCP): 5th occurrence, monitor 296641466 No Data, last_triggered 20:47:26Z. DD metric trace.amqp.command.hits{service:eda_consumer,env:prod} shows continuous activity through 19:50:00Z, then a ~34min near-zero stretch (single 1-count bucket at 20:46:00Z) before recovering to normal volume (11 hits) by 20:55:00Z -- shorter than the 3rd occurrence's 80+min unresolved gap, matching the benign shape of occurrences 1/2/4. Sibling P1 monitors 296632224/296636101 both OK, last_triggered 12:24:01-12:24:24Z (~8.5h earlier, uncorrelated). service:eda_consumer status:error DD Logs = 0 hits 20:00-21:00Z. Synthetic hash 96c86240d58ded67 (channel CPHHABKAA + DD monitor ts 2026-07-04T20:47:26Z). Suppressed per known-issue gate: last_notified_at (2026-07-04T11:09:00Z) ~10h07m ago, within 24h window; occurrences=5 not a 10th-occurrence resurface; fix_status unchanged since last notify. gate_reason=known-issue-window, appended to docs/actionable/2026-07-04.md. See docs/investigations/2026-07-04-96c86240d58ded67.md."
       }
     ]
   },
@@ -1151,8 +1159,8 @@
     "id": "ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap",
     "title": "New team:crm AMQP-consumer heartbeat/throughput-stall monitors (5 sibling IDs, created 2026-07-02) intermittently trip on quiet-period low-traffic dips, then self-recover within minutes — no corroborating errors",
     "first_seen": "2026-07-04T13:07:31Z",
-    "last_seen": "2026-07-04T19:58:31Z",
-    "occurrences": 13,
+    "last_seen": "2026-07-04T21:08:31Z",
+    "occurrences": 15,
     "match": {
       "channels": [
         "alert-system",
@@ -1215,6 +1223,57 @@
       {
         "ts": "2026-07-04T19:16:00Z",
         "note": "5th mns occurrence (ebe3a8ad4fe3af2e, 19:10:21Z) and 6th rcs occurrence (dc4e2461e6aa97fa, 19:10:31Z) processed this cycle, in that ts order (mns synthetic ts sorts 10s earlier). mns crossed occurrences 9->10, hitting the every-10th-occurrence resurface rule (kb/config.json gate logic) even though last_notified_at (17:12:00Z) was still well inside the 24h suppression window -- POSTED to #triage-results per gate_reason=known-issue-occurrence-resurface. rcs then evaluated with last_notified_at just reset to ~now by the sibling's resurface, so it landed back inside the 24h window and was suppressed (gate_reason=known-issue-window) despite being a genuinely fresh occurrence -- an artifact of processing two matches against the same entry in one cycle, not a judgment call. rcs was notably still in Alert state (not yet self-recovered) at scan time, a mild duration echo of the 4th-occurrence deviation, but well under the ~1h escalation threshold. Both still 0 corroborating DD error logs. See docs/investigations/2026-07-04-ebe3a8ad4fe3af2e.md and docs/investigations/2026-07-04-dc4e2461e6aa97fa.md."
+      },
+      {
+        "ts": "2026-07-04T21:16:00Z",
+        "note": "2026-07-04 21:16Z triage (degraded cycle, no Slack MCP): 6th mns occurrence (069c829de86680f8, 20:48:21Z). DD metric trace.amqp.command.hits{service:method-mobile-notifications-subscriber,env:prod}.as_rate() shows a ~50min gap with zero reported buckets (19:55:00Z-20:45:30Z) immediately preceding the trigger -- canonical benign quiet-period shape, already self-recovered by scan time (post-gap rate 0.03-0.4/s). 0 DD error logs. last_notified_at (2026-07-04T19:16:00Z) ~2h ago, within 24h window; occurrences 13->14, not a multiple of 10; fix_status unchanged -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-04-069c829de86680f8.md."
+      },
+      {
+        "ts": "2026-07-04T21:16:00Z",
+        "note": "2026-07-04 21:16Z triage (degraded cycle, no Slack MCP): 8th rcs occurrence (f671eba55740876b, 21:08:31Z), still in Alert state at scan time (~1-7min old, well under the ~1h escalation threshold -- not a repeat of the 4th-occurrence duration deviation). DD metric trace.amqp.command.hits{service:runtime-core-subscriber,env:prod}.as_rate() shows a sustained sub-2msg/s stretch from ~20:42Z to ~21:14Z (mostly 0.1-1.7/s, brief noise spikes) followed by a clearing burst (8.1/53.2/15.3 msg/s at 21:14:30-21:16:00Z) -- canonical benign quiet-period-then-recovery shape. 0 DD error logs. last_notified_at unchanged (2026-07-04T19:16:00Z, mns sibling processed immediately before this in the same cycle was also suppressed, not a resurface) ~2h ago, within 24h window; occurrences 14->15, not a multiple of 10; fix_status unchanged -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-04-f671eba55740876b.md."
+      }
+    ]
+  },
+  {
+    "id": "ki-2026-07-04-miurl-5xx-monitor-noise",
+    "title": "[VAE][miurl][P1] 5xx error rate elevated (miurl) monitor trips on a handful of absolute errors against low overall traffic (monitor-sensitivity artifact, not a service issue)",
+    "first_seen": "2026-07-04T19:52:29Z",
+    "last_seen": "2026-07-04T21:07:28Z",
+    "occurrences": 2,
+    "match": {
+      "channels": [
+        "alert-system",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/302048068"
+        },
+        {
+          "contains": "[VAE][miurl][P1] 5xx error rate elevated"
+        }
+      ],
+      "precedence_note": "Distinct from ki-2026-06-16-miurl-shortlink-domain-unreachable (DNS/domain-resolution failure, 0 DD telemetry) and ki-2026-07-02-miurl-agent-account-cluster-internal-lookup (different DD service tag, miurl-agent). This entry is specifically DD monitor 302048068 on service:miurl, a live APM error-rate monitor with real (tiny) trace data. Do not broad-match on the bare substring 'miurl' -- confirm the monitor id or exact alert text."
+    },
+    "evidence_source": "datadog_apm",
+    "evidence_query": "sum(last_10m):100 * sum:trace.aspnet.request.errors{service:miurl,env:prod}.as_count() / sum:trace.aspnet.request.hits{service:miurl,env:prod}.as_count() > 5",
+    "evidence_threshold_s": null,
+    "diagnosis": "DD monitor 302048068 ('[VAE][miurl][P1] 5xx error rate elevated (miurl)', team:vae tag) trips when the 10-minute rolling 5xx-to-hits percentage crosses 5%. Both documented occurrences (2026-07-04 19:52:29Z and 21:07:28Z, ~75min apart) show the identical shape: exactly 4 absolute error events against low, bursty overall traffic (mostly 1-9 hits/10s with occasional bursts to 40-62), 0 hits on service:miurl status:error in DD Logs both times, and self-recovery/near-recovery within 15-20 minutes. legacy-miurl-api does not appear to ship request-level logs to DD Logs at all -- the APM error/hit-count ratio is the only queryable signal. Same family as two precedent low-traffic-service monitor-noise KB entries (ki-2026-07-04-ms-account-api-4xx-spike-monitor-noise, ki-2026-07-02-miurl-agent-account-cluster-internal-lookup): a handful of absolute errors is enough to cross a percentage-based threshold when hit volume is also low. Not yet confirmed against source (methodcrm-org GH_TOKEN 403 gap blocks fetching legacy-miurl-api; local origin/master ref is 2+ months stale).",
+    "playbook": "1) Confirm shape: monitor 302048068 in Warn/Alert, name '[VAE][miurl][P1] 5xx error rate elevated'. 2) Run sum:trace.aspnet.request.errors{service:miurl,env:prod}.as_count() and the matching .hits query over the trigger window -- if absolute errors are single digits against low sparse traffic (not hundreds), this is the known noise pattern. 3) Confirm service:miurl status:error env:prod in DD Logs returns 0 (both documented occurrences did; legacy-miurl-api does not appear to be DD-Logs-instrumented). 4) If the metric shows a genuine high-volume 5xx burst (tens+ of errors, sustained), treat as a real incident and do not apply this KB entry. 5) Owning team is ambiguous -- ownership.md maps MiURL to Transactions, but the DD monitor's own tag says team:vae; note both when reporting, same unresolved gap as the sibling miurl-agent KB entry.",
+    "fix_status": "monitoring-noise-suspected-unconfirmed",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.8,
+    "owning_team": "Transactions (per ownership.md; DD tag says team:vae, unresolved discrepancy)",
+    "last_notified_at": null,
+    "notes": [
+      {
+        "ts": "2026-07-04T20:08:30Z",
+        "note": "1st occurrence (bac8d82bd810fa94, 19:52:29Z). First-ever fire of this monitor. 4 total error events against low overall traffic (~1-3 hits/10s baseline). 0 DD Logs hits, 0 ES hits. Self-recovered by scan time (~16min). Scored needs-human, score=2 (novel_no_kb +2, all else 0) -> actionable-high-borderline, held off on writing a KB entry pending a second data point. See docs/investigations/2026-07-04-bac8d82bd810fa94.md."
+      },
+      {
+        "ts": "2026-07-04T21:16:00Z",
+        "note": "2026-07-04 21:16Z triage (degraded cycle, no Slack MCP): 2nd occurrence (311b3a33ca8b3e4b, 21:07:28Z), still in Warn state at scan time. Identical shape to occurrence 1: exactly 4 error events (single burst ~21:06:00Z) against low sparse traffic (mostly 1-9 hits/10s), 0 DD Logs hits (20:45-21:20Z). Second data point confirms the monitor-noise hypothesis per the occurrence-1 follow-up plan -- KB entry created now. Scored needs-human (novel_no_kb +2, recency_decay -1 for 2nd same-monitor fire today) = 1 -> below actionable_score_threshold (2) -> actionable-low-impact, not posted. See docs/investigations/2026-07-04-311b3a33ca8b3e4b.md."
       }
     ]
   },
@@ -1222,8 +1281,8 @@
     "id": "ki-2026-07-04-ms-account-api-4xx-spike-monitor-noise",
     "title": "[Admin][AccountAPI][P3] 4xx-spike monitor transitions state without a real 4xx breach (monitor-sensitivity/config artifact, not a service issue)",
     "first_seen": "2026-07-03T12:08:59Z",
-    "last_seen": "2026-07-04T18:04:18Z",
-    "occurrences": 4,
+    "last_seen": "2026-07-04T20:51:18Z",
+    "occurrences": 5,
     "match": {
       "channels": [
         "alert-system",
@@ -1265,6 +1324,10 @@
       {
         "ts": "2026-07-04T18:09:00Z",
         "note": "4th occurrence (5ffcd55acaaf56cb, 18:04:18Z). Same disproof shape as occurrences 1-3 -- metric returned 5 buckets of 1.0 hit each, nowhere near the >300/15min threshold; DD logs 0 hits. last_notified_at unchanged (12:08:29Z, ~6h ago) -- suppressed per the 24h known-issue window. See docs/investigations/2026-07-04-5ffcd55acaaf56cb.md."
+      },
+      {
+        "ts": "2026-07-04T21:16:00Z",
+        "note": "2026-07-04 21:16Z triage (degraded cycle, no Slack MCP): 5th occurrence (dd61f6adbf061b8f, 20:51:18Z). Same disproof shape as occurrences 1-4 -- evidence_query metric returned 3 buckets of 1.0 hit each (20:29:50Z, 20:32:30Z, 20:46:40Z), nowhere near the >300/15min threshold; DD logs 0 hits (20:35-21:00Z). last_notified_at unchanged (2026-07-04T12:08:29Z, ~9h07m ago) -- suppressed per the 24h known-issue window. See docs/investigations/2026-07-04-dd61f6adbf061b8f.md."
       }
     ]
   },
