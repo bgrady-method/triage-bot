@@ -1148,6 +1148,65 @@
     ]
   },
   {
+    "id": "ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap",
+    "title": "New team:crm AMQP-consumer heartbeat/throughput-stall monitors (5 sibling IDs, created 2026-07-02) intermittently trip on quiet-period low-traffic dips, then self-recover within minutes — no corroborating errors",
+    "first_seen": "2026-07-04T13:07:31Z",
+    "last_seen": "2026-07-04T16:05:31Z",
+    "occurrences": 5,
+    "match": {
+      "channels": [
+        "alert-system",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/302057011"
+        },
+        {
+          "contains": "monitors/302055141"
+        },
+        {
+          "contains": "monitors/302055017"
+        },
+        {
+          "contains": "monitors/302055075"
+        },
+        {
+          "contains": "monitors/302055190"
+        },
+        {
+          "contains": "runtime-core-subscriber throughput dropped"
+        },
+        {
+          "contains": "runtime-core-subscriber throughput"
+        },
+        {
+          "contains": "notifications-subscriber heartbeat"
+        },
+        {
+          "regex": "\\[CRM\\].*(subscriber|consumer).*(heartbeat|throughput).*(silent|stall|dropped)"
+        }
+      ]
+    },
+    "evidence_source": "datadog_apm",
+    "evidence_query": "avg(last_15m or last_20m per-monitor):sum:trace.amqp.command.hits{service:<fired-service>,env:prod}.as_rate() < <per-monitor threshold ~2 msg/s for throughput checks, ~0.005 msg/s for heartbeat checks> — re-run scripts/dd_search.py metric with the specific fired monitor's own query over a multi-hour window; expect near-threshold values immediately pre-trigger and a fast return to normal, plus 0 hits on `service:<name> status:error` in DD Logs for the same window.",
+    "evidence_threshold_s": null,
+    "diagnosis": "Five sibling DD monitors under a 2-day-old (created 2026-07-02) team:crm AMQP-consumer monitor rollout — email-subscriber-agent heartbeat (302055017), email-publisher-agent heartbeat (302055075), method-mobile-notifications-subscriber heartbeat (302055141), approutine-subscriber heartbeat (302055190), and runtime-core-subscriber throughput (302057011) — all check `sum:trace.amqp.command.hits{service:<name>,env:prod}.as_rate()` against a low absolute floor (~2 msg/s for the 'throughput dropped' checks, ~0.005 msg/s for the 'consumer silent' heartbeat checks). Two of the five have fired so far, both on 2026-07-04: runtime-core-subscriber (302057011) 3x — 13:07:31Z (first-ever, see docs/investigations/2026-07-04-89729b4fe24c5575.md), 15:10:31Z (2nd, docs/investigations/2026-07-04-74e56115ec846ca1.md), 16:05:31Z (3rd, this cycle) — and method-mobile-notifications-subscriber (302055141) 2x — 14:29:21Z (first, discovered retroactively this cycle via baseline-scan diff, never individually investigated) and 15:48:21Z (2nd, this cycle). All 5 occurrences share the same shape: DD metric shows a genuine dip below the monitor's floor for a period of minutes to tens of minutes, 0 hits on `service:<name> status:error` in DD Logs for the corresponding window, no sibling 5xx/latency monitor co-firing, and a fast self-recovery (state back to OK within roughly 5–50 minutes, no cycle has caught one still open). Deploy-correlation is unconfirmed for all 5 — methodcrm/runtime-core (and by extension any shared subscriber-host code) is blocked by a known GH_TOKEN 403/404 gap on this org's private repos, re-confirmed each occurrence. Working theory: these two services are genuinely low-volume AMQP consumers (method-mobile-notifications-subscriber's raw metric shows only ~35 datapoints across a 3h13m window — mostly silent minutes are normal for it), so an absolute-floor rate threshold with no allowance for natural quiet periods will trip repeatedly without any actual stall or customer impact. Not yet confirmed against source code (no access to the actual subscriber-host repos to check whether 'silent' means 'idle/healthy' vs 'crashed and not reconnecting' — CLAUDE.md's documented runtime-core failure mode 'Cache stale → Subscriber down → Start Subscriber.Agent' remains a live alternative explanation the bot cannot rule out without SSH/host access). The other 3 siblings (email-subscriber-agent, email-publisher-agent, approutine-subscriber) have not fired at all since the 2026-07-02 rollout — consistent with either genuinely higher/steadier traffic on those queues, or simply not yet having hit a quiet enough window.",
+    "playbook": "1) Confirm shape: monitor ID is one of the 5 above (or a newly-added team:crm AMQP-consumer sibling), name matches '[CRM] <service> throughput dropped (possible stall)' or '[CRM] <service> heartbeat — consumer silent'. 2) Pull `scripts/dd_search.py metric --query 'sum:trace.amqp.command.hits{service:<name>,env:prod}.as_rate()'` over a multi-hour window — expect a genuine but brief dip below the monitor's floor, not a data gap/tool failure. 3) Confirm `service:<name> status:error` in DD Logs returns 0 for the window. 4) Check the sibling outbound-5xx / P95-latency monitor for the same service (see the team:crm monitor family list) — if also OK throughout, this is very likely the benign quiet-period pattern, not a real stall. 5) If a fire is still unresolved after ~1h (no cycle has seen this yet), or a sibling error/latency monitor co-fires, escalate — that would be the first real deviation from this pattern and warrants a CRM Runtime-Workers / RabbitMQ queue-depth check (not directly queryable by this bot). 6) Do not re-investigate from scratch on each recurrence — log occurrence count and compare shape against this entry.",
+    "fix_status": "monitoring-noise-suspected-unconfirmed",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.82,
+    "owning_team": "CRM Experience (runtime-core-subscriber-api, per ownership.md:454) / Admin (mobile-notifications-stack, per ownership.md:416) — split by service; DD monitor tags say team:crm for both, ownership.md disagrees for the mobile-notifications component",
+    "last_notified_at": null,
+    "notes": [
+      {
+        "ts": "2026-07-04T16:10:00Z",
+        "note": "Created this cycle after the 3rd runtime-core-subscriber occurrence today (16:05:31Z) plus discovery, via baseline-scan diff, that a sibling monitor (method-mobile-notifications-subscriber, 302055141) fired twice today (14:29:21Z retroactively discovered, 15:48:21Z this cycle) with the identical shape — same reasoning as the ki-2026-07-04-synthetics-release bundling: closing a coverage gap before it causes N more from-scratch investigations. Also identified 3 more never-fired siblings in the same 2026-07-02 monitor rollout (email-subscriber-agent 302055017, email-publisher-agent 302055075, approutine-subscriber 302055190) and folded them into this entry's match block pre-emptively. Confidence 0.82, not higher: the working theory (low-traffic quiet periods, not real stalls) is well-supported by 5 consistent self-recovering occurrences with 0 corroborating errors, but is NOT independently confirmed against subscriber-host source/logs (methodcrm/runtime-core access blocked, no SSH/host access) — leaves open the CLAUDE.md-documented 'subscriber crashed, needs Subscriber.Agent restart' alternative. See docs/investigations/2026-07-04-576c4293fc09828d.md (3rd rcs occurrence) and docs/investigations/2026-07-04-82f2a8ca8048555b.md (2nd mns occurrence, this cycle)."
+      }
+    ]
+  },
+  {
     "id": "ki-2026-07-04-ms-account-api-4xx-spike-monitor-noise",
     "title": "[Admin][AccountAPI][P3] 4xx-spike monitor transitions state without a real 4xx breach (monitor-sensitivity/config artifact, not a service issue)",
     "first_seen": "2026-07-03T12:08:59Z",
