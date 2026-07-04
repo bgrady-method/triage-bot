@@ -934,8 +934,8 @@
     "id": "ki-2026-07-03-eda-consumer-amqp-stopped-publishing",
     "title": "[EDA][Consumer][P3] eda_consumer AMQP publish-hits monitor intermittently goes No Data (team:devops, self-recovering, no correlated pipeline impact)",
     "first_seen": "2026-06-20T10:21:00Z",
-    "last_seen": "2026-07-03T10:21:26Z",
-    "occurrences": 2,
+    "last_seen": "2026-07-04T10:21:26Z",
+    "occurrences": 3,
     "match": {
       "channels": [
         "alert-system",
@@ -956,14 +956,14 @@
     "evidence_source": "datadog_apm",
     "evidence_query": "sum(last_30m):sum:trace.amqp.command.hits{service:eda_consumer,env:prod}.as_count() < 1",
     "evidence_threshold_s": null,
-    "diagnosis": "DD monitor 296641466 ('[EDA][Consumer][P3] Integration events (AMQP) stopped publishing', team:devops) trips when trace.amqp.command.hits{service:eda_consumer,env:prod} sums to <1 over a 30-minute rolling window -- i.e. the eda_consumer trace/metric pipeline reported zero AMQP publish activity, not that publishing errored. Both documented occurrences (2026-06-20 10:21Z and 2026-07-03 10:21:26Z -- coincidentally near-identical time-of-day both times, worth re-checking if a 3rd occurrence lands near 10:21Z again) show the same shape: sibling higher-priority EDA monitors (296632224 [P1] Event ingest stopped, 296636101 [P1] Kafka events stopped being produced) stayed OK throughout, and service:eda_consumer status:error logs returned 0 hits in DD -- i.e. the broader EDA ingest/Kafka pipeline was healthy both times, only this one P3 AMQP-publish-count metric went quiet. Most likely explanation: a genuinely quiet integration-event period (no accounts triggering AMQP-publishing integration events in that specific 30-min window) rather than a real outage -- the P3 severity and team:devops-only tag (no product team impact) are consistent with this being a monitor-sensitivity issue rather than a service failure. Not yet confirmed against source (no eda-orchestrator or EDA-stack repo cloned locally this session to check for a metrics-emission gap or a legitimate low-traffic window).",
+    "diagnosis": "DD monitor 296641466 ('[EDA][Consumer][P3] Integration events (AMQP) stopped publishing', team:devops) trips when trace.amqp.command.hits{service:eda_consumer,env:prod} sums to <1 over a 30-minute rolling window -- i.e. the eda_consumer trace/metric pipeline reported zero AMQP publish activity, not that publishing errored. Both documented occurrences (2026-06-20 10:21Z and 2026-07-03 10:21:26Z -- coincidentally near-identical time-of-day both times, worth re-checking if a 3rd occurrence lands near 10:21Z again) show the same shape: sibling higher-priority EDA monitors (296632224 [P1] Event ingest stopped, 296636101 [P1] Kafka events stopped being produced) stayed OK throughout, and service:eda_consumer status:error logs returned 0 hits in DD -- i.e. the broader EDA ingest/Kafka pipeline was healthy both times, only this one P3 AMQP-publish-count metric went quiet. Most likely explanation: a genuinely quiet integration-event period (no accounts triggering AMQP-publishing integration events in that specific 30-min window) rather than a real outage -- the P3 severity and team:devops-only tag (no product team impact) are consistent with this being a monitor-sensitivity issue rather than a service failure. Not yet confirmed against source (no eda-orchestrator or EDA-stack repo cloned locally this session to check for a metrics-emission gap or a legitimate low-traffic window). UPDATE (2026-07-04, 3rd occurrence): this occurrence deviates from the prior benign shape -- the AMQP-publish-hits gap ran ~80+ minutes and was STILL open at scan time (vs <1h and self-recovered both prior times), and for the first time the sibling P1 monitors (296632224, 296636101) briefly tripped (~10.5min gap, 09:55-10:05:30Z) in the same general window before recovering on their own. Upstream event-ingest/Kafka-produce traffic fully recovered and has been healthy/heavy since ~10:05Z, while eda_consumer's AMQP-publish metric stayed flat at zero the entire time -- decoupling this from a simple shared quiet period. Escalated for direct Integrations/DevOps review rather than assumed self-recovery. See docs/investigations/2026-07-04-065da57bed22502b.md.",
     "playbook": "1) Confirm shape: DD monitor 296641466 in 'No Data' state. 2) ALWAYS check the sibling P1 monitors first -- 296632224 (Event ingest stopped) and 296636101 (Kafka events stopped) -- if both are OK, the core EDA pipeline is healthy and this is very unlikely to be user-impacting. 3) Confirm service:eda_consumer status:error in DD Logs returns 0 (both documented occurrences did). 4) If sibling monitors are also firing, escalate immediately -- that would indicate a real EDA-stack outage, not this benign pattern. 5) Do not treat as actionable on a single occurrence; this KB entry exists so repeat fires are recognized quickly rather than re-investigated from scratch. Escalate to Integrations/DevOps only if a 3rd+ occurrence shows sibling-monitor correlation or an actual account impact.",
-    "fix_status": "monitoring-noise-suspected-unconfirmed",
+    "fix_status": "escalated-for-review",
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.8,
     "owning_team": "Integrations",
-    "last_notified_at": null,
+    "last_notified_at": "2026-07-04T11:09:00Z",
     "notes": [
       {
         "ts": "2026-06-20T10:13:00Z",
@@ -972,6 +972,10 @@
       {
         "ts": "2026-07-03T11:08:18Z",
         "note": "2026-07-03 11:08Z triage (degraded cycle, no Slack MCP): 2nd occurrence, monitor 296641466 No Data, last_triggered 10:21:26Z, still No Data at scan time (~47min later). DD metric trace.amqp.command.hits{service:eda_consumer,env:prod} shows data through ~09:49Z (11-33 hits/10s bucket) then no further datapoints through scan time -- genuine data gap, not a zero-volume-but-reporting state. Sibling P1 monitors 296632224/296636101 both OK, last_triggered 06:51-06:52Z (self-recovered hours earlier, uncorrelated). service:eda_consumer status:error DD Logs = 0 hits 09:00-11:08Z. Synthetic hash 4a87df5b7c39d9bb (channel CPHHABKAA + DD monitor ts 2026-07-03T10:21:26Z). Created this KB entry now (confidence 0.8, 2 occurrences ~2 weeks apart, identical shape both times) so future fires are recognized without re-deriving from scratch. Scored as needs-human (novel_no_kb +2, all other signals 0) = 2 -> actionable-high-borderline, NOT posted to #triage-results (below escalation_score_threshold=4). See docs/investigations/2026-07-03-4a87df5b7c39d9bb.md."
+      },
+      {
+        "ts": "2026-07-04T11:09:00Z",
+        "note": "2026-07-04 11:09Z triage (degraded cycle, no Slack MCP): 3rd occurrence, exactly matching the KB's own prediction of a 3rd fire near 10:21Z. Evidence deviates materially from the first 2 occurrences (longer, still-unresolved gap; correlated sibling P1 blip). First-ever notify on this entry (last_notified_at was null) -> POSTED to #triage-results. Synthetic hash 065da57bed22502b (channel CPHHABKAA + DD monitor ts 2026-07-04T10:21:26Z). See docs/investigations/2026-07-04-065da57bed22502b.md."
       }
     ]
   },
@@ -979,8 +983,8 @@
     "id": "ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata",
     "title": "\"Method UI Grid and Dropdown Performance Test\" synthetics (team:qa, non-prod, 5 monitor-ID variants: Day run / Day run 2 / Evening run / Midnight run / Release Run) chronically go No Data; never correlates to a real incident",
     "first_seen": "2026-05-02T13:46:00Z",
-    "last_seen": "2026-07-03T13:46:00Z",
-    "occurrences": 14,
+    "last_seen": "2026-07-04T04:00:12Z",
+    "occurrences": 15,
     "match": {
       "channels": [
         "alert-system"
@@ -1016,7 +1020,7 @@
     "fix_template": null,
     "confidence": 0.85,
     "owning_team": "unmapped",
-    "last_notified_at": null,
+    "last_notified_at": "2026-07-04T11:09:00Z",
     "notes": [
       {
         "ts": "2026-07-03T13:09:00Z",
@@ -1025,6 +1029,10 @@
       {
         "ts": "2026-07-03T14:08:00Z",
         "note": "2026-07-03 14:08Z triage (degraded cycle, no Slack MCP): Release Run variant (142200330) went No Data 13:46:00Z, still No Data at scan time. Same team:qa non-prod signature as the other 4 family members; this monitor ID was NOT in the match any_of list yet (match_kb.py returned null at step-3 lookup), even though it co-fired with 121308660/133625690 as far back as 2026-05-26 (kb/incident-log.jsonl 2026-05-26T14:23:22Z poll-cycle note). Broadened match.any_of to add monitors/142200330 rather than create a near-duplicate KB entry for the same diagnosis. No co-firing signal with any prod service this cycle. Synthetic hash 19d2a6c9c4d592e9 (channel CPHHABKAA + DD monitor ts 2026-07-03T13:46:00Z). Scored needs-human, novel_no_kb +2 only = 2 -> actionable-high-borderline, NOT posted to #triage-results. See docs/investigations/2026-07-03-19d2a6c9c4d592e9.md."
+      },
+      {
+        "ts": "2026-07-04T11:09:00Z",
+        "note": "2026-07-04 11:09Z triage (degraded cycle, no Slack MCP): 15th documented occurrence (family members 121308660 00:01:01Z, 133625690 00:01:20Z, 123495492 04:00:12Z, all overnight). Same confirmed non-prod QA-synthetics noise, no co-firing signal. First-ever notify on this entry (last_notified_at was null despite 14 prior occurrences, all logged via the needs-human/novel_no_kb path before match_kb.py had a chance to hit this entry) -> POSTED to #triage-results as a one-time housekeeping confirmation. Synthetic hash 7af5f5c357f25a6f (channel CPHHABKAA + DD monitor ts 2026-07-04T04:00:12Z). See docs/investigations/2026-07-04-7af5f5c357f25a6f.md."
       }
     ]
   },
@@ -1128,6 +1136,48 @@
       {
         "ts": "2026-07-03T11:08:18Z",
         "note": "2026-07-03 11:08Z triage (degraded cycle, no Slack MCP): 5th-7th documented occurrence (3 monitors, treated as one group per 30-min grouping window): 175074570 No Data 09:31:00Z, 176337981 No Data 09:41:21Z, 176338057 No Data 10:01:08Z. Identical shape to all prior occurrences -- no other channel/monitor co-fired in the 09:00-10:30Z window this cycle either. Created this KB entry now (confidence 0.88, 7 total documented occurrences over 2 months, zero correlation ever found) to finally close the gap flagged since 2026-05-27. Synthetic hash d16ff393dcf1641b (primary, channel CPHHABKAA + DD monitor ts 2026-07-03T09:31:00Z) + satellites 806705aed3f3a2a5 (09:41:21Z) / 3c25502e901cbe1b (10:01:08Z). Scored as needs-human (group_size 3 -> +2, novel_no_kb +2, monitor_history dm_rate~0 -> -2) = 2 -> actionable-high-borderline, NOT posted to #triage-results (below escalation_score_threshold=4). See docs/investigations/2026-07-03-d16ff393dcf1641b.md."
+      }
+    ]
+  },
+  {
+    "id": "ki-2026-07-04-ms-account-api-4xx-spike-monitor-noise",
+    "title": "[Admin][AccountAPI][P3] 4xx-spike monitor transitions state without a real 4xx breach (monitor-sensitivity/config artifact, not a service issue)",
+    "first_seen": "2026-07-03T12:08:59Z",
+    "last_seen": "2026-07-04T11:07:18Z",
+    "occurrences": 2,
+    "match": {
+      "channels": [
+        "alert-system",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/299551518"
+        },
+        {
+          "contains": "[Admin][AccountAPI][P3] 4xx spike"
+        }
+      ]
+    },
+    "evidence_source": "datadog_apm",
+    "evidence_query": "sum(last_15m):sum:trace.aspnet_core.request.hits.by_http_status{service:ms-account-api,env:prod,http.status_class:4xx}.as_count() > 300",
+    "evidence_threshold_s": null,
+    "diagnosis": "DD monitor 299551518 ('[Admin][AccountAPI][P3] 4xx spike (ms-account-api)', team:admin) trips a state change (observed as 'No Data'/overall_state_modified churn) without a corresponding real breach of its own threshold (sum(last_15m) 4xx count > 300). Both documented occurrences (2026-07-03 ~11:xxZ and 2026-07-04 11:07:18Z) show the exact same shape: querying the monitor's own metric directly returns only 1-4 hits per bucket, nowhere near the 300/15min threshold. DD Logs for ms-account-api returned 0 hits in-window both times. Most likely a monitor-config/evaluation-window artifact (e.g., group-by cardinality churn triggering an overall_state_modified event that looks like a fire) rather than an application-side issue.",
+    "playbook": "1) Confirm shape: monitor 299551518 in 'No Data' or newly-modified state, but NOT accompanied by a genuine >300/15min 4xx count. 2) Run the evidence_query directly against the actual 4xx-hits metric -- if it's in the single digits, this is the known noise pattern. 3) Check service:ms-account-api status:error DD Logs -- expect 0 hits, consistent with both documented occurrences. 4) If the metric DOES show a genuine breach (hundreds of 4xx in 15 min), treat as a real incident and do not apply this KB entry -- retract the 'noise' diagnosis.",
+    "fix_status": "monitoring-noise-suspected-unconfirmed",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.75,
+    "owning_team": "Admin",
+    "last_notified_at": null,
+    "notes": [
+      {
+        "ts": "2026-07-03T12:08:59Z",
+        "note": "First documented occurrence (not yet a KB entry): logged inline in the 2026-07-03T12:08:59Z poll-cycle summary note in kb/incident-log.jsonl. Monitor showed a state change but its metric returned 1-4 hits/30s bucket, well under the >300/15min threshold. Treated as monitor-metadata noise, not escalated, no KB entry written at the time."
+      },
+      {
+        "ts": "2026-07-04T11:09:00Z",
+        "note": "2026-07-04 11:09Z triage (degraded cycle, no Slack MCP): 2nd occurrence, identical shape (metric 1,1,3,1 hits in-window vs >300 threshold). Created this KB entry now (confidence 0.75, 2 clean occurrences with identical disproof of a real breach) so future fires get a fast, evidence-backed non-escalation instead of a full re-investigation. Scored needs-human (novel_no_kb +2, monitor_history -2) = 0 -> actionable-low-impact, NOT posted to #triage-results. Synthetic hash 8d81585c81a5088d (channel CPHHABKAA + DD monitor ts 2026-07-04T11:07:18Z). See docs/investigations/2026-07-04-8d81585c81a5088d.md."
       }
     ]
   },
