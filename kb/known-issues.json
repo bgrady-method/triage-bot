@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-04T20:38:11Z",
-    "occurrences": 521,
+    "last_seen": "2026-07-05T11:08:17Z",
+    "occurrences": 522,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -302,8 +302,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-07-02T13:30:21Z",
-    "occurrences": 208,
+    "last_seen": "2026-07-05T11:08:17Z",
+    "occurrences": 210,
     "match": {
       "channels": [
         "alert-system",
@@ -344,7 +344,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.85,
-    "last_notified_at": "2026-07-02T13:15:00Z",
+    "last_notified_at": "2026-07-05T11:08:17Z",
     "prior_last_notified_at": "2026-06-17T11:08:00Z",
     "notes": [
       {
@@ -494,8 +494,8 @@
     "id": "ki-2026-05-29-methodsession-getaccountbysubdomain-nre",
     "title": "method-platform-ui apps backend NRE in MethodSessionService.GetAccountBySubdomain() -> 'JWT Retrieval Failed' on subdomain-less synthetic monitor probes (Centreon + Datadog Watchdog noise)",
     "first_seen": "2026-05-29T12:49:31Z",
-    "last_seen": "2026-06-25T13:09:11Z",
-    "occurrences": 10,
+    "last_seen": "2026-07-05T11:08:17Z",
+    "occurrences": 12,
     "match": {
       "channels": [
         "alert-system"
@@ -527,7 +527,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.85,
-    "last_notified_at": "2026-06-25T13:09:11Z"
+    "last_notified_at": "2026-07-05T11:08:17Z"
   },
   {
     "id": "ki-2026-06-02-purchase-history-unique-index-duplicate",
@@ -938,8 +938,8 @@
     "id": "ki-2026-07-03-eda-consumer-amqp-stopped-publishing",
     "title": "[EDA][Consumer][P3] eda_consumer AMQP publish-hits monitor intermittently goes No Data (team:devops, self-recovering, no correlated pipeline impact)",
     "first_seen": "2026-06-20T10:21:00Z",
-    "last_seen": "2026-07-04T21:31:26Z",
-    "occurrences": 6,
+    "last_seen": "2026-07-05T11:08:17Z",
+    "occurrences": 7,
     "match": {
       "channels": [
         "alert-system",
@@ -999,8 +999,8 @@
     "id": "ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata",
     "title": "\"Method UI Grid and Dropdown Performance Test\" synthetics (team:qa, non-prod, 5 monitor-ID variants: Day run / Day run 2 / Evening run / Midnight run / Release Run) chronically go No Data; never correlates to a real incident",
     "first_seen": "2026-05-02T13:46:00Z",
-    "last_seen": "2026-07-04T12:30:00Z",
-    "occurrences": 16,
+    "last_seen": "2026-07-05T11:08:17Z",
+    "occurrences": 20,
     "match": {
       "channels": [
         "alert-system"
@@ -1036,7 +1036,7 @@
     "fix_template": null,
     "confidence": 0.85,
     "owning_team": "unmapped",
-    "last_notified_at": "2026-07-04T11:09:00Z",
+    "last_notified_at": "2026-07-05T11:08:17Z",
     "notes": [
       {
         "ts": "2026-07-03T13:09:00Z",
@@ -1060,8 +1060,8 @@
     "id": "ki-2026-07-03-ms-scheduler-api-seriesid-negative-recordid",
     "title": "ms-scheduler-api GetSeriesAsync throws InvalidOperationException when called with recordId=-1 (chronic, code-level missing-guard bug, now confirmed across multiple accounts, ~10-21+/day for 7+ days)",
     "first_seen": "2026-06-26T00:00:00Z",
-    "last_seen": "2026-07-03T20:49:23Z",
-    "occurrences": 126,
+    "last_seen": "2026-07-05T11:08:17Z",
+    "occurrences": 127,
     "match": {
       "channels": [
         "alert-system"
@@ -1091,7 +1091,7 @@
     "fix_template": null,
     "confidence": 0.8,
     "owning_team": "CRM Experience",
-    "last_notified_at": "2026-07-03T21:08:31Z",
+    "last_notified_at": "2026-07-05T11:08:17Z",
     "notes": [
       {
         "ts": "2026-07-03T13:09:00Z",
@@ -1163,8 +1163,8 @@
     "id": "ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap",
     "title": "New team:crm AMQP-consumer heartbeat/throughput-stall monitors (5 sibling IDs, created 2026-07-02) intermittently trip on quiet-period low-traffic dips, then self-recover within minutes — no corroborating errors",
     "first_seen": "2026-07-04T13:07:31Z",
-    "last_seen": "2026-07-04T21:49:21Z",
-    "occurrences": 17,
+    "last_seen": "2026-07-05T11:08:17Z",
+    "occurrences": 22,
     "match": {
       "channels": [
         "alert-system",
@@ -1210,7 +1210,7 @@
     "fix_template": null,
     "confidence": 0.82,
     "owning_team": "CRM Experience (runtime-core-subscriber-api, per ownership.md:454) / Admin (mobile-notifications-stack, per ownership.md:416) — split by service; DD monitor tags say team:crm for both, ownership.md disagrees for the mobile-notifications component",
-    "last_notified_at": "2026-07-04T19:16:00Z",
+    "last_notified_at": "2026-07-05T11:08:17Z",
     "notes": [
       {
         "ts": "2026-07-04T16:10:00Z",
@@ -1246,8 +1246,8 @@
     "id": "ki-2026-07-04-miurl-5xx-monitor-noise",
     "title": "[VAE][miurl][P1] 5xx error rate elevated (miurl) monitor trips on a handful of absolute errors against low overall traffic (monitor-sensitivity artifact, not a service issue)",
     "first_seen": "2026-07-04T19:52:29Z",
-    "last_seen": "2026-07-04T21:17:28Z",
-    "occurrences": 3,
+    "last_seen": "2026-07-05T11:08:17Z",
+    "occurrences": 4,
     "match": {
       "channels": [
         "alert-system",
@@ -1293,8 +1293,8 @@
     "id": "ki-2026-07-04-ms-account-api-4xx-spike-monitor-noise",
     "title": "[Admin][AccountAPI][P3] 4xx-spike monitor transitions state without a real 4xx breach (monitor-sensitivity/config artifact, not a service issue)",
     "first_seen": "2026-07-03T12:08:59Z",
-    "last_seen": "2026-07-04T21:28:18Z",
-    "occurrences": 6,
+    "last_seen": "2026-07-05T11:08:17Z",
+    "occurrences": 7,
     "match": {
       "channels": [
         "alert-system",
