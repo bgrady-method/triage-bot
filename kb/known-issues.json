@@ -1183,8 +1183,8 @@
     "id": "ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap",
     "title": "New team:crm AMQP-consumer heartbeat/throughput-stall monitors (5 sibling IDs, created 2026-07-02) intermittently trip on quiet-period low-traffic dips, then self-recover within minutes — no corroborating errors",
     "first_seen": "2026-07-04T13:07:31Z",
-    "last_seen": "2026-07-05T15:06:31Z",
-    "occurrences": 27,
+    "last_seen": "2026-07-05T15:23:31Z",
+    "occurrences": 28,
     "match": {
       "channels": [
         "alert-system",
@@ -1275,6 +1275,10 @@
       {
         "ts": "2026-07-05T15:20:44Z",
         "note": "2026-07-05 15:20Z triage (degraded cycle, no Slack MCP): 10th mns occurrence (hash 91a159d56be33718, 14:39:21Z) and 10th rcs occurrence (hash 8dd07c3a88b3f959, 15:06:31Z) processed this cycle, in ts order. mns: ~15+min data gap (14:21:30-14:37:00Z) immediately preceding trigger, same canonical quiet-period shape as prior 9 fires. rcs: mostly sub-2msg/s throughput around the trigger with periodic clearing bursts (90-130msg/s), still in Alert state at scan time but only ~14min open (not a repeat of the 4th-occurrence duration deviation from 2026-07-04). Both 0 DD error logs. Occurrences 25->26 (mns) and 26->27 (rcs), neither a multiple of 10; last_notified_at (2026-07-05T11:08:17Z) ~4h old, within 24h window -> SUPPRESS both, gate_reason=known-issue-window. See docs/investigations/2026-07-05-91a159d56be33718.md and docs/investigations/2026-07-05-8dd07c3a88b3f959.md."
+      },
+      {
+        "ts": "2026-07-05T16:08:00Z",
+        "note": "2026-07-05 16:08Z triage (degraded cycle, no Slack MCP; hash d437ac17c74f8a0e): 28th rcs occurrence, 15:23:31Z. DD metric trace.amqp.command.hits{service:runtime-core-subscriber,env:prod}.as_rate() shows the canonical mostly-sub-2msg/s baseline with periodic clearing bursts (up to ~99msg/s) around the trigger -- same benign oscillating shape as all prior occurrences. 0 DD error logs. No sibling monitor co-fired this cycle. last_notified_at (2026-07-05T11:08:17Z) ~4h15m old, within 24h window; occ 27->28, not %10 -> SUPPRESS gate_reason=known-issue-window. Self-recovered by scan time. See docs/investigations/2026-07-05-d437ac17c74f8a0e.md."
       }
     ]
   },
@@ -1337,8 +1341,8 @@
     "id": "ki-2026-07-04-ms-account-api-4xx-spike-monitor-noise",
     "title": "[Admin][AccountAPI][P3] 4xx-spike monitor transitions state without a real 4xx breach (monitor-sensitivity/config artifact, not a service issue)",
     "first_seen": "2026-07-03T12:08:59Z",
-    "last_seen": "2026-07-05T14:15:19Z",
-    "occurrences": 10,
+    "last_seen": "2026-07-05T15:22:18Z",
+    "occurrences": 11,
     "match": {
       "channels": [
         "alert-system",
@@ -1400,6 +1404,10 @@
       {
         "ts": "2026-07-05T15:20:44Z",
         "note": "2026-07-05 15:20Z triage (degraded cycle, no Slack MCP; hash 1ecbda2996557972): 10th occurrence, 14:15:19Z. Same disproof shape as occurrences 1-9 -- evidence_query metric returned 6 buckets of 1.0 hit each, nowhere near the >300/15min threshold; DD logs 0 hits (14:05-14:25Z). Occurrence crossed a multiple of 10 -> POSTED to #triage-results per gate_reason=known-issue-occurrence-resurface (last_notified_at was only ~1h15m old, still within the 24h window, so this was NOT a window-expiry post). last_notified_at bumped to 2026-07-05T15:20:44Z. See docs/investigations/2026-07-05-1ecbda2996557972.md."
+      },
+      {
+        "ts": "2026-07-05T16:08:00Z",
+        "note": "2026-07-05 16:08Z triage (degraded cycle, no Slack MCP; hash 4f3273f8bc27fa62): 11th occurrence, 15:22:18Z. Same disproof shape as occurrences 1-10 -- evidence_query metric returned 1 bucket of 1.0 hit total, nowhere near the >300/15min threshold; DD logs 0 hits (15:05-15:30Z). last_notified_at (2026-07-05T15:20:44Z) ~2min old at trigger time -- well within the 24h known-issue window; occ 10->11, not %10 -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-05-4f3273f8bc27fa62.md."
       }
     ]
   },
