@@ -1003,8 +1003,8 @@
     "id": "ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata",
     "title": "\"Method UI Grid and Dropdown Performance Test\" synthetics (team:qa, non-prod, 5 monitor-ID variants: Day run / Day run 2 / Evening run / Midnight run / Release Run) chronically go No Data; never correlates to a real incident",
     "first_seen": "2026-05-02T13:46:00Z",
-    "last_seen": "2026-07-05T12:30:00Z",
-    "occurrences": 21,
+    "last_seen": "2026-07-05T13:50:50Z",
+    "occurrences": 23,
     "match": {
       "channels": [
         "alert-system"
@@ -1061,6 +1061,14 @@
       {
         "ts": "2026-07-05T13:08:00Z",
         "note": "2026-07-05 13:08Z triage (degraded cycle, no Slack MCP): Midnight run variant (123495390) fired again, last_triggered 12:30:00Z -- 21st documented occurrence. Same confirmed non-prod QA-synthetics noise, no co-firing signal. last_notified_at (2026-07-05T11:08:17Z) is within the 24h suppression window and 21 is not a 10th-occurrence resurface -> suppressed per gate, appended to docs/actionable/2026-07-05.md. Synthetic hash 7300762e814e40aa (channel CPHHABKAA + DD monitor ts 2026-07-05T12:30:00Z). See docs/investigations/2026-07-05-7300762e814e40aa.md."
+      },
+      {
+        "ts": "2026-07-05T13:46:31Z",
+        "note": "2026-07-05 14:08Z triage (degraded cycle, no Slack MCP; hash efc629d661e50f38) [Day run (121308660)]: occurrence 21->22. Same confirmed shape as prior occurrences, 0 corroborating DD error logs this window. last_notified_at (2026-07-05T11:08:17Z) within 24h suppression window; occurrence not a multiple of 10 -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-05-efc629d661e50f38.md."
+      },
+      {
+        "ts": "2026-07-05T13:50:50Z",
+        "note": "2026-07-05 14:08Z triage (degraded cycle, no Slack MCP; hash 64eff07109322003) [Day run 2 (133625690)]: occurrence 22->23. Same confirmed shape as prior occurrences, 0 corroborating DD error logs this window. last_notified_at (2026-07-05T11:08:17Z) within 24h suppression window; occurrence not a multiple of 10 -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-05-64eff07109322003.md."
       }
     ]
   },
@@ -1068,8 +1076,8 @@
     "id": "ki-2026-07-03-ms-scheduler-api-seriesid-negative-recordid",
     "title": "ms-scheduler-api GetSeriesAsync throws InvalidOperationException when called with recordId=-1 (chronic, code-level missing-guard bug, now confirmed across multiple accounts, ~10-21+/day for 7+ days)",
     "first_seen": "2026-06-26T00:00:00Z",
-    "last_seen": "2026-07-05T11:08:17Z",
-    "occurrences": 127,
+    "last_seen": "2026-07-05T13:44:23Z",
+    "occurrences": 128,
     "match": {
       "channels": [
         "alert-system"
@@ -1108,6 +1116,10 @@
       {
         "ts": "2026-07-03T21:08:31Z",
         "note": "2026-07-03 21:08Z triage (degraded cycle, no Slack MCP): monitor 302054543 fired again at 20:39:23Z, self-recovered by scan time. ES recurrence check (kb_to_es_query.py, 13:04:37Z–21:08:31Z) found 21 new hits across 6 accounts (completeelectricalsolutions:8, foamtechinc:7, refexpertsandhvacllc:3, cooksmart2:1, farmxs:1, lafittesseafood:1) -- broadens the diagnosis from single-account to code-level bug (see diagnosis UPDATE). DD metric check: 7 errors clustered 20:23:00-20:28:50Z against ~399 hits in the surrounding 20-min band, consistent with the documented ~2.5% marginal-breach pattern. First-ever notify for this entry (last_notified_at was null) -- posted to #triage-results. Synthetic hash d20b7e1b29663dde (channel CPHHABKAA + DD monitor ts 2026-07-03T20:39:23Z). See docs/investigations/2026-07-03-d20b7e1b29663dde.md."
+      },
+      {
+        "ts": "2026-07-05T13:44:23Z",
+        "note": "2026-07-05 14:08Z triage (degraded cycle, no Slack MCP; hash bba9ff3756461f9b): occurrence 127->128. Same confirmed shape as prior occurrences, 0 corroborating DD error logs this window. last_notified_at (2026-07-05T11:08:17Z) within 24h suppression window; occurrence not a multiple of 10 -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-05-bba9ff3756461f9b.md."
       }
     ]
   },
@@ -1171,8 +1183,8 @@
     "id": "ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap",
     "title": "New team:crm AMQP-consumer heartbeat/throughput-stall monitors (5 sibling IDs, created 2026-07-02) intermittently trip on quiet-period low-traffic dips, then self-recover within minutes — no corroborating errors",
     "first_seen": "2026-07-04T13:07:31Z",
-    "last_seen": "2026-07-05T13:00:22Z",
-    "occurrences": 24,
+    "last_seen": "2026-07-05T14:03:31Z",
+    "occurrences": 25,
     "match": {
       "channels": [
         "alert-system",
@@ -1255,6 +1267,10 @@
       {
         "ts": "2026-07-05T13:08:00Z",
         "note": "2026-07-05 13:08Z triage (degraded cycle, no Slack MCP; hash 99289a58bb51b19c): 9th mns occurrence, 13:00:22Z, already self-recovered (OK) at scan time. DD metric trace.amqp.command.hits{service:method-mobile-notifications-subscriber,env:prod}.as_rate() shows a sparse low-throughput dip (0.2, 0.4 msg/s) immediately followed by a recovery burst (2.2 msg/s) -- canonical benign quiet-period shape, same as prior 8 mns fires. 0 DD error logs. No sibling monitor (rcs/eas/epa/aps) co-fired this cycle. last_notified_at 2026-07-05T11:08:17Z (bumped last cycle) ~2h ago, WITHIN 24h suppression window; occ 24 not %10; fix_status unchanged -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-05-99289a58bb51b19c.md."
+      },
+      {
+        "ts": "2026-07-05T14:03:31Z",
+        "note": "2026-07-05 14:08Z triage (degraded cycle, no Slack MCP; hash 3cfcf4ecdaefc89b) [runtime-core-subscriber (302057011)]: occurrence 24->25. Same confirmed shape as prior occurrences, 0 corroborating DD error logs this window. last_notified_at (2026-07-05T11:08:17Z) within 24h suppression window; occurrence not a multiple of 10 -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-05-3cfcf4ecdaefc89b.md."
       }
     ]
   },
@@ -1262,8 +1278,8 @@
     "id": "ki-2026-07-04-miurl-5xx-monitor-noise",
     "title": "[VAE][miurl][P1] 5xx error rate elevated (miurl) monitor trips on a handful of absolute errors against low overall traffic (monitor-sensitivity artifact, not a service issue)",
     "first_seen": "2026-07-04T19:52:29Z",
-    "last_seen": "2026-07-05T11:48:28Z",
-    "occurrences": 5,
+    "last_seen": "2026-07-05T14:03:28Z",
+    "occurrences": 6,
     "match": {
       "channels": [
         "alert-system",
@@ -1306,6 +1322,10 @@
       {
         "ts": "2026-07-05T12:08:00Z",
         "note": "2026-07-05 12:08Z triage (degraded cycle, no Slack MCP; hash 569dd4c1cce90c9e): 4th occurrence, 11:48:28Z. Identical shape to occurrences 1-3: exactly 4 error events (single burst 11:37:20Z) against low sparse traffic; DD logs 0 hits (11:35-12:05Z). last_notified_at unchanged (2026-07-04T22:17:00Z, ~13h31m ago) -- still within the 24h known-issue window -> SUPPRESS gate_reason=known-issue-window. occ 4->5, not %10. See docs/investigations/2026-07-05-569dd4c1cce90c9e.md."
+      },
+      {
+        "ts": "2026-07-05T14:03:28Z",
+        "note": "2026-07-05 14:08Z triage (degraded cycle, no Slack MCP; hash 795a486936e45528): occurrence 5->6. Same confirmed shape as prior occurrences, 0 corroborating DD error logs this window. last_notified_at (2026-07-04T22:17:00Z) within 24h suppression window; occurrence not a multiple of 10 -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-05-795a486936e45528.md."
       }
     ]
   },
