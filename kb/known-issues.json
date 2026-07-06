@@ -1770,8 +1770,8 @@
     "id": "ki-2026-07-06-tables-fields-redis-circuitbreaker-p95-latency",
     "title": "ms-tables-fields-api p95 request latency spike driven by a transient Redis connectivity blip (circuit breaker OPENED); first confirmed cross-service correlation with runtime-core-api RTC p95 (ki-24)",
     "first_seen": "2026-07-06T13:36:39Z",
-    "last_seen": "2026-07-06T19:00:31Z",
-    "occurrences": 3,
+    "last_seen": "2026-07-06T19:33:31Z",
+    "occurrences": 4,
     "match": {
       "channels": [
         "alert-system",
@@ -1822,6 +1822,10 @@
       {
         "ts": "2026-07-06T19:14:17Z",
         "note": "2026-07-06 19:14Z triage (degraded cycle, no Slack MCP; hash 812c09ec3cd96fbe): 3rd occurrence, monitor 302103451 last_triggered 19:00:31Z, OK by scan time (self-recovered). Evidence_query (Redis Cache Circuit Breaker OPENED) re-run 18:16:39Z-19:14:17Z -- 0 hits, mechanism did NOT reproduce (3rd consecutive occurrence without Redis corroboration). DD metric re-query on the monitor's own trailing-5m eval window (18:55:31-19:00:31Z, 29 points) shows avg ~0.056s vs 0.25s threshold -- well under threshold, weaker even than occurrence 2's marginal 0.259s breach; monitor's own rolling-average window must have caught a brief excursion (single point 0.377s) not visible in this coarser re-aggregation. No co-firing on ki-2026-05-24-runtime-core-rtc-p95-recurring this cycle (not in the 4-monitor diff set). last_notified_at 2026-07-06T14:16:00Z (~5h ago, WITHIN 24h suppression window); occ 2->3 (not %10); fix_status unchanged (needs-human) -> SUPPRESS gate_reason=known-issue-window. Pattern reinforced: 2 of 3 occurrences now show no Redis-circuit-breaker corroboration -- the match clause's bare monitor-id fallback is over-matching against plain monitor noise, same failure mode flagged for ki-2026-07-02 (not edited this cycle, flagging again). See docs/investigations/2026-07-06-812c09ec3cd96fbe.md."
+      },
+      {
+        "ts": "2026-07-06T20:15:24Z",
+        "note": "2026-07-06 20:15Z triage (degraded cycle, no Slack MCP; hash 3204e1987da68678): 4th occurrence, monitor 302103451 last_triggered 19:33:31Z, OK by scan time (self-recovered). Evidence_query (Redis Cache Circuit Breaker OPENED) re-run 18:16:39Z-19:33:31Z -- 0 hits, mechanism did NOT reproduce (3rd of 4 occurrences now without Redis corroboration). DD metric re-query on the monitor's own trailing-5m eval window (19:28:31-19:33:31Z, 29 points): avg ~0.091s vs 0.25s threshold (below), but with a real single-point spike of 0.897s at 19:30:50Z plus secondary blips of 0.294s/0.202s/0.151s -- a momentary latency excursion rather than a sustained breach, and weaker than occurrence 1's sharp 3.79s peak but more pronounced than occurrences 2/3's near-flat averages. No co-firing on ki-2026-05-24-runtime-core-rtc-p95-recurring this cycle (not in the 3-monitor diff set). last_notified_at 2026-07-06T14:16:00Z (~5h59m ago, WITHIN 24h suppression window); occ 3->4 (not %10); fix_status unchanged (needs-human) -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-06-3204e1987da68678.md."
       }
     ]
   },
