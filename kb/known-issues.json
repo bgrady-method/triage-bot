@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-05T11:08:17Z",
-    "occurrences": 522,
+    "last_seen": "2026-07-06T10:54:11Z",
+    "occurrences": 523,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -157,7 +157,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.88,
-    "last_notified_at": "2026-07-04T21:16:00Z",
+    "last_notified_at": "2026-07-06T10:54:11Z",
     "prior_fix_status": "needs-ops-decision",
     "notes": [
       {
@@ -302,8 +302,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-07-05T12:04:20Z",
-    "occurrences": 211,
+    "last_seen": "2026-07-06T04:27:20Z",
+    "occurrences": 212,
     "match": {
       "channels": [
         "alert-system",
@@ -498,8 +498,8 @@
     "id": "ki-2026-05-29-methodsession-getaccountbysubdomain-nre",
     "title": "method-platform-ui apps backend NRE in MethodSessionService.GetAccountBySubdomain() -> 'JWT Retrieval Failed' on subdomain-less synthetic monitor probes (Centreon + Datadog Watchdog noise)",
     "first_seen": "2026-05-29T12:49:31Z",
-    "last_seen": "2026-07-05T19:54:27Z",
-    "occurrences": 13,
+    "last_seen": "2026-07-06T06:26:33Z",
+    "occurrences": 14,
     "match": {
       "channels": [
         "alert-system"
@@ -896,8 +896,8 @@
     "id": "ki-2026-07-02-tables-fields-fieldtablenameref-null-linked-fields",
     "title": "ms-tables-fields-api ArgumentNullException on account-specific linked fields with null FieldTableNameRef -- App Update SaveViewBundleInternal fails 400 (chronic, account-specific)",
     "first_seen": "2026-05-28T17:27:49Z",
-    "last_seen": "2026-07-02T22:06:24Z",
-    "occurrences": 3,
+    "last_seen": "2026-07-06T04:28:24Z",
+    "occurrences": 4,
     "match": {
       "channels": [
         "alert-system",
@@ -928,7 +928,7 @@
     "fix_template": null,
     "confidence": 0.75,
     "owning_team": "Admin",
-    "last_notified_at": "2026-07-02T20:10:00Z",
+    "last_notified_at": "2026-07-06T04:28:24Z",
     "notes": [
       {
         "ts": "2026-05-28T18:24:52Z",
@@ -948,8 +948,8 @@
     "id": "ki-2026-07-03-eda-consumer-amqp-stopped-publishing",
     "title": "[EDA][Consumer][P3] eda_consumer AMQP publish-hits monitor intermittently goes No Data (team:devops, self-recovering, no correlated pipeline impact)",
     "first_seen": "2026-06-20T10:21:00Z",
-    "last_seen": "2026-07-05T11:08:17Z",
-    "occurrences": 7,
+    "last_seen": "2026-07-06T10:49:26Z",
+    "occurrences": 8,
     "match": {
       "channels": [
         "alert-system",
@@ -977,7 +977,7 @@
     "fix_template": null,
     "confidence": 0.8,
     "owning_team": "Integrations",
-    "last_notified_at": "2026-07-04T11:09:00Z",
+    "last_notified_at": "2026-07-06T10:49:26Z",
     "notes": [
       {
         "ts": "2026-06-20T10:13:00Z",
@@ -1009,8 +1009,8 @@
     "id": "ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata",
     "title": "\"Method UI Grid and Dropdown Performance Test\" synthetics (team:qa, non-prod, 5 monitor-ID variants: Day run / Day run 2 / Evening run / Midnight run / Release Run) chronically go No Data; never correlates to a real incident",
     "first_seen": "2026-05-02T13:46:00Z",
-    "last_seen": "2026-07-05T13:50:50Z",
-    "occurrences": 23,
+    "last_seen": "2026-07-06T04:01:30Z",
+    "occurrences": 27,
     "match": {
       "channels": [
         "alert-system"
@@ -1082,8 +1082,8 @@
     "id": "ki-2026-07-03-ms-scheduler-api-seriesid-negative-recordid",
     "title": "ms-scheduler-api GetSeriesAsync throws InvalidOperationException when called with recordId=-1 (chronic, code-level missing-guard bug, now confirmed across multiple accounts, ~10-21+/day for 7+ days)",
     "first_seen": "2026-06-26T00:00:00Z",
-    "last_seen": "2026-07-05T19:12:23Z",
-    "occurrences": 130,
+    "last_seen": "2026-07-06T04:32:23Z",
+    "occurrences": 131,
     "match": {
       "channels": [
         "alert-system"
@@ -1141,8 +1141,8 @@
     "id": "ki-2026-07-03-warehouse-dashboard-network-test-nodata",
     "title": "\"Warehouse Dashboard Network Test\" synthetics (team:qa, non-prod) go No Data daily ~09:31-10:01Z UTC; never correlates to a real incident",
     "first_seen": "2026-05-07T09:31:00Z",
-    "last_seen": "2026-07-03T10:01:08Z",
-    "occurrences": 7,
+    "last_seen": "2026-07-06T10:01:07Z",
+    "occurrences": 10,
     "match": {
       "channels": [
         "alert-system"
@@ -1169,7 +1169,7 @@
     "fix_template": null,
     "confidence": 0.88,
     "owning_team": "unmapped",
-    "last_notified_at": null,
+    "last_notified_at": "2026-07-06T10:01:07Z",
     "notes": [
       {
         "ts": "2026-05-07T00:00:00Z",
@@ -1197,8 +1197,8 @@
     "id": "ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap",
     "title": "New team:crm AMQP-consumer heartbeat/throughput-stall monitors (5 sibling IDs, created 2026-07-02) intermittently trip on quiet-period low-traffic dips, then self-recover within minutes — no corroborating errors",
     "first_seen": "2026-07-04T13:07:31Z",
-    "last_seen": "2026-07-05T19:59:22Z",
-    "occurrences": 31,
+    "last_seen": "2026-07-06T10:46:21Z",
+    "occurrences": 33,
     "match": {
       "channels": [
         "alert-system",
@@ -1367,8 +1367,8 @@
     "id": "ki-2026-07-04-ms-account-api-4xx-spike-monitor-noise",
     "title": "[Admin][AccountAPI][P3] 4xx-spike monitor transitions state without a real 4xx breach (monitor-sensitivity/config artifact, not a service issue)",
     "first_seen": "2026-07-03T12:08:59Z",
-    "last_seen": "2026-07-05T19:02:19Z",
-    "occurrences": 14,
+    "last_seen": "2026-07-06T07:00:18Z",
+    "occurrences": 15,
     "match": {
       "channels": [
         "alert-system",
@@ -1505,8 +1505,8 @@
     "id": "ki-2026-07-05-rainforest-outbound-api-p95-latency",
     "title": "[Rainforest] Outbound API P95 Latency > 3s -- runtime-core-api outbound calls to api.rainforestpay.com intermittently breach 3s p95, self-recovering, zero corroborating errors (third-party latency, not a Method-side defect)",
     "first_seen": "2026-07-05T08:31:25Z",
-    "last_seen": "2026-07-05T15:08:26Z",
-    "occurrences": 2,
+    "last_seen": "2026-07-06T08:29:25Z",
+    "occurrences": 3,
     "match": {
       "channels": [
         "alert-system",
@@ -1534,7 +1534,7 @@
     "fix_template": null,
     "confidence": 0.7,
     "owning_team": "Transactions (per ownership.md:119, Payment processing component; monitor tag team:transactions agrees)",
-    "last_notified_at": null,
+    "last_notified_at": "2026-07-06T08:29:25Z",
     "notes": [
       {
         "ts": "2026-07-05T15:20:44Z",
