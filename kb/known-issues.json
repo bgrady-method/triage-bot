@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-06T19:07:11Z",
-    "occurrences": 529,
+    "last_seen": "2026-07-06T19:28:11Z",
+    "occurrences": 530,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -157,7 +157,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.88,
-    "last_notified_at": "2026-07-06T10:54:11Z",
+    "last_notified_at": "2026-07-06T20:15:24Z",
     "prior_fix_status": "needs-ops-decision",
     "notes": [
       {
@@ -315,6 +315,10 @@
       {
         "ts": "2026-07-06T19:14:17Z",
         "note": "2026-07-06 19:14Z triage (degraded cycle, no Slack MCP): occ#529 via DD monitor 77419271 last_triggered 19:07:11Z (overall_state Warn at scan time, still active). Ran the KB's default ES evidence query again: 0 hits 18:07:11-19:14:17Z (expected -- documented field-mismatch, still not tightened). Corroborated via DD logs on service:method-ui status_code:0 path:*syncwidget*: 100-sample window 18:14:17-19:14:17Z = 54 distinct accounts (top: coastalready 10, duralinesystemsinc2 6, EnglandLogistics 4, socalfencesupply32 4, simpleinc980 4, gtsimulators 4), all canonical GET /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync status_code:0 'Failed to load' -- diffuse (10% max concentration), within the recent 39-107 chronic baseline range, NOT the 2026-06-04 100x OUTAGE surge. Synthetic hash c8c0ce5ee432ae3e (channel C03TYHGRS23 + DD monitor ts 2026-07-06T19:07:11Z). last_notified_at 2026-07-06T10:54:11Z = ~8h13m ago, WITHIN 24h suppression window; occ 528->529 (not %10); fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window. No ki-24 co-fire signal in this cycle's 4-monitor diff set. See docs/investigations/2026-07-06-c8c0ce5ee432ae3e.md."
+      },
+      {
+        "ts": "2026-07-06T20:15:24Z",
+        "note": "2026-07-06 20:15Z triage (degraded cycle, no Slack MCP): occ#530 via DD monitor 77419271 last_triggered 19:28:11Z (OK by scan time, self-recovered). ES default evidence query re-run 18:28:11-19:28:11Z: 0 hits (expected, documented field-mismatch). Corroborated via DD logs service:method-ui status_code:0 *xhr*: 100-sample window 18:28:11-19:28:11Z = 59 distinct accounts (top: thejpcookecompany 7, gtsimulators 5, experthosiery 5, mvwd 4, g3painting 4, synergyengineering 3), 100% status_code:0, dominant path /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync -- canonical chronic shape (59 distinct within recent 39-107 baseline, diffuse no concentration, NOT the 2026-06-04 100x OUTAGE surge). Synthetic hash be87d1fad2702958 (channel C03TYHGRS23 + DD monitor ts 2026-07-06T19:28:11Z). last_notified_at 2026-07-06T10:54:11Z = ~9h21m ago (still within 24h on its own) BUT occ 529->530 hits %10==0 -> RESURFACE POST, gate_reason=known-issue-occurrence-resurface, last_notified_at bumped to 2026-07-06T20:15:24Z. fix_status chronic-residual-post-rollback-2026-06-05 unchanged. No ki-24 co-fire signal in this cycle's 3-monitor diff set. See docs/investigations/2026-07-06-be87d1fad2702958.md."
       }
     ]
   },
