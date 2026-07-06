@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-06T17:49:12Z",
-    "occurrences": 528,
+    "last_seen": "2026-07-06T19:07:11Z",
+    "occurrences": 529,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -311,6 +311,10 @@
       {
         "ts": "2026-07-06T17:08:51Z",
         "note": "2026-07-06 17:08Z triage (degraded cycle, no Slack MCP): occ#527 via DD monitor 77419271 last_triggered 16:36:11Z (overall_state OK by scan time, self-recovered). Ran the KB's default ES evidence query this cycle per the new per-source verification requirement (prompt.md step 3): 0 hits 15:36-16:41Z (expected -- documented field-mismatch, ki-21 lives in DD RUM/method-ui client logs, not Serilog/ES; entry has no evidence_source/evidence_query declared, defaults to elasticsearch, flagged again for tightening). Corroborated instead via DD logs on service:method-ui status_code:0 path:*syncwidget*: 50-sample window 15:41-16:41Z = 39 distinct accounts (top sample ezbrandsllc, crslaboratories, foxmark, innovativeenergy, southgateprocessequipmentinc), all GET /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync status_code:0 origin:network 'Failed to load' -- canonical chronic shape (39 distinct within recent 39-107 baseline range, diffuse no concentration, NOT the 2026-06-04 100x OUTAGE surge). Synthetic hash a20c6c70eed30a82 (channel C03TYHGRS23 + DD monitor ts 2026-07-06T16:36:11Z). last_notified_at 2026-07-06T10:54:11Z = ~6h14m ago, WITHIN 24h suppression window; occ 526->527 (not %10); fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window. No ki-24 co-fire signal in this cycle's 2-monitor diff set. See docs/investigations/2026-07-06-a20c6c70eed30a82.md."
+      },
+      {
+        "ts": "2026-07-06T19:14:17Z",
+        "note": "2026-07-06 19:14Z triage (degraded cycle, no Slack MCP): occ#529 via DD monitor 77419271 last_triggered 19:07:11Z (overall_state Warn at scan time, still active). Ran the KB's default ES evidence query again: 0 hits 18:07:11-19:14:17Z (expected -- documented field-mismatch, still not tightened). Corroborated via DD logs on service:method-ui status_code:0 path:*syncwidget*: 100-sample window 18:14:17-19:14:17Z = 54 distinct accounts (top: coastalready 10, duralinesystemsinc2 6, EnglandLogistics 4, socalfencesupply32 4, simpleinc980 4, gtsimulators 4), all canonical GET /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync status_code:0 'Failed to load' -- diffuse (10% max concentration), within the recent 39-107 chronic baseline range, NOT the 2026-06-04 100x OUTAGE surge. Synthetic hash c8c0ce5ee432ae3e (channel C03TYHGRS23 + DD monitor ts 2026-07-06T19:07:11Z). last_notified_at 2026-07-06T10:54:11Z = ~8h13m ago, WITHIN 24h suppression window; occ 528->529 (not %10); fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window. No ki-24 co-fire signal in this cycle's 4-monitor diff set. See docs/investigations/2026-07-06-c8c0ce5ee432ae3e.md."
       }
     ]
   },
@@ -1684,6 +1688,44 @@
     ]
   },
   {
+    "id": "ki-2026-07-06-synthetics-signin-transient-step-duration-spike",
+    "title": "[Synthetics] Sign in to Method step-duration monitor (127198928) intermittently spikes >20s for a single test run then self-recovers, with no corroborating error signal on any critical-path service",
+    "first_seen": "2026-05-27T19:02:08Z",
+    "last_seen": "2026-07-06T19:01:08Z",
+    "occurrences": 4,
+    "match": {
+      "channels": [
+        "alert-system"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/127198928"
+        },
+        {
+          "contains": "[Synthetics] Sign in to Method"
+        }
+      ],
+      "precedence_note": "Distinct from ki-2026-07-04-synthetics-release-browser-step-duration-nodata (monitor 142763950, the [Release] variant, No-Data shape) -- this entry is the prod sign-in check (127198928), Alert shape (threshold breach, not no-data). Also distinct from any co-occurring ki-21 (gateway XHR) or ki-24 (runtime-core RTC p95) fires in the same window -- check for those independently; this monitor has fired standalone (no co-firing critical-path monitor) on all 4 documented occurrences so far."
+    },
+    "evidence_source": "datadog_apm",
+    "evidence_query": "avg:synthetics.browser.step.duration{step_id IN (447-as9-ktg,x93-d6z-ir9,3w5-4fp-rsq,rrq-u73-wwr)}",
+    "evidence_threshold_s": 20.0,
+    "diagnosis": "DD monitor 127198928 ('[Synthetics] Sign in to Method', avg(last_5m):avg:synthetics.browser.step.duration{...} > 20000ms) has now fired 4 times over 6 weeks (2026-05-27 19:02:08Z, 2026-05-28 20:02:09Z, 2026-06-01 17:02:08Z, 2026-07-06 19:01:08Z), always as a single-run spike that self-recovers on the very next scheduled run (~10 min later). Baseline step duration outside these spikes runs 5-10s; the 4th occurrence's underlying metric peaked at 21.4s at 18:50:00Z (only 7% over the 20s threshold), falling back to 8.6s and then 6.7s on the next two runs. Two of the four occurrences (2026-05-28, this one) temporally overlap chronic ki-21 (gateway/XHR) or ki-24 (runtime-core p95) activity, raising a plausible shared-upstream-slowness hypothesis, but no occurrence has ever produced a corroborating error signal: on this 4th occurrence, ES showed 0 errors on oauth2.identity.server/ms-gateway-api/ms-authentication-api/ms-identity-api in the tight 18:45-18:55Z window (a 5-hit oauth2 error burst at 18:55:56Z was checked and is unrelated -- MongoDB duplicate-key errors in the Intuit/QBO OAuth-grant storage path, not the Method sign-in flow), DD RUM/Error-Tracking showed 0 client errors on method-signin-ui, and no other critical-path monitor (gateway, oauth2, ms-authentication-api, ms-identity-api, signin) was in Alert/Warn or had a recent last_triggered_ts near the spike. No service is confirmed as the failure point -- deploy correlation could not be checked (oauth2 and method-signin-ui repos both 403 under the standing methodcrm-org GH_TOKEN gap). Most likely explanation given the shape (single-sample, no errors, immediate self-recovery, low magnitude): synthetic-probe-side jitter (browser worker cold start, transient network path from the Datadog synthetics location) rather than a genuine backend regression -- but this is not yet proven, hence needs-human rather than false-alarm.",
+    "playbook": "1) Confirm shape: monitor 127198928 in Alert (or recently Alert, now OK) with last_triggered_ts within the last ~15 min; check the underlying avg:synthetics.browser.step.duration metric for the actual peak value and how many points exceeded 20s (expect exactly 1 point historically). 2) Check for co-firing critical-path monitors (gateway, oauth2, ms-authentication-api, ms-identity-api, signin -- all tagged team:admin) in the same +/-15min window; if any are also in Alert, treat as a shared-upstream-slowness incident, not this noise pattern. 3) Run ES aggregate for level:Error across oauth2.identity.server / gateway / ms-authentication-api / ms-identity-api in a tight window around the spike; if genuinely 0 (as in all 4 occurrences so far), and DD RUM/Error-Tracking on method-signin-ui is also 0, this is the established noise pattern -- bump occurrence count, do not escalate further absent new evidence. 4) If error signal ever appears in the corroboration check, treat as a NEW, more serious finding (do not fold into this entry's occurrence count) and open a fresh KB entry / escalate per the needs-human scoring rubric. 5) If this recurs 2+ more times with the same no-evidence shape, consider recommending Admin either raise the monitor's step-duration threshold or add a secondary condition requiring 2 consecutive breaches before firing, to cut the noise.",
+    "fix_status": "needs-human",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.7,
+    "owning_team": "Admin",
+    "last_notified_at": null,
+    "notes": [
+      {
+        "ts": "2026-07-06T19:14:17Z",
+        "note": "2026-07-06 19:14Z triage (degraded cycle, no Slack MCP; hash aa8bf2d84dc8301e): created this KB entry on the 4th documented occurrence of monitor 127198928 (prior sightings 2026-05-27, 2026-05-28, 2026-06-01 all flagged in incident-log notes as 'worth a follow-up KB if pattern persists' but never previously formalized). Monitor last_triggered 19:01:08Z; wider metric query (2h) shows the underlying single-point spike was actually at 18:50:00Z (21436ms vs 20000ms threshold, ratio 0.072), recovering to 8624ms and 6740ms on the next two runs. Checked for co-firing: no other gateway/oauth2/ms-authentication-api/ms-identity-api/signin monitor (all team:admin) was in Alert/Warn or had a last_triggered_ts near 18:50Z -- all showed OK with stale (hours-to-days old) last_triggered_ts. ES aggregate level:Error 18:40-18:58Z across all services returned 328 hits but 0 attributable to oauth2/gateway/auth (top buckets: approutine-subscriber 154, nonprod/apps 66, runtime-core-api 51 -- all unrelated pre-existing chronic noise); a narrower ES search for oauth2.identity.server errors in that window found exactly 5 hits, all at 18:55:56Z+, all MongoDB DuplicateKey errors in IntuitOAuthProvider's QBO-grant storage path (unrelated to Method sign-in). DD logs for service:gateway status:error and for oauth2.identity.server in the tight 18:45-18:58Z window returned 0. DD RUM errortracking for service:method-signin-ui returned 0 client errors. Deploy correlation not checked -- both oauth2 and method-signin-ui repos 403 (methodcrm-org GH_TOKEN gap, non-blocking, standing issue). Score: critical_path_service 0 (no service confirmed failing -- conservative per the 2026-06-01 precedent, alert_hash 9c0ce7cf004a1bc2), active_users_affected 0 (no accounts, synthetic-only), metric_breach_magnitude 0 (ratio 0.072 < 0.5 bracket), group_size 0 (singleton), novel_no_kb_no_prior_7d +2 (no KB entry existed before this cycle, no prior alert_hash), monitor_history 0 (fire_count=3 in 30d estimate <5, new/unproven), recency_decay 0 (1st fire of this monitor today) = 2 total -- equals actionable_score_threshold(2), below escalation_score_threshold(4) -> actionable-append (high-borderline), gate_reason=low-impact. See docs/investigations/2026-07-06-aa8bf2d84dc8301e.md."
+      }
+    ]
+  },
+  {
     "id": "ki-2026-07-06-tables-fields-alter-column-ddl-syntax-error",
     "title": "ms-tables-fields-api AlterTableToDropColumn raises SqlException 'Incorrect syntax near COLUMN' when deleting a field (distinct from the FieldTableNameRef null-ref KB)",
     "first_seen": "2026-07-06T14:27:40Z",
@@ -1728,8 +1770,8 @@
     "id": "ki-2026-07-06-tables-fields-redis-circuitbreaker-p95-latency",
     "title": "ms-tables-fields-api p95 request latency spike driven by a transient Redis connectivity blip (circuit breaker OPENED); first confirmed cross-service correlation with runtime-core-api RTC p95 (ki-24)",
     "first_seen": "2026-07-06T13:36:39Z",
-    "last_seen": "2026-07-06T15:49:31Z",
-    "occurrences": 2,
+    "last_seen": "2026-07-06T19:00:31Z",
+    "occurrences": 3,
     "match": {
       "channels": [
         "alert-system",
@@ -1776,6 +1818,10 @@
       {
         "ts": "2026-07-06T16:08:08Z",
         "note": "2026-07-06 16:08Z triage (degraded cycle, no Slack MCP; hash da885f48aab313a9): 2nd occurrence, monitor 302103451 last_triggered 15:49:31Z, self-recovered (OK) by scan time. Evidence_query (Redis Cache Circuit Breaker OPENED) returned 0 hits in 15:10:00Z-16:08:08Z and in a widened 15:00:00Z-16:08:08Z check -- the Redis-circuit-breaker mechanism did NOT reproduce this occurrence; Kibana: 0 hits in window (not the evidence datasource for this specific check -- distinguish from the KB's overall evidence_source which is elasticsearch). DD metric re-query (p95:trace.aspnet_core.request{env:prod,service:tables-fields}, 15:44:00-15:50:00Z, the monitor's own trailing-5m eval window) shows avg 0.259s vs 0.25s threshold -- a marginal/borderline breach (ratio ~0.035), not a sharp spike like the first occurrence's 3.79s peak. ES error aggregate for the same window shows only the KNOWN UNRELATED ki-2026-07-02-tables-fields-fieldtablenameref-null-linked-fields signature (FillViewBasicInfo Failed x5, FieldTableNameRef Is Null x2, GetAllFields/GetColumnForAllFields/GetFieldList Failed x4 combined) -- do not conflate. Conclusion: this occurrence matched the KB via bare monitor-id (302103451) but does NOT corroborate the documented Redis-blip mechanism; treat as a separate, weaker-evidence recurrence of the same monitor rather than confirmation of the Redis root cause recurring. last_notified_at 2026-07-06T14:16:00Z ~1h52m ago, WITHIN 24h suppression window; occ 1->2 (not %10); fix_status unchanged (needs-human) -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-06-da885f48aab313a9.md."
+      },
+      {
+        "ts": "2026-07-06T19:14:17Z",
+        "note": "2026-07-06 19:14Z triage (degraded cycle, no Slack MCP; hash 812c09ec3cd96fbe): 3rd occurrence, monitor 302103451 last_triggered 19:00:31Z, OK by scan time (self-recovered). Evidence_query (Redis Cache Circuit Breaker OPENED) re-run 18:16:39Z-19:14:17Z -- 0 hits, mechanism did NOT reproduce (3rd consecutive occurrence without Redis corroboration). DD metric re-query on the monitor's own trailing-5m eval window (18:55:31-19:00:31Z, 29 points) shows avg ~0.056s vs 0.25s threshold -- well under threshold, weaker even than occurrence 2's marginal 0.259s breach; monitor's own rolling-average window must have caught a brief excursion (single point 0.377s) not visible in this coarser re-aggregation. No co-firing on ki-2026-05-24-runtime-core-rtc-p95-recurring this cycle (not in the 4-monitor diff set). last_notified_at 2026-07-06T14:16:00Z (~5h ago, WITHIN 24h suppression window); occ 2->3 (not %10); fix_status unchanged (needs-human) -> SUPPRESS gate_reason=known-issue-window. Pattern reinforced: 2 of 3 occurrences now show no Redis-circuit-breaker corroboration -- the match clause's bare monitor-id fallback is over-matching against plain monitor noise, same failure mode flagged for ki-2026-07-02 (not edited this cycle, flagging again). See docs/investigations/2026-07-06-812c09ec3cd96fbe.md."
       }
     ]
   },
