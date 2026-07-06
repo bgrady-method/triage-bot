@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-06T19:28:11Z",
-    "occurrences": 530,
+    "last_seen": "2026-07-06T21:55:11Z",
+    "occurrences": 531,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -319,6 +319,10 @@
       {
         "ts": "2026-07-06T20:15:24Z",
         "note": "2026-07-06 20:15Z triage (degraded cycle, no Slack MCP): occ#530 via DD monitor 77419271 last_triggered 19:28:11Z (OK by scan time, self-recovered). ES default evidence query re-run 18:28:11-19:28:11Z: 0 hits (expected, documented field-mismatch). Corroborated via DD logs service:method-ui status_code:0 *xhr*: 100-sample window 18:28:11-19:28:11Z = 59 distinct accounts (top: thejpcookecompany 7, gtsimulators 5, experthosiery 5, mvwd 4, g3painting 4, synergyengineering 3), 100% status_code:0, dominant path /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync -- canonical chronic shape (59 distinct within recent 39-107 baseline, diffuse no concentration, NOT the 2026-06-04 100x OUTAGE surge). Synthetic hash be87d1fad2702958 (channel C03TYHGRS23 + DD monitor ts 2026-07-06T19:28:11Z). last_notified_at 2026-07-06T10:54:11Z = ~9h21m ago (still within 24h on its own) BUT occ 529->530 hits %10==0 -> RESURFACE POST, gate_reason=known-issue-occurrence-resurface, last_notified_at bumped to 2026-07-06T20:15:24Z. fix_status chronic-residual-post-rollback-2026-06-05 unchanged. No ki-24 co-fire signal in this cycle's 3-monitor diff set. See docs/investigations/2026-07-06-be87d1fad2702958.md."
+      },
+      {
+        "ts": "2026-07-06T22:16:03Z",
+        "note": "2026-07-06 22:16Z triage (degraded cycle, synthetic alert 0d79374a4707ec71, monitor 77419271 fired 21:55:11Z, self-recovered): 41 distinct accounts in the DD-logs sample window, canonical GetSyncWidgetInfoAsync sync-util shape, status_code 0 dominant w/ some 504. ES evidence query 0 hits as expected (documented field-mismatch). last_notified_at 2026-07-06T20:15:24Z (~1h52m ago, within 24h suppression window); occ 530->531 not %10==0; fix_status unchanged -> SUPPRESS gate_reason=known-issue-window."
       }
     ]
   },
@@ -1702,8 +1706,8 @@
     "id": "ki-2026-07-06-signup-low-traffic-p90-latency-monitor-noise",
     "title": "[Growth][Signup][P?] 'Service Signup post requests have a high p90 latency' trips on single-request percentile noise on a very low-traffic endpoint",
     "first_seen": "2026-07-05T21:57:46Z",
-    "last_seen": "2026-07-06T14:57:46Z",
-    "occurrences": 3,
+    "last_seen": "2026-07-06T22:07:46Z",
+    "occurrences": 4,
     "match": {
       "channels": [
         "alert-system",
@@ -1728,11 +1732,15 @@
     "evidence_source": "datadog_apm",
     "evidence_query": "p90:trace.aspnet.request{env:prod,service:signup,resource_name:post_/*}",
     "evidence_threshold_s": 12.0,
-    "last_notified_at": null,
+    "last_notified_at": "2026-07-06T22:16:03Z",
     "notes": [
       {
         "ts": "2026-07-06T15:09:00Z",
         "note": "Created this cycle on the 3rd occurrence, finalizing the 2026-07-05T22:15:00Z 'hold pending second occurrence' decision (alert_hash 590dd72178d6d3b8) -- occurrence 2 (within the SQL cascade window) and occurrence 3 (this one, 10+h after the cascade cleanly resolved) both confirm the same low-traffic-percentile-noise shape independent of the cascade. Occurrence 3: DD monitor 154252126 last_triggered 14:57:46Z (OK now). Re-query 14:52:46-14:57:46Z (tight window): 3 points, peak 11.79s @14:55:10Z -- essentially at, not clearly over, the 12s threshold on reaggregation (rolling-window-lag artifact, same as documented elsewhere in this KB). 0 errors (DD Logs service:signup status:error = 0; ES aggregate = 2 Information-level hits only). Synthetic hash 175aecfebe43a005 (channel C063V5HTTFU + DD monitor ts 2026-07-06T14:57:46Z). Score: critical_path_service 0 (signup not in critical_path_services), active_users 0 (pre-account), metric_breach 0 (could not confirm ratio bracket), truly_novel 0 (2 prior fires of this monitor exist in kb/incident-log.jsonl -- not first-ever), monitor_history 0 (fire_count=2 <5, new/unproven), recency_decay -1 (2nd fire of monitor 154252126 today, first was ~04:xxZ as part of group 112facdd365346cc) = -1 total -> below actionable_score_threshold(2) -> actionable-append, gate_reason=low-impact, terse line only. See docs/investigations/2026-07-06-175aecfebe43a005.md."
+      },
+      {
+        "ts": "2026-07-06T22:16:03Z",
+        "note": "2026-07-06 22:16Z triage (degraded cycle, synthetic alert 73e82b4c20df7c55, monitor 154252126 fired 22:07:46Z, self-recovered): 4th occurrence, same shape -- 3 non-zero p90 points in a 15-min window, peak re-queried 9.65s (below the monitor 12s threshold on reaggregation, same rolling-window-lag pattern as prior occurrences), 0 errors on service:signup. last_notified_at was null since KB creation at the 3rd occurrence (2026-07-06T15:09:00Z) -- first-notify gate fires -> POST to #triage-results (independent of today needs-human daily cap, already 5/5)."
       }
     ]
   },
