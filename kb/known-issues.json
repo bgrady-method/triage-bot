@@ -1654,6 +1654,51 @@
     ]
   },
   {
+    "id": "ki-2026-07-06-runtime-core-redis-cache-timeout-transient-burst",
+    "title": "runtime-core-api Runtime.Caching.CacheContext brief Redis command-timeout burst (DD monitor 227940275 'Redis Errors is High') -- self-recovers in ~1min, hits 20+ distinct accounts simultaneously",
+    "first_seen": "2026-07-05T16:42:35+00:00",
+    "last_seen": "2026-07-06T20:09:39+00:00",
+    "occurrences": 2,
+    "match": {
+      "channels": [
+        "alert-system",
+        "alert-runtime-monitoring",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/227940275"
+        },
+        {
+          "contains": "Redis Errors is High"
+        },
+        {
+          "contains": "Redis operation timed out after 5 seconds"
+        },
+        {
+          "contains": "Runtime.Caching.CacheContext"
+        }
+      ],
+      "precedence_note": "Distinct from ki-runtime-core-ansible-redis-deploy-burst (deploy-day Ansible-failure/version-skew root cause, morning release window) and ki-redis-keyspace-scan-cache-clear-spike (CacheClearEventConsumer pattern-delete-driven Redis CPU spike) -- this entry has no deploy correlation and no CacheClearEventConsumer signal on either occurrence; it is a standalone, brief (~1 monitor-eval-window) command-timeout burst of unknown trigger."
+    },
+    "evidence_source": "elasticsearch",
+    "evidence_query": "level.keyword:Error AND fields.dd_service.keyword:runtime-core-api AND messageTemplate.keyword:\"Redis operation timed out after 5 seconds\"",
+    "diagnosis": "DD monitor 227940275 ('Redis Errors is High', sum(last_5m):sum:trace.redis.command.errors{env:prod,...} > 10) has now fired standalone (no co-firing RTC p95 / tables-fields circuit-breaker / gateway-XHR critical-path monitor in either case) twice: 2026-07-05 16:42:35Z (self-recovered, re-query at the time found only 7 sparse errors in a 68-min window, 0 app-visible impact, KB write held pending a second data point) and 2026-07-06 ~20:09:20-20:09:39Z (this occurrence -- confirmed real impact). On this 2nd occurrence the underlying trace.redis.command.errors metric spiked to 36 in a single 20s bucket (runtime-core-api 32, runtime-core-subscriber 3, ms-apps-api 1), and ES corroborated it directly: messageTemplate 'Redis operation timed out after 5 seconds' (SourceContext Runtime.Caching.CacheContext) fired 32 times at 20:09:39Z across 20 distinct named accounts (plus 11 hits with no resolved account tag, likely pre-auth/anonymous requests) -- a real ~5x spike in runtime-core-api's total error rate vs the 11-minute windows immediately before (12 errors) and after (21 errors). 4 co-occurring 'Session Token Expiry Failed' errors in the same window are plausibly downstream of the same Redis blip (session tokens are Redis-cached). No deploy correlation could be confirmed -- the local runtime-core clone is stale (last commit 2026-06-16, methodcrm-org GH_TOKEN 403 gap per CLAUDE.md known gaps) and gh api access to methodcrm/runtime-core is blocked. Root cause of the Redis blip itself (network blip to the Redis/Valkey node, a noisy-neighbor client, GC pause on the Redis side, etc.) is NOT identified -- only the shape (brief, self-recovering, cross-account, runtime-core-api cache-client-side) is confirmed twice now.",
+    "playbook": "1) Confirm shape: monitor 227940275 in Alert (or recently Alert, now OK/self-recovered) with last_triggered_ts within the last ~15 min, and NOT co-firing with RTC p95 (115456700/117279738), tables-fields Redis circuit-breaker (302103451), or gateway XHR (77419271) -- if any of those ARE co-firing, treat as the shared-upstream-slowness pattern documented under ki-2026-05-24/ki-2026-07-06-tables-fields-redis-circuitbreaker instead. 2) Query trace.redis.command.errors by {service} for the +/-10min window to confirm which service(s) took the hit (both occurrences: runtime-core-api dominant). 3) ES search messageTemplate.keyword:\"Redis operation timed out after 5 seconds\" AND fields.dd_service.keyword:runtime-core-api in a tight window -- if it returns a real count (not 0), this corroborates genuine cache-client impact (not just a noisy metric); count distinct fields.Account.AccountName.keyword to gauge blast radius. 4) Compare the ES error-count in the spike window vs the 11-min windows immediately before/after on the same fields.dd_service.keyword:runtime-core-api AND level.keyword:Error query -- a 3x+ ratio confirms a genuine app-visible impact, not just Redis-metric noise. 5) Check deploy correlation on runtime-core if the repo is fetchable that cycle. 6) If this recurs again with the same standalone/no-deploy/no-CacheClearEventConsumer shape, this is chronic infra noise -- bump occurrences, no further escalation needed absent a magnitude change or a confirmed root cause. 7) If it ever co-occurs with the Ansible-deploy or CacheClearEventConsumer signatures, that's a DIFFERENT KB entry (ki-runtime-core-ansible-redis-deploy-burst / ki-redis-keyspace-scan-cache-clear-spike) -- do not fold into this one.",
+    "fix_status": "needs-human",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.75,
+    "owning_team": "Vertical App Experience",
+    "last_notified_at": null,
+    "notes": [
+      {
+        "ts": "2026-07-06T21:11:27Z",
+        "note": "2026-07-06 ~21:11Z triage (degraded cycle, no Slack MCP; hash 762461c193114ea8): created this KB entry on the 2nd documented occurrence of monitor 227940275 standalone (the 2026-07-05 occurrence, alert_hash 8004fa1b6173c42c, explicitly held off a KB write pending a 2nd same-shape data point -- see its incident-log note). Unlike the 1st occurrence, this one has strong ES corroboration: 32 'Redis operation timed out after 5 seconds' errors (Runtime.Caching.CacheContext) at 20:09:39Z across 20 distinct accounts, a ~5x spike vs the 11-min windows immediately before (12) and after (21) on fields.dd_service.keyword:runtime-core-api AND level.keyword:Error. Checked co-firing: RTC p95 (115456700 last 14:22:21Z, 117279738 last-day-prior), tables-fields Redis circuit-breaker (302103451 last 19:33:31Z, 42min earlier) -- none concurrent. account_impact.py returned clusters_unconfigured (prod3/prod4/prod5) for every account tried including a known-good control (ramexteriorsinc) -- this is a tool/environment gap this cycle, not a naming issue; fell back to the ES distinct-account count (20) as a lower bound, user_count_source=fallback. Deploy correlation not checked -- runtime-core local clone stale since 2026-06-16 (methodcrm-org GH_TOKEN 403 gap, standing/non-blocking). Score: critical_path_service +3 (runtime-core is in critical_path_services), active_users_affected 0 (account_impact.py unavailable this cycle, fallback distinct-account count 20 not translated into a users bracket to avoid fabricating a number), metric_breach_magnitude +3 (36-count single-tick vs monitor's own >10 threshold, ratio ~2.6), account_tier 0 (unresolvable), group_size 0 (singleton), novel_no_kb_no_prior_7d +2 (no KB entry existed before this cycle) = 8 total, >= escalation_score_threshold(4) -> would notify, BUT today's #triage-results needs-human post count was already 5 (== daily_escalation_cap) before this group -> gate_reason=daily-cap, actionable-append (high-borderline) instead of a post. See docs/investigations/2026-07-06-762461c193114ea8.md."
+      }
+    ]
+  },
+  {
     "id": "ki-2026-07-06-signup-low-traffic-p90-latency-monitor-noise",
     "title": "[Growth][Signup][P?] 'Service Signup post requests have a high p90 latency' trips on single-request percentile noise on a very low-traffic endpoint",
     "first_seen": "2026-07-05T21:57:46Z",
@@ -1695,8 +1740,8 @@
     "id": "ki-2026-07-06-synthetics-signin-transient-step-duration-spike",
     "title": "[Synthetics] Sign in to Method step-duration monitor (127198928) intermittently spikes >20s for a single test run then self-recovers, with no corroborating error signal on any critical-path service",
     "first_seen": "2026-05-27T19:02:08Z",
-    "last_seen": "2026-07-06T19:01:08Z",
-    "occurrences": 4,
+    "last_seen": "2026-07-06T21:02:08+00:00",
+    "occurrences": 5,
     "match": {
       "channels": [
         "alert-system"
@@ -1721,11 +1766,15 @@
     "fix_template": null,
     "confidence": 0.7,
     "owning_team": "Admin",
-    "last_notified_at": null,
+    "last_notified_at": "2026-07-06T21:29:34Z",
     "notes": [
       {
         "ts": "2026-07-06T19:14:17Z",
         "note": "2026-07-06 19:14Z triage (degraded cycle, no Slack MCP; hash aa8bf2d84dc8301e): created this KB entry on the 4th documented occurrence of monitor 127198928 (prior sightings 2026-05-27, 2026-05-28, 2026-06-01 all flagged in incident-log notes as 'worth a follow-up KB if pattern persists' but never previously formalized). Monitor last_triggered 19:01:08Z; wider metric query (2h) shows the underlying single-point spike was actually at 18:50:00Z (21436ms vs 20000ms threshold, ratio 0.072), recovering to 8624ms and 6740ms on the next two runs. Checked for co-firing: no other gateway/oauth2/ms-authentication-api/ms-identity-api/signin monitor (all team:admin) was in Alert/Warn or had a last_triggered_ts near 18:50Z -- all showed OK with stale (hours-to-days old) last_triggered_ts. ES aggregate level:Error 18:40-18:58Z across all services returned 328 hits but 0 attributable to oauth2/gateway/auth (top buckets: approutine-subscriber 154, nonprod/apps 66, runtime-core-api 51 -- all unrelated pre-existing chronic noise); a narrower ES search for oauth2.identity.server errors in that window found exactly 5 hits, all at 18:55:56Z+, all MongoDB DuplicateKey errors in IntuitOAuthProvider's QBO-grant storage path (unrelated to Method sign-in). DD logs for service:gateway status:error and for oauth2.identity.server in the tight 18:45-18:58Z window returned 0. DD RUM errortracking for service:method-signin-ui returned 0 client errors. Deploy correlation not checked -- both oauth2 and method-signin-ui repos 403 (methodcrm-org GH_TOKEN gap, non-blocking, standing issue). Score: critical_path_service 0 (no service confirmed failing -- conservative per the 2026-06-01 precedent, alert_hash 9c0ce7cf004a1bc2), active_users_affected 0 (no accounts, synthetic-only), metric_breach_magnitude 0 (ratio 0.072 < 0.5 bracket), group_size 0 (singleton), novel_no_kb_no_prior_7d +2 (no KB entry existed before this cycle, no prior alert_hash), monitor_history 0 (fire_count=3 in 30d estimate <5, new/unproven), recency_decay 0 (1st fire of this monitor today) = 2 total -- equals actionable_score_threshold(2), below escalation_score_threshold(4) -> actionable-append (high-borderline), gate_reason=low-impact. See docs/investigations/2026-07-06-aa8bf2d84dc8301e.md."
+      },
+      {
+        "ts": "2026-07-06T21:29:34Z",
+        "note": "2026-07-06 ~21:29Z triage (degraded cycle, no Slack MCP; hash 889efc3b1c58043f): 5th documented occurrence, same shape as all 4 priors -- monitor 127198928 last_triggered 21:02:08Z, underlying metric peaked at 21080ms at 21:00:00Z (ratio 0.054, below even the 4th occurrence's 0.072), recovered to 5873ms by 21:10:00Z. Checked co-firing: no gateway/oauth2/ms-authentication-api/ms-identity-api/signin monitor (all team:admin) was in Alert or had a last_triggered_ts near 21:00Z (all OK, hours-to-days stale); Redis Errors is High (227940275) last triggered 20:15:36Z, ~47min earlier, not concurrent; Signup Availability SLO (154229727) is in Alert but its last_triggered_ts (04:26:27Z) is a stale 7-day error-budget-burn metric from earlier today, unrelated. ES aggregate level:Error 20:55-21:05Z across all services: 69 hits, none on gateway/oauth2/ms-authentication-api/ms-identity-api/signin (top buckets: approutine-subscriber 36, nonprod/apps 11, email-subscriber-agent 10, runtime-core-api 7 -- all unrelated chronic baseline noise). DD RUM errortracking for service:method-signin-ui returned 0 client errors. This is the KIR gate's first-ever notify decision for this entry (last_notified_at was null since KB creation last cycle) -- per gate rule 'entry.last_notified_at is null -> Post', posted to #triage-results this cycle regardless of the needs-human daily cap (that cap only gates the needs-human scoring branch, not KIR first-notify/window/resurface/fix-status gates). last_notified_at set to now. See docs/investigations/2026-07-06-889efc3b1c58043f.md."
       }
     ]
   },
