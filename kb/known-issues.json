@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-06T15:05:11Z",
-    "occurrences": 526,
+    "last_seen": "2026-07-06T16:36:11Z",
+    "occurrences": 527,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -307,6 +307,10 @@
       {
         "ts": "2026-07-06T15:09:00Z",
         "note": "2026-07-06 15:09Z triage (degraded cycle, no Slack MCP): occ#526 via DD monitor 77419271 last_triggered 15:05:11Z (OK now, self-recovered). DD method-ui XHR error logs / DD RUM errortracking not re-sampled this cycle (chronic shape confirmed repeatedly this week; ki-21 lives in DD RUM, documented field-mismatch for ES/DD Logs -- both re-tried this cycle and returned 0/null as expected). Synthetic hash 5e2abada1c7f2450 (channel C03TYHGRS23 + DD monitor ts 2026-07-06T15:05:11Z). last_notified_at 2026-07-06T10:54:11Z = ~4h11m ago, WITHIN 24h suppression window; occ 525->526 (not %10) -> SUPPRESS gate_reason=known-issue-window. fix_status chronic-residual-post-rollback-2026-06-05 unchanged. See docs/investigations/2026-07-06-5e2abada1c7f2450.md."
+      },
+      {
+        "ts": "2026-07-06T17:08:51Z",
+        "note": "2026-07-06 17:08Z triage (degraded cycle, no Slack MCP): occ#527 via DD monitor 77419271 last_triggered 16:36:11Z (overall_state OK by scan time, self-recovered). Ran the KB's default ES evidence query this cycle per the new per-source verification requirement (prompt.md step 3): 0 hits 15:36-16:41Z (expected -- documented field-mismatch, ki-21 lives in DD RUM/method-ui client logs, not Serilog/ES; entry has no evidence_source/evidence_query declared, defaults to elasticsearch, flagged again for tightening). Corroborated instead via DD logs on service:method-ui status_code:0 path:*syncwidget*: 50-sample window 15:41-16:41Z = 39 distinct accounts (top sample ezbrandsllc, crslaboratories, foxmark, innovativeenergy, southgateprocessequipmentinc), all GET /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync status_code:0 origin:network 'Failed to load' -- canonical chronic shape (39 distinct within recent 39-107 baseline range, diffuse no concentration, NOT the 2026-06-04 100x OUTAGE surge). Synthetic hash a20c6c70eed30a82 (channel C03TYHGRS23 + DD monitor ts 2026-07-06T16:36:11Z). last_notified_at 2026-07-06T10:54:11Z = ~6h14m ago, WITHIN 24h suppression window; occ 526->527 (not %10); fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window. No ki-24 co-fire signal in this cycle's 2-monitor diff set. See docs/investigations/2026-07-06-a20c6c70eed30a82.md."
       }
     ]
   },
