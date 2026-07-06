@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-06T13:01:20Z",
-    "occurrences": 524,
+    "last_seen": "2026-07-06T14:07:12Z",
+    "occurrences": 525,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -299,6 +299,10 @@
       {
         "ts": "2026-07-06T13:01:20Z",
         "note": "2026-07-06 13:11Z triage (degraded cycle, no Slack MCP): occ#524 via DD monitor 77419271 last_triggered 13:01:20Z (OK now, self-recovered). DD method-ui XHR error logs not re-sampled this cycle (chronic shape confirmed repeatedly; ES/DD Logs carry no traffic-level lines for this signal -- ki-21 lives in DD RUM, documented field-mismatch). Synthetic hash 56d6c86623feb330 (channel CPHHABKAA + DD monitor ts 2026-07-06T13:01:20Z). last_notified_at 2026-07-06T10:54:11Z = ~2h07m ago, WITHIN 24h suppression window; occ 523->524 (not %10); fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window. No ki-24 co-fire this cycle (RTC monitor 115456700 not in this cycle's new-fire set)."
+      },
+      {
+        "ts": "2026-07-06T14:16:00Z",
+        "note": "2026-07-06 14:16Z triage (degraded cycle, no Slack MCP): occ#525 via DD monitor 77419271 last_triggered 14:07:12Z (OK now, self-recovered). DD method-ui XHR error logs not re-sampled this cycle (chronic shape confirmed repeatedly this week; ki-21 lives in DD RUM, documented field-mismatch for ES/DD Logs). Synthetic hash f7cf23d36efe833c (channel CPHHABKAA + DD monitor ts 2026-07-06T14:07:12Z). last_notified_at 2026-07-06T10:54:11Z = ~3h13m ago, WITHIN 24h suppression window; occ 524->525 (not %10) -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-06-f7cf23d36efe833c.md."
       }
     ]
   },
@@ -306,8 +310,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-07-06T04:27:20Z",
-    "occurrences": 212,
+    "last_seen": "2026-07-06T13:49:21Z",
+    "occurrences": 213,
     "match": {
       "channels": [
         "alert-system",
@@ -348,7 +352,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.85,
-    "last_notified_at": "2026-07-05T11:08:17Z",
+    "last_notified_at": "2026-07-06T13:49:21Z",
     "prior_last_notified_at": "2026-06-17T11:08:00Z",
     "notes": [
       {
@@ -430,6 +434,10 @@
       {
         "ts": "2026-07-05T12:08:00Z",
         "note": "2026-07-05 12:08Z triage (degraded cycle, no Slack MCP; hash c6b0008b49011115): occ#211 via DD monitor 115456700 last_triggered 12:04:20Z. DD metric RTC Screen Load p95 sharp single burst 11:56:20-11:57:00Z, peak 27.60s (ratio (27.60-3)/3=8.2, bracket >=2.0 -> +3 metric_breach) -- among the more severe peaks on record (prior worst ~30.8s, 2026-06-15). runtime-core-api status:error logs = 0 in window (latency-only signature holds). last_notified_at 2026-07-05T11:08:17Z (bumped last cycle) ~1h ago, WITHIN 24h suppression window; occ 211 not %10; fix_status investigating unchanged -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-05-c6b0008b49011115.md."
+      },
+      {
+        "ts": "2026-07-06T14:16:00Z",
+        "note": "2026-07-06 14:16Z triage (degraded cycle, no Slack MCP): monitor 115456700 (RTC Screen Load p95) last_triggered 13:49:21Z, OK by scan time. DD metric re-query 13:20:00-14:16:00Z confirms 9 points > 3s threshold across 3 distinct bursts: 9.62s @13:32:40Z (peak), 4.64-7.74s @13:41:00-13:42:00Z (4 points), 3.85-5.25s @14:01:40-14:02:40Z (4 points). service:runtime-core-api status:error DD Logs 13:25:00-14:05:00Z = 0 hits -- confirms latency-only, consistent with the established signature. NEW THIS OCCURRENCE: ES sweep (fields.dd_service.keyword:runtime-core-api, Redis-related messages, same window) found 9 Redis error-level log lines -- 'Redis operation cancelled' x7, 'Redis operation timed out after 5 seconds' x2 -- the first concrete corroboration of this KB's long-standing 'candidate cause: Redis backpressure' hypothesis (previously never confirmed with a matching log signature in the same window). Cross-service correlation: the SAME Redis instability also hit ms-tables-fields-api in a slightly earlier window (13:20-13:26Z, circuit breaker OPENED 13:23:28Z, investigated separately as group 063d9c89de4e3139 / new KB ki-2026-07-06-tables-fields-redis-circuitbreaker-p95-latency) -- first documented cross-service Redis-driven latency event linking ki-24 to a concrete upstream mechanism rather than just temporal co-occurrence with ki-21. No runtime-core deploy in window (local ref stale 20d, methodcrm-org GH_TOKEN 403 gap, non-blocking). Synthetic hash 411effc31360f604 (channel CPHHABKAA + DD monitor ts 2026-07-06T13:49:21Z). last_notified_at (2026-07-05T11:08:17Z) = ~26h41m ago, PAST 24h suppression window -> RESURFACE POST, gate_reason=null, last_notified_at bumped to now. See docs/investigations/2026-07-06-411effc31360f604.md."
       }
     ]
   },
@@ -904,8 +912,8 @@
     "id": "ki-2026-07-02-tables-fields-fieldtablenameref-null-linked-fields",
     "title": "ms-tables-fields-api ArgumentNullException on account-specific linked fields with null FieldTableNameRef -- App Update SaveViewBundleInternal fails 400 (chronic, account-specific)",
     "first_seen": "2026-05-28T17:27:49Z",
-    "last_seen": "2026-07-06T04:28:24Z",
-    "occurrences": 4,
+    "last_seen": "2026-07-06T13:25:28Z",
+    "occurrences": 5,
     "match": {
       "channels": [
         "alert-system",
@@ -949,6 +957,10 @@
       {
         "ts": "2026-07-02T22:08:48Z",
         "note": "2026-07-02 22:08Z triage (degraded cycle, no Slack MCP): occ#3, monitor 299251404 re-fired 22:06:24Z (OK now, self-recovered). ES aggregate 21:08:48-22:08:48Z: 80 error-level hits, top buckets FieldTableNameRef Is Null (18), GetAllFields Failed (18), GetColumnForAllFields failed (18), FieldTableNameRef Is Null (Parameter 'FieldTableNameRef') (9), GetFieldList Failed (6) -- identical signature to occ#1-2. Synthetic hash 1a5178d460dcc1de (channel CPHHABKAA + DD monitor ts 22:06:24Z). last_notified_at 2026-07-02T20:10:00Z = ~1h56m ago, WITHIN 24h suppression window; occ 2->3 (3%10!=0); fix_status needs-human unchanged -> SUPPRESS gate_reason=known-issue-window."
+      },
+      {
+        "ts": "2026-07-06T14:16:00Z",
+        "note": "2026-07-06 14:16Z triage (degraded cycle, no Slack MCP): occ#5. This occurrence's signature (4 distinct traces, 40 x 'FieldTableNameRef Is Null'/'GetAllFields Failed'/'GetColumnForAllFields failed', 13:25:28Z sample) fired concurrently with a Redis connectivity blip on the same service (StackExchange.Redis.RedisConnectionException, circuit breaker OPENED 13:23:28Z, 'Cache REMOVE/GET/SET operation failed' x55, 'Unable to fetch the data for key' x23 -- 261 total error-level ES hits 13:00-14:16Z window). Investigated as part of group 063d9c89de4e3139 (DD monitors 299251779 + 302103451, 'high p95 latency on env:prod'), logged separately as new KB entry ki-2026-07-06-tables-fields-redis-circuitbreaker-p95-latency because the LATENCY-driving mechanism (Redis circuit breaker) is distinct from this entry's diagnosis (per-account null-ref exception, HTTP 400, not the latency driver). Coincidental overlap, not causally the same incident -- see docs/investigations/2026-07-06-063d9c89de4e3139.md for full analysis. last_notified_at (2026-07-06T04:28:24Z) ~9h48m ago, WITHIN 24h suppression window; occ 4->5 (not %10) -> SUPPRESS gate_reason=known-issue-window (own notification unaffected by the sibling KB's post)."
       }
     ]
   },
@@ -1017,8 +1029,8 @@
     "id": "ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata",
     "title": "\"Method UI Grid and Dropdown Performance Test\" synthetics (team:qa, non-prod, 5 monitor-ID variants: Day run / Day run 2 / Evening run / Midnight run / Release Run) chronically go No Data; never correlates to a real incident",
     "first_seen": "2026-05-02T13:46:00Z",
-    "last_seen": "2026-07-06T12:31:31Z",
-    "occurrences": 29,
+    "last_seen": "2026-07-06T13:51:50Z",
+    "occurrences": 32,
     "match": {
       "channels": [
         "alert-system"
@@ -1091,6 +1103,10 @@
       {
         "ts": "2026-07-06T12:31:31Z",
         "note": "2026-07-06 13:11Z triage (degraded cycle, no Slack MCP): Release Run variant (142200330) recovered to OK by scan time, last_triggered 12:31:31Z -- 29th documented occurrence, same cycle as the Midnight-run fire (123495390) 91s earlier. SAME-CYCLE GATE-ORDERING ARTIFACT: processing in ts-ascending order, the Midnight-run fire already resurfaced this KB entry and bumped last_notified_at to 2026-07-06T13:11:37Z moments before this one was evaluated -- so despite this being an independent monitor fire, it now falls inside the (just-reset) 24h suppression window -> SUPPRESS gate_reason=known-issue-window. Not a defect in the gate, just an ordering artifact of two same-KB fires landing in one poll cycle (see project_kir_same_cycle_gate_ordering precedent). Synthetic hash 46def54f857b831f (channel CPHHABKAA + DD monitor ts 2026-07-06T12:31:31Z). See docs/investigations/2026-07-06-46def54f857b831f.md."
+      },
+      {
+        "ts": "2026-07-06T14:16:00Z",
+        "note": "2026-07-06 14:16Z triage (degraded cycle, no Slack MCP): 3 fires this cycle -- Release Run (142200330) No Data 13:46:00Z hash 50d9920b884cdbd7 (occ 29->30), Test Day run (121308660) recovered-OK 13:47:01Z hash 64437dbff50cc4fe (occ 30->31), Test Day run 2 (133625690) recovered-OK 13:51:50Z hash f1ebd48b30c5dae3 (occ 31->32). Same confirmed non-prod QA-synthetics noise, no co-firing signal with any prod service. last_notified_at (2026-07-06T13:11:37Z) only ~35-40min ago (set by the prior cycle's Midnight-run resurface), well WITHIN 24h suppression window for all 3 -> SUPPRESS all, gate_reason=known-issue-window. See docs/investigations/2026-07-06-50d9920b884cdbd7.md, docs/investigations/2026-07-06-64437dbff50cc4fe.md, docs/investigations/2026-07-06-f1ebd48b30c5dae3.md."
       }
     ]
   },
@@ -1098,8 +1114,8 @@
     "id": "ki-2026-07-03-ms-scheduler-api-seriesid-negative-recordid",
     "title": "ms-scheduler-api GetSeriesAsync throws InvalidOperationException when called with recordId=-1 (chronic, code-level missing-guard bug, now confirmed across multiple accounts, ~10-21+/day for 7+ days)",
     "first_seen": "2026-06-26T00:00:00Z",
-    "last_seen": "2026-07-06T12:36:24Z",
-    "occurrences": 132,
+    "last_seen": "2026-07-06T13:58:23Z",
+    "occurrences": 133,
     "match": {
       "channels": [
         "alert-system"
@@ -1154,6 +1170,10 @@
       {
         "ts": "2026-07-06T12:36:24Z",
         "note": "2026-07-06 13:11Z triage (degraded cycle, no Slack MCP): 132nd occurrence, monitor 302054543 last_triggered 12:36:24Z, self-recovered (OK) by scan time. ES/DD Logs not re-queried this specific window (chronic code-level bug confirmed repeatedly across 7+ accounts; evidence_query has a documented field-name mismatch, raw search substitutes -- see 2026-07-05T19:08:48Z note). last_notified_at 2026-07-05T20:28:02Z = ~16h43m ago, WITHIN 24h suppression window; occ 131->132 (not %10); fix_status unchanged (proposed) -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-06-72a0ea3d267263fd.md."
+      },
+      {
+        "ts": "2026-07-06T14:16:00Z",
+        "note": "2026-07-06 14:16Z triage (degraded cycle, no Slack MCP): monitor 302054543 re-fired 13:58:23Z (OK by scan time, self-recovered). Same chronic GetSeriesAsync(recordId=-1) signature as all prior occurrences. Synthetic hash 0d3251479db9c68a (channel CPHHABKAA + DD monitor ts 2026-07-06T13:58:23Z). last_notified_at (2026-07-05T20:28:02Z) ~17h30m ago, WITHIN 24h suppression window; occ 132->133 (not %10) -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-06-0d3251479db9c68a.md."
       }
     ]
   },
@@ -1606,6 +1626,57 @@
       {
         "ts": "2026-07-06T13:11:37Z",
         "note": "2026-07-06 13:11Z triage (degraded cycle, no Slack MCP): first-ever fire of DD monitor 295882732 at 13:03:52Z (Alert state, active at scan time), grouped with sibling monitor 295882894 (Webhook Traffic Outage, last_triggered 13:01:01Z, recovered to OK) as one root-cause investigation -- both Rainforest-tagged (team:transactions), 2min51s apart, no other channel/service co-fire. ES confirmed 2 error hits (13:02:25Z, account totalfeedsinc) with a clean third-party root cause (Rainforest API 503 ServiceUnavailable on GetMerchantAsync). Metric API (dd_search.py metric) could not independently confirm the monitor's own error-rate ratio this cycle -- every query attempt (regardless of from/to window) returned HTTP query error 'Invalid query input: query start is in the future', a tooling/environment-clock mismatch between this sandbox's system clock and Datadog's real backend clock, not a real query failure; flagging as a tooling gap for future cycles, substituted ES + account_impact.py for corroboration instead. account_impact.py: totalfeedsinc on prod3/4/5 (clusters_unconfigured) -> not_found, user_count_source=named_only (best-effort, likely undercounts true Rainforest-payment-flow exposure since any account using Rainforest could theoretically be affected during a platform-wide third-party blip, but only 1 account has direct evidence this occurrence). Created this KB entry now (confidence 0.85) so future recurrences of this specific monitor are recognized without re-deriving the stack trace. Scored: critical_path_services(+3, runtime-core) + group_size=2(+1) + novel_no_kb(+2) = 6 >= threshold(4) -> POSTED to #triage-results, gate_reason=scored. Daily cap 4/5 after this post. See docs/investigations/2026-07-06-54ba4734132656d0.md."
+      }
+    ]
+  },
+  {
+    "id": "ki-2026-07-06-tables-fields-redis-circuitbreaker-p95-latency",
+    "title": "ms-tables-fields-api p95 request latency spike driven by a transient Redis connectivity blip (circuit breaker OPENED); first confirmed cross-service correlation with runtime-core-api RTC p95 (ki-24)",
+    "first_seen": "2026-07-06T13:36:39Z",
+    "last_seen": "2026-07-06T13:38:31Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-system",
+        "alert-runtime-monitoring"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/299251779"
+        },
+        {
+          "contains": "monitors/302103451"
+        },
+        {
+          "contains": "Service tables-fields has a high p95 latency"
+        },
+        {
+          "contains": "tables-fields p95 request latency"
+        },
+        {
+          "contains": "Redis Cache Circuit Breaker OPENED"
+        },
+        {
+          "regex": "tables-fields.*high p95 latency"
+        }
+      ],
+      "precedence_note": "2026-07-06: When this entry and ki-2026-05-24-runtime-core-rtc-p95-recurring both fire within ~30 min, check ES for Redis-related error messages (StackExchange.Redis.RedisConnectionException / 'Redis operation cancelled' / 'Redis operation timed out') on BOTH services before treating them as independent -- first confirmed occurrence (2026-07-06 13:20-14:03Z window) showed a shared Redis connectivity blip driving both."
+    },
+    "evidence_source": "elasticsearch",
+    "evidence_query": "fields.dd_service.keyword:\"tables-fields\" AND level.keyword:\"Error\" AND message.keyword:\"Redis Cache Circuit Breaker OPENED for 30 seconds due to: Recent Redis error detected\"",
+    "evidence_threshold_s": null,
+    "diagnosis": "DD monitors 299251779 ('Service tables-fields has a high p95 latency on env:prod', threshold >1s over last_10m) and 302103451 ('tables-fields p95 request latency', threshold >0.25s over last_5m) both tripped 13:36:39Z/13:38:31Z off a p95 latency spike that actually occurred 13:20:00-13:24:40Z (peak 3.79s at 13:24:00Z per DD metric re-query) -- the ~12-16min lag between the raw spike and the monitor firing is explained by the monitors' rolling-average evaluation windows. ES confirms the mechanism: at 13:23:28Z, ms-tables-fields-api logged 'Redis Cache Circuit Breaker OPENED for 30 seconds due to: Recent Redis error detected' with a full StackExchange.Redis.RedisConnectionException stack trace (Method.Core.Caching.Redis.ResilientRedisCache.ThrowIfRecentRedisErrorAsync via a Polly resilience wrapper). In the same 13:00-14:16Z window, tables-fields logged 261 error-level lines total: 87 are cache-operation failures directly attributable to the Redis blip ('Cache REMOVE operation failed' x34, 'Unable to fetch the data for key {0}' x23, 'Cache GET operation failed' x11, 'Cache SET operation failed' x10, circuit-breaker-opened x9); the remaining 134 are the KNOWN, UNRELATED chronic ki-2026-07-02-tables-fields-fieldtablenameref-null-linked-fields signature (FieldTableNameRef Is Null / GetAllFields Failed / GetColumnForAllFields failed / GetFieldList Failed, 4 distinct traces) that happened to recur in the same window by coincidence -- do not conflate the two; the null-ref bug is per-account and HTTP 400, it does not explain elevated p95. Cache-miss fallback to direct (uncached) reads during the circuit-breaker-open period is the most likely latency driver. Cross-service: the SAME window shows 9 Redis error-level log lines on runtime-core-api ('Redis operation cancelled' x7, 'Redis operation timed out after 5 seconds' x2), and runtime-core-api's own RTC Screen Load p95 monitor (115456700, see ki-2026-05-24-runtime-core-rtc-p95-recurring) fired shortly after (13:49:21Z) with a 9.62s peak at 13:32:40Z -- first confirmed cross-service mechanism link between these two previously-only-temporally-correlated chronic latency patterns. Deploy correlation not confirmed: both ms-tables-fields-api and runtime-core-api repo fetches 403 (methodcrm-org GH_TOKEN gap), local clones stale (2026-04-24 and 2026-06-16 respectively) -- can't rule out a deploy, but no other signal points to one. No Redis infrastructure alert/monitor fired this cycle to independently confirm cluster-wide Redis health; this diagnosis rests on the client-side (Polly/StackExchange.Redis) circuit-breaker logs alone.",
+    "playbook": "1) Confirm shape: DD monitor 299251779 and/or 302103451 in Alert or recently-recovered state, service tables-fields. 2) Run the evidence_query in ES for 'Redis Cache Circuit Breaker OPENED' -- if present, this is the Redis-driven latency pattern, not the FieldTableNameRef bug (check message.keyword breakdown to separate the two signatures cleanly). 3) Cross-check ki-2026-05-24-runtime-core-rtc-p95-recurring (monitors 115456700/117279738) and its own ES Redis-error check ('Redis operation cancelled'/'Redis operation timed out' on runtime-core-api) in the same window -- per precedence_note, treat co-firing as shared-upstream Redis instability, not two independent incidents. 4) Confirm latency-only: service:tables-fields status:error DD Logs should be near-zero for the Redis-specific cause (the FieldTableNameRef traces are a separate, coincidental signature and DO return non-zero -- don't let them inflate the apparent severity of the Redis story). 5) No Method-side code fix identified -- this looks like a transient Redis-tier connectivity blip (network blip, Redis failover, or ElastiCache maintenance); escalate to infra/DBA-adjacent on-call if it recurs or lasts >5 min, otherwise log and move on. 6) Bump ki-2026-07-02-tables-fields-fieldtablenameref-null-linked-fields separately if its own signature also appears -- do not merge occurrence counts between the two entries.",
+    "fix_status": "needs-human",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.8,
+    "owning_team": "Admin (ms-tables-fields-api); Vertical App Experience (runtime-core-api, cross-service corroboration)",
+    "last_notified_at": "2026-07-06T14:16:00Z",
+    "notes": [
+      {
+        "ts": "2026-07-06T14:16:00Z",
+        "note": "2026-07-06 14:16Z triage (degraded cycle, no Slack MCP): first documented occurrence. Group 063d9c89de4e3139 (primary 299251779 13:36:39Z + satellite 302103451 13:38:31Z, hash 25344609448930d5). Scored needs-human: critical_path_service (+3, ms-tables-fields-api), metric_breach_magnitude (+3, ratio 2.79 on the >1s monitor), group_size=2 (+1), truly_novel (+2, no existing KB entry covers the Redis-circuit-breaker signature), recency_decay (-1, monitor 302103451's 2nd fire today after the 04:29Z SQL-cascade satellite appearance) = 8 >= threshold 4; daily needs-human cap 4/5 not yet breached -> POSTED to #triage-results (5th and last slot for today). Created this KB entry now (confidence 0.8) given the clear mechanism (full Redis exception stack trace) and cross-service corroboration, so a recurrence is recognized without re-deriving from scratch. See docs/investigations/2026-07-06-063d9c89de4e3139.md."
       }
     ]
   },
