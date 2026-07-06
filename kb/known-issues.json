@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-06T14:07:12Z",
-    "occurrences": 525,
+    "last_seen": "2026-07-06T15:05:11Z",
+    "occurrences": 526,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -303,6 +303,10 @@
       {
         "ts": "2026-07-06T14:16:00Z",
         "note": "2026-07-06 14:16Z triage (degraded cycle, no Slack MCP): occ#525 via DD monitor 77419271 last_triggered 14:07:12Z (OK now, self-recovered). DD method-ui XHR error logs not re-sampled this cycle (chronic shape confirmed repeatedly this week; ki-21 lives in DD RUM, documented field-mismatch for ES/DD Logs). Synthetic hash f7cf23d36efe833c (channel CPHHABKAA + DD monitor ts 2026-07-06T14:07:12Z). last_notified_at 2026-07-06T10:54:11Z = ~3h13m ago, WITHIN 24h suppression window; occ 524->525 (not %10) -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-06-f7cf23d36efe833c.md."
+      },
+      {
+        "ts": "2026-07-06T15:09:00Z",
+        "note": "2026-07-06 15:09Z triage (degraded cycle, no Slack MCP): occ#526 via DD monitor 77419271 last_triggered 15:05:11Z (OK now, self-recovered). DD method-ui XHR error logs / DD RUM errortracking not re-sampled this cycle (chronic shape confirmed repeatedly this week; ki-21 lives in DD RUM, documented field-mismatch for ES/DD Logs -- both re-tried this cycle and returned 0/null as expected). Synthetic hash 5e2abada1c7f2450 (channel C03TYHGRS23 + DD monitor ts 2026-07-06T15:05:11Z). last_notified_at 2026-07-06T10:54:11Z = ~4h11m ago, WITHIN 24h suppression window; occ 525->526 (not %10) -> SUPPRESS gate_reason=known-issue-window. fix_status chronic-residual-post-rollback-2026-06-05 unchanged. See docs/investigations/2026-07-06-5e2abada1c7f2450.md."
       }
     ]
   },
@@ -310,8 +314,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-07-06T13:49:21Z",
-    "occurrences": 213,
+    "last_seen": "2026-07-06T14:22:21Z",
+    "occurrences": 214,
     "match": {
       "channels": [
         "alert-system",
@@ -438,6 +442,10 @@
       {
         "ts": "2026-07-06T14:16:00Z",
         "note": "2026-07-06 14:16Z triage (degraded cycle, no Slack MCP): monitor 115456700 (RTC Screen Load p95) last_triggered 13:49:21Z, OK by scan time. DD metric re-query 13:20:00-14:16:00Z confirms 9 points > 3s threshold across 3 distinct bursts: 9.62s @13:32:40Z (peak), 4.64-7.74s @13:41:00-13:42:00Z (4 points), 3.85-5.25s @14:01:40-14:02:40Z (4 points). service:runtime-core-api status:error DD Logs 13:25:00-14:05:00Z = 0 hits -- confirms latency-only, consistent with the established signature. NEW THIS OCCURRENCE: ES sweep (fields.dd_service.keyword:runtime-core-api, Redis-related messages, same window) found 9 Redis error-level log lines -- 'Redis operation cancelled' x7, 'Redis operation timed out after 5 seconds' x2 -- the first concrete corroboration of this KB's long-standing 'candidate cause: Redis backpressure' hypothesis (previously never confirmed with a matching log signature in the same window). Cross-service correlation: the SAME Redis instability also hit ms-tables-fields-api in a slightly earlier window (13:20-13:26Z, circuit breaker OPENED 13:23:28Z, investigated separately as group 063d9c89de4e3139 / new KB ki-2026-07-06-tables-fields-redis-circuitbreaker-p95-latency) -- first documented cross-service Redis-driven latency event linking ki-24 to a concrete upstream mechanism rather than just temporal co-occurrence with ki-21. No runtime-core deploy in window (local ref stale 20d, methodcrm-org GH_TOKEN 403 gap, non-blocking). Synthetic hash 411effc31360f604 (channel CPHHABKAA + DD monitor ts 2026-07-06T13:49:21Z). last_notified_at (2026-07-05T11:08:17Z) = ~26h41m ago, PAST 24h suppression window -> RESURFACE POST, gate_reason=null, last_notified_at bumped to now. See docs/investigations/2026-07-06-411effc31360f604.md."
+      },
+      {
+        "ts": "2026-07-06T15:09:00Z",
+        "note": "2026-07-06 15:09Z triage (degraded cycle, no Slack MCP): occ#214 via DD monitor 115456700 last_triggered 14:22:21Z (OK now, self-recovered). Re-queried p95:trace.aspnet_core.request{env:prod,service:runtime-core-api,resource_name:post_/api/v1/runtime/load/_screenid*} 14:00-14:30Z: 23/180 points > 3s across 4 bursts (14:01:40-14:02:40Z, 14:16:00-14:17:10Z, 14:22:20-14:23:20Z, 14:28:10-14:29:00Z), peak 6.63s @14:28:20Z. Latency-only confirmed: service:runtime-core-api status:error env:prod DD Logs 14:00-14:30Z = 0 hits. Synthetic hash 73a0993cc7c2f49f (channel CPHHABKAA + DD monitor ts 2026-07-06T14:22:21Z). last_notified_at 2026-07-06T13:49:21Z = ~1h20m ago, WITHIN 24h suppression window; occ 213->214 (not %10); fix_status 'investigating' unchanged (no status flip since last notify) -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-06-73a0993cc7c2f49f.md."
       }
     ]
   },
@@ -1626,6 +1634,85 @@
       {
         "ts": "2026-07-06T13:11:37Z",
         "note": "2026-07-06 13:11Z triage (degraded cycle, no Slack MCP): first-ever fire of DD monitor 295882732 at 13:03:52Z (Alert state, active at scan time), grouped with sibling monitor 295882894 (Webhook Traffic Outage, last_triggered 13:01:01Z, recovered to OK) as one root-cause investigation -- both Rainforest-tagged (team:transactions), 2min51s apart, no other channel/service co-fire. ES confirmed 2 error hits (13:02:25Z, account totalfeedsinc) with a clean third-party root cause (Rainforest API 503 ServiceUnavailable on GetMerchantAsync). Metric API (dd_search.py metric) could not independently confirm the monitor's own error-rate ratio this cycle -- every query attempt (regardless of from/to window) returned HTTP query error 'Invalid query input: query start is in the future', a tooling/environment-clock mismatch between this sandbox's system clock and Datadog's real backend clock, not a real query failure; flagging as a tooling gap for future cycles, substituted ES + account_impact.py for corroboration instead. account_impact.py: totalfeedsinc on prod3/4/5 (clusters_unconfigured) -> not_found, user_count_source=named_only (best-effort, likely undercounts true Rainforest-payment-flow exposure since any account using Rainforest could theoretically be affected during a platform-wide third-party blip, but only 1 account has direct evidence this occurrence). Created this KB entry now (confidence 0.85) so future recurrences of this specific monitor are recognized without re-deriving the stack trace. Scored: critical_path_services(+3, runtime-core) + group_size=2(+1) + novel_no_kb(+2) = 6 >= threshold(4) -> POSTED to #triage-results, gate_reason=scored. Daily cap 4/5 after this post. See docs/investigations/2026-07-06-54ba4734132656d0.md."
+      }
+    ]
+  },
+  {
+    "id": "ki-2026-07-06-signup-low-traffic-p90-latency-monitor-noise",
+    "title": "[Growth][Signup][P?] 'Service Signup post requests have a high p90 latency' trips on single-request percentile noise on a very low-traffic endpoint",
+    "first_seen": "2026-07-05T21:57:46Z",
+    "last_seen": "2026-07-06T14:57:46Z",
+    "occurrences": 3,
+    "match": {
+      "channels": [
+        "alert-system",
+        "alert-runtime-monitoring"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/154252126"
+        },
+        {
+          "contains": "Service Signup post requests have a high p90 latency"
+        }
+      ]
+    },
+    "diagnosis": "Monitor 154252126 evaluates percentile(last_5m):p90:trace.aspnet.request{env:prod,service:signup,resource_name:post_/*} > 12 (seconds). service:signup is an extremely low-traffic endpoint (pre-account signup POSTs) -- DD metric re-queries during all 3 occurrences show only 1-3 non-zero data points per 5-min eval window, so a single slow request dominates the p90 statistic. All 3 occurrences: (1) 2026-07-05 21:57:46Z, two spikes 10.67s/7.90s 12min apart, 0 errors, held pending a second occurrence (alert_hash 590dd72178d6d3b8); (2) 2026-07-06 ~04:xxZ, co-occurred with (and provisionally folded into) the SQL-cluster c2/c3/c4 error-40 cascade 01:24-04:30Z (group 112facdd365346cc / satellite e5fcaae2023ecf6f) -- but that cascade fully resolved by 04:30Z; (3) 2026-07-06 14:57:46Z (this occurrence, alert_hash 175aecfebe43a005), 10+ hours after the cascade cleanly resolved, peak re-queried at 11.79s @14:55:10Z (just under the monitor's 12s threshold on reaggregation -- same rolling-window-lag pattern seen on other monitors in this KB), 0 errors, 0 relevant ES log volume. Occurrence (3) is clearly independent of the SQL cascade (time-separated by >10h with a clean recovery in between), confirming this is its own recurring low-traffic-percentile-noise pattern, not a symptom of the cascade. No account/tenant impact identified (pre-account traffic). method-signup-ui repo fetch blocked (methodcrm-org GH_TOKEN 403); deploy correlation not established either way.",
+    "playbook": "1) Confirm shape: DD metric p90:trace.aspnet.request{env:prod,service:signup,resource_name:post_/*} in the alert window -- expect only 1-3 non-zero points (low traffic) with one point near/above 12s. 2) Confirm no errors: service:signup status:error DD Logs should be 0 (or ES fields.dd_service.keyword:signup/method-signup-ui 0 error-level hits). 3) Do not treat as an incident on a single occurrence -- self-recovers within one eval window every time so far. 4) Recommend to Growth/owning team: either raise the threshold, switch to a minimum-sample-count-gated check, or use a longer rollup window so a single slow request can't dominate p90 on a low-traffic endpoint (same monitor-noise shape as ki-2026-07-04-ms-account-api-4xx-spike-monitor-noise). 5) If a future occurrence shows >1 concurrent errors or coincides with a broader infra event (SQL cluster, gateway), treat as a genuine correlated incident instead of noise -- cross-check the SQL-cluster-cascade KB candidate referenced in the 2026-07-06T11:20:00Z team-incident-response investigation before dismissing.",
+    "fix_status": "needs-human",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.75,
+    "owning_team": "Growth",
+    "evidence_source": "datadog_apm",
+    "evidence_query": "p90:trace.aspnet.request{env:prod,service:signup,resource_name:post_/*}",
+    "evidence_threshold_s": 12.0,
+    "last_notified_at": null,
+    "notes": [
+      {
+        "ts": "2026-07-06T15:09:00Z",
+        "note": "Created this cycle on the 3rd occurrence, finalizing the 2026-07-05T22:15:00Z 'hold pending second occurrence' decision (alert_hash 590dd72178d6d3b8) -- occurrence 2 (within the SQL cascade window) and occurrence 3 (this one, 10+h after the cascade cleanly resolved) both confirm the same low-traffic-percentile-noise shape independent of the cascade. Occurrence 3: DD monitor 154252126 last_triggered 14:57:46Z (OK now). Re-query 14:52:46-14:57:46Z (tight window): 3 points, peak 11.79s @14:55:10Z -- essentially at, not clearly over, the 12s threshold on reaggregation (rolling-window-lag artifact, same as documented elsewhere in this KB). 0 errors (DD Logs service:signup status:error = 0; ES aggregate = 2 Information-level hits only). Synthetic hash 175aecfebe43a005 (channel C063V5HTTFU + DD monitor ts 2026-07-06T14:57:46Z). Score: critical_path_service 0 (signup not in critical_path_services), active_users 0 (pre-account), metric_breach 0 (could not confirm ratio bracket), truly_novel 0 (2 prior fires of this monitor exist in kb/incident-log.jsonl -- not first-ever), monitor_history 0 (fire_count=2 <5, new/unproven), recency_decay -1 (2nd fire of monitor 154252126 today, first was ~04:xxZ as part of group 112facdd365346cc) = -1 total -> below actionable_score_threshold(2) -> actionable-append, gate_reason=low-impact, terse line only. See docs/investigations/2026-07-06-175aecfebe43a005.md."
+      }
+    ]
+  },
+  {
+    "id": "ki-2026-07-06-tables-fields-alter-column-ddl-syntax-error",
+    "title": "ms-tables-fields-api AlterTableToDropColumn raises SqlException 'Incorrect syntax near COLUMN' when deleting a field (distinct from the FieldTableNameRef null-ref KB)",
+    "first_seen": "2026-07-06T14:27:40Z",
+    "last_seen": "2026-07-06T14:27:53Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-system",
+        "alert-runtime-monitoring"
+      ],
+      "any_of": [
+        {
+          "contains": "AlterTableToDropColumn Failed"
+        },
+        {
+          "contains": "Incorrect syntax near 'COLUMN'"
+        },
+        {
+          "regex": "TableProvider\\.AlterTableToDropColumn"
+        }
+      ],
+      "precedence_note": "2026-07-06: DD monitor 299251404 ('Service tables-fields has a high error rate') also matches ki-2026-07-02-tables-fields-fieldtablenameref-null-linked-fields via an overly-broad 'contains: monitors/299251404' clause on that entry. The two are DIFFERENT bugs (different exception type, different code path) that happen to share the same triggering monitor. Always confirm via ES message.keyword aggregation before assuming which KB a 299251404 fire belongs to -- if the top buckets are FieldTableNameRef Is Null / GetAllFields Failed / GetColumnForAllFields failed, it's ki-2026-07-02; if they are AlterTableToDropColumn Failed / Incorrect syntax near COLUMN / Mode:Delete Failed / Message Deletion Failed, it's this entry. Recommend narrowing ki-2026-07-02's match.any_of to drop the bare monitor-id clause next time it's touched."
+    },
+    "diagnosis": "Deleting a field/column (API.Controllers.FieldController.SaveFieldLegacyExtended -> ViewService.EditView -> ViewService.DeleteFields -> FieldService.TryDeleteField -> FieldService.DeleteFieldByTableAndFieldName -> ColumnService.DeleteColumn -> TableService.AlterTableToDropColumn -> TableProvider.AlterTableToDropColumn) builds a raw SQL batch via string interpolation: `query.Append($\" ALTER TABLE {tableName} DROP COLUMN {columnName} \");` (Services/Providers/TableProvider.cs, local clone HEAD 2026-04-24 -- 73 days stale, methodcrm-org GH_TOKEN 403 blocks a fresh fetch this session, so the current line number/content is NOT independently confirmed against production). Unlike the sibling index-rebuild SQL a few lines above in the same file (which brackets identifiers: `[{columnName}]`), this statement does not bracket-quote tableName/columnName. SQL Server's literal error text 'Incorrect syntax near \\'COLUMN\\'' is the signature produced when the parser hits end-of-batch (or an unexpected token) immediately after the COLUMN keyword -- most consistent with columnName being null/empty/whitespace for the field being deleted, though a reserved-word or bracket-requiring column name would produce a similar-shaped error nearby. 9 distinct failing traces observed 14:27:40-14:27:53Z (3 traces x ~4-6 log lines each via App Update's per-field structured logging, mirroring the ki-2026-07-02 logging pattern), all on RequestPath /v1/field/SaveFieldLegacyExtended, self-recovered (error rate crossed the monitor's 1% threshold only briefly -- 3 errors / 767 hits = 0.39% on a full 5-min reaggregation, below threshold; consistent with the same 'rolling-window lag' artifact documented on this monitor for ki-2026-07-02). No account/tenant identified in the sampled log fields (unlike the sibling KB, no fields.Account nesting present in these particular log lines).",
+    "playbook": "1) Confirm the fire is THIS signature, not ki-2026-07-02: ES fields.dd_service.keyword:\"tables-fields\" AND level.keyword:\"Error\", aggregate by message.keyword -- expect 'AlterTableToDropColumn Failed' / 'Mode:Delete Failed' / 'Message Deletion Failed' / 'SaveFieldLegacyExtended Failed' buckets (NOT FieldTableNameRef). 2) Pull one full record per dd_trace_id and read exceptions[0].ExceptionDetail -- confirm ClassName Microsoft.Data.SqlClient.SqlException, Message 'Incorrect syntax near ''COLUMN''.'. 3) Once GH access to methodcrm-org is restored, confirm TableProvider.cs AlterTableToDropColumn against current source (local clone is stale) and check whether columnName can legitimately be null/empty for the field being deleted, or whether it needs bracket-quoting like the sibling index code. 4) Self-recovering and low-volume so far (1 occurrence, 3 requests) -- not yet a platform-wide regression; treat as needs-human until a fix is confirmed and code-reviewed (repo staleness means no auto-diff should be proposed from this session).",
+    "fix_status": "needs-human",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.8,
+    "owning_team": "Admin",
+    "evidence_source": "elasticsearch",
+    "evidence_query": "fields.dd_service.keyword:\"tables-fields\" AND level.keyword:\"Error\"",
+    "last_notified_at": null,
+    "notes": [
+      {
+        "ts": "2026-07-06T15:09:00Z",
+        "note": "First occurrence. DD monitor 299251404 last_triggered 14:30:24Z (rolling-window lag vs the 14:27:40-53Z burst, same lag pattern documented on ki-2026-07-02). ES aggregate 14:00-14:31Z: 18 error-level hits across 9 distinct dd_trace_id (3 traces x 4 lines, 6 traces x 1 line), buckets: Message Deletion Failed (5), AlterTableToDropColumn Failed (3), Incorrect syntax near 'COLUMN'. (3), Mode:Delete Failed (3), SaveFieldLegacyExtended Failed (3), FillViewBasicInfo Failed (1) -- zero overlap with the FieldTableNameRef signature, confirming this is a distinct bug from ki-2026-07-02 despite sharing the same triggering monitor. Full stack trace read (2 sample records): Microsoft.Data.SqlClient.SqlException at TdsParser.ThrowExceptionAndWarning, originating in Services.Providers.TableProvider.AlterTableToDropColumn (TableProvider.cs:405 per stale local clone) via TableService.AlterTableToDropColumn -> ColumnService.DeleteColumn -> FieldService.DeleteFieldByTableAndFieldName/TryDeleteField -> ViewService.DeleteFields/EditView -> FieldController.SaveFieldLegacyExtended. Re-aggregated 5-min error rate (3 errors / 767 hits = 0.39%) is below the monitor's 1% threshold on reaggregation -- same rolling-window-lag artifact as ki-2026-07-02's July 2 occurrence. Score computed: critical_path_service (+3, ms-tables-fields-api), truly_novel (+2, no prior fire of this exact signature), monitor_history dm_rate 3/15=0.2 (-1) = 4 -- at escalation_score_threshold(4); needs-human daily cap already at 5/5 for today (5 posted earlier this cycle window per docs/messages/2026-07-06/triage-results.jsonl) -> actionable-append, gate_reason=daily-cap. See docs/investigations/2026-07-06-678faf4460a4a81a.md."
       }
     ]
   },
