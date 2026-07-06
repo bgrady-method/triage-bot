@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-06T10:54:11Z",
-    "occurrences": 523,
+    "last_seen": "2026-07-06T13:01:20Z",
+    "occurrences": 524,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -295,6 +295,10 @@
       {
         "ts": "2026-07-04T21:16:00Z",
         "note": "2026-07-04 21:16Z triage (degraded cycle, no Slack MCP): occ#521 via DD monitor 77419271 last_triggered 20:38:11Z (OK now, self-recovered). DD method-ui XHR error logs sampled 20:55-21:20Z (live traffic, original window aged out) confirm canonical chronic shape unchanged: GET /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync, status_code:0, diffuse accounts (flightsalesgroup, biomechanicsanalysisllc, haydenfire1, recollc) -- NOT the 2026-06-04 100x OUTAGE surge. Synthetic hash 7d65cd4eb4180f5e (channel C03TYHGRS23 + DD monitor ts 2026-07-04T20:38:11Z). last_notified_at was 2026-07-03T11:08:18Z (~34h ago) -- PAST 24h suppression window -> POST, gate_reason=null, last_notified_at bumped to now. fix_status chronic-residual-post-rollback-2026-06-05 unchanged. No ki-24 co-fire signal checked this cycle (RTC monitors not re-queried; chronic pattern, no new-signal warrant)."
+      },
+      {
+        "ts": "2026-07-06T13:01:20Z",
+        "note": "2026-07-06 13:11Z triage (degraded cycle, no Slack MCP): occ#524 via DD monitor 77419271 last_triggered 13:01:20Z (OK now, self-recovered). DD method-ui XHR error logs not re-sampled this cycle (chronic shape confirmed repeatedly; ES/DD Logs carry no traffic-level lines for this signal -- ki-21 lives in DD RUM, documented field-mismatch). Synthetic hash 56d6c86623feb330 (channel CPHHABKAA + DD monitor ts 2026-07-06T13:01:20Z). last_notified_at 2026-07-06T10:54:11Z = ~2h07m ago, WITHIN 24h suppression window; occ 523->524 (not %10); fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window. No ki-24 co-fire this cycle (RTC monitor 115456700 not in this cycle's new-fire set)."
       }
     ]
   },
@@ -498,8 +502,8 @@
     "id": "ki-2026-05-29-methodsession-getaccountbysubdomain-nre",
     "title": "method-platform-ui apps backend NRE in MethodSessionService.GetAccountBySubdomain() -> 'JWT Retrieval Failed' on subdomain-less synthetic monitor probes (Centreon + Datadog Watchdog noise)",
     "first_seen": "2026-05-29T12:49:31Z",
-    "last_seen": "2026-07-06T06:26:33Z",
-    "occurrences": 14,
+    "last_seen": "2026-07-06T13:06:27Z",
+    "occurrences": 15,
     "match": {
       "channels": [
         "alert-system"
@@ -531,11 +535,15 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.85,
-    "last_notified_at": "2026-07-05T11:08:17Z",
+    "last_notified_at": "2026-07-06T13:11:37Z",
     "notes": [
       {
         "ts": "2026-07-05T20:28:02Z",
         "note": "2026-07-05 20:28Z triage (degraded cycle, no Slack MCP; hash 1961e02691fed8cc): occurrence 12->13, monitor 299551647 last_triggered 19:54:27Z, self-recovered by scan time. UNLIKE every prior occurrence, this one did NOT reproduce fresh evidence: ES search for 'JWT Retrieval Failed' (both bare and message:-scoped) returned 0 hits across 18:00-20:10Z; DD APM error-count metric over the monitor's own exact 10m window (19:44:27-19:54:27Z) also 0 errors against 35 hits. Matched via the looser service-tag clause ('methodportal.com/apps') in match.any_of rather than the NRE-specific text. Flagged for KB maintenance -- may need the match block narrowed to require NRE-specific text. last_notified_at (2026-07-05T11:08:17Z) within 24h window, occ 13 not %10 -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-05-1961e02691fed8cc.md."
+      },
+      {
+        "ts": "2026-07-06T13:06:27Z",
+        "note": "2026-07-06 13:11Z triage (degraded cycle, no Slack MCP): monitor 299551647 ([Admin][PortalApps][P1] 5xx error rate elevated) Warn, last_triggered 13:06:27Z -- 15th documented occurrence. ES aggregate (fields.dd_service.keyword:\"methodportal.com/apps\", 12:00-13:15Z window) = 97 docs (48 Error/49 Warning); sampled 3 raw hits, all canonical: messageTemplate 'JWT Retrieval Failed' / 'GET failed for service: search and endpoint: recents/{account}', exceptions[].ClassName System.NullReferenceException at Com.Method.ServiceContract.Services.Account.MethodSessionService.GetAccountBySubdomain(), UserAgent WindowsPowerShell/5.1.20348.1850, ClientIpAddress 172.31.105.207 (internal synthetic probe signature, matches playbook exactly) -- 100% synthetic-probe shape, 0 real-browser evidence in the sample. last_notified_at (2026-07-05T11:08:17Z) = ~26h03m ago -- PAST 24h suppression window -> RESURFACE POST, gate_reason=null, last_notified_at bumped to now. fix_status needs-human unchanged. Synthetic hash a751c4512253d59b (channel CPHHABKAA + DD monitor ts 2026-07-06T13:06:27Z). See docs/investigations/2026-07-06-a751c4512253d59b.md."
       }
     ]
   },
@@ -1009,8 +1017,8 @@
     "id": "ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata",
     "title": "\"Method UI Grid and Dropdown Performance Test\" synthetics (team:qa, non-prod, 5 monitor-ID variants: Day run / Day run 2 / Evening run / Midnight run / Release Run) chronically go No Data; never correlates to a real incident",
     "first_seen": "2026-05-02T13:46:00Z",
-    "last_seen": "2026-07-06T04:01:30Z",
-    "occurrences": 27,
+    "last_seen": "2026-07-06T12:31:31Z",
+    "occurrences": 29,
     "match": {
       "channels": [
         "alert-system"
@@ -1046,7 +1054,7 @@
     "fix_template": null,
     "confidence": 0.85,
     "owning_team": "unmapped",
-    "last_notified_at": "2026-07-05T11:08:17Z",
+    "last_notified_at": "2026-07-06T13:11:37Z",
     "notes": [
       {
         "ts": "2026-07-03T13:09:00Z",
@@ -1075,6 +1083,14 @@
       {
         "ts": "2026-07-05T13:50:50Z",
         "note": "2026-07-05 14:08Z triage (degraded cycle, no Slack MCP; hash 64eff07109322003) [Day run 2 (133625690)]: occurrence 22->23. Same confirmed shape as prior occurrences, 0 corroborating DD error logs this window. last_notified_at (2026-07-05T11:08:17Z) within 24h suppression window; occurrence not a multiple of 10 -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-05-64eff07109322003.md."
+      },
+      {
+        "ts": "2026-07-06T12:30:00Z",
+        "note": "2026-07-06 13:11Z triage (degraded cycle, no Slack MCP): Midnight run variant (123495390) No Data 12:30:00Z, still No Data at scan time -- 28th documented occurrence. Same confirmed non-prod QA-synthetics noise, no co-firing signal with any prod service this cycle. last_notified_at (2026-07-05T11:08:17Z) = ~26h03m ago -- PAST 24h suppression window -> RESURFACE POST, gate_reason=null, last_notified_at bumped to now. Synthetic hash 17a8f1d30210fc52 (channel CPHHABKAA + DD monitor ts 2026-07-06T12:30:00Z). See docs/investigations/2026-07-06-17a8f1d30210fc52.md."
+      },
+      {
+        "ts": "2026-07-06T12:31:31Z",
+        "note": "2026-07-06 13:11Z triage (degraded cycle, no Slack MCP): Release Run variant (142200330) recovered to OK by scan time, last_triggered 12:31:31Z -- 29th documented occurrence, same cycle as the Midnight-run fire (123495390) 91s earlier. SAME-CYCLE GATE-ORDERING ARTIFACT: processing in ts-ascending order, the Midnight-run fire already resurfaced this KB entry and bumped last_notified_at to 2026-07-06T13:11:37Z moments before this one was evaluated -- so despite this being an independent monitor fire, it now falls inside the (just-reset) 24h suppression window -> SUPPRESS gate_reason=known-issue-window. Not a defect in the gate, just an ordering artifact of two same-KB fires landing in one poll cycle (see project_kir_same_cycle_gate_ordering precedent). Synthetic hash 46def54f857b831f (channel CPHHABKAA + DD monitor ts 2026-07-06T12:31:31Z). See docs/investigations/2026-07-06-46def54f857b831f.md."
       }
     ]
   },
@@ -1082,8 +1098,8 @@
     "id": "ki-2026-07-03-ms-scheduler-api-seriesid-negative-recordid",
     "title": "ms-scheduler-api GetSeriesAsync throws InvalidOperationException when called with recordId=-1 (chronic, code-level missing-guard bug, now confirmed across multiple accounts, ~10-21+/day for 7+ days)",
     "first_seen": "2026-06-26T00:00:00Z",
-    "last_seen": "2026-07-06T04:32:23Z",
-    "occurrences": 131,
+    "last_seen": "2026-07-06T12:36:24Z",
+    "occurrences": 132,
     "match": {
       "channels": [
         "alert-system"
@@ -1134,6 +1150,10 @@
       {
         "ts": "2026-07-05T20:28:02Z",
         "note": "2026-07-05 20:28Z triage (degraded cycle, no Slack MCP; hash d476219816c49d97): 130th occurrence, monitor 302054543 last_triggered 19:12:23Z, only ~12min after the prior confirmed fire (19:00:23Z). NO fresh corroborating evidence found for this specific trigger: ES query narrowed to 19:05-19:20Z (strictly after the prior cycle's cutoff) returned 0 hits -- the 5 baymonservalllp hits found in a wider 18:45-19:20Z window are the SAME events already logged last cycle. DD APM error-count metric over the monitor's own exact 10m window (19:02:23-19:12:23Z) also shows 0 errors against 104 hits. This looks like a redundant/duplicate monitor re-trigger (evaluation-window artifact) rather than a fresh occurrence of the underlying bug -- flagged for KB maintenance. Occurrence counter still bumped per existing convention. last_notified_at (2026-07-05T11:08:17Z) was within the 24h window, BUT occ 129->130 crossed the every-10th-occurrence resurface rule -> POST to #triage-results, gate_reason=known-issue-occurrence-resurface, last_notified_at bumped to now. See docs/investigations/2026-07-05-d476219816c49d97.md."
+      },
+      {
+        "ts": "2026-07-06T12:36:24Z",
+        "note": "2026-07-06 13:11Z triage (degraded cycle, no Slack MCP): 132nd occurrence, monitor 302054543 last_triggered 12:36:24Z, self-recovered (OK) by scan time. ES/DD Logs not re-queried this specific window (chronic code-level bug confirmed repeatedly across 7+ accounts; evidence_query has a documented field-name mismatch, raw search substitutes -- see 2026-07-05T19:08:48Z note). last_notified_at 2026-07-05T20:28:02Z = ~16h43m ago, WITHIN 24h suppression window; occ 131->132 (not %10); fix_status unchanged (proposed) -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-06-72a0ea3d267263fd.md."
       }
     ]
   },
@@ -1453,8 +1473,8 @@
     "id": "ki-2026-07-04-synthetics-release-browser-step-duration-nodata",
     "title": "\"[Synthetics] [Release] *\" browser-step-duration checks (team:qa-adjacent, non-prod, 6 monitor-ID variants: Sign in to Method / Loading Contacts Drop-down / Search for Activities / Open Activity / Load Activities App / Navigate to Method Sign In) chronically go No Data; never correlates to a real incident",
     "first_seen": "2026-05-06T13:52:10Z",
-    "last_seen": "2026-07-04T14:09:20Z",
-    "occurrences": 6,
+    "last_seen": "2026-07-06T12:31:32Z",
+    "occurrences": 7,
     "match": {
       "channels": [
         "alert-system"
@@ -1493,11 +1513,15 @@
     "fix_template": null,
     "confidence": 0.85,
     "owning_team": "unmapped",
-    "last_notified_at": null,
+    "last_notified_at": "2026-07-06T13:11:37Z",
     "notes": [
       {
         "ts": "2026-07-04T14:09:20Z",
         "note": "2026-07-04 13:52Z triage (degraded cycle, no Slack MCP): monitor 142763851 (Navigate to Method Sign In) fired for the first time ever logged (last_triggered 13:52:31Z), 0 prior mentions in kb/incident-log.jsonl. Discovered its 5 siblings (142763950/142764197/142764084/142764159/142763981) have been silently No Data since 2026-05-06T13:52:1x-3xZ with zero KB coverage -- created this entry now to backfill all 6 at once (occurrences=6: the 5 silent-since-May ones + this fire), same lesson applied twice already this week (grid-dropdown, warehouse-dashboard). No co-firing signal with any prod service this cycle (DD logs 0 hits status:error env:prod; ES sweep for sign-in text = 14 trivial hits spread across nonprod/apps/gateway/ms-authentication-api, not a concentration). Synthetic hash 2145e80ef4eda43d (channel CPHHABKAA + DD monitor ts 2026-07-04T13:52:31Z). Scored needs-human, novel_no_kb +2 only = 2 -> actionable-high-borderline, NOT posted to #triage-results. See docs/investigations/2026-07-04-2145e80ef4eda43d.md."
+      },
+      {
+        "ts": "2026-07-06T12:31:32Z",
+        "note": "2026-07-06 13:11Z triage (degraded cycle, no Slack MCP): monitor 142763851 (Navigate to Method Sign In) recovered to OK by scan time, last_triggered 12:31:32Z -- 7th documented occurrence. Same confirmed non-prod release-pipeline synthetic noise, no co-firing signal with any prod service. First-ever notify for this entry (last_notified_at was null) -> POSTED to #triage-results as a one-time housekeeping confirmation (same pattern as the sibling grid-dropdown entry's first notify). Synthetic hash ca56aff8f59ab7f0 (channel CPHHABKAA + DD monitor ts 2026-07-06T12:31:32Z). See docs/investigations/2026-07-06-ca56aff8f59ab7f0.md."
       }
     ]
   },
@@ -1539,6 +1563,49 @@
       {
         "ts": "2026-07-05T15:20:44Z",
         "note": "Created this cycle after the 2nd occurrence of this monitor today (15:08:26Z, hash 130dcdd3332d05e5) matched the same third-party-latency, self-recovering, zero-error shape as the 1st occurrence (08:31:25Z, hash 63bf5b7a3ac9f93a, previously investigated from scratch with no KB entry). Confidence 0.7, not higher: only 2 occurrences, and the 2nd could not independently reproduce a value above the 3s threshold (data too sparse) -- the working theory (genuine but brief third-party latency, not a Method defect) is plausible and consistent both times but not fully confirmed. last_notified_at left null since this creation cycle classified the triggering occurrence as needs-human/actionable-low-impact (mechanical score 1), not a KB-match post -- the next fire that matches this entry will be its first true known-issue-recurrence notify decision."
+      }
+    ]
+  },
+  {
+    "id": "ki-2026-07-06-rainforest-merchant-details-503-serviceunavailable",
+    "title": "runtime-core-api Rainforest GetMerchantAsync (merchant-details lookup) fails with ServiceUnavailable when Rainforest's own API returns a 503 -- third-party payment-processor degradation, not a Method-side defect",
+    "first_seen": "2026-07-06T13:02:25Z",
+    "last_seen": "2026-07-06T13:03:52Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-system"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/295882732"
+        },
+        {
+          "contains": "Rainforest Outbound API Error Rate"
+        },
+        {
+          "contains": "Rainforest Merchant Details Retrieval Failed"
+        },
+        {
+          "regex": "RainforestProvider\\.GetMerchantAsync"
+        }
+      ]
+    },
+    "evidence_source": "elasticsearch",
+    "evidence_query": "fields.dd_service.keyword:\"runtime-core-api\" AND message:*rainforest*",
+    "evidence_threshold_s": null,
+    "diagnosis": "DD monitor 295882732 ('[Rainforest] Outbound API Error Rate (4xx+5xx) > 5%', service:runtime-core-api, team:transactions) tripped to Alert at 13:03:52Z. ES confirms 2 Error-level log hits at 13:02:25Z, both for account totalfeedsinc (single user session, RequestId 2e6a5940): 'Rainforest Merchant Details Retrieval Failed' -> System.InvalidOperationException('Rainforest API returned status code: ServiceUnavailable') at Runtime.Core.Engine.Actions.Payments.PaymentsV2.Providers.RainforestProvider.GetMerchantAsync (RainforestProvider.cs:286), called from PaymentService.GetRainforestMerchantDetailsAsync (PaymentService.Rainforest.cs:868) via PaymentsController.GetRainforestMerchantDetailsAsync (PaymentsController.Rainforest.cs:391). The 503 originates from Rainforest's own API (peer.hostname:api.rainforestpay.com), not from Method code -- runtime-core-api's dd_version (2026-06-30 14-37-master) is 6 days old, no deploy correlation. Sibling monitor 295882894 ('[Rainforest] Webhook Traffic Outage (Business Hours)') co-fired 2min51s earlier (13:01:01Z, recovered to OK by scan time) -- consistent with a brief window where Rainforest's platform was degraded broadly (both outbound API calls and inbound webhook delivery affected), not specific to the merchant-details endpoint. Same third-party-dependency framing as ki-2026-07-05-rainforest-outbound-api-p95-latency (that entry covers P95 latency on monitor 295928665; this is a distinct monitor/signal -- error rate, not latency -- so a separate entry, not a match broaden, given the current evidence doesn't establish they share a single root-cause mechanism beyond 'Rainforest degradation').",
+    "playbook": "1) Confirm shape: DD monitor 295882732 in Alert, OR ES query fields.dd_service.keyword:\"runtime-core-api\" AND message:*rainforest* returning 'ServiceUnavailable' / 'Rainforest API returned status code' signatures. 2) Check monitor 295882894 (Webhook Traffic Outage) and monitor 295928665 (Outbound API P95 Latency, see ki-2026-07-05-rainforest-outbound-api-p95-latency) for co-firing in the same window -- if so, broaden framing to 'Rainforest platform degradation', not endpoint-specific. 3) Nothing to fix Method-side; this is entirely dependent on Rainforest's own uptime. 4) If sustained (>15min) or affecting >1 account, consider paging Transactions team to check Rainforest's status page / support channel; a single brief blip like this occurrence does not warrant escalation beyond logging.",
+    "fix_status": "third-party-dependency-monitor-only",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.85,
+    "owning_team": "Transactions",
+    "last_notified_at": "2026-07-06T13:11:37Z",
+    "notes": [
+      {
+        "ts": "2026-07-06T13:11:37Z",
+        "note": "2026-07-06 13:11Z triage (degraded cycle, no Slack MCP): first-ever fire of DD monitor 295882732 at 13:03:52Z (Alert state, active at scan time), grouped with sibling monitor 295882894 (Webhook Traffic Outage, last_triggered 13:01:01Z, recovered to OK) as one root-cause investigation -- both Rainforest-tagged (team:transactions), 2min51s apart, no other channel/service co-fire. ES confirmed 2 error hits (13:02:25Z, account totalfeedsinc) with a clean third-party root cause (Rainforest API 503 ServiceUnavailable on GetMerchantAsync). Metric API (dd_search.py metric) could not independently confirm the monitor's own error-rate ratio this cycle -- every query attempt (regardless of from/to window) returned HTTP query error 'Invalid query input: query start is in the future', a tooling/environment-clock mismatch between this sandbox's system clock and Datadog's real backend clock, not a real query failure; flagging as a tooling gap for future cycles, substituted ES + account_impact.py for corroboration instead. account_impact.py: totalfeedsinc on prod3/4/5 (clusters_unconfigured) -> not_found, user_count_source=named_only (best-effort, likely undercounts true Rainforest-payment-flow exposure since any account using Rainforest could theoretically be affected during a platform-wide third-party blip, but only 1 account has direct evidence this occurrence). Created this KB entry now (confidence 0.85) so future recurrences of this specific monitor are recognized without re-deriving the stack trace. Scored: critical_path_services(+3, runtime-core) + group_size=2(+1) + novel_no_kb(+2) = 6 >= threshold(4) -> POSTED to #triage-results, gate_reason=scored. Daily cap 4/5 after this post. See docs/investigations/2026-07-06-54ba4734132656d0.md."
       }
     ]
   },
