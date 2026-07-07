@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-07T21:03:11Z",
-    "occurrences": 538,
+    "last_seen": "2026-07-07T21:27:12Z",
+    "occurrences": 539,
     "match": {
       "channels": [
         "alert-frontend-errors"
