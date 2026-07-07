@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-07T16:06:11Z",
-    "occurrences": 535,
+    "last_seen": "2026-07-07T16:44:11Z",
+    "occurrences": 536,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -331,6 +331,10 @@
       {
         "ts": "2026-07-07T16:15:15Z",
         "note": "2026-07-07 16:15Z triage (degraded cycle, synthetic hash 6b0eb16676242dc0, monitor 77419271 fired 16:06:11Z, Warn at scan time): DD method-ui XHR logs 15:06-16:06Z = 200-sample-cap saturated, 96 distinct accounts (top EnglandLogistics 19 ~9.5% chronic repeat-offender, lawsondrayage 7, sierraconveyor2 7, sixdegreesnorthbeveragegroup 6, sacredstudiosinc 6, soundcrawlsllc 6), 175/200=87.5% on GET /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync -- canonical chronic ki-21 shape (96 distinct ~ recent 68-107 baseline, diffuse, NOT the 100x 2026-06-04 OUTAGE surge). ES declared clause not re-queried this cycle (documented field-mismatch, standing); DD account fan-out is the canonical corroboration per entry precedent. last_notified_at 2026-07-06T20:15:24Z = ~19h59m ago, WITHIN 24h suppression window; occ 534->535 (not %10); fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window."
+      },
+      {
+        "ts": "2026-07-07T17:14:00Z",
+        "note": "2026-07-07 17:14Z triage (degraded cycle, no Slack MCP): ki-21 occ#536 via DD monitor 77419271 last_triggered 16:44:11Z (OK now, self-recovered). DD method-ui XHR error logs 15:44-16:44Z = 200-sample-cap saturated, 89 distinct accounts (top foxmark 9, firestationfurniture 8, aawws 8, boswellwindows3 7, gopowertrain2 7), 178/200=89% on GET /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync -- canonical chronic shape (89 ~ recent 68-107 baseline, diffuse no concentration, NOT the 2026-06-04 100x OUTAGE surge). Synthetic hash b48f6800bca213df (channel C03TYHGRS23 + DD monitor ts 2026-07-07T16:44:11Z). last_notified_at 2026-07-06T20:15:24Z = ~20h55m ago, WITHIN 24h suppression window; occ 535->536 (536%10!=0); fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window. No ki-24 co-fire signal checked this cycle (single-monitor scan diff, degraded)."
       }
     ]
   },
