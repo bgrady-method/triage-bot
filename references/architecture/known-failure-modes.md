@@ -112,6 +112,26 @@ The list is **seed**. The routine should append entries as new patterns surface.
 - **Course modules:** `level-1/availability-and-slas.json`, `level-10/observability.json`, `level-14/conways-law-and-team-topology.json`, `level-14/architecture-review.json`.
 - **Source:** Synthesised from absence of SLO documentation across all CLAUDE.md files.
 
+### F10. Ocelot proxy timeouts to the `microservices.methodlocal.int` Tier-3 pool
+
+- **Symptom:** Frontend XHR errors (`status_code:0`, "Failed to load") reported to DD RUM by method-ui; upstream cause is `ms-gateway-api`'s Ocelot `ResponderMiddleware` raising `RequestTimedOutError` / `TaskCanceledException` while waiting on the `microservices.methodlocal.int` (.NET Framework Tier-3 IIS pool). Affected paths span `/syncutil/...`, `/preferences/v3/User`, `/account/learning/...` and other Tier-3-hosted routes.
+- **Service(s):** ms-gateway-api (Ocelot); microservices IIS pool (sync-util, preferences, account).
+- **Mechanism:** Under load or Tier-3 pool GC/recycle pressure, per-request Ocelot timeouts trip faster than the Tier-3 services can respond. A 2026-06-05 rollback reduced but did not eliminate the pattern (`fix_status: chronic-residual-post-rollback-2026-06-05` in `kb/known-issues.json#ki-2026-05-21-gateway-microservices-timeout`).
+- **Detection today:** DD monitor `70171778` ("Unexpected number of 5XX errors", env:prod, >30/5min) plus RUM XHR-failure correlation. 532 recorded occurrences since 2026-05-20.
+- **Proposed SLO target:** ms-gateway-api availability 99.95% (≤ 22 min/30d) — reuse the F8 target since the failure surfaces at the same service boundary. No dedicated Ocelot-timeout SLO exists today.
+- **Course modules:** `level-2/reverse-proxies-api-gateways.json`, `level-10/circuit-breakers-and-bulkheads.json` (fast-fail vs slow-fail for a saturated downstream), `level-1/availability-and-slas.json`.
+- **Source:** `stability-reviews/2026-07/2026-07-07-report.md` F1; `kb/known-issues.json#ki-2026-05-21-gateway-microservices-timeout`.
+
+### F11. New monitor family trips on legitimate quiet-period traffic troughs
+
+- **Symptom:** A freshly-created monitor family (5 sibling `team:crm` AMQP-consumer heartbeat/throughput monitors, created 2026-07-02) fires repeatedly during low-traffic periods with no corroborating error signal, then self-recovers within minutes. 35 occurrences in the first 5 days after rollout.
+- **Service(s):** email-subscriber-agent, email-publisher-agent, method-mobile-notifications-subscriber, approutine-subscriber, runtime-core-subscriber (monitor targets); pattern is monitor-design, not service-specific.
+- **Mechanism:** Each monitor checks `sum:trace.amqp.command.hits{service:<name>,env:prod}.as_rate()` against a low **absolute** floor (~2 msg/s). Legitimate low-traffic troughs (nights, weekends, quiet business hours) dip under the fixed floor even though the consumer is healthy. Absolute thresholds don't account for expected diurnal/weekly traffic shape.
+- **Detection today:** The monitors themselves are the (over-)detection; there is no meta-monitor for alert-quality / false-positive rate.
+- **Proposed SLO target:** N/A — this is an alerting-quality issue, not a service SLO. Target: <5% of firings should self-recover with zero corroborating error signal within 10 minutes (needs a baseline measurement first).
+- **Course modules:** `level-10/observability.json` (alert design — relative/anomaly thresholds vs fixed floors), `level-5/message-queues.json` (consumer throughput is inherently bursty/quiet, not constant).
+- **Source:** `stability-reviews/2026-07/2026-07-07-report.md` F3; `kb/known-issues.json#ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap`.
+
 ---
 
 ## Maintenance
