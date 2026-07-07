@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-07T14:54:11Z",
-    "occurrences": 534,
+    "last_seen": "2026-07-07T16:06:11Z",
+    "occurrences": 535,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -327,6 +327,10 @@
       {
         "ts": "2026-07-07T14:08:11Z",
         "note": "2026-07-07 14:08Z triage (degraded cycle, synthetic hash b5d177bb121644b9, monitor 77419271 fired 14:08:11Z, self-recovered OK by scan time): 5 distinct accounts sampled in DD Logs this window (boswellwindows3, equipmentlockCo, indianaautomotiveequipment, sitechsetx3, EnglandLogistics), canonical GetSyncWidgetInfoAsync sync-util shape, status_code 0 dominant. Broadened ES corroboration this cycle: kb_to_es_query.py's declared clause still 0-bucket (documented field-mismatch), but a direct 'GetSyncWidgetInfoAsync' term query returns 408 hits this window vs 410 hits in the identical window 24h ago (all on service:gateway) -- confirms chronic steady-state, not a regression. last_notified_at 2026-07-06T20:15:24Z (~17h53m ago, within 24h suppression window); occ 532->533 not %10==0; fix_status unchanged -> SUPPRESS gate_reason=known-issue-window."
+      },
+      {
+        "ts": "2026-07-07T16:15:15Z",
+        "note": "2026-07-07 16:15Z triage (degraded cycle, synthetic hash 6b0eb16676242dc0, monitor 77419271 fired 16:06:11Z, Warn at scan time): DD method-ui XHR logs 15:06-16:06Z = 200-sample-cap saturated, 96 distinct accounts (top EnglandLogistics 19 ~9.5% chronic repeat-offender, lawsondrayage 7, sierraconveyor2 7, sixdegreesnorthbeveragegroup 6, sacredstudiosinc 6, soundcrawlsllc 6), 175/200=87.5% on GET /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync -- canonical chronic ki-21 shape (96 distinct ~ recent 68-107 baseline, diffuse, NOT the 100x 2026-06-04 OUTAGE surge). ES declared clause not re-queried this cycle (documented field-mismatch, standing); DD account fan-out is the canonical corroboration per entry precedent. last_notified_at 2026-07-06T20:15:24Z = ~19h59m ago, WITHIN 24h suppression window; occ 534->535 (not %10); fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window."
       }
     ]
   },
