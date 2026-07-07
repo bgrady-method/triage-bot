@@ -1138,8 +1138,8 @@
     "id": "ki-2026-07-03-ms-scheduler-api-seriesid-negative-recordid",
     "title": "ms-scheduler-api GetSeriesAsync throws InvalidOperationException when called with recordId=-1 (chronic, code-level missing-guard bug, now confirmed across multiple accounts, ~10-21+/day for 7+ days)",
     "first_seen": "2026-06-26T00:00:00Z",
-    "last_seen": "2026-07-06T15:44:24Z",
-    "occurrences": 134,
+    "last_seen": "2026-07-07T11:57:02Z",
+    "occurrences": 135,
     "match": {
       "channels": [
         "alert-system"
@@ -1156,6 +1156,9 @@
         },
         {
           "regex": "SeriesDataProvider.*GetSeriesIdAsync"
+        },
+        {
+          "contains": "monitors/303056222"
         }
       ]
     },
@@ -1169,7 +1172,7 @@
     "fix_template": null,
     "confidence": 0.8,
     "owning_team": "CRM Experience",
-    "last_notified_at": "2026-07-05T20:28:02Z",
+    "last_notified_at": "2026-07-07T12:10:00Z",
     "notes": [
       {
         "ts": "2026-07-03T13:09:00Z",
@@ -1202,6 +1205,10 @@
       {
         "ts": "2026-07-06T16:08:08Z",
         "note": "2026-07-06 16:08Z triage (degraded cycle, no Slack MCP; hash df6471f490403ee8): 134th occurrence, monitor 302054543 last_triggered 15:44:24Z, self-recovered (OK) by scan time. ES confirmation (raw search, evidence_query's fields.Error.keyword still field-name-mismatched -- see 2026-07-05T19:08:48Z note, unresolved) over 15:10:00Z-16:08:08Z (since last cycle's cutoff): 15 identical-signature hits (GetSeriesIdAsync(recordId=-1), SeriesDataProvider.cs:143/123), spanning 7 accounts -- completeelectricalsolutions:4, thecelticgroup:4, polestarmaritime:2, refexpertsandhvacllc:2, excelpoolservice:1, lawsondrayage:1, mountainelectricllc3:1. FIVE of these (thecelticgroup, polestarmaritime, excelpoolservice, lawsondrayage, mountainelectricllc3) are newly-observed accounts not in the prior 7-account list (lafittesseafood, completeelectricalsolutions, foamtechinc, refexpertsandhvacllc, cooksmart2, farmxs, baymonservalllp) -- now 12 distinct accounts total, continuing to broaden. last_notified_at 2026-07-05T20:28:02Z ~19h40m ago, WITHIN 24h suppression window; occ 133->134 (not %10); fix_status unchanged (proposed) -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-06-df6471f490403ee8.md."
+      },
+      {
+        "ts": "2026-07-07T11:57:02Z",
+        "note": "2026-07-07 12:10Z triage (degraded cycle, no Slack MCP; hash to be assigned): 135th occurrence. IMPORTANT: monitor ID 302054543 (the original monitor named in this entry's match clause) no longer appears in this cycle's 177-monitor DD scan at all -- it has been replaced by a NEW monitor id 303056222 with the identical name ('[CRM] ms-scheduler-api error rate high'), identical query (errors/(hits+1)*100 > 2 over last_10m), and identical tags (service:ms-scheduler-api, team:crm). Treating this as the same monitor under a rotated/recreated ID, not a new distinct alert -- added 'monitors/303056222' to the match clause's any_of so future recurrences match on the specific ID again rather than only the generic name-text fallback. Confirmed via raw ES search (fields.dd_service.keyword:\"ms-scheduler-api\", 11:37:02Z-12:07:02Z): 12 hits, all the identical 'Failed to Get Series Id for record -1 in table Activity' / SeriesDataProvider.cs:143/123 signature, 2 accounts (lafittesseafood:11, baymonservalllp:1) -- both already-known contributors, no new accounts this time. The KB's declared evidence_query (aggregate by fields.Error.keyword) again returned 0 buckets (documented field-name mismatch, unresolved -- see 2026-07-05T19:08:48Z note); raw search substituted as it has every cycle since. DD APM error-rate re-query on the monitor's own approximate 10m eval window (11:47:02Z-11:57:02Z) showed only 2 errors / 264 hits = 0.76%, already back under the 2% threshold by scan time (self-recovered) -- consistent with every prior occurrence's marginal/self-recovering shape. last_notified_at was 2026-07-05T20:28:02Z, now ~39h42m ago -- EXCEEDS the 24h suppression_window_hours -> POST to #triage-results per the window-expiry gate (gate_reason=null), last_notified_at bumped to now."
       }
     ]
   },
@@ -1831,8 +1838,8 @@
     "id": "ki-2026-07-06-tables-fields-redis-circuitbreaker-p95-latency",
     "title": "ms-tables-fields-api p95 request latency spike driven by a transient Redis connectivity blip (circuit breaker OPENED); first confirmed cross-service correlation with runtime-core-api RTC p95 (ki-24)",
     "first_seen": "2026-07-06T13:36:39Z",
-    "last_seen": "2026-07-06T19:33:31Z",
-    "occurrences": 4,
+    "last_seen": "2026-07-07T12:08:31Z",
+    "occurrences": 5,
     "match": {
       "channels": [
         "alert-system",
@@ -1887,6 +1894,51 @@
       {
         "ts": "2026-07-06T20:15:24Z",
         "note": "2026-07-06 20:15Z triage (degraded cycle, no Slack MCP; hash 3204e1987da68678): 4th occurrence, monitor 302103451 last_triggered 19:33:31Z, OK by scan time (self-recovered). Evidence_query (Redis Cache Circuit Breaker OPENED) re-run 18:16:39Z-19:33:31Z -- 0 hits, mechanism did NOT reproduce (3rd of 4 occurrences now without Redis corroboration). DD metric re-query on the monitor's own trailing-5m eval window (19:28:31-19:33:31Z, 29 points): avg ~0.091s vs 0.25s threshold (below), but with a real single-point spike of 0.897s at 19:30:50Z plus secondary blips of 0.294s/0.202s/0.151s -- a momentary latency excursion rather than a sustained breach, and weaker than occurrence 1's sharp 3.79s peak but more pronounced than occurrences 2/3's near-flat averages. No co-firing on ki-2026-05-24-runtime-core-rtc-p95-recurring this cycle (not in the 3-monitor diff set). last_notified_at 2026-07-06T14:16:00Z (~5h59m ago, WITHIN 24h suppression window); occ 3->4 (not %10); fix_status unchanged (needs-human) -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-06-3204e1987da68678.md."
+      },
+      {
+        "ts": "2026-07-07T12:08:31Z",
+        "note": "2026-07-07 12:08Z triage (degraded cycle, no Slack MCP; hash 2c6c49fab3bfc43e): 5th occurrence, monitor 302103451 last_triggered 12:08:31Z, OK by scan time (self-recovered). Evidence_query (Redis Cache Circuit Breaker OPENED) re-run 11:38:31Z-12:08:31Z -- 0 hits, mechanism did NOT reproduce (4th of 5 occurrences now without Redis corroboration). DD metric re-query on the monitor's own trailing-5m eval window (12:03:31-12:08:31Z, 22 points) shows all points in the 0.0009s-0.054s range, well under the 0.25s threshold -- no visible breach at all in this re-aggregation, weaker even than occurrence 4's momentary 0.897s excursion. No co-firing on ki-2026-05-24-runtime-core-rtc-p95-recurring this cycle (not in the 3-monitor diff set). last_notified_at 2026-07-06T14:16:00Z (~21h52m ago, WITHIN 24h suppression window); occ 4->5 (not %10); fix_status unchanged -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-07-2c6c49fab3bfc43e.md."
+      }
+    ]
+  },
+  {
+    "id": "ki-2026-07-07-classicmethod-p95-latency-monitor-recurring",
+    "title": "Classic (classic/method) P95 request latency spikes, self-recovering, no correlated errors -- 2 occurrences same day, differing shape",
+    "first_seen": "2026-07-07T01:49:42Z",
+    "last_seen": "2026-07-07T11:45:41Z",
+    "occurrences": 2,
+    "match": {
+      "channels": [
+        "alert-system",
+        "alert-runtime-monitoring"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/299603201"
+        },
+        {
+          "contains": "ClassicMethod"
+        },
+        {
+          "regex": "P95 latency high \\(classic/method\\)"
+        }
+      ]
+    },
+    "evidence_source": "datadog_apm",
+    "evidence_query": "p95:trace.aspnet.request{service:classic/method,env:prod}",
+    "evidence_threshold_s": 10.0,
+    "diagnosis": "DD monitor 299603201 ('[Admin][ClassicMethod][P2] P95 latency high (classic/method)', threshold >10.0) fired twice on 2026-07-07: 1st at 01:49:42Z (37/150 sampled points over threshold, spanning ~16min 01:45:20Z-02:01:20Z, peak 257.36, mean of elevated stretch 52.4, ratio 4.24) and 2nd at 11:45:41Z (only 3/222 points over threshold, spanning ~5min 11:33:20Z-11:38:10Z, peak 169.33, mean 68.57, ratio 5.86). Both occurrences: 0 correlated error logs (service:classic status:error), self-recovered on their own, no KB match apart from a rejected false positive (ki-classic-clb-to-alb-ssl-redirect-loss matches on the bare substring \"Classic\" but documents an unrelated, already-resolved 2025-04-14 SSL-redirect sign-in outage -- do not conflate; see that entry's match clause). Duration/shape differs between the two occurrences (16min/37pts vs 5min/3pts) so this is NOT yet confirmed to be one recurring mechanism -- could be two distinct latency causes that happen to hit the same monitor, or one intermittent upstream dependency. No deploy correlation checked either time (Classic's source repo not identified with certainty in this session's cloned-repo set; methodcrm-org GH_TOKEN 403 gap).",
+    "playbook": "1) Confirm shape: DD monitor 299603201 in Alert or recently-recovered state, service classic/method. 2) Re-query p95:trace.aspnet.request{service:classic/method,env:prod} over a wide window (±20min) around last_triggered_ts -- note point count over 10.0 threshold, span, peak, and mean of the elevated stretch (both metrics recorded per occurrence so far). 3) Confirm latency-only: service:classic status:error env:prod DD Logs should be near-zero (both occurrences were). 4) Do NOT accept the ki-classic-clb-to-alb-ssl-redirect-loss KB match -- its bare 'Classic' substring clause is a known false-positive trap for this monitor; that entry is about a resolved LB/SSL routing outage, unrelated to latency. 5) No root cause identified yet -- escalate to Admin team if a 3rd occurrence shows a consistent shape or if duration exceeds ~20min.",
+    "fix_status": "needs-human",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.6,
+    "owning_team": "Admin",
+    "last_notified_at": "2026-07-07T11:45:41Z",
+    "notes": [
+      {
+        "ts": "2026-07-07T11:45:41Z",
+        "note": "2026-07-07 12:08Z triage (degraded cycle, no Slack MCP; hash b953ea74242eadfc): 2nd occurrence of monitor 299603201 same UTC day (1st: 01:49:42Z, hash 7e75e016cee9b94c, docs/investigations/2026-07-07-7e75e016cee9b94c.md, scored 5, posted). This occurrence: last_triggered 11:45:41Z, OK by scan time (self-recovered). DD metric re-query 11:25:41Z-12:05:41Z shows 3/222 points over the 10.0 threshold, 11:33:20Z-11:38:10Z (~5min), peak 169.33, mean of elevated stretch 68.57 (ratio 5.86) -- shorter but sharper than occurrence 1 (16min/37pts, peak 257.36, mean 52.4, ratio 4.24). 0 error logs both times. Created this KB entry now (confidence 0.6, lower than usual given the differing shape between occurrences) so a 3rd occurrence is recognized without re-deriving from scratch, and so the ki-classic-clb-to-alb-ssl-redirect-loss false-match trap is documented for this monitor specifically. Scored needs-human: metric_breach (+3, ratio 5.86) + truly_novel (+2, no KB entry existed at investigation start) + recency_decay (-1, 2nd fire same UTC day) = 4 >= threshold 4; today_post_count (needs-human) 2/5 -> POSTED to #triage-results."
       }
     ]
   },
