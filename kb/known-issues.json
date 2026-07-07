@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-06T21:55:11Z",
-    "occurrences": 531,
+    "last_seen": "2026-07-07T09:21:11Z",
+    "occurrences": 532,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -330,8 +330,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-07-06T14:22:21Z",
-    "occurrences": 214,
+    "last_seen": "2026-07-07T10:01:20Z",
+    "occurrences": 215,
     "match": {
       "channels": [
         "alert-system",
@@ -992,8 +992,8 @@
     "id": "ki-2026-07-03-eda-consumer-amqp-stopped-publishing",
     "title": "[EDA][Consumer][P3] eda_consumer AMQP publish-hits monitor intermittently goes No Data (team:devops, self-recovering, no correlated pipeline impact)",
     "first_seen": "2026-06-20T10:21:00Z",
-    "last_seen": "2026-07-06T10:49:26Z",
-    "occurrences": 8,
+    "last_seen": "2026-07-07T11:02:26Z",
+    "occurrences": 9,
     "match": {
       "channels": [
         "alert-system",
@@ -1021,7 +1021,7 @@
     "fix_template": null,
     "confidence": 0.8,
     "owning_team": "Integrations",
-    "last_notified_at": "2026-07-06T10:49:26Z",
+    "last_notified_at": "2026-07-07T11:02:26Z",
     "notes": [
       {
         "ts": "2026-06-20T10:13:00Z",
@@ -1053,8 +1053,8 @@
     "id": "ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata",
     "title": "\"Method UI Grid and Dropdown Performance Test\" synthetics (team:qa, non-prod, 5 monitor-ID variants: Day run / Day run 2 / Evening run / Midnight run / Release Run) chronically go No Data; never correlates to a real incident",
     "first_seen": "2026-05-02T13:46:00Z",
-    "last_seen": "2026-07-06T13:51:50Z",
-    "occurrences": 32,
+    "last_seen": "2026-07-07T04:01:30Z",
+    "occurrences": 36,
     "match": {
       "channels": [
         "alert-system"
@@ -1209,8 +1209,8 @@
     "id": "ki-2026-07-03-warehouse-dashboard-network-test-nodata",
     "title": "\"Warehouse Dashboard Network Test\" synthetics (team:qa, non-prod) go No Data daily ~09:31-10:01Z UTC; never correlates to a real incident",
     "first_seen": "2026-05-07T09:31:00Z",
-    "last_seen": "2026-07-06T10:01:07Z",
-    "occurrences": 10,
+    "last_seen": "2026-07-07T10:01:07Z",
+    "occurrences": 13,
     "match": {
       "channels": [
         "alert-system"
@@ -1265,8 +1265,8 @@
     "id": "ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap",
     "title": "New team:crm AMQP-consumer heartbeat/throughput-stall monitors (5 sibling IDs, created 2026-07-02) intermittently trip on quiet-period low-traffic dips, then self-recover within minutes — no corroborating errors",
     "first_seen": "2026-07-04T13:07:31Z",
-    "last_seen": "2026-07-06T10:46:21Z",
-    "occurrences": 33,
+    "last_seen": "2026-07-07T10:52:22Z",
+    "occurrences": 35,
     "match": {
       "channels": [
         "alert-system",
@@ -1312,7 +1312,7 @@
     "fix_template": null,
     "confidence": 0.82,
     "owning_team": "CRM Experience (runtime-core-subscriber-api, per ownership.md:454) / Admin (mobile-notifications-stack, per ownership.md:416) — split by service; DD monitor tags say team:crm for both, ownership.md disagrees for the mobile-notifications component",
-    "last_notified_at": "2026-07-05T19:08:48Z",
+    "last_notified_at": "2026-07-07T04:00:31Z",
     "notes": [
       {
         "ts": "2026-07-04T16:10:00Z",
@@ -1435,8 +1435,8 @@
     "id": "ki-2026-07-04-ms-account-api-4xx-spike-monitor-noise",
     "title": "[Admin][AccountAPI][P3] 4xx-spike monitor transitions state without a real 4xx breach (monitor-sensitivity/config artifact, not a service issue)",
     "first_seen": "2026-07-03T12:08:59Z",
-    "last_seen": "2026-07-06T07:00:18Z",
-    "occurrences": 15,
+    "last_seen": "2026-07-07T07:12:19Z",
+    "occurrences": 16,
     "match": {
       "channels": [
         "alert-system",
@@ -1461,7 +1461,7 @@
     "fix_template": null,
     "confidence": 0.8,
     "owning_team": "Admin",
-    "last_notified_at": "2026-07-05T15:20:44Z",
+    "last_notified_at": "2026-07-07T07:12:19Z",
     "notes": [
       {
         "ts": "2026-07-03T12:08:59Z",
@@ -1887,6 +1887,90 @@
       {
         "ts": "2026-07-06T20:15:24Z",
         "note": "2026-07-06 20:15Z triage (degraded cycle, no Slack MCP; hash 3204e1987da68678): 4th occurrence, monitor 302103451 last_triggered 19:33:31Z, OK by scan time (self-recovered). Evidence_query (Redis Cache Circuit Breaker OPENED) re-run 18:16:39Z-19:33:31Z -- 0 hits, mechanism did NOT reproduce (3rd of 4 occurrences now without Redis corroboration). DD metric re-query on the monitor's own trailing-5m eval window (19:28:31-19:33:31Z, 29 points): avg ~0.091s vs 0.25s threshold (below), but with a real single-point spike of 0.897s at 19:30:50Z plus secondary blips of 0.294s/0.202s/0.151s -- a momentary latency excursion rather than a sustained breach, and weaker than occurrence 1's sharp 3.79s peak but more pronounced than occurrences 2/3's near-flat averages. No co-firing on ki-2026-05-24-runtime-core-rtc-p95-recurring this cycle (not in the 3-monitor diff set). last_notified_at 2026-07-06T14:16:00Z (~5h59m ago, WITHIN 24h suppression window); occ 3->4 (not %10); fix_status unchanged (needs-human) -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-06-3204e1987da68678.md."
+      }
+    ]
+  },
+  {
+    "id": "ki-2026-07-07-gateway-4xx-spike-monitor-noise",
+    "title": "[Admin][Gateway][P3] 4xx spike (gateway) monitor trips on a brief isolated single-bucket burst, self-recovers -- same shape as ms-account-api-4xx-spike-monitor-noise but a different monitor ID",
+    "first_seen": "2026-07-06T10:16:00Z",
+    "last_seen": "2026-07-07T10:32:57Z",
+    "occurrences": 2,
+    "match": {
+      "channels": [
+        "alert-system",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/299544656"
+        },
+        {
+          "contains": "[Admin][Gateway][P3] 4xx spike"
+        }
+      ]
+    },
+    "evidence_source": "datadog_apm",
+    "evidence_query": "sum(last_15m):sum:trace.aspnet_core.request.hits.by_http_status{service:gateway,env:prod,http.status_class:4xx}.as_count() > 2000",
+    "evidence_threshold_s": null,
+    "diagnosis": "DD monitor 299544656 trips when 4xx responses on service:gateway sum to over 2000 across a rolling 15-minute window. Both documented occurrences (2026-07-06 10:16:00Z and 2026-07-07 10:16:00Z -- same time-of-day both times, worth re-checking if a 3rd occurrence lands near 10:16Z again) show an identical shape: a single isolated 20-30s bucket carrying the overwhelming majority of the spike (2026-07-06: 2883 in one bucket vs 1-3 baseline; 2026-07-07: 1613+1421 across two adjacent 20s buckets vs 1-4 baseline), then immediate return to baseline (1-11 per bucket) for the rest of the window. DD Logs returns 0 entries for service:gateway both days (gateway does not ship request logs to DD Logs), so the specific client/route/account behind the burst could not be identified either time. Resembles ki-2026-07-04-ms-account-api-4xx-spike-monitor-noise (same P3-4xx-spike-then-instant-recovery shape) but is a distinct monitor/service -- not merged into that entry since the underlying service (ms-gateway-api, the Ocelot reverse-proxy critical-path chokepoint) is different and any recurrence here deserves independent tracking given the gateway's blast radius.",
+    "playbook": "1) Confirm shape: single or few adjacent 15-20s buckets carrying most of the 4xx count, immediate return to 1-10/bucket baseline afterward -- consistent with a client retry storm, bot/scraper burst, or a brief upstream auth hiccup rather than a sustained gateway problem. 2) Check DD Logs for service:gateway (typically 0 results -- gateway does not ship to DD Logs; this is a known visibility gap, not confirmation of health). 3) Check ms-authentication-api and Redis JWT-cache health in the same window -- a JWT-cache miss storm is the most plausible mechanism for a brief 4xx burst on the gateway. 4) If a 3rd occurrence shows a longer duration or correlates with 5xx / real user reports, escalate immediately -- unlike the ms-account-api sibling, this monitor guards the single point of failure for the whole platform (CLAUDE.md notes that if ms-gateway-api is down, the whole stack is unreachable).",
+    "fix_status": "monitoring-noise-suspected-unconfirmed",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.75,
+    "owning_team": "Admin",
+    "last_notified_at": "2026-07-07T10:32:57Z",
+    "notes": [
+      {
+        "ts": "2026-07-06T11:35:00Z",
+        "note": "1st occurrence: docs/investigations/2026-07-06-93e0be211df17711.md. Scored 6 (critical_path 3 + metric_breach 1 + truly_novel 2) -> posted to #triage-results as needs-human. Not yet a KB entry at the time -- noted resemblance to ki-2026-07-04-ms-account-api-4xx-spike-monitor-noise but left as a standalone needs-human finding pending a 2nd occurrence."
+      },
+      {
+        "ts": "2026-07-07T10:32:57Z",
+        "note": "2nd occurrence, same shape (isolated burst, instant recovery, 0 DD Logs entries). Created this KB entry now (confidence 0.75, 2 occurrences about 24h5m apart, near-identical time-of-day, identical shape both times). Scored 6 again (critical_path 3 + metric_breach 1, ratio 0.55 + truly_novel 2) -> posted to #triage-results (needs-human classification retained pending a 3rd occurrence to confirm the noise hypothesis)."
+      }
+    ]
+  },
+  {
+    "id": "ki-2026-07-07-notifications-p95-latency-monitor-noise",
+    "title": "[CRM][P2] notifications P95 latency high monitor fires but re-query of the same evaluation window shows the metric never approaches the threshold -- monitor/data artifact, not real latency",
+    "first_seen": "2026-07-06T10:01:07Z",
+    "last_seen": "2026-07-07T08:43:07Z",
+    "occurrences": 2,
+    "match": {
+      "channels": [
+        "alert-system",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/302056327"
+        },
+        {
+          "contains": "[CRM][P2] notifications P95 latency high"
+        }
+      ]
+    },
+    "evidence_source": "datadog_apm",
+    "evidence_query": "avg(last_10m):p95:trace.aspnet.request{service:notifications,env:prod} > 1",
+    "evidence_threshold_s": 1.0,
+    "diagnosis": "DD monitor 302056327 claims service:notifications p95 latency exceeded 1s over a 10-minute rolling average. Both documented occurrences show the same non-reproduction: re-querying the exact evaluation window (and a much wider +/-25min window around it) returns every p95 datapoint between 0.0008s and 0.16s -- one to three orders of magnitude below the 1s threshold, with no anomaly or gap anywhere in the series. This is a cleaner non-reproduction than typical monitor-noise KBs (which usually show at least a brief real excursion) -- the metric simply never approached the threshold either day. Most likely a monitor-evaluation-window/rollup artifact rather than a genuine latency event.",
+    "playbook": "1) Confirm shape: re-query p95:trace.aspnet.request{service:notifications,env:prod} over the monitor's own last_10m window plus a wider surrounding window -- expect values in the 0.001-0.2s range, nowhere near 1s. 2) Check 0 error logs on service:notifications for the window (not yet separately confirmed both times -- add to playbook for the 3rd occurrence). 3) Do not treat as user-impacting; this is the cleanest non-reproduction pattern seen in the monitor-noise family (steeper mismatch than ki-2026-07-04-ms-account-api-4xx-spike-monitor-noise or ki-2026-07-07-gateway-4xx-spike-monitor-noise, both of which at least show a real transient excursion). 4) If a 3rd occurrence ever shows a genuine elevated p95, treat as a break from this pattern and escalate immediately rather than assuming noise.",
+    "fix_status": "monitoring-noise-suspected-unconfirmed",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.72,
+    "owning_team": "CRM Experience",
+    "last_notified_at": null,
+    "notes": [
+      {
+        "ts": "2026-07-06T11:40:00Z",
+        "note": "1st occurrence: docs/investigations/2026-07-06-72f3da766bbaaeb5.md. Scored 2 (truly_novel only) -> actionable-append, gate_reason=low-impact. Not yet a KB entry."
+      },
+      {
+        "ts": "2026-07-07T08:43:07Z",
+        "note": "2nd occurrence, identical non-reproduction shape (0.0008-0.16s throughout vs 1s threshold). Created this KB entry now (confidence 0.72, 2 occurrences about 22h42m apart, identical shape both times). Scored 2 again (truly_novel only) -> actionable-append, gate_reason=low-impact (below escalation_score_threshold=4, so last_notified_at stays null -- neither occurrence has actually posted to #triage-results)."
       }
     ]
   },
