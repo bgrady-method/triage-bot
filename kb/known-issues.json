@@ -534,8 +534,8 @@
     "id": "ki-2026-05-29-methodsession-getaccountbysubdomain-nre",
     "title": "method-platform-ui apps backend NRE in MethodSessionService.GetAccountBySubdomain() -> 'JWT Retrieval Failed' on subdomain-less synthetic monitor probes (Centreon + Datadog Watchdog noise)",
     "first_seen": "2026-05-29T12:49:31Z",
-    "last_seen": "2026-07-06T13:06:27Z",
-    "occurrences": 15,
+    "last_seen": "2026-07-07T13:07:27Z",
+    "occurrences": 16,
     "match": {
       "channels": [
         "alert-system"
@@ -567,7 +567,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.85,
-    "last_notified_at": "2026-07-06T13:11:37Z",
+    "last_notified_at": "2026-07-07T13:19:00Z",
     "notes": [
       {
         "ts": "2026-07-05T20:28:02Z",
@@ -576,6 +576,10 @@
       {
         "ts": "2026-07-06T13:06:27Z",
         "note": "2026-07-06 13:11Z triage (degraded cycle, no Slack MCP): monitor 299551647 ([Admin][PortalApps][P1] 5xx error rate elevated) Warn, last_triggered 13:06:27Z -- 15th documented occurrence. ES aggregate (fields.dd_service.keyword:\"methodportal.com/apps\", 12:00-13:15Z window) = 97 docs (48 Error/49 Warning); sampled 3 raw hits, all canonical: messageTemplate 'JWT Retrieval Failed' / 'GET failed for service: search and endpoint: recents/{account}', exceptions[].ClassName System.NullReferenceException at Com.Method.ServiceContract.Services.Account.MethodSessionService.GetAccountBySubdomain(), UserAgent WindowsPowerShell/5.1.20348.1850, ClientIpAddress 172.31.105.207 (internal synthetic probe signature, matches playbook exactly) -- 100% synthetic-probe shape, 0 real-browser evidence in the sample. last_notified_at (2026-07-05T11:08:17Z) = ~26h03m ago -- PAST 24h suppression window -> RESURFACE POST, gate_reason=null, last_notified_at bumped to now. fix_status needs-human unchanged. Synthetic hash a751c4512253d59b (channel CPHHABKAA + DD monitor ts 2026-07-06T13:06:27Z). See docs/investigations/2026-07-06-a751c4512253d59b.md."
+      },
+      {
+        "ts": "2026-07-07T13:19:00Z",
+        "note": "2026-07-07 13:19Z triage (degraded cycle, no Slack MCP): monitor 299551647 ([Admin][PortalApps][P1] 5xx error rate elevated) Warn, last_triggered 13:07:27Z -- 16th documented occurrence, hash ca28a159a4461661. ES search ('JWT Retrieval Failed', 12:37:27-13:07:27Z window) = 70 hits; sampled hit confirms canonical signature (System.NullReferenceException at Com.Method.ServiceContract.Services.Account.MethodSessionService.GetAccountBySubdomain(), UserAgent WindowsPowerShell/5.1.20348.1850, ClientIpAddress 172.31.105.207 internal synthetic probe) -- 100% synthetic-probe shape in the sample, consistent with all 15 prior occurrences. last_notified_at (2026-07-06T13:11:37Z) = ~24h07m ago -- PAST 24h suppression window -> RESURFACE POST, gate_reason=null, last_notified_at bumped to 2026-07-07T13:19:00Z. fix_status needs-human unchanged. See docs/investigations/2026-07-07-ca28a159a4461661.md."
       }
     ]
   },
@@ -1053,8 +1057,8 @@
     "id": "ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata",
     "title": "\"Method UI Grid and Dropdown Performance Test\" synthetics (team:qa, non-prod, 5 monitor-ID variants: Day run / Day run 2 / Evening run / Midnight run / Release Run) chronically go No Data; never correlates to a real incident",
     "first_seen": "2026-05-02T13:46:00Z",
-    "last_seen": "2026-07-07T04:01:30Z",
-    "occurrences": 36,
+    "last_seen": "2026-07-07T12:31:30Z",
+    "occurrences": 38,
     "match": {
       "channels": [
         "alert-system"
@@ -1090,7 +1094,7 @@
     "fix_template": null,
     "confidence": 0.85,
     "owning_team": "unmapped",
-    "last_notified_at": "2026-07-06T13:11:37Z",
+    "last_notified_at": "2026-07-07T13:18:00Z",
     "notes": [
       {
         "ts": "2026-07-03T13:09:00Z",
@@ -1131,6 +1135,10 @@
       {
         "ts": "2026-07-06T14:16:00Z",
         "note": "2026-07-06 14:16Z triage (degraded cycle, no Slack MCP): 3 fires this cycle -- Release Run (142200330) No Data 13:46:00Z hash 50d9920b884cdbd7 (occ 29->30), Test Day run (121308660) recovered-OK 13:47:01Z hash 64437dbff50cc4fe (occ 30->31), Test Day run 2 (133625690) recovered-OK 13:51:50Z hash f1ebd48b30c5dae3 (occ 31->32). Same confirmed non-prod QA-synthetics noise, no co-firing signal with any prod service. last_notified_at (2026-07-06T13:11:37Z) only ~35-40min ago (set by the prior cycle's Midnight-run resurface), well WITHIN 24h suppression window for all 3 -> SUPPRESS all, gate_reason=known-issue-window. See docs/investigations/2026-07-06-50d9920b884cdbd7.md, docs/investigations/2026-07-06-64437dbff50cc4fe.md, docs/investigations/2026-07-06-f1ebd48b30c5dae3.md."
+      },
+      {
+        "ts": "2026-07-07T13:18:00Z",
+        "note": "2026-07-07 13:18Z triage (degraded cycle, no Slack MCP): 2 fires this cycle vs the 12:10:30Z prior-cycle cutoff -- Midnight run (123495390) No Data 12:30:00Z (hash 9fd9725429623361, occ 36->37) and Release Run (142200330) recovered-OK 12:31:30Z (hash d5da98aac0c6e37d, occ 37->38). Same confirmed non-prod QA-synthetics noise, no co-firing signal with any prod service this cycle. last_notified_at (2026-07-06T13:11:37Z) = ~24h06m ago -- just PAST the 24h suppression window -> Midnight-run fire RESURFACE POSTED (gate_reason=null), last_notified_at bumped to 2026-07-07T13:18:00Z. Release-run fire evaluated 90s later in the same cycle fell inside the just-reset window -> SAME-CYCLE GATE-ORDERING ARTIFACT, SUPPRESSED (gate_reason=known-issue-window), per project_kir_same_cycle_gate_ordering precedent (same pattern as 2026-07-06). See docs/investigations/2026-07-07-9fd9725429623361.md, docs/investigations/2026-07-07-d5da98aac0c6e37d.md."
       }
     ]
   },
@@ -1138,8 +1146,8 @@
     "id": "ki-2026-07-03-ms-scheduler-api-seriesid-negative-recordid",
     "title": "ms-scheduler-api GetSeriesAsync throws InvalidOperationException when called with recordId=-1 (chronic, code-level missing-guard bug, now confirmed across multiple accounts, ~10-21+/day for 7+ days)",
     "first_seen": "2026-06-26T00:00:00Z",
-    "last_seen": "2026-07-07T11:57:02Z",
-    "occurrences": 135,
+    "last_seen": "2026-07-07T13:09:03Z",
+    "occurrences": 136,
     "match": {
       "channels": [
         "alert-system"
@@ -1209,6 +1217,10 @@
       {
         "ts": "2026-07-07T11:57:02Z",
         "note": "2026-07-07 12:10Z triage (degraded cycle, no Slack MCP; hash to be assigned): 135th occurrence. IMPORTANT: monitor ID 302054543 (the original monitor named in this entry's match clause) no longer appears in this cycle's 177-monitor DD scan at all -- it has been replaced by a NEW monitor id 303056222 with the identical name ('[CRM] ms-scheduler-api error rate high'), identical query (errors/(hits+1)*100 > 2 over last_10m), and identical tags (service:ms-scheduler-api, team:crm). Treating this as the same monitor under a rotated/recreated ID, not a new distinct alert -- added 'monitors/303056222' to the match clause's any_of so future recurrences match on the specific ID again rather than only the generic name-text fallback. Confirmed via raw ES search (fields.dd_service.keyword:\"ms-scheduler-api\", 11:37:02Z-12:07:02Z): 12 hits, all the identical 'Failed to Get Series Id for record -1 in table Activity' / SeriesDataProvider.cs:143/123 signature, 2 accounts (lafittesseafood:11, baymonservalllp:1) -- both already-known contributors, no new accounts this time. The KB's declared evidence_query (aggregate by fields.Error.keyword) again returned 0 buckets (documented field-name mismatch, unresolved -- see 2026-07-05T19:08:48Z note); raw search substituted as it has every cycle since. DD APM error-rate re-query on the monitor's own approximate 10m eval window (11:47:02Z-11:57:02Z) showed only 2 errors / 264 hits = 0.76%, already back under the 2% threshold by scan time (self-recovered) -- consistent with every prior occurrence's marginal/self-recovering shape. last_notified_at was 2026-07-05T20:28:02Z, now ~39h42m ago -- EXCEEDS the 24h suppression_window_hours -> POST to #triage-results per the window-expiry gate (gate_reason=null), last_notified_at bumped to now."
+      },
+      {
+        "ts": "2026-07-07T13:21:00Z",
+        "note": "2026-07-07 13:21Z triage (degraded cycle, no Slack MCP; hash 3412419e75f2f01a): 136th occurrence, monitor 303056222 last_triggered 13:09:03Z -- fired again ~59min after the prior cycle's fresh investigation (12:10:00Z, occ 135). Raw ES search (fields.dd_service.keyword:\"ms-scheduler-api\", 12:39:03-13:09:03Z window) = 7 hits, sample confirms identical 'Get Series Info failed for recordId -1' signature -- same chronic mechanism, no new accounts sampled. last_notified_at (2026-07-07T12:10:00Z) = ~1h11m ago, well within the 24h suppression window; occurrence 136 is not a 10th-occurrence resurface -> SUPPRESS, gate_reason=known-issue-window. See docs/investigations/2026-07-07-3412419e75f2f01a.md."
       }
     ]
   },
@@ -1713,8 +1725,8 @@
     "id": "ki-2026-07-06-signup-low-traffic-p90-latency-monitor-noise",
     "title": "[Growth][Signup][P?] 'Service Signup post requests have a high p90 latency' trips on single-request percentile noise on a very low-traffic endpoint",
     "first_seen": "2026-07-05T21:57:46Z",
-    "last_seen": "2026-07-06T22:07:46Z",
-    "occurrences": 4,
+    "last_seen": "2026-07-07T13:03:46Z",
+    "occurrences": 5,
     "match": {
       "channels": [
         "alert-system",
@@ -1748,6 +1760,10 @@
       {
         "ts": "2026-07-06T22:16:03Z",
         "note": "2026-07-06 22:16Z triage (degraded cycle, synthetic alert 73e82b4c20df7c55, monitor 154252126 fired 22:07:46Z, self-recovered): 4th occurrence, same shape -- 3 non-zero p90 points in a 15-min window, peak re-queried 9.65s (below the monitor 12s threshold on reaggregation, same rolling-window-lag pattern as prior occurrences), 0 errors on service:signup. last_notified_at was null since KB creation at the 3rd occurrence (2026-07-06T15:09:00Z) -- first-notify gate fires -> POST to #triage-results (independent of today needs-human daily cap, already 5/5)."
+      },
+      {
+        "ts": "2026-07-07T13:20:00Z",
+        "note": "2026-07-07 13:20Z triage (degraded cycle, no Slack MCP; hash 66e9953b3f81901c): 5th occurrence, monitor 154252126 last_triggered 13:03:46Z, self-recovered by scan time. DD metric re-query (12:53:46-13:08:46Z, 5-min points): peak 10.72s @12:56:20Z and 8.23s @13:04:20Z, both just under the monitor's 12s threshold on reaggregation -- same rolling-window-lag pattern as all 4 prior occurrences. DD Logs service:signup status:error env:prod (12:58:46-13:03:46Z) = 0 hits. last_notified_at (2026-07-06T22:16:03Z) = ~15h04m ago, within the 24h suppression window; occurrence 5 is not a 10th-occurrence resurface -> SUPPRESS, gate_reason=known-issue-window. See docs/investigations/2026-07-07-66e9953b3f81901c.md."
       }
     ]
   },
