@@ -1616,8 +1616,8 @@
     "id": "ki-2026-07-05-rainforest-outbound-api-p95-latency",
     "title": "[Rainforest] Outbound API P95 Latency > 3s -- runtime-core-api outbound calls to api.rainforestpay.com intermittently breach 3s p95, self-recovering, zero corroborating errors (third-party latency, not a Method-side defect)",
     "first_seen": "2026-07-05T08:31:25Z",
-    "last_seen": "2026-07-06T08:29:25Z",
-    "occurrences": 3,
+    "last_seen": "2026-07-07T18:07:25Z",
+    "occurrences": 4,
     "match": {
       "channels": [
         "alert-system",
@@ -1645,11 +1645,15 @@
     "fix_template": null,
     "confidence": 0.7,
     "owning_team": "Transactions (per ownership.md:119, Payment processing component; monitor tag team:transactions agrees)",
-    "last_notified_at": "2026-07-06T08:29:25Z",
+    "last_notified_at": "2026-07-07T18:08:00Z",
     "notes": [
       {
         "ts": "2026-07-05T15:20:44Z",
         "note": "Created this cycle after the 2nd occurrence of this monitor today (15:08:26Z, hash 130dcdd3332d05e5) matched the same third-party-latency, self-recovering, zero-error shape as the 1st occurrence (08:31:25Z, hash 63bf5b7a3ac9f93a, previously investigated from scratch with no KB entry). Confidence 0.7, not higher: only 2 occurrences, and the 2nd could not independently reproduce a value above the 3s threshold (data too sparse) -- the working theory (genuine but brief third-party latency, not a Method defect) is plausible and consistent both times but not fully confirmed. last_notified_at left null since this creation cycle classified the triggering occurrence as needs-human/actionable-low-impact (mechanical score 1), not a KB-match post -- the next fire that matches this entry will be its first true known-issue-recurrence notify decision."
+      },
+      {
+        "ts": "2026-07-07T18:08:00Z",
+        "note": "4th occurrence (18:07:25Z, hash f7378276870001b8). Same sparse-data / no-reproducible-breach shape as the 2nd occurrence: dd_search.py metric over a widened 2h window (16:07-18:07Z) returned 19 real datapoints, all 0.20-0.56s (well under 3s threshold) -- monitor own 10m rollup evidently caught a brief spike our ad-hoc pull did not land on. 0 hits on service:runtime-core-api status:error env:prod for the same window, confirming latency-only. last_notified_at (2026-07-06T08:29:25Z) was ~33h38m old, EXCEEDING the 24h suppression window -> POST to #triage-results, gate_reason=null (window-expiry). Confidence held at 0.7 (unchanged) -- this occurrence neither strengthens nor weakens the working theory."
       }
     ]
   },
