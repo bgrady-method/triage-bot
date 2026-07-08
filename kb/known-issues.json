@@ -1198,8 +1198,8 @@
     "id": "ki-2026-07-03-ms-scheduler-api-seriesid-negative-recordid",
     "title": "ms-scheduler-api GetSeriesAsync throws InvalidOperationException when called with recordId=-1 (chronic, code-level missing-guard bug, now confirmed across multiple accounts, ~10-21+/day for 7+ days)",
     "first_seen": "2026-06-26T00:00:00Z",
-    "last_seen": "2026-07-08T00:12:02Z",
-    "occurrences": 137,
+    "last_seen": "2026-07-08T11:32:02Z",
+    "occurrences": 138,
     "match": {
       "channels": [
         "alert-system"
@@ -1232,7 +1232,7 @@
     "fix_template": null,
     "confidence": 0.8,
     "owning_team": "CRM Experience",
-    "last_notified_at": "2026-07-07T12:10:00Z",
+    "last_notified_at": "2026-07-08T12:14:41Z",
     "notes": [
       {
         "ts": "2026-07-03T13:09:00Z",
@@ -1273,6 +1273,10 @@
       {
         "ts": "2026-07-07T13:21:00Z",
         "note": "2026-07-07 13:21Z triage (degraded cycle, no Slack MCP; hash 3412419e75f2f01a): 136th occurrence, monitor 303056222 last_triggered 13:09:03Z -- fired again ~59min after the prior cycle's fresh investigation (12:10:00Z, occ 135). Raw ES search (fields.dd_service.keyword:\"ms-scheduler-api\", 12:39:03-13:09:03Z window) = 7 hits, sample confirms identical 'Get Series Info failed for recordId -1' signature -- same chronic mechanism, no new accounts sampled. last_notified_at (2026-07-07T12:10:00Z) = ~1h11m ago, well within the 24h suppression window; occurrence 136 is not a 10th-occurrence resurface -> SUPPRESS, gate_reason=known-issue-window. See docs/investigations/2026-07-07-3412419e75f2f01a.md."
+      },
+      {
+        "ts": "2026-07-08T11:32:02Z",
+        "note": "2026-07-08 12:14Z triage (degraded cycle, no Slack MCP; hash 9935e18fbc816408): 138th occurrence, monitor 303056222 last_triggered 11:32:02Z, self-recovered (OK) by scan time -- the only new item in this cycle's full 179-monitor scan (post the prior cycle's 11:03:41Z cutoff). Corrected ES search (fields.dd_service.keyword:\"ms-scheduler-api\", 11:22:02Z-11:42:02Z, since the KB's declared aggregate query on fields.Error.keyword remains 0-bucket -- documented field-name mismatch, still unresolved) = 2 hits, both account lafittesseafood, identical GetSeriesIdAsync(recordId=-1) signature. DD metric re-check on the monitor's own eval window: 2 errors / 241 hits = 0.83%, already back under the 2% threshold -- same marginal/self-recovering shape as every prior occurrence. last_notified_at was 2026-07-07T12:10:00Z, ~24h5m ago -- EXCEEDS the 24h suppression_window_hours -> POST to #triage-results per the window-expiry gate (gate_reason=null), last_notified_at bumped to now. See docs/investigations/2026-07-08-9935e18fbc816408.md."
       }
     ]
   },
