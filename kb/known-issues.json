@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-08T15:06:12Z",
-    "occurrences": 543,
+    "last_seen": "2026-07-08T15:43:12Z",
+    "occurrences": 544,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -1889,8 +1889,8 @@
     "id": "ki-2026-07-06-synthetics-signin-transient-step-duration-spike",
     "title": "[Synthetics] Sign in to Method step-duration monitor (127198928) intermittently spikes >20s for a single test run then self-recovers, with no corroborating error signal on any critical-path service",
     "first_seen": "2026-05-27T19:02:08Z",
-    "last_seen": "2026-07-07T23:04:08Z",
-    "occurrences": 8,
+    "last_seen": "2026-07-08T15:34:08Z",
+    "occurrences": 9,
     "match": {
       "channels": [
         "alert-system"
@@ -1932,6 +1932,10 @@
       {
         "ts": "2026-07-07T20:31:00Z",
         "note": "2026-07-07 20:31Z triage (degraded cycle, no Slack MCP; hash 519ff0f236fee260): occ#7 via DD monitor 127198928 last_triggered 20:31:08Z (OK by scan time, self-recovered). DD metric avg:synthetics.browser.step.duration confirmed the documented shape exactly: single point 21207ms at 20:20:00Z (only 6% over the 20s threshold), immediately preceding/following points 5671-11096ms. ES check on oauth2.identity.server/ms-gateway-api/ms-authentication-api/ms-identity-api for level:Error 20:10-20:30Z -> 0 hits, same as all 6 prior occurrences. last_notified_at 2026-07-06T21:29:34Z was ~23h02m ago, WITHIN 24h suppression window (barely) -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-07-519ff0f236fee260.md."
+      },
+      {
+        "ts": "2026-07-08T15:34:08Z",
+        "note": "2026-07-08 15:34Z triage (degraded cycle, DD monitor scan diff, alert-system): metric peak 21507ms (7.5% over 20s threshold), single-sample spike, recovered to 4712ms next run. ES sweep 15:29-15:31Z on oauth2/gateway/ms-authentication-api/ms-identity-api = 0 errors. No co-firing critical-path monitor. Same no-corroboration shape as all 8 prior occurrences. last_notified_at 2026-07-08T11:23:19Z ~4h11m ago, WITHIN 24h window, occ 8->9 (not %10) -> SUPPRESS gate_reason=known-issue-window. This is now the 9th occurrence with an identical no-evidence shape -- renewing the playbook step-5 recommendation to raise the monitor threshold or require 2 consecutive breaches."
       }
     ]
   },
