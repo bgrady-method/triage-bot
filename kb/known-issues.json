@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-08T16:44:11Z",
-    "occurrences": 545,
+    "last_seen": "2026-07-08T18:09:12Z",
+    "occurrences": 546,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -355,6 +355,10 @@
       {
         "ts": "2026-07-08T16:44:11Z",
         "note": "2026-07-08 16:44Z triage (degraded cycle, no Slack MCP; synthetic hash 917390251a32fbe7, channel C03TYHGRS23 + DD monitor ts 2026-07-08T16:44:11Z): monitor 77419271 fired again, self-recovered to OK by scan time -- 545th documented occurrence (note: the prior commit bumped 543->544 for the 15:43:12Z fire without appending its own note; not backfilled here, out of this cycle's scope). ES aggregate on the established `message:*GetSyncWidgetInfoAsync*` corroboration query (this entry's own evidence_query field is null; falling back to the documented message-text signature per the entry's own note history) over 16:34:11Z-16:44:11Z returned 268 hits, top bucket gateway:133 -- consistent magnitude with the 15:43:12Z occurrence (215 hits, gateway 105) and canonical chronic diffuse shape. last_notified_at (2026-07-07T21:03:00Z) = ~19h41m ago -- still WITHIN the 24h suppression window; occurrence 545 not a 10th-multiple; fix_status (chronic-residual-post-rollback-2026-06-05) unchanged -> SUPPRESSED, gate_reason=known-issue-window. See docs/investigations/2026-07-08-917390251a32fbe7.md."
+      },
+      {
+        "ts": "2026-07-08T18:09:12Z",
+        "note": "2026-07-08 18:09Z triage (degraded cycle, no Slack MCP; synthetic hash d38c44c3901ae441, channel C03TYHGRS23 + DD monitor ts 2026-07-08T18:09:12Z): monitor 77419271 fired again, still Warn (not yet self-recovered) at scan time -- 546th documented occurrence. ES aggregate on `message:*GetSyncWidgetInfoAsync*` over 17:59:12Z-18:09:12Z returned 188 hits, top bucket gateway:100 -- consistent chronic magnitude vs the 16:44:11Z occurrence (268 hits, gateway 133). last_notified_at (2026-07-07T21:03:00Z) = ~21h6m ago -- still WITHIN the 24h suppression window; occurrence 546 not a 10th-multiple; fix_status unchanged -> SUPPRESSED, gate_reason=known-issue-window. See docs/investigations/2026-07-08-d38c44c3901ae441.md."
       }
     ]
   },
@@ -945,8 +949,8 @@
     "id": "ki-2026-07-02-miurl-agent-account-cluster-internal-lookup",
     "title": "miurl-agent 100%-failure calls to ms-account-api internal cluster-lookup endpoint (chronic, low-volume)",
     "first_seen": "2026-07-02T14:07:56Z",
-    "last_seen": "2026-07-02T17:43:56Z",
-    "occurrences": 4,
+    "last_seen": "2026-07-08T17:55:57Z",
+    "occurrences": 5,
     "match": {
       "channels": [
         "alert-system"
@@ -972,7 +976,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.65,
-    "last_notified_at": "2026-07-02T16:08:11Z",
+    "last_notified_at": "2026-07-08T17:55:57Z",
     "notes": [
       {
         "ts": "2026-07-02T15:08:30Z",
@@ -985,6 +989,10 @@
       {
         "ts": "2026-07-02T18:08:00Z",
         "note": "2026-07-02 18:08Z triage (degraded cycle, no Slack MCP): occ#4, monitor 302048396 re-fired 17:43:56Z (OK now, self-recovered). DD APM sum:trace.http.request.errors by resource_name 17:17-18:08Z = 9 total errors, 9/9 (100%) on GET .../account/v3/cluster/internal/account -- identical signature to occ#1-3, no new resource_name. Synthetic hash 76b314f9b1d01b77 (channel CPHHABKAA + DD monitor ts 17:43:56Z). last_notified_at 2026-07-02T16:08:11Z = ~2h ago, WITHIN 24h suppression window; occ 3->4 (4%10!=0); fix_status needs-human unchanged -> SUPPRESS gate_reason=known-issue-window."
+      },
+      {
+        "ts": "2026-07-08T17:55:57Z",
+        "note": "2026-07-08 18:09Z triage (degraded cycle, no Slack MCP): occ#5, monitor 302048396 re-fired 17:55:57Z after a ~6-day quiet gap (OK now, self-recovered). DD APM sum:trace.http.request.errors by resource_name 17:08:53-18:08:53Z = 38 total errors, 38/38 (100%) on GET .../account/v3/cluster/internal/account -- identical signature to occ#1-4, no new resource_name. Synthetic hash eec4a2ba60fc3342 (channel CPHHABKAA + DD monitor ts 17:55:57Z). last_notified_at 2026-07-02T16:08:11Z = ~6 days ago, EXCEEDS 24h suppression window -> POSTED to #triage-results, gate_reason=null, last_notified_at bumped to 2026-07-08T17:55:57Z. See docs/investigations/2026-07-08-eec4a2ba60fc3342.md."
       }
     ]
   },
