@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-08T21:05:12Z",
-    "occurrences": 549,
+    "last_seen": "2026-07-08T21:30:11Z",
+    "occurrences": 550,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -157,7 +157,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.88,
-    "last_notified_at": "2026-07-08T21:05:12Z",
+    "last_notified_at": "2026-07-08T21:30:11Z",
     "prior_fix_status": "needs-ops-decision",
     "notes": [
       {
@@ -363,6 +363,14 @@
       {
         "ts": "2026-07-08T20:06:11Z",
         "note": "2026-07-08 20:06Z triage (degraded cycle, no Slack MCP): occ#548 via DD monitor 77419271 last_triggered 20:06:11Z. ES aggregate on GetSyncWidgetInfoAsync 19:36:00-20:06:11Z returned 436 hits (gateway 215) -- consistent chronic magnitude. last_notified_at 2026-07-07T21:03:00Z = ~23h3m ago, WITHIN 24h suppression window (by ~57min) -> SUPPRESS, gate_reason=known-issue-window. See docs/investigations/2026-07-08-83539194fa01f5cc.md."
+      },
+      {
+        "ts": "2026-07-08T21:05:12Z",
+        "note": "2026-07-08 21:16Z triage (degraded cycle, no Slack MCP; synthetic hash cccca80186bdeea8): occ#549 via DD monitor 77419271 last_triggered 21:05:12Z. Bare KB-match-text ES query returned 0 hits this window; reran on the established GetSyncWidgetInfoAsync mechanism signature per the standing bare-monitor-id false-positive-trap lesson: 824 hits, gateway dominant (420), consistent chronic magnitude vs the 3 prior occurrences today (188, 138, 436 hits across earlier/narrower windows). last_notified_at 2026-07-07T21:03:00Z = ~24h2m ago, just past the 24h suppression window -> POSTED to #triage-results (window-expiry resurface), gate_reason=null, last_notified_at bumped to 2026-07-08T21:05:12Z. See docs/investigations/2026-07-08-cccca80186bdeea8.md. (Backfilled this cycle -- occurrences/last_seen/last_notified_at were bumped in the prior commit but this note was not appended at the time.)"
+      },
+      {
+        "ts": "2026-07-08T21:30:11Z",
+        "note": "2026-07-08 22:08Z triage (degraded cycle, no Slack MCP; synthetic hash f52d12908887be76, channel C03TYHGRS23 + DD monitor ts 2026-07-08T21:30:11Z): occ#550 via DD monitor 77419271 last_triggered 21:30:11Z (OK by scan time, self-recovered). ES aggregate on the established GetSyncWidgetInfoAsync mechanism signature 21:15:00Z-21:35:00Z returned 127 hits, top bucket gateway:58 -- consistent chronic diffuse magnitude vs the immediately preceding occurrence (824 hits over a wider 21:05Z window). last_notified_at 2026-07-08T21:05:12Z = ~25min ago, WITHIN the 24h suppression window, BUT occurrence 550 is a 10th-multiple -> POSTED to #triage-results anyway, gate_reason=known-issue-occurrence-resurface, last_notified_at bumped to 2026-07-08T21:30:11Z. See docs/investigations/2026-07-08-f52d12908887be76.md."
       }
     ]
   },
