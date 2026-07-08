@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-07T21:27:12Z",
-    "occurrences": 539,
+    "last_seen": "2026-07-07T23:03:11Z",
+    "occurrences": 540,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -350,8 +350,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-07-07T19:49:21Z",
-    "occurrences": 217,
+    "last_seen": "2026-07-08T08:23:18Z",
+    "occurrences": 218,
     "match": {
       "channels": [
         "alert-system",
@@ -1032,8 +1032,8 @@
     "id": "ki-2026-07-03-eda-consumer-amqp-stopped-publishing",
     "title": "[EDA][Consumer][P3] eda_consumer AMQP publish-hits monitor intermittently goes No Data (team:devops, self-recovering, no correlated pipeline impact)",
     "first_seen": "2026-06-20T10:21:00Z",
-    "last_seen": "2026-07-07T11:02:26Z",
-    "occurrences": 9,
+    "last_seen": "2026-07-08T10:50:26Z",
+    "occurrences": 12,
     "match": {
       "channels": [
         "alert-system",
@@ -1048,6 +1048,18 @@
         },
         {
           "regex": "EDA.*Consumer.*AMQP.*stopped"
+        },
+        {
+          "contains": "monitors/296632224"
+        },
+        {
+          "contains": "monitors/296636101"
+        },
+        {
+          "contains": "[EDA][API][P1] Event ingest stopped"
+        },
+        {
+          "contains": "[EDA][Kafka][P1] Events stopped being produced"
         }
       ]
     },
@@ -1061,7 +1073,7 @@
     "fix_template": null,
     "confidence": 0.8,
     "owning_team": "Integrations",
-    "last_notified_at": "2026-07-07T11:02:26Z",
+    "last_notified_at": "2026-07-08T11:23:19Z",
     "notes": [
       {
         "ts": "2026-06-20T10:13:00Z",
@@ -1093,8 +1105,8 @@
     "id": "ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata",
     "title": "\"Method UI Grid and Dropdown Performance Test\" synthetics (team:qa, non-prod, 5 monitor-ID variants: Day run / Day run 2 / Evening run / Midnight run / Release Run) chronically go No Data; never correlates to a real incident",
     "first_seen": "2026-05-02T13:46:00Z",
-    "last_seen": "2026-07-07T13:51:21Z",
-    "occurrences": 41,
+    "last_seen": "2026-07-08T04:00:12Z",
+    "occurrences": 43,
     "match": {
       "channels": [
         "alert-system"
@@ -1186,8 +1198,8 @@
     "id": "ki-2026-07-03-ms-scheduler-api-seriesid-negative-recordid",
     "title": "ms-scheduler-api GetSeriesAsync throws InvalidOperationException when called with recordId=-1 (chronic, code-level missing-guard bug, now confirmed across multiple accounts, ~10-21+/day for 7+ days)",
     "first_seen": "2026-06-26T00:00:00Z",
-    "last_seen": "2026-07-07T13:09:03Z",
-    "occurrences": 136,
+    "last_seen": "2026-07-08T00:12:02Z",
+    "occurrences": 137,
     "match": {
       "channels": [
         "alert-system"
@@ -1268,8 +1280,8 @@
     "id": "ki-2026-07-03-warehouse-dashboard-network-test-nodata",
     "title": "\"Warehouse Dashboard Network Test\" synthetics (team:qa, non-prod) go No Data daily ~09:31-10:01Z UTC; never correlates to a real incident",
     "first_seen": "2026-05-07T09:31:00Z",
-    "last_seen": "2026-07-07T10:01:07Z",
-    "occurrences": 13,
+    "last_seen": "2026-07-08T10:01:07Z",
+    "occurrences": 14,
     "match": {
       "channels": [
         "alert-system"
@@ -1296,7 +1308,7 @@
     "fix_template": null,
     "confidence": 0.88,
     "owning_team": "unmapped",
-    "last_notified_at": "2026-07-06T10:01:07Z",
+    "last_notified_at": "2026-07-08T11:23:19Z",
     "notes": [
       {
         "ts": "2026-05-07T00:00:00Z",
@@ -1324,8 +1336,8 @@
     "id": "ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap",
     "title": "New team:crm AMQP-consumer heartbeat/throughput-stall monitors (5 sibling IDs, created 2026-07-02) intermittently trip on quiet-period low-traffic dips, then self-recover within minutes — no corroborating errors",
     "first_seen": "2026-07-04T13:07:31Z",
-    "last_seen": "2026-07-07T10:52:22Z",
-    "occurrences": 35,
+    "last_seen": "2026-07-08T09:14:21Z",
+    "occurrences": 36,
     "match": {
       "channels": [
         "alert-system",
@@ -1371,7 +1383,7 @@
     "fix_template": null,
     "confidence": 0.82,
     "owning_team": "CRM Experience (runtime-core-subscriber-api, per ownership.md:454) / Admin (mobile-notifications-stack, per ownership.md:416) — split by service; DD monitor tags say team:crm for both, ownership.md disagrees for the mobile-notifications component",
-    "last_notified_at": "2026-07-07T04:00:31Z",
+    "last_notified_at": "2026-07-08T11:23:19Z",
     "notes": [
       {
         "ts": "2026-07-04T16:10:00Z",
@@ -1494,8 +1506,8 @@
     "id": "ki-2026-07-04-ms-account-api-4xx-spike-monitor-noise",
     "title": "[Admin][AccountAPI][P3] 4xx-spike monitor transitions state without a real 4xx breach (monitor-sensitivity/config artifact, not a service issue)",
     "first_seen": "2026-07-03T12:08:59Z",
-    "last_seen": "2026-07-07T07:12:19Z",
-    "occurrences": 16,
+    "last_seen": "2026-07-08T05:49:18Z",
+    "occurrences": 17,
     "match": {
       "channels": [
         "alert-system",
@@ -1520,7 +1532,7 @@
     "fix_template": null,
     "confidence": 0.8,
     "owning_team": "Admin",
-    "last_notified_at": "2026-07-07T07:12:19Z",
+    "last_notified_at": "2026-07-08T11:23:19Z",
     "notes": [
       {
         "ts": "2026-07-03T12:08:59Z",
@@ -1636,8 +1648,8 @@
     "id": "ki-2026-07-05-rainforest-outbound-api-p95-latency",
     "title": "[Rainforest] Outbound API P95 Latency > 3s -- runtime-core-api outbound calls to api.rainforestpay.com intermittently breach 3s p95, self-recovering, zero corroborating errors (third-party latency, not a Method-side defect)",
     "first_seen": "2026-07-05T08:31:25Z",
-    "last_seen": "2026-07-07T18:07:25Z",
-    "occurrences": 4,
+    "last_seen": "2026-07-08T00:38:25Z",
+    "occurrences": 5,
     "match": {
       "channels": [
         "alert-system",
@@ -1826,8 +1838,8 @@
     "id": "ki-2026-07-06-synthetics-signin-transient-step-duration-spike",
     "title": "[Synthetics] Sign in to Method step-duration monitor (127198928) intermittently spikes >20s for a single test run then self-recovers, with no corroborating error signal on any critical-path service",
     "first_seen": "2026-05-27T19:02:08Z",
-    "last_seen": "2026-07-07T20:31:08Z",
-    "occurrences": 7,
+    "last_seen": "2026-07-07T23:04:08Z",
+    "occurrences": 8,
     "match": {
       "channels": [
         "alert-system"
@@ -1852,7 +1864,7 @@
     "fix_template": null,
     "confidence": 0.7,
     "owning_team": "Admin",
-    "last_notified_at": "2026-07-06T21:29:34Z",
+    "last_notified_at": "2026-07-08T11:23:19Z",
     "notes": [
       {
         "ts": "2026-07-06T19:14:17Z",
@@ -1984,8 +1996,8 @@
     "id": "ki-2026-07-07-classicmethod-p95-latency-monitor-recurring",
     "title": "Classic (classic/method) P95 request latency spikes, self-recovering, no correlated errors -- 2 occurrences same day, differing shape",
     "first_seen": "2026-07-07T01:49:42Z",
-    "last_seen": "2026-07-07T11:45:41Z",
-    "occurrences": 2,
+    "last_seen": "2026-07-08T11:03:41Z",
+    "occurrences": 3,
     "match": {
       "channels": [
         "alert-system",
@@ -2025,8 +2037,8 @@
     "id": "ki-2026-07-07-gateway-4xx-spike-monitor-noise",
     "title": "[Admin][Gateway][P3] 4xx spike (gateway) monitor trips on a brief isolated single-bucket burst, self-recovers -- same shape as ms-account-api-4xx-spike-monitor-noise but a different monitor ID",
     "first_seen": "2026-07-06T10:16:00Z",
-    "last_seen": "2026-07-07T10:32:57Z",
-    "occurrences": 2,
+    "last_seen": "2026-07-08T10:32:56Z",
+    "occurrences": 3,
     "match": {
       "channels": [
         "alert-system",
@@ -2051,7 +2063,7 @@
     "fix_template": null,
     "confidence": 0.75,
     "owning_team": "Admin",
-    "last_notified_at": "2026-07-07T10:32:57Z",
+    "last_notified_at": "2026-07-08T11:23:19Z",
     "notes": [
       {
         "ts": "2026-07-06T11:35:00Z",
@@ -2067,8 +2079,8 @@
     "id": "ki-2026-07-07-notifications-p95-latency-monitor-noise",
     "title": "[CRM][P2] notifications P95 latency high monitor fires but re-query of the same evaluation window shows the metric never approaches the threshold -- monitor/data artifact, not real latency",
     "first_seen": "2026-07-06T10:01:07Z",
-    "last_seen": "2026-07-07T08:43:07Z",
-    "occurrences": 2,
+    "last_seen": "2026-07-08T08:43:08Z",
+    "occurrences": 3,
     "match": {
       "channels": [
         "alert-system",
@@ -2093,7 +2105,7 @@
     "fix_template": null,
     "confidence": 0.72,
     "owning_team": "CRM Experience",
-    "last_notified_at": null,
+    "last_notified_at": "2026-07-08T11:23:19Z",
     "notes": [
       {
         "ts": "2026-07-06T11:40:00Z",
