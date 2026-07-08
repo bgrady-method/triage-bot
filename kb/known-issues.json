@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-08T12:59:11Z",
-    "occurrences": 541,
+    "last_seen": "2026-07-08T13:48:12Z",
+    "occurrences": 542,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -347,6 +347,10 @@
       {
         "ts": "2026-07-08T12:59:11Z",
         "note": "2026-07-08 13:08Z triage (degraded cycle, no Slack MCP): monitor 77419271 fired again, last_triggered 12:59:11Z, self-recovered to OK by scan time -- 541st documented occurrence. DD method-ui XHR logs (widened to 100-sample after a smaller sample looked account-concentrated) confirm the canonical diffuse shape: 54 distinct accounts, GetSyncWidgetInfoAsync dominant path. last_notified_at (2026-07-07T21:03:00Z) = ~15h56m ago, WITHIN the 24h suppression window; occurrence 541 not a 10th-multiple -> SUPPRESSED, gate_reason=known-issue-window, appended to docs/actionable/2026-07-08.md. Synthetic hash 0c3e087609c658b5 (channel C03TYHGRS23 + DD monitor ts 2026-07-08T12:59:11Z). See docs/investigations/2026-07-08-0c3e087609c658b5.md."
+      },
+      {
+        "ts": "2026-07-08T13:48:12Z",
+        "note": "2026-07-08 13:48Z triage (degraded cycle, no Slack MCP): monitor 77419271 fired again, last_triggered 13:48:12Z, self-recovered to OK by scan time -- 542nd documented occurrence. DD log sample widened to 100 (a limit-5 sample would have looked EnglandLogistics-concentrated, 8/100 hits) -- confirmed canonical diffuse shape: 55 distinct accounts, GetSyncWidgetInfoAsync dominant path. Falls in the same broad cycle window as the RTC p95 co-firing (ki-2026-05-24-runtime-core-rtc-p95-recurring, monitors 117279738/115456700 at 13:45:18-20Z) referenced in this entry's precedence_note (shared-upstream signal when both fire in the same 60-min window) -- only 1 XHR alert + 2 RTC alerts this cycle, short of the documented '>=2 each' threshold for treating as definitively shared-upstream, but noted for the record. last_notified_at (2026-07-07T21:03:00Z) = ~16h45m ago -- WITHIN the 24h window -> SUPPRESSED, gate_reason=known-issue-window. Synthetic hash e16e3fde0266ad1a (channel C03TYHGRS23 + DD monitor ts 2026-07-08T13:48:12Z). See docs/investigations/2026-07-08-e16e3fde0266ad1a.md."
       }
     ]
   },
@@ -354,8 +358,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-07-08T08:23:18Z",
-    "occurrences": 218,
+    "last_seen": "2026-07-08T13:45:20Z",
+    "occurrences": 220,
     "match": {
       "channels": [
         "alert-system",
@@ -494,6 +498,10 @@
       {
         "ts": "2026-07-07T20:22:00Z",
         "note": "2026-07-07 20:22Z triage (degraded cycle, no Slack MCP): occ#217 via DD monitor 115456700 last_triggered 19:49:21Z (OK by scan time, self-recovered). DD metric re-queried over a widened 2h window (18:49-20:49Z): 8/173 points > 3.0s threshold, peak 13.11s at 19:22:30Z; 0 errors on service:runtime-core-api confirms latency-only. No co-firing critical-path monitor this cycle. last_notified_at 2026-07-07T14:08:20Z was ~6h05m ago, WITHIN 24h suppression window; occ 216->217 (not %10); fix_status unchanged (investigating) -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-07-c7a9dd5bb4d49314.md."
+      },
+      {
+        "ts": "2026-07-08T13:45:20Z",
+        "note": "2026-07-08 13:45Z triage (degraded cycle, no Slack MCP): both family monitors fired within 2s of each other -- 117279738 (RTC Action Execution, 13:45:18Z, hash dfe55e611d7c0194) and 115456700 (RTC Screen Load, 13:45:20Z, hash 5c9ee078e034163b) -- logged as 2 separate occurrences (219, 220) per the routine's per-monitor mechanics (different text_fingerprint -- NOT grouped as satellites). DD metric confirms genuine breach: RTC Action Execution p95 peaked 13.53s @13:31:50Z (self-recovered by scan time, both OK). This spike falls in the same ~13:27-13:38Z window as the Redis command-timeout burst documented in ki-2026-07-06-runtime-core-redis-cache-timeout-transient-burst (7 ES hits at 13:34:53-55Z) -- plausible shared trigger, consistent with this entry's own diagnosis of RTC backpressure from upstream slowness, though not conclusively proven (no direct causal test run). last_notified_at (2026-07-07T14:08:20Z) = ~23h37m ago for both -- WITHIN the 24h window -> both SUPPRESSED, gate_reason=known-issue-window. See docs/investigations/2026-07-08-dfe55e611d7c0194.md and docs/investigations/2026-07-08-5c9ee078e034163b.md."
       }
     ]
   },
@@ -566,8 +574,8 @@
     "id": "ki-2026-05-29-methodsession-getaccountbysubdomain-nre",
     "title": "method-platform-ui apps backend NRE in MethodSessionService.GetAccountBySubdomain() -> 'JWT Retrieval Failed' on subdomain-less synthetic monitor probes (Centreon + Datadog Watchdog noise)",
     "first_seen": "2026-05-29T12:49:31Z",
-    "last_seen": "2026-07-08T13:08:27Z",
-    "occurrences": 17,
+    "last_seen": "2026-07-08T13:16:28Z",
+    "occurrences": 18,
     "match": {
       "channels": [
         "alert-system"
@@ -616,6 +624,10 @@
       {
         "ts": "2026-07-08T13:08:27Z",
         "note": "2026-07-08 13:08Z triage (degraded cycle, no Slack MCP): monitor 299551647 fired again, last_triggered 13:08:27Z, self-recovered to OK by scan time -- 17th documented occurrence. ES search confirms canonical shape: 56 hits for 'JWT Retrieval Failed', 5/5 sampled UserAgent WindowsPowerShell (100% synthetic-probe signature). last_notified_at (2026-07-07T13:19:00Z) = ~23h49m ago -- still (barely) WITHIN the 24h suppression window; occurrence 17 not a 10th-multiple -> SUPPRESSED, gate_reason=known-issue-window, appended to docs/actionable/2026-07-08.md. This entry has now sat at fix_status=needs-human for 17 occurrences across 40+ days with no code or monitoring-side remediation. Synthetic hash 6426822b383e02f4 (channel CPHHABKAA + DD monitor ts 2026-07-08T13:08:27Z). See docs/investigations/2026-07-08-6426822b383e02f4.md."
+      },
+      {
+        "ts": "2026-07-08T13:16:28Z",
+        "note": "2026-07-08 13:16Z triage (degraded cycle, no Slack MCP): monitor 299551647 fired again, last_triggered 13:16:28Z, self-recovered to OK by scan time -- 18th documented occurrence. ES search (message:\"JWT Retrieval Failed\", 12:46:28-13:16:28Z window) = 84 hits, 100% WindowsPowerShell UserAgent (synthetic-probe signature confirmed via aggregate). last_notified_at (2026-07-07T13:19:00Z) = ~23h57m ago -- still (barely) WITHIN the 24h suppression window -> SUPPRESSED, gate_reason=known-issue-window. Separately, monitor 236570583 ('New issue to review' Watchdog, also in this KB entry's match set) fired at 13:39:33Z the same cycle; re-verification found 0 hits for the JWT-NRE text in its own tight window and the broader methodportal.com/apps service-tag query surfaced ONLY unrelated real-browser 'Rest API Call Failed'/'Unauthorized access to portal' warnings (real UserAgents, real account names) -- NOT the synthetic-probe NRE signature. Per the false-positive-match lesson (bare monitor-id/service-tag clauses can match without the actual recurrence), that fire was REJECTED as a confirmed recurrence of this entry and logged separately as an unconfirmed/generic Watchdog fire (needs-human, low score) rather than bumping this entry a second time this cycle. Synthetic hash 785831705fb32e2f (channel CPHHABKAA + DD monitor ts 2026-07-08T13:16:28Z). See docs/investigations/2026-07-08-785831705fb32e2f.md."
       }
     ]
   },
@@ -1113,8 +1125,8 @@
     "id": "ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata",
     "title": "\"Method UI Grid and Dropdown Performance Test\" synthetics (team:qa, non-prod, 5 monitor-ID variants: Day run / Day run 2 / Evening run / Midnight run / Release Run) chronically go No Data; never correlates to a real incident",
     "first_seen": "2026-05-02T13:46:00Z",
-    "last_seen": "2026-07-08T12:30:01Z",
-    "occurrences": 44,
+    "last_seen": "2026-07-08T13:46:00Z",
+    "occurrences": 45,
     "match": {
       "channels": [
         "alert-system"
@@ -1203,6 +1215,10 @@
       {
         "ts": "2026-07-08T12:30:01Z",
         "note": "2026-07-08 13:08Z triage (degraded cycle, no Slack MCP): Midnight run variant (123495390) No Data 12:30:01Z, still No Data at scan time -- 44th documented occurrence. Same confirmed non-prod QA-synthetics noise, no co-firing signal with any prod service this cycle. last_notified_at (2026-07-07T13:47:30Z) = ~22h43m ago -- WITHIN the 24h suppression window and 44 is not a 10th-occurrence resurface -> SUPPRESSED, gate_reason=known-issue-window, appended to docs/actionable/2026-07-08.md. Synthetic hash 32de1e3f07469232 (channel CPHHABKAA + DD monitor ts 2026-07-08T12:30:01Z). Sibling monitor 142200330 (Release Run) also fired 89s later but in Alert state (not No Data) -- did NOT match this KB's documented shape, investigated separately as needs-human (hash c83b7c8d1ac41ca7), not counted as an occurrence of this entry. See docs/investigations/2026-07-08-32de1e3f07469232.md."
+      },
+      {
+        "ts": "2026-07-08T13:46:00Z",
+        "note": "2026-07-08 13:46Z triage (degraded cycle, no Slack MCP): monitor 142200330 (Grid/Dropdown Release Run) fired No Data, last_triggered 13:46:00Z -- 45th documented occurrence, matches the KB's own evidence_query monitor set exactly, and the documented No-Data shape (not Alert, unlike the sibling Day-run fires this same cycle -- see the needs-human group in the cycle note). last_notified_at (2026-07-07T13:47:30Z) = ~23h58m30s ago -- still (barely) WITHIN the 24h window -> SUPPRESSED, gate_reason=known-issue-window. Synthetic hash 9eef75bc356d5789. See docs/investigations/2026-07-08-9eef75bc356d5789.md."
       }
     ]
   },
@@ -1752,8 +1768,8 @@
     "id": "ki-2026-07-06-runtime-core-redis-cache-timeout-transient-burst",
     "title": "runtime-core-api Runtime.Caching.CacheContext brief Redis command-timeout burst (DD monitor 227940275 'Redis Errors is High') -- self-recovers in ~1min, hits 20+ distinct accounts simultaneously",
     "first_seen": "2026-07-05T16:42:35+00:00",
-    "last_seen": "2026-07-07T20:37:24Z",
-    "occurrences": 4,
+    "last_seen": "2026-07-08T13:41:35Z",
+    "occurrences": 5,
     "match": {
       "channels": [
         "alert-system",
@@ -1775,6 +1791,21 @@
         },
         {
           "contains": "Redis operation cancelled"
+        },
+        {
+          "contains": "monitors/299544648"
+        },
+        {
+          "contains": "monitors/17872725"
+        },
+        {
+          "contains": "monitors/299551507"
+        },
+        {
+          "contains": "monitors/299551532"
+        },
+        {
+          "contains": "monitors/299551589"
         }
       ],
       "precedence_note": "Distinct from ki-runtime-core-ansible-redis-deploy-burst (deploy-day Ansible-failure/version-skew root cause, morning release window) and ki-redis-keyspace-scan-cache-clear-spike (CacheClearEventConsumer pattern-delete-driven Redis CPU spike) -- this entry has no deploy correlation and no CacheClearEventConsumer signal on either occurrence; it is a standalone, brief (~1 monitor-eval-window) command-timeout burst of unknown trigger."
@@ -1801,6 +1832,10 @@
       {
         "ts": "2026-07-07T20:43:00Z",
         "note": "2026-07-07 20:38-20:43Z triage (degraded cycle, no Slack MCP; hashes 40020d92143e210b primary / 543687846354ad24 satellite): occ#4, a NEW message-text variant of this pattern -- \"Redis operation cancelled\" (not the documented \"...timed out after 5 seconds\"), same SourceContext Runtime.Caching.CacheContext, same service runtime-core-api. 6 occurrences 20:20-20:45Z window (vs 0 in the prior 30d for this exact message per grep), concentrated at 20:36:50-20:37:24Z. Correlates with a runtime-core-api p90 latency blip (avg metric spiked 0.15-0.2s baseline -> 1.59s/2.26s/0.93s at 20:36:50-20:37:10Z, 3 points, threshold-adjacent but below the RTC p95 monitor's 10-min rolling window so it did not itself re-fire) and, for the first time documented on this KB entry, two downstream DD Synthetics browser-test failures on the [Synthetics] Method UI Grid and Dropdown Performance Test Day run family: monitor 121308660 (us-east-1/N.Virginia) Alert at 20:38:30Z and monitor 133625690 (us-west-1/N.California) Alert at 20:43:20Z -- both self-recovered to OK by next scan. Broadened match.any_of to add \"Redis operation cancelled\" so this variant short-circuits next time rather than re-investigating from scratch. last_notified_at 2026-07-07T16:15:15Z was ~4h22m-28m ago, WITHIN 24h suppression window; occ 3->4 (not %10) -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-07-40020d92143e210b.md."
+      },
+      {
+        "ts": "2026-07-08T13:41:35Z",
+        "note": "2026-07-08 13:41Z triage (degraded cycle, no Slack MCP): monitor 227940275 (Redis Errors is High) fired again, last_triggered 13:41:35Z, self-recovered to OK by scan time -- 5th documented occurrence. ES confirms the canonical signature: 7 hits for messageTemplate 'Redis operation timed out after 5 seconds' (fields.dd_service.keyword:runtime-core-api), all clustered at 13:34:53-13:34:55Z (a ~2s burst). last_notified_at (2026-07-07T16:15:15Z) = ~21h26m ago -- still WITHIN the 24h suppression window -> SUPPRESSED, gate_reason=known-issue-window. NEW OBSERVATION this occurrence, UNLIKE the first 2 (which the diagnosis explicitly notes fired standalone with no co-firing critical-path monitor): this 2s Redis-timeout burst clearly cascaded into a P95/p90 latency breach fan-out across SIX other monitors within the same ~13:27-13:38Z window, all self-recovering as the burst rolled out of each monitor's rolling avg(last_10m) window -- confirmed via DD metric peaks: gateway P95 3.40s@13:34:50Z (thr 1.5s, monitor 299544648), runtime-core-api p90 8.36s@13:34:50Z (thr 2s, monitor 17872725), ms-account-api P95 3.30s@13:34:50Z (thr 0.8s, monitor 299551507), ms-authentication-api P95 2.91s@13:34:50Z (thr 0.5s, monitor 299551532), ms-preferences-api P95 1.95s@13:32:20Z (thr 0.4s, monitor 299551589) -- all part of the same event, attributed to this KB rather than logged as 5 separate novel needs-human fires, but NOT separately counted in this entry's occurrence total (attributed once, via this monitor's own fire). RTC Action Execution/Screen Load (ki-2026-05-24-runtime-core-rtc-p95-recurring, monitors 117279738/115456700) also spiked in the same window (RTC Action Execution p95 peaked 13.53s@13:31:50Z) -- logged as their own KIR occurrences against that sibling KB, not this one. The Grid/Dropdown Day-run Alert-state fire (monitors 121308660/133625690, ~13:48-13:53Z) also showed the family's known 'Redis operation cancelled' mechanism (13 hits) in the preceding 20 minutes, unlike a prior occurrence that ruled the mechanism out -- logged separately as needs-human (low score) since its documented KB match requires No-Data state, not Alert. RECOMMENDATION: this entry's match.any_of has been widened to include monitors 299544648, 17872725, 299551507, 299551532, 299551589 as known downstream-fan-out signals of the same root cause, so future cycles auto-attribute rather than re-investigate from scratch. Synthetic hash f5cf29dd95d4942e (channel CPHHABKAA + DD monitor ts 2026-07-08T13:41:35Z). See docs/investigations/2026-07-08-f5cf29dd95d4942e.md and sibling reports docs/investigations/2026-07-08-{e36feebb9ea732b6,afd030d466e37b19,9fc0ebd133572274,989f9676b28077b7,3939aeda6b9b67ca}.md."
       }
     ]
   },
