@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-08T15:43:12Z",
-    "occurrences": 544,
+    "last_seen": "2026-07-08T16:44:11Z",
+    "occurrences": 545,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -351,6 +351,10 @@
       {
         "ts": "2026-07-08T13:48:12Z",
         "note": "2026-07-08 13:48Z triage (degraded cycle, no Slack MCP): monitor 77419271 fired again, last_triggered 13:48:12Z, self-recovered to OK by scan time -- 542nd documented occurrence. DD log sample widened to 100 (a limit-5 sample would have looked EnglandLogistics-concentrated, 8/100 hits) -- confirmed canonical diffuse shape: 55 distinct accounts, GetSyncWidgetInfoAsync dominant path. Falls in the same broad cycle window as the RTC p95 co-firing (ki-2026-05-24-runtime-core-rtc-p95-recurring, monitors 117279738/115456700 at 13:45:18-20Z) referenced in this entry's precedence_note (shared-upstream signal when both fire in the same 60-min window) -- only 1 XHR alert + 2 RTC alerts this cycle, short of the documented '>=2 each' threshold for treating as definitively shared-upstream, but noted for the record. last_notified_at (2026-07-07T21:03:00Z) = ~16h45m ago -- WITHIN the 24h window -> SUPPRESSED, gate_reason=known-issue-window. Synthetic hash e16e3fde0266ad1a (channel C03TYHGRS23 + DD monitor ts 2026-07-08T13:48:12Z). See docs/investigations/2026-07-08-e16e3fde0266ad1a.md."
+      },
+      {
+        "ts": "2026-07-08T16:44:11Z",
+        "note": "2026-07-08 16:44Z triage (degraded cycle, no Slack MCP; synthetic hash 917390251a32fbe7, channel C03TYHGRS23 + DD monitor ts 2026-07-08T16:44:11Z): monitor 77419271 fired again, self-recovered to OK by scan time -- 545th documented occurrence (note: the prior commit bumped 543->544 for the 15:43:12Z fire without appending its own note; not backfilled here, out of this cycle's scope). ES aggregate on the established `message:*GetSyncWidgetInfoAsync*` corroboration query (this entry's own evidence_query field is null; falling back to the documented message-text signature per the entry's own note history) over 16:34:11Z-16:44:11Z returned 268 hits, top bucket gateway:133 -- consistent magnitude with the 15:43:12Z occurrence (215 hits, gateway 105) and canonical chronic diffuse shape. last_notified_at (2026-07-07T21:03:00Z) = ~19h41m ago -- still WITHIN the 24h suppression window; occurrence 545 not a 10th-multiple; fix_status (chronic-residual-post-rollback-2026-06-05) unchanged -> SUPPRESSED, gate_reason=known-issue-window. See docs/investigations/2026-07-08-917390251a32fbe7.md."
       }
     ]
   },
@@ -1984,8 +1988,8 @@
     "id": "ki-2026-07-06-tables-fields-redis-circuitbreaker-p95-latency",
     "title": "ms-tables-fields-api p95 request latency spike driven by a transient Redis connectivity blip (circuit breaker OPENED); first confirmed cross-service correlation with runtime-core-api RTC p95 (ki-24)",
     "first_seen": "2026-07-06T13:36:39Z",
-    "last_seen": "2026-07-07T12:08:31Z",
-    "occurrences": 5,
+    "last_seen": "2026-07-08T16:24:31Z",
+    "occurrences": 6,
     "match": {
       "channels": [
         "alert-system",
@@ -2023,7 +2027,7 @@
     "fix_template": null,
     "confidence": 0.8,
     "owning_team": "Admin (ms-tables-fields-api); Vertical App Experience (runtime-core-api, cross-service corroboration)",
-    "last_notified_at": "2026-07-06T14:16:00Z",
+    "last_notified_at": "2026-07-08T16:24:31Z",
     "notes": [
       {
         "ts": "2026-07-06T14:16:00Z",
@@ -2044,6 +2048,10 @@
       {
         "ts": "2026-07-07T12:08:31Z",
         "note": "2026-07-07 12:08Z triage (degraded cycle, no Slack MCP; hash 2c6c49fab3bfc43e): 5th occurrence, monitor 302103451 last_triggered 12:08:31Z, OK by scan time (self-recovered). Evidence_query (Redis Cache Circuit Breaker OPENED) re-run 11:38:31Z-12:08:31Z -- 0 hits, mechanism did NOT reproduce (4th of 5 occurrences now without Redis corroboration). DD metric re-query on the monitor's own trailing-5m eval window (12:03:31-12:08:31Z, 22 points) shows all points in the 0.0009s-0.054s range, well under the 0.25s threshold -- no visible breach at all in this re-aggregation, weaker even than occurrence 4's momentary 0.897s excursion. No co-firing on ki-2026-05-24-runtime-core-rtc-p95-recurring this cycle (not in the 3-monitor diff set). last_notified_at 2026-07-06T14:16:00Z (~21h52m ago, WITHIN 24h suppression window); occ 4->5 (not %10); fix_status unchanged -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-07-2c6c49fab3bfc43e.md."
+      },
+      {
+        "ts": "2026-07-08T16:24:31Z",
+        "note": "2026-07-08 16:24Z triage (degraded cycle, no Slack MCP; synthetic hash c87163391187ba40, channel CPHHABKAA + DD monitor ts 2026-07-08T16:24:31Z): 6th occurrence, monitor 302103451 last_triggered 16:24:31Z, OK by scan time (self-recovered). Evidence_query (Redis Cache Circuit Breaker OPENED) re-run 15:54:31Z-16:39:31Z -- 0 hits, mechanism did NOT reproduce (5th of 6 occurrences now without Redis corroboration). DD metric re-query on the monitor's own trailing-5m eval window (16:19:31-16:24:31Z, 28 points) shows values in the 0.009s-0.20s range, entirely under the 0.25s threshold in this coarser re-aggregation -- no visible breach, similar to occurrence 5. No co-firing on ki-2026-05-24-runtime-core-rtc-p95-recurring this cycle (not in the 3-monitor diff set: 302103451, 299551472, 77419271 only). last_notified_at (2026-07-06T14:16:00Z) = ~50h8m ago -- EXCEEDS the 24h suppression window -> POST to #triage-results, gate_reason=null (window-expiry, first notify since the entry's creation). Corroboration for this post: the DD metric-explorer query above returned real (non-empty, 28-point) data confirming the monitor's own metric is live and queryable even though it stayed under threshold this re-aggregation -- per the entry's own established precedent (occurrences 2-5), a bare monitor-id match without fresh Redis-mechanism corroboration is still treated as a genuine (if weaker-evidence) recurrence of the same monitor, not discarded. Flagging in the post that the Redis-circuit-breaker mechanism has now failed to reproduce in 5 of the last 6 occurrences -- the bare-monitor-id match clause may be over-matching against plain latency-monitor noise distinct from the original Redis-blip diagnosis (same caution already flagged for this entry's occurrence 3 note and for ki-2026-07-02-tables-fields-fieldtablenameref-null-linked-fields). See docs/investigations/2026-07-08-c87163391187ba40.md."
       }
     ]
   },
