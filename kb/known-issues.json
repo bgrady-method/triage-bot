@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-09T12:57:12Z",
-    "occurrences": 553,
+    "last_seen": "2026-07-09T14:04:12Z",
+    "occurrences": 554,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -379,6 +379,10 @@
       {
         "ts": "2026-07-09T13:09:00Z",
         "note": "2026-07-09 13:09Z triage (degraded cycle, no Slack MCP): monitor 77419271 self-recovered to OK by scan time, last_triggered_ts 12:57:12Z -- 553rd documented occurrence. DD log sample widened to 100 (per project_widen_dd_log_sample_before_concentration_call precedent): 50 distinct accounts, top account 9/100 (9%), canonical diffuse GetSyncWidgetInfoAsync/gateway-syncutil-syncwidget pattern confirmed -- no new concentration. No co-firing with ki-24 (runtime-core RTC p95) this cycle, so the shared-upstream precedence_note does not apply. Synthetic hash 2ad3efdb3fd8c998 (channel C03TYHGRS23 alert-frontend-errors + DD monitor ts 2026-07-09T12:57:12Z). last_notified_at (2026-07-08T21:30:11Z) = ~15h27m ago -- WITHIN the 24h suppression window and 553 is not a 10th-occurrence multiple -> SUPPRESSED, gate_reason=known-issue-window. See docs/investigations/2026-07-09-2ad3efdb3fd8c998.md."
+      },
+      {
+        "ts": "2026-07-09T14:13:00Z",
+        "note": "2026-07-09 14:13Z triage (degraded cycle, no Slack MCP): monitor 77419271 (Unusual XHR errors) Alert 14:04:12Z, hash 3c349a39ddcdbe66, occ 553->554. Verified canonical diffuse gateway-timeout shape via widened DD log sample (service:method-ui status:error *xhr* GetSyncWidgetInfoAsync, 100-record sample, 64 distinct accounts, top account 6%) -- not account-concentrated, matches chronic shape. No co-firing with ki-24 (runtime-core RTC p95) this cycle -- precedence_note does not apply. last_notified_at (2026-07-08T21:30:11Z) = ~16h34m ago, WITHIN 24h suppression window, occ 554 not a 10th-multiple, fix_status unchanged -> SUPPRESSED (gate_reason=known-issue-window), actionable-appended. See docs/investigations/2026-07-09-3c349a39ddcdbe66.md."
       }
     ]
   },
@@ -1169,8 +1173,8 @@
     "id": "ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata",
     "title": "\"Method UI Grid and Dropdown Performance Test\" synthetics (team:qa, non-prod, 5 monitor-ID variants: Day run / Day run 2 / Evening run / Midnight run / Release Run) chronically go No Data; never correlates to a real incident",
     "first_seen": "2026-05-02T13:46:00Z",
-    "last_seen": "2026-07-09T12:30:00Z",
-    "occurrences": 49,
+    "last_seen": "2026-07-09T13:53:20Z",
+    "occurrences": 52,
     "match": {
       "channels": [
         "alert-system"
@@ -1206,7 +1210,7 @@
     "fix_template": null,
     "confidence": 0.85,
     "owning_team": "unmapped",
-    "last_notified_at": "2026-07-09T00:01:20Z",
+    "last_notified_at": "2026-07-09T13:46:00Z",
     "notes": [
       {
         "ts": "2026-07-03T13:09:00Z",
@@ -1275,6 +1279,10 @@
       {
         "ts": "2026-07-09T13:09:00Z",
         "note": "2026-07-09 13:09Z triage (degraded cycle, no Slack MCP): Midnight run variant (123495390) No Data 12:30:00Z, still No Data at scan time -- 49th documented occurrence. Sibling monitor 142200330 (Release Run) also fired 2 min later this cycle but in Alert state (not No Data) -- did NOT match this KB's documented shape, investigated separately as needs-human (hash a762ccb657727f2d), not counted as an occurrence of this entry. No co-firing signal with any prod service this cycle. Synthetic hash 6f556b152950da41 (channel CPHHABKAA + DD monitor ts 2026-07-09T12:30:00Z). last_notified_at (2026-07-09T00:01:20Z) = ~12h29m ago -- WITHIN the 24h suppression window and 49 is not a 10th-occurrence multiple -> SUPPRESSED, gate_reason=known-issue-window. See docs/investigations/2026-07-09-6f556b152950da41.md."
+      },
+      {
+        "ts": "2026-07-09T14:13:00Z",
+        "note": "2026-07-09 14:13Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 12:57:12Z cutoff): Release Run (142200330) No Data 13:46:00Z, hash d5069481c6cbaa1a -- occ 49->50, lands on 10th-occurrence-multiple -> RESURFACE POST (gate_reason=known-issue-occurrence-resurface), last_notified_at bumped to 2026-07-09T13:46:00Z. Grouped pair fired ~6-7min later: Day run (121308660) recovered-OK 13:52:30Z + Day run 2 (133625690) recovered-OK 13:53:20Z, hashes 7f9ee4589f152e28 (primary) / 14d8d818bdd64595 (satellite) -- occ 50->51->52. SAME-CYCLE GATE-ORDERING ARTIFACT: last_notified_at was just reset by the Release-Run resurface moments earlier in this same cycle -> SUPPRESSED (gate_reason=known-issue-window), per project_kir_same_cycle_gate_ordering precedent (same pattern as 2026-07-06/07). No co-firing signal with any prod service this cycle. See docs/investigations/2026-07-09-d5069481c6cbaa1a.md, docs/investigations/2026-07-09-7f9ee4589f152e28.md."
       }
     ]
   },
