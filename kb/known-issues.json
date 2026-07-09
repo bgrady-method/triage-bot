@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-09T20:25:12Z",
-    "occurrences": 561,
+    "last_seen": "2026-07-09T21:43:11Z",
+    "occurrences": 562,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -391,6 +391,10 @@
       {
         "ts": "2026-07-09T20:06:11Z",
         "note": "2026-07-09 20:06Z triage (degraded cycle, no Slack MCP): occ#560 via DD monitor 77419271 last_triggered 20:06:11Z (Alert at scan time, OK by 20:11:12Z follow-up check, self-recovered). Widened DD log sample (100 records, 19:41-20:16Z): 75 distinct accounts, top bodegatile 5%, diffuse/chronic shape confirmed; 100/100 GetSyncWidgetInfoAsync, 100/100 status_code:0. last_notified_at 2026-07-08T21:30:11Z was only ~22h36m ago (within 24h window) but occurrences 559->560 is a 10th-multiple -> POSTED to #triage-results, gate_reason=known-issue-occurrence-resurface. See docs/investigations/2026-07-09-5a553b0a39247627.md."
+      },
+      {
+        "ts": "2026-07-09T22:14:37Z",
+        "note": "2026-07-09 22:14Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-09T21:06:20Z cutoff; synthetic hash d571c9dbfb94ed5f, channel C03TYHGRS23 + DD monitor ts 2026-07-09T21:43:11Z): occ#561->562 via DD monitor 77419271 last_triggered 21:43:11Z (OK by scan time, self-recovered). Widened DD log sample (100 records, 21:28:11-21:58:11Z): 60 distinct accounts, top EnglandLogistics 9%, diffuse/chronic shape confirmed; 85/100 GetSyncWidgetInfoAsync, 100/100 status_code:0. No co-firing with ki-24 (runtime-core RTC p95) this cycle -- neither of its monitors are in this cycle's 3-monitor new-fire set, precedence_note does not apply. last_notified_at 2026-07-09T20:06:11Z = ~2h08m ago, WITHIN 24h suppression window; occ 562 not a 10th-multiple; fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESSED (gate_reason=known-issue-window), actionable-appended. See docs/investigations/2026-07-09-d571c9dbfb94ed5f.md."
       }
     ]
   },
@@ -1947,8 +1951,8 @@
     "id": "ki-2026-07-06-signup-low-traffic-p90-latency-monitor-noise",
     "title": "[Growth][Signup][P?] 'Service Signup post requests have a high p90 latency' trips on single-request percentile noise on a very low-traffic endpoint",
     "first_seen": "2026-07-05T21:57:46Z",
-    "last_seen": "2026-07-07T13:03:46Z",
-    "occurrences": 5,
+    "last_seen": "2026-07-09T21:35:47Z",
+    "occurrences": 6,
     "match": {
       "channels": [
         "alert-system",
@@ -1973,7 +1977,7 @@
     "evidence_source": "datadog_apm",
     "evidence_query": "p90:trace.aspnet.request{env:prod,service:signup,resource_name:post_/*}",
     "evidence_threshold_s": 12.0,
-    "last_notified_at": "2026-07-06T22:16:03Z",
+    "last_notified_at": "2026-07-09T21:35:47Z",
     "notes": [
       {
         "ts": "2026-07-06T15:09:00Z",
@@ -1986,6 +1990,10 @@
       {
         "ts": "2026-07-07T13:20:00Z",
         "note": "2026-07-07 13:20Z triage (degraded cycle, no Slack MCP; hash 66e9953b3f81901c): 5th occurrence, monitor 154252126 last_triggered 13:03:46Z, self-recovered by scan time. DD metric re-query (12:53:46-13:08:46Z, 5-min points): peak 10.72s @12:56:20Z and 8.23s @13:04:20Z, both just under the monitor's 12s threshold on reaggregation -- same rolling-window-lag pattern as all 4 prior occurrences. DD Logs service:signup status:error env:prod (12:58:46-13:03:46Z) = 0 hits. last_notified_at (2026-07-06T22:16:03Z) = ~15h04m ago, within the 24h suppression window; occurrence 5 is not a 10th-occurrence resurface -> SUPPRESS, gate_reason=known-issue-window. See docs/investigations/2026-07-07-66e9953b3f81901c.md."
+      },
+      {
+        "ts": "2026-07-09T22:14:37Z",
+        "note": "2026-07-09 22:14Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-09T21:06:20Z cutoff; synthetic hash 6969800749e15a52, channel CPHHABKAA alert-system + DD monitor ts 2026-07-09T21:35:47Z): 6th occurrence, monitor 154252126 last_triggered 21:35:47Z, self-recovered by scan time. DD metric re-query (21:20:47-21:35:47Z, 5-min points): 1 spike of 34.73s @21:21:10Z (largest recorded for this KB entry so far, prior max 11.79s), remaining 4 points sub-second -- same single-request-dominates-p90 shape, ratio vs 12s threshold = 2.89. DD Logs service:signup status:error env:prod (same window) = 0 hits -- confirms latency-only. last_notified_at (2026-07-06T22:16:03Z) = ~3 days ago, well past the 24h suppression window (never bumped by the intervening suppressed occurrence 5) -> POST to #triage-results, gate_reason=null (window-expiry), last_notified_at bumped to 2026-07-09T21:35:47Z. Flagged the larger-than-usual spike magnitude for Growth in case it's an early signal of worsening, though 0-error + self-recovery still matches the noise diagnosis. See docs/investigations/2026-07-09-6969800749e15a52.md."
       }
     ]
   },
