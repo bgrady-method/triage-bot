@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-09T12:00:11Z",
-    "occurrences": 552,
+    "last_seen": "2026-07-09T12:57:12Z",
+    "occurrences": 553,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -375,6 +375,10 @@
       {
         "ts": "2026-07-09T11:29:32Z",
         "note": "2026-07-09 11:29Z triage (degraded cycle, DD monitor scan diff, alert-frontend-errors, hash cfa633e1c8ea419c): occ#551 via DD monitor 77419271 last_triggered 2026-07-09T10:49:11Z (OK by scan time, self-recovered). DD method-ui XHR error logs 10:39-10:50Z confirm canonical shape (GET /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync, status_code:0, Failed to load; 100-sample-cap sample pulled, chronic diffuse pattern unchanged). last_notified_at 2026-07-08T21:30:11Z = ~13h19m ago, WITHIN 24h suppression window; occ 551 not %10 -> SUPPRESS gate_reason=known-issue-window."
+      },
+      {
+        "ts": "2026-07-09T13:09:00Z",
+        "note": "2026-07-09 13:09Z triage (degraded cycle, no Slack MCP): monitor 77419271 self-recovered to OK by scan time, last_triggered_ts 12:57:12Z -- 553rd documented occurrence. DD log sample widened to 100 (per project_widen_dd_log_sample_before_concentration_call precedent): 50 distinct accounts, top account 9/100 (9%), canonical diffuse GetSyncWidgetInfoAsync/gateway-syncutil-syncwidget pattern confirmed -- no new concentration. No co-firing with ki-24 (runtime-core RTC p95) this cycle, so the shared-upstream precedence_note does not apply. Synthetic hash 2ad3efdb3fd8c998 (channel C03TYHGRS23 alert-frontend-errors + DD monitor ts 2026-07-09T12:57:12Z). last_notified_at (2026-07-08T21:30:11Z) = ~15h27m ago -- WITHIN the 24h suppression window and 553 is not a 10th-occurrence multiple -> SUPPRESSED, gate_reason=known-issue-window. See docs/investigations/2026-07-09-2ad3efdb3fd8c998.md."
       }
     ]
   },
@@ -1165,8 +1169,8 @@
     "id": "ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata",
     "title": "\"Method UI Grid and Dropdown Performance Test\" synthetics (team:qa, non-prod, 5 monitor-ID variants: Day run / Day run 2 / Evening run / Midnight run / Release Run) chronically go No Data; never correlates to a real incident",
     "first_seen": "2026-05-02T13:46:00Z",
-    "last_seen": "2026-07-09T04:00:12Z",
-    "occurrences": 48,
+    "last_seen": "2026-07-09T12:30:00Z",
+    "occurrences": 49,
     "match": {
       "channels": [
         "alert-system"
@@ -1267,6 +1271,10 @@
       {
         "ts": "2026-07-09T11:29:32Z",
         "note": "2026-07-09 11:29Z triage (degraded cycle, DD monitor scan diff, alert-system, hash 94876a142a7220a5): occ#48, monitor 123495492 (Evening run) No Data 2026-07-09T04:00:12Z. Canonical shape, no other co-firing signal (coincident with CRM runtime-core-subscriber monitor 302057011 firing 20s later at 04:00:32Z, but that's a different system/monitor family -- attributed to shared :00-boundary cron scheduling on both sides, not a causal link). last_notified_at was just bumped to 2026-07-09T00:01:20Z earlier this SAME cycle (G2+G3) -> WITHIN 24h suppression window -> SUPPRESS gate_reason=known-issue-window (same-cycle dedup; resurface/window-expiry intent already satisfied by the earlier group in this cycle)."
+      },
+      {
+        "ts": "2026-07-09T13:09:00Z",
+        "note": "2026-07-09 13:09Z triage (degraded cycle, no Slack MCP): Midnight run variant (123495390) No Data 12:30:00Z, still No Data at scan time -- 49th documented occurrence. Sibling monitor 142200330 (Release Run) also fired 2 min later this cycle but in Alert state (not No Data) -- did NOT match this KB's documented shape, investigated separately as needs-human (hash a762ccb657727f2d), not counted as an occurrence of this entry. No co-firing signal with any prod service this cycle. Synthetic hash 6f556b152950da41 (channel CPHHABKAA + DD monitor ts 2026-07-09T12:30:00Z). last_notified_at (2026-07-09T00:01:20Z) = ~12h29m ago -- WITHIN the 24h suppression window and 49 is not a 10th-occurrence multiple -> SUPPRESSED, gate_reason=known-issue-window. See docs/investigations/2026-07-09-6f556b152950da41.md."
       }
     ]
   },
@@ -2300,6 +2308,87 @@
       {
         "ts": "2026-07-07T15:24:41Z",
         "note": "2nd occurrence (1st: 2026-06-14T06:26-06:57Z, docs/investigations/2026-06-14-f95ce4256d5f99f2.md, root cause unconfirmed at the time -- ES was 401-down). This cycle: DD monitor 70171778 ('Unexpected number of 5XX errors', generic service-agnostic >30/5min-across-all-services check) last_triggered 14:59:39Z; the 14:50-14:55Z 5-min bucket summed to 32 across services (runtime-core-api 24, gateway 4, ms-authentication-api 4) crossing the 30 threshold. Isolated runtime-core-api's 24 errors via DD metric by resource_name: 100% on post_/api/v1/security/expiresessiontoken (24 errors / 25 hits = 96% error rate on that resource -- narrow, not platform-wide). ES now reachable (post-2026-06-18 auth fix) and returns the full stack trace this time: Runtime.Core.Exceptions.AccountNotFoundExceptions in AccountContext.InitAsync, called from SecurityController.ExpireSessionTokenAsync. All 24 failures share the same AdditionalMetaData (email westbrookmanager@staplesoil.com, accountName empty) -- single-session/account-specific, not multi-tenant. account_impact.py could not resolve 'staplesoil'/'staplesoilinc' (clusters_unconfigured prod3-5, tool/env gap) -- active_users_affected recorded as 0 (named_only, unresolved). No deploy signal (runtime-core git fetch 403'd, methodcrm-org GH_TOKEN gap, non-blocking). Score: critical_path_service +3 (runtime-core) + truly_novel +2 (no KB match before this cycle, no prior alert_hash in 7d) = 5 >= escalation_score_threshold(4); today's needs-human post count was 3 < daily_escalation_cap(5) -> POST, gate_reason=scored. New KB entry written this cycle so a 3rd occurrence is recognized without re-deriving from scratch. See docs/investigations/2026-07-07-b0ae47b9a8a720ad.md."
+      }
+    ]
+  },
+  {
+    "id": "ki-2026-07-09-ms-authentication-api-p95-latency-sustained-noerrors",
+    "title": "ms-authentication-api P95 latency sustained elevation (~1h, up to 3.5x threshold) on critical-path auth service, zero corroborating errors, NOT correlated with same-morning Redis-errors monitor",
+    "first_seen": "2026-07-09T09:27:32Z",
+    "last_seen": "2026-07-09T09:27:32Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-system",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/299551532"
+        },
+        {
+          "contains": "[Admin][AuthenticationAPI][P2] P95 latency high"
+        }
+      ],
+      "precedence_note": "monitors/299551532 is ALSO listed in ki-2026-07-06-runtime-core-redis-cache-timeout-transient-burst's match clauses (as a possible Redis-driven co-fire sibling) -- verify Redis correlation independently (query trace.redis.command.errors for the SAME window) before assuming that entry's diagnosis applies. This 2026-07-09 occurrence explicitly did NOT correlate with Redis errors (see diagnosis) -- treat each occurrence on its own evidence."
+    },
+    "evidence_source": "datadog_apm",
+    "evidence_query": "p95:trace.aspnet_core.request{service:ms-authentication-api,env:prod}",
+    "evidence_threshold_s": 0.5,
+    "diagnosis": "DD monitor 299551532 ('[Admin][AuthenticationAPI][P2] P95 latency high', avg(last_10m):p95:trace.aspnet_core.request{service:ms-authentication-api,env:prod} > 0.5) fired 2026-07-09T09:27:32Z, then reported OK again by scan time (~11:00Z). Re-querying the underlying p95 metric at native granularity over a wider 08:50-09:50Z window shows this was NOT a brief blip: 34 of 180 points (~19%) exceeded the 0.5s threshold, spanning 08:52Z through at least 09:48Z (still elevated at the end of the queried window -- peak 1.77s at 09:48:00Z, a 2.5x/3.5x-threshold breach far above the monitor's own trigger value), with intermediate values clustered around 0.53-0.94s throughout. ms-authentication-api is a critical-path service (CLAUDE.md: 'ms-authentication-api down -> all NEW sessions fail'). Ruled out two plausible mechanisms: (1) errors -- 0 hits on service:ms-authentication-api status:error in DD Logs for the full window, so this is latency-only, not a validation/error cascade; (2) Redis correlation -- the sibling 'Redis Errors is High' monitor (227940275) also fired this same morning (10:09:35Z, see G18/ki-2026-07-06-redis entry), and 299551532 IS listed as a possible Redis-driven co-fire sibling in that KB's match clauses, but the actual Redis-errors metric (sum:trace.redis.command.errors{env:prod}) was flat near-zero (1 error at 08:45Z) throughout the entire 08:52-09:48Z auth-latency window, only spiking to 13 errors at 10:03Z -- about 15 minutes AFTER the auth latency episode had already subsided. The two are temporally adjacent (same UTC morning) but not the same mechanism this occurrence. Root cause NOT identified: no error signal, no Redis correlation, and deploy-correlation could not be checked (ms-authentication-api local clone is stale at 2026-04-30, methodcrm-org GH_TOKEN 403 gap, standing per CLAUDE.md known gaps). Candidate mechanisms not yet ruled out: SQL/Mongo query latency on the auth path, a downstream call ms-authentication-api itself makes, or a noisy-neighbor effect on the host -- none investigable with currently available tools/access. This is the FIRST documented occurrence of this specific monitor firing with this magnitude/duration; written as a new KB entry (rather than folding into the Redis entry) precisely because the correlation does NOT hold and a critical-path service warrants its own tracked signature going forward.",
+    "playbook": "1) Confirm shape: monitor 299551532 in Alert (or recently Alert, now OK); re-query p95:trace.aspnet_core.request{service:ms-authentication-api,env:prod} over a wide (+/-1h) window at native granularity (NOT just the monitor's own last_10m eval) -- if breach points span 30+ minutes (not a single-point blip), this is the pattern to watch. 2) ALWAYS independently check trace.redis.command.errors{env:prod} for the SAME window before assuming this is Redis-driven, even though monitors/299551532 appears in the Redis-timeout KB's match list -- confirm actual temporal overlap, not just same-day co-occurrence. 3) Confirm 0 errors via service:ms-authentication-api status:error in DD Logs -- if errors ARE present, this is a different, more serious incident (auth failures, not just latency) and should be escalated immediately, not filed under this entry. 4) If repo access is restored, check ms-authentication-api and its immediate SQL/Mongo/Redis dependencies for a deploy or capacity change correlated with the spike start time. 5) If this recurs with the same no-error, no-Redis-correlation shape, bump occurrence count -- but given this is a critical-path service with no identified root cause, do NOT downgrade the escalation score on recurrence the way monitor-noise entries do; each occurrence should get independent Redis-correlation and error-rate verification, not just occurrence-count bumping.",
+    "fix_status": "needs-human",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.7,
+    "owning_team": "Admin",
+    "last_notified_at": "2026-07-09T11:29:32Z",
+    "notes": [
+      {
+        "ts": "2026-07-09T11:29:32Z",
+        "note": "2026-07-09 11:29Z triage (degraded cycle, DD monitor scan diff, alert-system, hash 3bc922e8235c80de): created and posted this cycle. Score 8 (critical_path_service ms-authentication-api +3, metric_breach_magnitude ratio=2.55 [(1.77-0.5)/0.5] +3, novel_no_kb +2; monitor_maturity 0 [fire_count=2 <5, unproven]; recency_decay 0 [1st fire today]) >= escalation_score_threshold(4); today_post_count=3 at time of evaluation (G1, G2+G3 KIR posts + G9 KIR post not yet reached in ts order -- actual count at G12's turn was 3: G1, G2+G3, plus G6/G7 evaluated-but-not-posted) < daily_escalation_cap(5) -> POSTED to #triage-results, gate_reason=scored. See docs/investigations/2026-07-09-3bc922e8235c80de.md."
+      }
+    ]
+  },
+  {
+    "id": "ki-2026-07-09-tables-fields-getfieldnames-duplicate-key-shippingaddress",
+    "title": "ms-tables-fields-api System.ArgumentException 'An item with the same key has already been added: ShippingAddress' in FieldController.GetFieldNamesWithRestriction (distinct from ki-2026-07-02's FieldTableNameRef signature)",
+    "first_seen": "2026-07-09T04:07:36Z",
+    "last_seen": "2026-07-09T04:08:52Z",
+    "occurrences": 2,
+    "match": {
+      "channels": [
+        "alert-system",
+        "alert-runtime-monitoring"
+      ],
+      "any_of": [
+        {
+          "contains": "GetFieldNamesWithResctriction Failed"
+        },
+        {
+          "contains": "same key has already been added. Key: ShippingAddress"
+        },
+        {
+          "contains": "FieldController.GetFieldNamesWithRestriction"
+        }
+      ],
+      "precedence_note": "Distinct from ki-2026-07-02-tables-fields-fieldtablenameref-null-linked-fields -- both fire under bare monitor 299251404 ('tables-fields high error rate'), but the two have unrelated exception types/messages/stack traces. ALWAYS disambiguate via ES message.keyword before accepting either KIR (see feedback_kb_bare_monitor_id_false_match precedent). This entry's signature: System.ArgumentException in FieldController.cs:808 (Dictionary duplicate-key add), NOT System.ArgumentNullException in MetadataDataProvider.cs:1087."
+    },
+    "evidence_source": "elasticsearch",
+    "evidence_query": "fields.dd_service.keyword:tables-fields AND level.keyword:Error AND message.keyword:\"GetFieldNamesWithResctriction Failed\"",
+    "evidence_threshold_s": null,
+    "diagnosis": "DD monitor 299251404 (service:tables-fields error rate) fired 2026-07-09T04:15:24Z. ES aggregate on the alert window (04:00-04:20Z) returned only 2 hits, both message 'GetFieldNamesWithResctriction Failed' -- a DIFFERENT signature from the established ki-2026-07-02 FieldTableNameRef entry that the bare monitor-id match would otherwise suggest. Both records show identical exception detail: System.ArgumentException 'An item with the same key has already been added. Key: ShippingAddress', thrown from System.Collections.Generic.Dictionary`2.TryInsert, at API.Controllers.FieldController.GetFieldNamesWithRestriction(String viewFriendlyName, Boolean isInsert, Boolean showComplexFields, Boolean showMultiEntityFields) in tables-fields/API/Controllers/FieldController.cs:line 808. Two occurrences 76 seconds apart (04:07:36Z, 04:08:52Z), different dd_trace_id, different MachineName (ip-172-31-210-103 / ip-172-31-165-3) and ProcessId -- genuinely independent requests, not retries of the same one, both hitting the identical duplicate key 'ShippingAddress'. Most likely explanation: an account's field/view metadata has two distinct fields that both resolve to the display/restriction key 'ShippingAddress' (e.g. two linked-entity fields both aliased to the same display name), and FieldController.GetFieldNamesWithRestriction builds a Dictionary keyed by that display name without a duplicate-key guard (Add() instead of a TryAdd()/indexer-with-overwrite pattern), so the second field with the same key throws instead of being deduped or overwritten. This is the same general failure CLASS as ki-2026-07-02 (unguarded dictionary/collection build over per-account field metadata that can collide) but a different METHOD, LINE, and EXCEPTION TYPE -- kept as a separate entry per that entry's own stated policy of not merging distinct code paths. Code-level fix not confirmed against source: GH_TOKEN has no read access to the methodcrm GitHub org this session (git fetch on the local ms-tables-fields-api clone returns HTTP 403); local clone HEAD is 2026-04-24, too stale to trust for a line-level diff or to confirm whether line 808 in the current source matches this stack trace's line 808.",
+    "playbook": "1) Confirm the fire is THIS signature (not ki-2026-07-02): ES fields.dd_service.keyword:tables-fields AND level.keyword:Error AND message.keyword:\"GetFieldNamesWithResctriction Failed\" -- if this returns hits and exceptions[].Message contains 'same key has already been added', it's this entry; if instead the message is 'FieldTableNameRef Is Null' / 'GetColumnForAllFields failed', it's ki-2026-07-02 -- do NOT conflate the two off the bare monitor 299251404 match alone. 2) Pull the full record's exceptions[].Message to identify which duplicate key collided (this occurrence: 'ShippingAddress'; may differ per account) and RequestId/dd_trace_id to count distinct affected requests. 3) This is expected to be account-specific (a data/schema condition on that account's field configuration), self-contained to the GetFieldNamesWithRestriction endpoint (HTTP-level impact TBD -- not yet confirmed as 400 vs 500). 4) Escalate to Admin team for (a) identifying the affected account via RequestId/trace correlation (ActionId is reused across a background-loop and not request-scoped, per the ki-2026-07-02 entry's own caveat -- do not rely on it alone) and repairing the duplicate-key field configuration, and (b) a defensive TryAdd/overwrite guard in FieldController.GetFieldNamesWithRestriction (FieldController.cs, near line 808) once repo access is restored.",
+    "fix_status": "needs-human",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.75,
+    "owning_team": "Admin",
+    "last_notified_at": null,
+    "notes": [
+      {
+        "ts": "2026-07-09T11:29:32Z",
+        "note": "2026-07-09 11:29Z triage (degraded cycle, DD monitor scan diff, alert-system, hash d13ed0adfb12f9e4): created this cycle. Score 3 (critical_path_service ms-tables-fields-api +3, novel_no_kb +2, monitor_maturity -2 [monitor 299251404 fire_count=5 in last 30d, dm_rate low -- historically mostly-suppressed/noisy for the OTHER (ki-2026-07-02) signature it usually carries]) < escalation_score_threshold(4) but >= actionable_score_threshold(2) -> actionable-append (high-borderline), gate_reason=low-impact, no post this cycle. Flagging for human review given the clean, fully-diagnosed stack trace despite the low score."
       }
     ]
   },
@@ -4775,87 +4864,6 @@
       "https://method.atlassian.net/browse/PL-47997",
       "https://method.atlassian.net/browse/PL-47999",
       "https://method.atlassian.net/browse/PL-45894"
-    ]
-  },
-  {
-    "id": "ki-2026-07-09-tables-fields-getfieldnames-duplicate-key-shippingaddress",
-    "title": "ms-tables-fields-api System.ArgumentException 'An item with the same key has already been added: ShippingAddress' in FieldController.GetFieldNamesWithRestriction (distinct from ki-2026-07-02's FieldTableNameRef signature)",
-    "first_seen": "2026-07-09T04:07:36Z",
-    "last_seen": "2026-07-09T04:08:52Z",
-    "occurrences": 2,
-    "match": {
-      "channels": [
-        "alert-system",
-        "alert-runtime-monitoring"
-      ],
-      "any_of": [
-        {
-          "contains": "GetFieldNamesWithResctriction Failed"
-        },
-        {
-          "contains": "same key has already been added. Key: ShippingAddress"
-        },
-        {
-          "contains": "FieldController.GetFieldNamesWithRestriction"
-        }
-      ],
-      "precedence_note": "Distinct from ki-2026-07-02-tables-fields-fieldtablenameref-null-linked-fields -- both fire under bare monitor 299251404 ('tables-fields high error rate'), but the two have unrelated exception types/messages/stack traces. ALWAYS disambiguate via ES message.keyword before accepting either KIR (see feedback_kb_bare_monitor_id_false_match precedent). This entry's signature: System.ArgumentException in FieldController.cs:808 (Dictionary duplicate-key add), NOT System.ArgumentNullException in MetadataDataProvider.cs:1087."
-    },
-    "evidence_source": "elasticsearch",
-    "evidence_query": "fields.dd_service.keyword:tables-fields AND level.keyword:Error AND message.keyword:\"GetFieldNamesWithResctriction Failed\"",
-    "evidence_threshold_s": null,
-    "diagnosis": "DD monitor 299251404 (service:tables-fields error rate) fired 2026-07-09T04:15:24Z. ES aggregate on the alert window (04:00-04:20Z) returned only 2 hits, both message 'GetFieldNamesWithResctriction Failed' -- a DIFFERENT signature from the established ki-2026-07-02 FieldTableNameRef entry that the bare monitor-id match would otherwise suggest. Both records show identical exception detail: System.ArgumentException 'An item with the same key has already been added. Key: ShippingAddress', thrown from System.Collections.Generic.Dictionary`2.TryInsert, at API.Controllers.FieldController.GetFieldNamesWithRestriction(String viewFriendlyName, Boolean isInsert, Boolean showComplexFields, Boolean showMultiEntityFields) in tables-fields/API/Controllers/FieldController.cs:line 808. Two occurrences 76 seconds apart (04:07:36Z, 04:08:52Z), different dd_trace_id, different MachineName (ip-172-31-210-103 / ip-172-31-165-3) and ProcessId -- genuinely independent requests, not retries of the same one, both hitting the identical duplicate key 'ShippingAddress'. Most likely explanation: an account's field/view metadata has two distinct fields that both resolve to the display/restriction key 'ShippingAddress' (e.g. two linked-entity fields both aliased to the same display name), and FieldController.GetFieldNamesWithRestriction builds a Dictionary keyed by that display name without a duplicate-key guard (Add() instead of a TryAdd()/indexer-with-overwrite pattern), so the second field with the same key throws instead of being deduped or overwritten. This is the same general failure CLASS as ki-2026-07-02 (unguarded dictionary/collection build over per-account field metadata that can collide) but a different METHOD, LINE, and EXCEPTION TYPE -- kept as a separate entry per that entry's own stated policy of not merging distinct code paths. Code-level fix not confirmed against source: GH_TOKEN has no read access to the methodcrm GitHub org this session (git fetch on the local ms-tables-fields-api clone returns HTTP 403); local clone HEAD is 2026-04-24, too stale to trust for a line-level diff or to confirm whether line 808 in the current source matches this stack trace's line 808.",
-    "playbook": "1) Confirm the fire is THIS signature (not ki-2026-07-02): ES fields.dd_service.keyword:tables-fields AND level.keyword:Error AND message.keyword:\"GetFieldNamesWithResctriction Failed\" -- if this returns hits and exceptions[].Message contains 'same key has already been added', it's this entry; if instead the message is 'FieldTableNameRef Is Null' / 'GetColumnForAllFields failed', it's ki-2026-07-02 -- do NOT conflate the two off the bare monitor 299251404 match alone. 2) Pull the full record's exceptions[].Message to identify which duplicate key collided (this occurrence: 'ShippingAddress'; may differ per account) and RequestId/dd_trace_id to count distinct affected requests. 3) This is expected to be account-specific (a data/schema condition on that account's field configuration), self-contained to the GetFieldNamesWithRestriction endpoint (HTTP-level impact TBD -- not yet confirmed as 400 vs 500). 4) Escalate to Admin team for (a) identifying the affected account via RequestId/trace correlation (ActionId is reused across a background-loop and not request-scoped, per the ki-2026-07-02 entry's own caveat -- do not rely on it alone) and repairing the duplicate-key field configuration, and (b) a defensive TryAdd/overwrite guard in FieldController.GetFieldNamesWithRestriction (FieldController.cs, near line 808) once repo access is restored.",
-    "fix_status": "needs-human",
-    "fix_jira": null,
-    "fix_template": null,
-    "confidence": 0.75,
-    "owning_team": "Admin",
-    "last_notified_at": null,
-    "notes": [
-      {
-        "ts": "2026-07-09T11:29:32Z",
-        "note": "2026-07-09 11:29Z triage (degraded cycle, DD monitor scan diff, alert-system, hash d13ed0adfb12f9e4): created this cycle. Score 3 (critical_path_service ms-tables-fields-api +3, novel_no_kb +2, monitor_maturity -2 [monitor 299251404 fire_count=5 in last 30d, dm_rate low -- historically mostly-suppressed/noisy for the OTHER (ki-2026-07-02) signature it usually carries]) < escalation_score_threshold(4) but >= actionable_score_threshold(2) -> actionable-append (high-borderline), gate_reason=low-impact, no post this cycle. Flagging for human review given the clean, fully-diagnosed stack trace despite the low score."
-      }
-    ]
-  },
-  {
-    "id": "ki-2026-07-09-ms-authentication-api-p95-latency-sustained-noerrors",
-    "title": "ms-authentication-api P95 latency sustained elevation (~1h, up to 3.5x threshold) on critical-path auth service, zero corroborating errors, NOT correlated with same-morning Redis-errors monitor",
-    "first_seen": "2026-07-09T09:27:32Z",
-    "last_seen": "2026-07-09T09:27:32Z",
-    "occurrences": 1,
-    "match": {
-      "channels": [
-        "alert-system",
-        "swat"
-      ],
-      "any_of": [
-        {
-          "contains": "monitors/299551532"
-        },
-        {
-          "contains": "[Admin][AuthenticationAPI][P2] P95 latency high"
-        }
-      ],
-      "precedence_note": "monitors/299551532 is ALSO listed in ki-2026-07-06-runtime-core-redis-cache-timeout-transient-burst's match clauses (as a possible Redis-driven co-fire sibling) -- verify Redis correlation independently (query trace.redis.command.errors for the SAME window) before assuming that entry's diagnosis applies. This 2026-07-09 occurrence explicitly did NOT correlate with Redis errors (see diagnosis) -- treat each occurrence on its own evidence."
-    },
-    "evidence_source": "datadog_apm",
-    "evidence_query": "p95:trace.aspnet_core.request{service:ms-authentication-api,env:prod}",
-    "evidence_threshold_s": 0.5,
-    "diagnosis": "DD monitor 299551532 ('[Admin][AuthenticationAPI][P2] P95 latency high', avg(last_10m):p95:trace.aspnet_core.request{service:ms-authentication-api,env:prod} > 0.5) fired 2026-07-09T09:27:32Z, then reported OK again by scan time (~11:00Z). Re-querying the underlying p95 metric at native granularity over a wider 08:50-09:50Z window shows this was NOT a brief blip: 34 of 180 points (~19%) exceeded the 0.5s threshold, spanning 08:52Z through at least 09:48Z (still elevated at the end of the queried window -- peak 1.77s at 09:48:00Z, a 2.5x/3.5x-threshold breach far above the monitor's own trigger value), with intermediate values clustered around 0.53-0.94s throughout. ms-authentication-api is a critical-path service (CLAUDE.md: 'ms-authentication-api down -> all NEW sessions fail'). Ruled out two plausible mechanisms: (1) errors -- 0 hits on service:ms-authentication-api status:error in DD Logs for the full window, so this is latency-only, not a validation/error cascade; (2) Redis correlation -- the sibling 'Redis Errors is High' monitor (227940275) also fired this same morning (10:09:35Z, see G18/ki-2026-07-06-redis entry), and 299551532 IS listed as a possible Redis-driven co-fire sibling in that KB's match clauses, but the actual Redis-errors metric (sum:trace.redis.command.errors{env:prod}) was flat near-zero (1 error at 08:45Z) throughout the entire 08:52-09:48Z auth-latency window, only spiking to 13 errors at 10:03Z -- about 15 minutes AFTER the auth latency episode had already subsided. The two are temporally adjacent (same UTC morning) but not the same mechanism this occurrence. Root cause NOT identified: no error signal, no Redis correlation, and deploy-correlation could not be checked (ms-authentication-api local clone is stale at 2026-04-30, methodcrm-org GH_TOKEN 403 gap, standing per CLAUDE.md known gaps). Candidate mechanisms not yet ruled out: SQL/Mongo query latency on the auth path, a downstream call ms-authentication-api itself makes, or a noisy-neighbor effect on the host -- none investigable with currently available tools/access. This is the FIRST documented occurrence of this specific monitor firing with this magnitude/duration; written as a new KB entry (rather than folding into the Redis entry) precisely because the correlation does NOT hold and a critical-path service warrants its own tracked signature going forward.",
-    "playbook": "1) Confirm shape: monitor 299551532 in Alert (or recently Alert, now OK); re-query p95:trace.aspnet_core.request{service:ms-authentication-api,env:prod} over a wide (+/-1h) window at native granularity (NOT just the monitor's own last_10m eval) -- if breach points span 30+ minutes (not a single-point blip), this is the pattern to watch. 2) ALWAYS independently check trace.redis.command.errors{env:prod} for the SAME window before assuming this is Redis-driven, even though monitors/299551532 appears in the Redis-timeout KB's match list -- confirm actual temporal overlap, not just same-day co-occurrence. 3) Confirm 0 errors via service:ms-authentication-api status:error in DD Logs -- if errors ARE present, this is a different, more serious incident (auth failures, not just latency) and should be escalated immediately, not filed under this entry. 4) If repo access is restored, check ms-authentication-api and its immediate SQL/Mongo/Redis dependencies for a deploy or capacity change correlated with the spike start time. 5) If this recurs with the same no-error, no-Redis-correlation shape, bump occurrence count -- but given this is a critical-path service with no identified root cause, do NOT downgrade the escalation score on recurrence the way monitor-noise entries do; each occurrence should get independent Redis-correlation and error-rate verification, not just occurrence-count bumping.",
-    "fix_status": "needs-human",
-    "fix_jira": null,
-    "fix_template": null,
-    "confidence": 0.7,
-    "owning_team": "Admin",
-    "last_notified_at": "2026-07-09T11:29:32Z",
-    "notes": [
-      {
-        "ts": "2026-07-09T11:29:32Z",
-        "note": "2026-07-09 11:29Z triage (degraded cycle, DD monitor scan diff, alert-system, hash 3bc922e8235c80de): created and posted this cycle. Score 8 (critical_path_service ms-authentication-api +3, metric_breach_magnitude ratio=2.55 [(1.77-0.5)/0.5] +3, novel_no_kb +2; monitor_maturity 0 [fire_count=2 <5, unproven]; recency_decay 0 [1st fire today]) >= escalation_score_threshold(4); today_post_count=3 at time of evaluation (G1, G2+G3 KIR posts + G9 KIR post not yet reached in ts order -- actual count at G12's turn was 3: G1, G2+G3, plus G6/G7 evaluated-but-not-posted) < daily_escalation_cap(5) -> POSTED to #triage-results, gate_reason=scored. See docs/investigations/2026-07-09-3bc922e8235c80de.md."
-      }
     ]
   }
 ]
