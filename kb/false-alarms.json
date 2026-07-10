@@ -21,8 +21,8 @@
     "reason": "method-import-subscriber is a low-frequency batch AMQP consumer, not a continuous one. 24h history (2026-07-05 13:05 -> 2026-07-06 10:33) shows only 8 non-zero hit buckets, in bursts of 1-2060 messages separated by gaps of 3-11.5 hours. The monitor's 'sum(last_30m) < 1' threshold trips on every natural idle gap over 30 minutes, which happens multiple times a day by design -- not a service outage. 0 error logs on the service for the full day. This fire (11:05:32Z) came 32 minutes after the last burst ended (10:33:30Z), squarely inside the service's normal idle pattern.",
     "silence_for": "24h",
     "first_seen": "2026-07-06T11:05:32Z",
-    "last_seen": "2026-07-10T16:52:32Z",
-    "occurrences": 36,
+    "last_seen": "2026-07-10T17:34:32Z",
+    "occurrences": 37,
     "recommendation": "monitor threshold mismatch, not a false-alarm-forever situation -- recommend widening the No-Data window (e.g. 6h) or switching to a message-backlog-depth check instead of a hits-in-window check; flagging for Admin team, not silencing indefinitely",
     "notes": [
       {
@@ -40,6 +40,10 @@
       {
         "ts": "2026-07-10T17:07:26Z",
         "note": "2026-07-10 17:07Z triage (degraded cycle, no Slack MCP, day 8 of the read-path gap): monitor 299551472 fired 16:52:32Z, still No Data at scan time (17:07Z), hash 418be8f6b09ccbba, occ 35->36. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} over 16:07:32-17:07:32Z shows 4 sparse points (1, 103, 2, 17) clustered around 16:36-16:39Z with the rest of the window null/absent -- consistent with the documented low-frequency-batch-consumer idle-gap pattern. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only."
+      },
+      {
+        "ts": "2026-07-10T18:10:00Z",
+        "note": "2026-07-10 18:10Z triage (degraded cycle, no Slack MCP, day 8 of the read-path gap): monitor 299551472 fired 17:34:32Z, OK by scan time (self-recovered), hash dbad6a98e3e19645, occ 36->37. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} over 17:04:32-18:04:32Z shows 4 sparse points (6, 6, 1, 6) clustered within an ~12min span (17:33-17:45Z), rest of window null/absent -- consistent with the documented low-frequency-batch-consumer idle-gap pattern. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only."
       }
     ]
   },
