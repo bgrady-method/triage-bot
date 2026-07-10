@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-10T17:07:12Z",
-    "occurrences": 567,
+    "last_seen": "2026-07-10T18:32:12Z",
+    "occurrences": 568,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -407,6 +407,10 @@
       {
         "ts": "2026-07-10T17:07:26Z",
         "note": "2026-07-10 17:07Z triage (degraded cycle, no Slack MCP, day 8 of the read-path gap): occ#567 (566->567), monitor 77419271 last_triggered 17:07:12Z (overall_state OK by scan time -- self-recovered). ES aggregate 16:52:00-17:07:26Z (Exception.keyword:*TimedOut* OR message:*Ocelot* OR message:*ResponderMiddleware*): 215 hits, dominant service gateway (103) -- confirms live recurrence, matches the documented mechanism. last_notified_at (2026-07-09T20:06:11Z) ~21h01m ago, WITHIN 24h suppression window; occ 567 not a 10th-multiple; fix_status chronic-residual-post-rollback-2026-06-05 unchanged since last_notified_at -> SUPPRESS gate_reason=known-issue-window, appended to docs/actionable/2026-07-10.md. See docs/investigations/2026-07-10-132d2a9eee2312b0.md."
+      },
+      {
+        "ts": "2026-07-10T19:11:00Z",
+        "note": "2026-07-10 19:11Z triage (degraded cycle, no Slack MCP, hash 8a24f0d59cb7eba4): occ#568 via monitor 77419271 last_triggered 18:32:12Z (OK by scan time). Matched via its declared match.channels=alert-frontend-errors (not the synthetic alert-system log channel) -- match_kb.py channel filter is a hard gate, re-ran with the correct channel after an initial no-match, per established procedure. ES aggregate (Exception.keyword:*TimedOut* OR message:*Ocelot* OR message:*ResponderMiddleware*, 18:17:12-18:32:12Z): 239 hits, dominant service gateway (106) -- live recurrence at chronic steady-state magnitude (no surge signal vs the documented 2026-06-04 100x-baseline deploy-correlated surge). last_notified_at (2026-07-09T20:06:11Z) ~23h03m ago, WITHIN 24h suppression window (barely); occ 568 not %10; fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-10-8a24f0d59cb7eba4.md."
       }
     ]
   },
@@ -414,8 +418,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-07-10T16:09:27Z",
-    "occurrences": 227,
+    "last_seen": "2026-07-10T19:09:18Z",
+    "occurrences": 229,
     "match": {
       "channels": [
         "alert-system",
@@ -570,6 +574,10 @@
       {
         "ts": "2026-07-10T11:20:00Z",
         "note": "2026-07-10 11:20Z triage (degraded cycle, no Slack MCP): monitor 115456700 recovered-OK 06:02:21Z, hash 12f6666c2ada4a4f, occ 225->226. DD metric p95 over the surrounding window: 2/174 points over the 3s threshold (peak 4.036s), rest sub-second (avg 0.395s) -- consistent latency-only pattern, 0 errors. last_notified_at (2026-07-09T21:15:00Z) is about 8h47m ago, WITHIN 24h suppression window; occurrence 226 not a 10th-multiple; fix_status investigating unchanged -> SUPPRESS gate_reason=known-issue-window, appended to docs/actionable/2026-07-10.md. See docs/investigations/2026-07-10-12f6666c2ada4a4f.md."
+      },
+      {
+        "ts": "2026-07-10T19:11:00Z",
+        "note": "2026-07-10 19:11Z triage (degraded cycle, no Slack MCP): TWO occurrences this cycle, dual-endpoint co-spike, canonical shared-upstream shape. G3 (hash 807d35911842a6a9): monitor 115456700 (RTC Screen Load p95) last_triggered 19:05:20Z, occ 227->228. G5 (hash 6d6a1719f9522f37): monitor 117279738 (RTC Action Execution p95) last_triggered 19:09:18Z, occ 228->229. DD metric re-query 18:50-19:09:18Z confirms a sustained ~2.5min dual-endpoint burst 18:56:50-18:59:20Z: Screen Load peak 10.233s@18:59:10Z (ratio 2.41), Action Execution peak 9.768s@18:59:10Z (ratio 2.26); 0 runtime-core-api status:error logs in window (latency-only signature holds). NEW THIS OCCURRENCE: direct cross-service Redis-mechanism corroboration -- ES found 3 'Redis operation cancelled' (Runtime.Caching.CacheContext) hits on runtime-core-api at 18:57:32Z/18:58:07Zx2, squarely inside the spike window, AND a simultaneous ms-preferences-api p95 breach (monitor 299551589, peak 1.77s) in the same 18:56-18:59Z window -- logged separately as its own KIR occurrence against ki-2026-07-06-runtime-core-redis-cache-timeout-transient-burst (group 771f0080a1d89e0f) per that entry's established practice of NOT folding fan-out monitors into this entry's own count. Magnitude smaller than several historical peaks (10.2s vs prior worst ~30.8s) but this is the clearest three-way (RTC+Redis+preferences) correlation observed at this small a magnitude -- most prior three-way correlations only showed up during much larger bursts (see 2026-07-08 6-monitor fan-out). last_notified_at (2026-07-09T21:15:00Z) ~21h54m/~21h58m ago for G3/G5 respectively, WITHIN 24h suppression window; neither occ 228 nor 229 is %10 -> SUPPRESS both, gate_reason=known-issue-window. fix_status investigating unchanged. See docs/investigations/2026-07-10-807d35911842a6a9.md and docs/investigations/2026-07-10-6d6a1719f9522f37.md."
       }
     ]
   },
@@ -1923,8 +1931,8 @@
     "id": "ki-2026-07-06-runtime-core-redis-cache-timeout-transient-burst",
     "title": "runtime-core-api Runtime.Caching.CacheContext brief Redis command-timeout burst (DD monitor 227940275 'Redis Errors is High') -- self-recovers in ~1min, hits 20+ distinct accounts simultaneously",
     "first_seen": "2026-07-05T16:42:35+00:00",
-    "last_seen": "2026-07-10T10:58:35Z",
-    "occurrences": 7,
+    "last_seen": "2026-07-10T19:09:29Z",
+    "occurrences": 8,
     "match": {
       "channels": [
         "alert-system",
@@ -1974,7 +1982,7 @@
     "fix_template": null,
     "confidence": 0.75,
     "owning_team": "Vertical App Experience",
-    "last_notified_at": "2026-07-09T11:29:32Z",
+    "last_notified_at": "2026-07-10T19:09:29Z",
     "notes": [
       {
         "ts": "2026-07-06T21:11:27Z",
@@ -1999,6 +2007,10 @@
       {
         "ts": "2026-07-10T11:20:00Z",
         "note": "2026-07-10 11:20Z triage (degraded cycle, no Slack MCP): monitor 227940275 recovered-OK 10:58:35Z, hash 5965353608fc5014, occ 6->7. Not co-firing with RTC p95 (115456700, last fired 06:02:21Z, 4h56m earlier -- unrelated) or tables-fields this cycle. DD metric sum 5m redis errors: n=3, max 33 (one breach over the 10 threshold), otherwise 1 -- single transient burst, canonical shape. last_notified_at (2026-07-09T11:29:32Z) is about 23h29m ago, still barely WITHIN the 24h suppression window; occurrence 7 not a 10th-multiple -> SUPPRESS gate_reason=known-issue-window, appended to docs/actionable/2026-07-10.md. fix_status needs-human unchanged. See docs/investigations/2026-07-10-5965353608fc5014.md."
+      },
+      {
+        "ts": "2026-07-10T19:11:00Z",
+        "note": "2026-07-10 19:11Z triage (degraded cycle, no Slack MCP; hash 771f0080a1d89e0f): 8th occurrence, matched via the monitor-id fan-out signature (monitors/299551589, ms-preferences-api P95 latency, last_triggered 19:09:29Z) -- IMPORTANT: match_kb.py's naive text match against the raw alert surfaces ki-2026-04-25-ms-preferences-internal-tag-dependency FIRST (bare 'contains: ms-preferences-api' substring), which is a false match (recurrence_verified=False, 0 ES hits, unrelated deploy-regression mechanism, resolved since 2026-06-16) -- rejected per the standing bare-substring-match-trap lesson; this entry's explicit monitors/299551589 clause is the correct match. Weaker-evidence occurrence: DD metric p95:trace.aspnet_core.request{service:ms-preferences-api,env:prod} shows a sharp breach 18:56:20-18:59:00Z peaking 1.77s (ratio 3.4 over the 0.4s threshold); ES fields.dd_service.keyword:runtime-core-api AND message:*Redis* returned 3 'Redis operation cancelled' hits at 18:57:32Z/18:58:07Zx2 -- real but much smaller than the 22-32 hit fan-out days (2026-07-06/07/08). Monitor 227940275 (Redis Errors is High) did NOT trip (sum(last_5m) redis errors stayed under its own >10 threshold this time) -- first documented case of the mechanism producing a confirmed (if small) ES hit without also tripping its own dedicated monitor. Concurrent with ki-2026-05-24-runtime-core-rtc-p95-recurring (both monitors, see that entry's own note) in the identical window -- the clearest three-way small-magnitude correlation on record. Latency-only confirmed on both ms-preferences-api and runtime-core-api (0 status:error). No account_impact.py run (infrastructure-shaped, extrapolation branch 1). last_notified_at (2026-07-09T11:29:32Z) ~31h40m ago -- PAST the 24h suppression window -> POST to #triage-results, gate_reason=null (window-expiry), last_notified_at bumped to 2026-07-10T19:09:29Z. fix_status needs-human unchanged. See docs/investigations/2026-07-10-771f0080a1d89e0f.md."
       }
     ]
   },
@@ -2056,8 +2068,8 @@
     "id": "ki-2026-07-06-synthetics-signin-transient-step-duration-spike",
     "title": "[Synthetics] Sign in to Method step-duration monitor (127198928) intermittently spikes >20s for a single test run then self-recovers, with no corroborating error signal on any critical-path service",
     "first_seen": "2026-05-27T19:02:08Z",
-    "last_seen": "2026-07-10T18:02:08Z",
-    "occurrences": 15,
+    "last_seen": "2026-07-10T18:11:08Z",
+    "occurrences": 16,
     "match": {
       "channels": [
         "alert-system"
@@ -2115,6 +2127,10 @@
       {
         "ts": "2026-07-10T18:10:00Z",
         "note": "2026-07-10 18:10Z triage (degraded cycle, no Slack MCP, day 8; DD monitor scan diff vs prior cycle cutoff 2026-07-10T17:07:12Z, hash 01290476e46a9fae): occ#15 via DD monitor 127198928 last_triggered 18:02:08Z -- NOTABLE: still in Alert state at scan time (18:10Z), unlike all 14 priors which had self-recovered to OK by scan time. Re-verified from scratch given the state difference: DD metric avg:synthetics.browser.step.duration re-queried 17:47:08-18:10:10Z shows 3 points (12255ms, 20076ms @18:00:00Z, 6932ms) -- single-point breach only 0.4% over the 20s threshold, already recovered to 6932ms on the very next run before this cycle even ran; the lingering Alert state is Datadog's evaluation-window lag (monitor evaluates avg(last_5m)), not an ongoing condition. Checked co-firing per playbook step 2: all team:admin gateway/oauth2/ms-authentication-api/ms-identity-api/signin monitors (299544648/655/656/658/660/677/678/847/850/851, 299551528/532/537/603/611) OK with last_triggered_ts stale by 1-6 days, none near 18:00-18:02Z -- no co-firing critical-path monitor. ES aggregate level:Error across oauth2.identity.server/ms-gateway-api/ms-authentication-api/ms-identity-api 17:55:00-18:05:00Z: 3 hits total (2 oauth2.identity.server, 1 ms-identity-api) -- sampled all 3: 2 are the recurring Zapier refresh_token access_denied /connect/token noise (same unrelated-3rd-party-client shape documented since occ#6/#7), 1 is an unrelated ms-identity-api 'Contact does not exist' guest-lookup error -- none touch the Method sign-in flow. DD RUM errortracking service:method-signin-ui 17:55-18:05Z returned 0 client errors. Same no-corroboration shape as all 14 priors, and the lingering-Alert-state anomaly resolved to a benign evaluation-lag explanation, not a new failure mode. last_notified_at (2026-07-10T16:09:27Z) ~2h ago, WITHIN 24h suppression window; occurrence 15 not a 10th-multiple; fix_status needs-human unchanged since last_notified_at -> SUPPRESS gate_reason=known-issue-window, appended to docs/actionable/2026-07-10.md. See docs/investigations/2026-07-10-01290476e46a9fae.md."
+      },
+      {
+        "ts": "2026-07-10T19:11:00Z",
+        "note": "2026-07-10 19:11Z triage (degraded cycle, no Slack MCP, hash e5f6fd6695d15c72): occ#16 via monitor 127198928 last_triggered 18:11:08Z (OK by scan time). DD metric re-queried 17:45-18:15Z: single-point breach 20076ms @18:00:00Z (0.4% over 20s threshold), immediate recovery to 6932ms -- canonical one-point-then-recover shape, 16th consecutive occurrence with this signature. ES check on oauth2/gateway/authentication/identity 17:55-18:05Z: 1 hit (ms-identity-api, matches pre-documented unrelated Zapier refresh_token noise); DD RUM method-signin-ui: 0 client errors. No co-firing critical-path monitor. last_notified_at (2026-07-10T16:09:27Z) ~2h ago, WITHIN 24h suppression window; occ 16 not %10; fix_status needs-human unchanged -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-10-e5f6fd6695d15c72.md."
       }
     ]
   },
