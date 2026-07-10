@@ -1839,8 +1839,8 @@
     "id": "ki-2026-07-05-rainforest-outbound-api-p95-latency",
     "title": "[Rainforest] Outbound API P95 Latency > 3s -- runtime-core-api outbound calls to api.rainforestpay.com intermittently breach 3s p95, self-recovering, zero corroborating errors (third-party latency, not a Method-side defect)",
     "first_seen": "2026-07-05T08:31:25Z",
-    "last_seen": "2026-07-09T08:21:26Z",
-    "occurrences": 6,
+    "last_seen": "2026-07-10T20:35:25Z",
+    "occurrences": 7,
     "match": {
       "channels": [
         "alert-system",
@@ -1868,7 +1868,7 @@
     "fix_template": null,
     "confidence": 0.7,
     "owning_team": "Transactions (per ownership.md:119, Payment processing component; monitor tag team:transactions agrees)",
-    "last_notified_at": "2026-07-09T11:29:32Z",
+    "last_notified_at": "2026-07-10T20:52:00Z",
     "notes": [
       {
         "ts": "2026-07-05T15:20:44Z",
@@ -1881,6 +1881,10 @@
       {
         "ts": "2026-07-09T11:29:32Z",
         "note": "2026-07-09 11:29Z triage (degraded cycle, DD monitor scan diff, alert-system, hash b2bfc9ad674f0254): 5th occurrence, monitor 295928665 fired 2026-07-09T08:21:26Z. Re-ran evidence_query over widened 08:00-08:50Z window: 30 real datapoints, all 0.25-2.66s (peak 2.66s at 08:10:00Z), never actually crossed the 3s threshold in my ad-hoc sample (consistent with the documented sparse/near-threshold non-reproduction shape for occurrences 2/4 -- monitor's own 10m rollup evidently caught a brief spike this ad-hoc pull did not land on). 0 hits on service:runtime-core-api status:error in DD Logs for the window. last_notified_at 2026-07-07T18:08:00Z = ~38h13m ago, PAST 24h suppression window -> POST, gate_reason=null (window-expiry), last_notified_at bumped to now."
+      },
+      {
+        "ts": "2026-07-10T20:52:00Z",
+        "note": "2026-07-10 20:52Z triage (degraded cycle, DD monitor scan diff vs prior cutoff 2026-07-10T19:52:32Z, hash bc5972d67ac6a6f6): 6th occurrence, monitor 295928665 fired 2026-07-10T20:35:25Z (OK by scan time -- self-recovered). Re-ran evidence_query scope (p95:trace.http.request{env:prod,peer.hostname:api.rainforestpay.com}) over widened 20:00-20:50Z window: 5 real datapoints, all 0.21-0.25s -- well under the 3s threshold, same sparse/non-reproducible shape as occurrences 2/4/5 (monitor's own 10m rollup evidently caught a brief spike this ad-hoc pull did not land on). 0 hits on service:runtime-core-api status:error env:prod for the same window, confirming latency-only. last_notified_at 2026-07-09T11:29:32Z was ~33h23m old, PAST the 24h suppression window -> POST to #triage-results, gate_reason=null (window-expiry), last_notified_at bumped to now."
       }
     ]
   },
