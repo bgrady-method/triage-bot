@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-10T16:09:27Z",
-    "occurrences": 566,
+    "last_seen": "2026-07-10T17:07:12Z",
+    "occurrences": 567,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -403,6 +403,10 @@
       {
         "ts": "2026-07-10T15:08:18Z",
         "note": "2026-07-10 15:08Z triage (degraded cycle, no Slack MCP): occ#565, monitor 77419271 last_triggered 15:05:11Z (Warn at scan time). ES aggregate 14:50:11-15:10:11Z: 444 hits, dominant service gateway (218) -- confirms live recurrence, volume higher than the prior fire this same day (282 hits at 14:05:11Z). last_notified_at 2026-07-09T20:06:11Z was ~18h59m ago, WITHIN 24h suppression window; occ 565 not %10 -> SUPPRESS gate_reason=known-issue-window."
+      },
+      {
+        "ts": "2026-07-10T17:07:26Z",
+        "note": "2026-07-10 17:07Z triage (degraded cycle, no Slack MCP, day 8 of the read-path gap): occ#567 (566->567), monitor 77419271 last_triggered 17:07:12Z (overall_state OK by scan time -- self-recovered). ES aggregate 16:52:00-17:07:26Z (Exception.keyword:*TimedOut* OR message:*Ocelot* OR message:*ResponderMiddleware*): 215 hits, dominant service gateway (103) -- confirms live recurrence, matches the documented mechanism. last_notified_at (2026-07-09T20:06:11Z) ~21h01m ago, WITHIN 24h suppression window; occ 567 not a 10th-multiple; fix_status chronic-residual-post-rollback-2026-06-05 unchanged since last_notified_at -> SUPPRESS gate_reason=known-issue-window, appended to docs/actionable/2026-07-10.md. See docs/investigations/2026-07-10-132d2a9eee2312b0.md."
       }
     ]
   },
@@ -1872,8 +1876,8 @@
     "id": "ki-2026-07-06-rainforest-merchant-details-503-serviceunavailable",
     "title": "runtime-core-api Rainforest GetMerchantAsync (merchant-details lookup) fails with ServiceUnavailable when Rainforest's own API returns a 503 -- third-party payment-processor degradation, not a Method-side defect",
     "first_seen": "2026-07-06T13:02:25Z",
-    "last_seen": "2026-07-06T13:03:52Z",
-    "occurrences": 1,
+    "last_seen": "2026-07-10T16:36:52Z",
+    "occurrences": 2,
     "match": {
       "channels": [
         "alert-system"
@@ -1903,11 +1907,15 @@
     "fix_template": null,
     "confidence": 0.85,
     "owning_team": "Transactions",
-    "last_notified_at": "2026-07-06T13:11:37Z",
+    "last_notified_at": "2026-07-10T17:07:26Z",
     "notes": [
       {
         "ts": "2026-07-06T13:11:37Z",
         "note": "2026-07-06 13:11Z triage (degraded cycle, no Slack MCP): first-ever fire of DD monitor 295882732 at 13:03:52Z (Alert state, active at scan time), grouped with sibling monitor 295882894 (Webhook Traffic Outage, last_triggered 13:01:01Z, recovered to OK) as one root-cause investigation -- both Rainforest-tagged (team:transactions), 2min51s apart, no other channel/service co-fire. ES confirmed 2 error hits (13:02:25Z, account totalfeedsinc) with a clean third-party root cause (Rainforest API 503 ServiceUnavailable on GetMerchantAsync). Metric API (dd_search.py metric) could not independently confirm the monitor's own error-rate ratio this cycle -- every query attempt (regardless of from/to window) returned HTTP query error 'Invalid query input: query start is in the future', a tooling/environment-clock mismatch between this sandbox's system clock and Datadog's real backend clock, not a real query failure; flagging as a tooling gap for future cycles, substituted ES + account_impact.py for corroboration instead. account_impact.py: totalfeedsinc on prod3/4/5 (clusters_unconfigured) -> not_found, user_count_source=named_only (best-effort, likely undercounts true Rainforest-payment-flow exposure since any account using Rainforest could theoretically be affected during a platform-wide third-party blip, but only 1 account has direct evidence this occurrence). Created this KB entry now (confidence 0.85) so future recurrences of this specific monitor are recognized without re-deriving the stack trace. Scored: critical_path_services(+3, runtime-core) + group_size=2(+1) + novel_no_kb(+2) = 6 >= threshold(4) -> POSTED to #triage-results, gate_reason=scored. Daily cap 4/5 after this post. See docs/investigations/2026-07-06-54ba4734132656d0.md."
+      },
+      {
+        "ts": "2026-07-10T17:07:26Z",
+        "note": "2026-07-10 17:07Z triage (degraded cycle, no Slack MCP, day 8 of the read-path gap): 2nd-ever fire of DD monitor 295882732, last_triggered 16:36:52Z (OK at scan time -- self-recovered). Different specific error signature than the founding occurrence: this time a 400 BadRequest on 'Rainforest API create payment method payin request failed' (RainforestProvider.CreatePaymentMethodPayinAsync path, not GetMerchantAsync/ServiceUnavailable) for account topstitchoffloridainc2, single request (RequestId bf3b829e). Same monitor, same third-party-outbound-error mechanism (peer.hostname:api.rainforestpay.com returning a non-2xx), different endpoint/status code -- treating as the same KB entry (monitor-scoped match) rather than a new entry since the root-cause class is identical ('Rainforest's own API returned an error status'), not a Method-side regression. DD metric on the monitor's own ratio query: single 100% bucket at 16:25:00Z (1-of-1 request in that 10s bucket was non-2xx), all other buckets 0.0 -- consistent with a single-request blip, not sustained degradation. ES aggregate 16:22:00-16:52:00Z (fields.dd_service.keyword:\"runtime-core-api\" AND message:*rainforest*): 1 hit, matching the sampled record above. No sibling Rainforest monitor (295882894 webhook, 295928665 P95 latency) co-fired this window -- isolated to the error-rate monitor. account_impact.py: topstitchoffloridainc2 on prod3/4/5 (clusters_unconfigured) -> not_found, same tooling gap as the founding occurrence. Extrapolation: not warranted -- single-request, third-party-validation-dependent event, no broader pattern. last_notified_at (2026-07-06T13:11:37Z) ~4 days ago, past 24h suppression window -> POST to #triage-results, gate_reason=null, last_notified_at bumped to now. See docs/investigations/2026-07-10-43d6fa54ef609e1c.md."
       }
     ]
   },
