@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-10T18:32:12Z",
-    "occurrences": 568,
+    "last_seen": "2026-07-10T19:28:12Z",
+    "occurrences": 569,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -157,7 +157,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.88,
-    "last_notified_at": "2026-07-09T20:06:11Z",
+    "last_notified_at": "2026-07-10T20:22:00Z",
     "prior_fix_status": "needs-ops-decision",
     "notes": [
       {
@@ -411,6 +411,10 @@
       {
         "ts": "2026-07-10T19:11:00Z",
         "note": "2026-07-10 19:11Z triage (degraded cycle, no Slack MCP, hash 8a24f0d59cb7eba4): occ#568 via monitor 77419271 last_triggered 18:32:12Z (OK by scan time). Matched via its declared match.channels=alert-frontend-errors (not the synthetic alert-system log channel) -- match_kb.py channel filter is a hard gate, re-ran with the correct channel after an initial no-match, per established procedure. ES aggregate (Exception.keyword:*TimedOut* OR message:*Ocelot* OR message:*ResponderMiddleware*, 18:17:12-18:32:12Z): 239 hits, dominant service gateway (106) -- live recurrence at chronic steady-state magnitude (no surge signal vs the documented 2026-06-04 100x-baseline deploy-correlated surge). last_notified_at (2026-07-09T20:06:11Z) ~23h03m ago, WITHIN 24h suppression window (barely); occ 568 not %10; fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-10-8a24f0d59cb7eba4.md."
+      },
+      {
+        "ts": "2026-07-10T20:22:00Z",
+        "note": "2026-07-10 20:22Z triage (degraded cycle, no Slack MCP, day 8 of the read-path gap, hash 69576049d308cd67): occ#569 via monitor 77419271 last_triggered 19:28:12Z (OK by scan time -- self-recovered). Matched via its declared match.channels=alert-frontend-errors (not the synthetic alert-system log channel) -- re-ran with the correct channel per established procedure. ES aggregate (Exception.keyword:*TimedOut* OR message:*Ocelot* OR message:*ResponderMiddleware*, 19:13:12-19:28:12Z): 221 hits, dominant service gateway (109) -- live recurrence at chronic steady-state magnitude, no surge signal. No co-firing ki-24 (runtime-core-rtc-p95-recurring) monitor this cycle -- 115456700/117279738 did not re-fire since the prior cutoff, so the precedence_note's shared-upstream cross-check doesn't apply this occurrence. last_notified_at (2026-07-09T20:06:11Z) ~24h16m ago, PAST 24h suppression window -> POST to #triage-results (gate_reason=null), last_notified_at bumped to 2026-07-10T20:22:00Z. See docs/investigations/2026-07-10-69576049d308cd67.md."
       }
     ]
   },
