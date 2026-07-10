@@ -1326,8 +1326,8 @@
     "id": "ki-2026-07-03-ms-scheduler-api-seriesid-negative-recordid",
     "title": "ms-scheduler-api GetSeriesAsync throws InvalidOperationException when called with recordId=-1 (chronic, code-level missing-guard bug, now confirmed across multiple accounts, ~10-21+/day for 7+ days)",
     "first_seen": "2026-06-26T00:00:00Z",
-    "last_seen": "2026-07-08T11:32:02Z",
-    "occurrences": 138,
+    "last_seen": "2026-07-10T12:06:33Z",
+    "occurrences": 139,
     "match": {
       "channels": [
         "alert-system"
@@ -1347,6 +1347,9 @@
         },
         {
           "contains": "monitors/303056222"
+        },
+        {
+          "contains": "monitors/303750093"
         }
       ]
     },
@@ -1360,7 +1363,7 @@
     "fix_template": null,
     "confidence": 0.8,
     "owning_team": "CRM Experience",
-    "last_notified_at": "2026-07-08T12:14:41Z",
+    "last_notified_at": "2026-07-10T12:08:35Z",
     "notes": [
       {
         "ts": "2026-07-03T13:09:00Z",
@@ -1405,6 +1408,10 @@
       {
         "ts": "2026-07-08T11:32:02Z",
         "note": "2026-07-08 12:14Z triage (degraded cycle, no Slack MCP; hash 9935e18fbc816408): 138th occurrence, monitor 303056222 last_triggered 11:32:02Z, self-recovered (OK) by scan time -- the only new item in this cycle's full 179-monitor scan (post the prior cycle's 11:03:41Z cutoff). Corrected ES search (fields.dd_service.keyword:\"ms-scheduler-api\", 11:22:02Z-11:42:02Z, since the KB's declared aggregate query on fields.Error.keyword remains 0-bucket -- documented field-name mismatch, still unresolved) = 2 hits, both account lafittesseafood, identical GetSeriesIdAsync(recordId=-1) signature. DD metric re-check on the monitor's own eval window: 2 errors / 241 hits = 0.83%, already back under the 2% threshold -- same marginal/self-recovering shape as every prior occurrence. last_notified_at was 2026-07-07T12:10:00Z, ~24h5m ago -- EXCEEDS the 24h suppression_window_hours -> POST to #triage-results per the window-expiry gate (gate_reason=null), last_notified_at bumped to now. See docs/investigations/2026-07-08-9935e18fbc816408.md."
+      },
+      {
+        "ts": "2026-07-10T12:08:35Z",
+        "note": "2026-07-10 12:08Z triage (degraded cycle, no Slack MCP; hash 3f733fb911aeeab7): 139th occurrence. Monitor ID rotated again -- 303056222 (last seen 2026-07-08) no longer appears in this cycle's 179-monitor scan, replaced by 303750093 (created_at 2026-07-08T14:36:24Z, i.e. it already existed for 2 days before first firing). This rotation also came with a re-tune: name gained a [P1] priority prefix and the trigger threshold was raised from >2% to critical:5.0/warning:3.0 (query now errors/(hits+1)*100 > 5). Added 'monitors/303750093' to match.any_of. DD metric re-check on the burst-containing eval window (11:47:10Z-11:57:10Z, found by scanning a wider 11:30-12:08Z band for the actual error cluster since the monitor's own last_10m window ending at last_triggered_ts 12:06:33Z only caught the tail): 11 errors / 288 hits = 3.81% -- crossed the new 3% warning threshold but stayed under the new 5% critical threshold, consistent with overall_state:OK (never hit hard Alert). Raw ES search over the same window confirmed 11 hits, all identical 'Failed to Get Series Id for record -1 in table Activity' / SeriesDataProvider.cs:143/123 signature. Account breakdown: ALL 11 hits on lafittesseafood (the original account) -- reverts to single-account shape after several recent occurrences broadened to 7-12 distinct accounts; no new accounts this cycle. last_notified_at was 2026-07-08T12:14:41Z, ~47h54m ago -- EXCEEDS the 24h suppression_window_hours -> POST to #triage-results per the window-expiry gate (gate_reason=null), last_notified_at bumped to now. See docs/investigations/2026-07-10-3f733fb911aeeab7.md."
       }
     ]
   },
