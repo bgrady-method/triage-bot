@@ -1567,8 +1567,8 @@
     "id": "ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap",
     "title": "New team:crm AMQP-consumer heartbeat/throughput-stall monitors (5 sibling IDs, created 2026-07-02) intermittently trip on quiet-period low-traffic dips, then self-recover within minutes \u2014 no corroborating errors",
     "first_seen": "2026-07-04T13:07:31Z",
-    "last_seen": "2026-07-11T17:54:31Z",
-    "occurrences": 45,
+    "last_seen": "2026-07-11T20:05:31Z",
+    "occurrences": 46,
     "match": {
       "channels": [
         "alert-system",
@@ -1703,6 +1703,10 @@
       {
         "ts": "2026-07-11T18:15:00Z",
         "note": "2026-07-11 18:15Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-11T17:00:31Z cutoff): monitor 302057011 ('[CRM] runtime-core-subscriber throughput dropped (possible stall)') fired again 2026-07-11T17:54:31Z, hash 05de6605edcd456d, occurrences -> 45. DD metric sum:trace.amqp.command.hits{service:runtime-core-subscriber,env:prod}.as_rate(), 17:24:31-17:54:31Z: mostly sub-5msg/s baseline with periodic clearing bursts (74.2, 50.7, 34.5/23.9, 29.7/139/137/84.2msg/s at scattered points), ending with a 46.9msg/s clearing burst immediately at 17:54:00Z -- canonical quiet-period-flap shape, matching all 44 prior occurrences. 0 service:runtime-core-subscriber status:error DD logs this window. Self-recovered to OK by scan time. No sibling monitor in the 5-monitor family co-fired this cycle (full 179-monitor scan, no other family member had a last_triggered_ts newer than cutoff). last_notified_at (2026-07-11T11:20:00Z) = ~6h34m ago, WITHIN 24h suppression window; occurrence 45 not %10; fix_status unchanged -> SUPPRESS gate_reason=known-issue-window, appended to docs/actionable/2026-07-11.md. See docs/investigations/2026-07-11-05de6605edcd456d.md."
+      },
+      {
+        "ts": "2026-07-11T20:08:00Z",
+        "note": "2026-07-11 20:08Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-11T18:11:08Z cutoff): monitor 302057011 ('[CRM] runtime-core-subscriber throughput dropped (possible stall)') fired 2026-07-11T20:05:31Z, hash 4f6f83e13f036f25, occurrences -> 46. DD metric sum:trace.amqp.command.hits{service:runtime-core-subscriber,env:prod}.as_rate(), 19:35:31-20:05:31Z: mostly sub-5msg/s baseline with scattered brief bursts (up to ~74.1msg/s at 19:39:20Z, smaller bursts elsewhere) -- canonical quiet-period-flap shape, matching all 45 prior occurrences. 0 service:runtime-core-subscriber status:error DD logs this window. Self-recovered to OK by scan time. No sibling monitor in the 5-monitor family co-fired this cycle (full 179-monitor scan, only this one plus the unrelated signin monitor 127198928 had a last_triggered_ts newer than cutoff). last_notified_at (2026-07-11T11:20:00Z) = ~8h45m ago, WITHIN 24h suppression window; occurrence 46 not %10; fix_status unchanged -> SUPPRESS gate_reason=known-issue-window, appended to docs/actionable/2026-07-11.md. See docs/investigations/2026-07-11-4f6f83e13f036f25.md."
       }
     ]
   },
@@ -2180,8 +2184,8 @@
     "id": "ki-2026-07-06-synthetics-signin-transient-step-duration-spike",
     "title": "[Synthetics] Sign in to Method step-duration monitor (127198928) intermittently spikes >20s for a single test run then self-recovers, with no corroborating error signal on any critical-path service",
     "first_seen": "2026-05-27T19:02:08Z",
-    "last_seen": "2026-07-11T18:11:08Z",
-    "occurrences": 17,
+    "last_seen": "2026-07-11T19:41:08Z",
+    "occurrences": 18,
     "match": {
       "channels": [
         "alert-system"
@@ -2247,6 +2251,10 @@
       {
         "ts": "2026-07-11T18:15:00Z",
         "note": "2026-07-11 18:15Z triage (degraded cycle, no Slack MCP, day 9; DD monitor scan diff vs prior cycle cutoff 2026-07-11T17:00:31Z, hash 61abbc18dc4e61c6): occ#17 via monitor 127198928 last_triggered 18:11:08Z (OK by scan time). DD metric avg:synthetics.browser.step.duration{step_id IN (447-as9-ktg,x93-d6z-ir9,3w5-4fp-rsq,rrq-u73-wwr)} re-queried 17:54:28Z-18:25:00Z: single-point breach 21518ms @18:00:00Z (7.6% over the 20s threshold), immediate recovery to 5216ms next run -- canonical one-point-then-recover shape, 17th consecutive occurrence with this signature. Checked co-firing: all team:admin gateway/oauth2/ms-authentication-api/ms-identity-api/signin monitors OK with last_triggered_ts stale by 1-7 days, none near 18:00-18:11Z. ES aggregate level:Error oauth2.identity.server/ms-gateway-api/ms-authentication-api/ms-identity-api 17:55:00-18:05:00Z: 0 hits (cleaner than several recent occurrences which had 1-3 unrelated Zapier/guest-lookup hits). DD RUM errortracking service:method-signin-ui 17:55-18:05Z: 0 client errors. last_notified_at (2026-07-10T16:09:27Z) was ~26h ago -- PAST the 24h suppression window (first time this entry has crossed it since the 2026-07-06 21:29Z first-notify) -> POST to #triage-results, gate_reason=null, last_notified_at bumped to 2026-07-11T18:15:00Z. Posted per v0.8 routing (channel post, not DM). See docs/investigations/2026-07-11-61abbc18dc4e61c6.md."
+      },
+      {
+        "ts": "2026-07-11T20:08:00Z",
+        "note": "2026-07-11 20:08Z triage (degraded cycle, no Slack MCP, day 9; DD monitor scan diff vs prior cycle cutoff 2026-07-11T18:11:08Z, hash efc78e42bcd14c19): occ#18 via monitor 127198928 last_triggered 19:41:08Z (OK by scan time). DD metric avg:synthetics.browser.step.duration{step_id IN (447-as9-ktg,x93-d6z-ir9,3w5-4fp-rsq,rrq-u73-wwr)} re-queried 19:26:08Z-19:56:08Z: single-point breach 20141ms @19:30:00Z (0.7% over the 20s threshold -- the smallest margin documented yet), recovered to 7763ms then 6856ms on the next two runs -- canonical one-point-then-recover shape, 18th consecutive occurrence with this signature. Checked co-firing: no team:admin gateway/oauth2/ms-authentication-api/ms-identity-api/signin monitor appeared in this cycle's newer-than-cutoff set. ES aggregate level:Error oauth2.identity.server/ms-gateway-api/ms-authentication-api/ms-identity-api 19:35:00-19:47:00Z: 0 hits. DD RUM errortracking service:method-signin-ui 19:35:00-19:47:00Z: 0 client errors. last_notified_at (2026-07-11T18:15:00Z) was ~1h26m ago -- WITHIN the 24h suppression window; occurrence 18 not %10; fix_status needs-human unchanged -> SUPPRESS, gate_reason=known-issue-window, appended to docs/actionable/2026-07-11.md. See docs/investigations/2026-07-11-efc78e42bcd14c19.md."
       }
     ]
   },
