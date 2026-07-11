@@ -1245,8 +1245,8 @@
     "id": "ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata",
     "title": "\"Method UI Grid and Dropdown Performance Test\" synthetics (team:qa, non-prod, 5 monitor-ID variants: Day run / Day run 2 / Evening run / Midnight run / Release Run) chronically go No Data; never correlates to a real incident",
     "first_seen": "2026-05-02T13:46:00Z",
-    "last_seen": "2026-07-11T12:30:00Z",
-    "occurrences": 63,
+    "last_seen": "2026-07-11T13:50:50Z",
+    "occurrences": 65,
     "match": {
       "channels": [
         "alert-system"
@@ -1387,6 +1387,14 @@
       {
         "ts": "2026-07-11T13:12:38Z",
         "note": "2026-07-11 13:12Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-11T11:59:19Z cutoff): Midnight run variant (123495390) No Data 12:30:00Z, still No Data at scan time -- 63rd documented occurrence. Same confirmed non-prod QA-synthetics noise, no co-firing signal with any prod service this cycle. Synthetic hash 91dd12564107ba0a (channel CPHHABKAA + DD monitor ts 2026-07-11T12:30:00+00:00). last_notified_at (2026-07-11T11:20:00Z) = ~1h52m ago -- WITHIN 24h suppression window and 63 is not a 10th-occurrence multiple -> SUPPRESSED, gate_reason=known-issue-window, appended to docs/actionable/2026-07-11.md. See docs/investigations/2026-07-11-91dd12564107ba0a.md."
+      },
+      {
+        "ts": "2026-07-11T14:08:00Z",
+        "note": "2026-07-11 14:08Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-11T13:04:18Z cutoff): monitor 121308660 ('[Synthetics] Method UI Grid and Dropdown Performance Test Day run') fired 2026-07-11T13:46:00Z, hash d263e09c73d70558, occurrences -> 64. DD monitor overall_state=OK at scan time (recovered) -- entry's own evidence_query is monitor-state-based (fix_status: confirmed-non-prod-noise); no fresh query needed beyond current state. Sibling monitor 133625690 ('Day run 2') also fired 4m50s later this same cycle, processed as its own singleton group. last_notified_at (2026-07-11T11:20:00Z) = ~2h26m ago, WITHIN 24h suppression window; occurrence 64 not %10 -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-11-d263e09c73d70558.md."
+      },
+      {
+        "ts": "2026-07-11T14:08:00Z",
+        "note": "2026-07-11 14:08Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-11T13:04:18Z cutoff): monitor 133625690 ('[Synthetics] Method UI Grid and Dropdown Performance Test Day run 2') fired 2026-07-11T13:50:50Z, hash b358623e246033e9, occurrences -> 65. DD monitor overall_state=OK at scan time (recovered) -- same synthetic-test family, sibling of 121308660 which fired 4m50s earlier this same cycle (also suppressed). Entry's evidence is monitor-state based (fix_status: confirmed-non-prod-noise). last_notified_at (2026-07-11T11:20:00Z, unchanged -- sibling processed immediately before this in the same cycle was also suppressed, not a resurface) = ~2h31m ago, WITHIN 24h suppression window; occurrence 65 not %10 -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-11-b358623e246033e9.md."
       }
     ]
   },
@@ -1559,8 +1567,8 @@
     "id": "ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap",
     "title": "New team:crm AMQP-consumer heartbeat/throughput-stall monitors (5 sibling IDs, created 2026-07-02) intermittently trip on quiet-period low-traffic dips, then self-recover within minutes \u2014 no corroborating errors",
     "first_seen": "2026-07-04T13:07:31Z",
-    "last_seen": "2026-07-11T11:05:21Z",
-    "occurrences": 42,
+    "last_seen": "2026-07-11T13:24:31Z",
+    "occurrences": 43,
     "match": {
       "channels": [
         "alert-system",
@@ -1683,6 +1691,10 @@
       {
         "ts": "2026-07-11T11:20:00Z",
         "note": "2026-07-11 degraded-cycle catch-up triage (no Slack MCP read path, DD-monitor-scan-diff fallback): monitor 302055141 ('[CRM] method-mobile-notifications-subscriber heartbeat consumer silent') fired 2026-07-11T11:05:21Z, hash 2e03d61186f55995, occurrences -> 42. DD monitor overall_state=OK at scan time (self-recovered); same monitor family as 302057011 (11min prior, posted this cycle) -- within the window that post just (re)opened. Note: monitor's own name carries a [CRM] prefix but ownership.md's Ownership-by-Project table maps the underlying project (mobile-notifications-stack) to Admin, not CRM Experience -- recorded as Admin per the authoritative table; flagging the naming discrepancy. Gate: suppressed (known-issue-window), logged to docs/actionable/2026-07-11.md."
+      },
+      {
+        "ts": "2026-07-11T14:08:00Z",
+        "note": "2026-07-11 14:08Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-11T13:04:18Z cutoff): monitor 302057011 ('[CRM] runtime-core-subscriber throughput dropped (possible stall)') fired 2026-07-11T13:24:31Z, hash 5cae0a36ef5a7aba, occurrences -> 43. DD metric sum:trace.amqp.command.hits{service:runtime-core-subscriber,env:prod}.as_rate(), 12:54:31-13:24:31Z: rate holds ~100-112/s until ~12:57:00Z, drops to a sustained sub-10/s trough through ~13:21:40Z, then a clearing burst (66-99/s) -- canonical quiet-period-flap shape, matching all 42 prior occurrences. 0 service:runtime-core-subscriber status:error DD logs this window. No sibling monitor in the 5-monitor family co-fired this cycle. last_notified_at (2026-07-11T11:20:00Z) = ~2h48m ago, WITHIN 24h suppression window; occurrence 43 not %10; fix_status unchanged -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-11-5cae0a36ef5a7aba.md."
       }
     ]
   },
@@ -1855,8 +1867,8 @@
     "id": "ki-2026-07-04-synthetics-release-browser-step-duration-nodata",
     "title": "\"[Synthetics] [Release] *\" browser-step-duration checks (team:qa-adjacent, non-prod, 6 monitor-ID variants: Sign in to Method / Loading Contacts Drop-down / Search for Activities / Open Activity / Load Activities App / Navigate to Method Sign In) chronically go No Data; never correlates to a real incident",
     "first_seen": "2026-05-06T13:52:10Z",
-    "last_seen": "2026-07-06T12:31:32Z",
-    "occurrences": 7,
+    "last_seen": "2026-07-11T13:52:31Z",
+    "occurrences": 8,
     "match": {
       "channels": [
         "alert-system"
@@ -1895,7 +1907,7 @@
     "fix_template": null,
     "confidence": 0.85,
     "owning_team": "unmapped",
-    "last_notified_at": "2026-07-06T13:11:37Z",
+    "last_notified_at": "2026-07-11T13:52:31Z",
     "notes": [
       {
         "ts": "2026-07-04T14:09:20Z",
@@ -1904,6 +1916,10 @@
       {
         "ts": "2026-07-06T12:31:32Z",
         "note": "2026-07-06 13:11Z triage (degraded cycle, no Slack MCP): monitor 142763851 (Navigate to Method Sign In) recovered to OK by scan time, last_triggered 12:31:32Z -- 7th documented occurrence. Same confirmed non-prod release-pipeline synthetic noise, no co-firing signal with any prod service. First-ever notify for this entry (last_notified_at was null) -> POSTED to #triage-results as a one-time housekeeping confirmation (same pattern as the sibling grid-dropdown entry's first notify). Synthetic hash ca56aff8f59ab7f0 (channel CPHHABKAA + DD monitor ts 2026-07-06T12:31:32Z). See docs/investigations/2026-07-06-ca56aff8f59ab7f0.md."
+      },
+      {
+        "ts": "2026-07-11T14:08:00Z",
+        "note": "2026-07-11 14:08Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-11T13:04:18Z cutoff): monitor 142763851 ('[Synthetics] [Release] Navigate to Method Sign In') fired 2026-07-11T13:52:31Z, hash 8a76353cc6bcd06c, occurrences -> 8. DD monitor overall_state=No Data at scan time; DD logs status:error env:prod on ms-authentication-api/ms-gateway-api/oauth2 for the window = 0 hits, no co-firing signal on the sign-in critical path. Same confirmed non-prod release-pipeline synthetic noise. last_notified_at (2026-07-06T13:11:37Z) = ~121h ago, EXCEEDED 24h suppression window -> POST, gate_reason=null (window-expiry), last_notified_at bumped to 2026-07-11T13:52:31Z. See docs/investigations/2026-07-11-8a76353cc6bcd06c.md."
       }
     ]
   },
