@@ -426,8 +426,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-07-12T09:51:20Z",
-    "occurrences": 232,
+    "last_seen": "2026-07-12T14:41:18Z",
+    "occurrences": 233,
     "match": {
       "channels": [
         "alert-system",
@@ -468,7 +468,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.85,
-    "last_notified_at": "2026-07-11T11:20:00Z",
+    "last_notified_at": "2026-07-12T14:41:18Z",
     "prior_last_notified_at": "2026-07-07T14:08:20Z",
     "notes": [
       {
@@ -594,6 +594,10 @@
       {
         "ts": "2026-07-12T09:51:20Z",
         "note": "2026-07-12 triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-11T21:54:31Z cutoff): 2 fires this cycle, occ 230->232. (1) hash 7885b9fc2a22f520, monitor 117279738 (RTC Action Execution) fired 06:32:18Z, occ 231: p95 06:22:18-06:32:18Z ranged 0.03-1.4s, chronic flicker. (2) hash adb2c593c70bd2f4, monitor 115456700 (RTC Screen Load) fired 09:51:20Z, occ 232: p95 09:41:20-09:51:20Z ranged 0.04-0.47s. Both suppressed, known-issue-window (last_notified_at 19h12m-22h31m old, neither crossed 24h or a 10th-occurrence boundary). See docs/investigations/2026-07-12-7885b9fc2a22f520.md, -adb2c593c70bd2f4.md."
+      },
+      {
+        "ts": "2026-07-12T14:41:18Z",
+        "note": "2026-07-12 triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-12T14:09:07Z cutoff; hash 08ff4f26effa4299): monitor 117279738 (RTC Action Execution) fired 14:41:18Z, occ 232->233. p95 14:11:18-14:41:18Z: 6 of 175 points exceeded the 3.0s threshold, peak 4.16s at 14:31:40Z; 0 DD error logs -- genuine transient spike, matching the documented shape. last_notified_at (2026-07-11T11:20:00Z) ~27h21m old, EXCEEDED 24h suppression window -> POST, gate_reason=null (window-expiry), last_notified_at bumped to 2026-07-12T14:41:18Z. See docs/investigations/2026-07-12-08ff4f26effa4299.md."
       }
     ]
   },
@@ -1591,8 +1595,8 @@
     "id": "ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap",
     "title": "New team:crm AMQP-consumer heartbeat/throughput-stall monitors (5 sibling IDs, created 2026-07-02) intermittently trip on quiet-period low-traffic dips, then self-recover within minutes \u2014 no corroborating errors",
     "first_seen": "2026-07-04T13:07:31Z",
-    "last_seen": "2026-07-12T14:05:31Z",
-    "occurrences": 52,
+    "last_seen": "2026-07-12T15:04:31Z",
+    "occurrences": 54,
     "match": {
       "channels": [
         "alert-system",
@@ -1747,6 +1751,14 @@
       {
         "ts": "2026-07-12T12:07:00Z",
         "note": "2026-07-12 12:07Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-12T10:56:21Z cutoff): monitor 302055141 (method-mobile-notifications-subscriber heartbeat) fired 12:04:22Z, hash 0228bfbae7990f34, occ 50->51. DD metric avg:trace.amqp.command.hits{service:method-mobile-notifications-subscriber,env:prod}.as_rate() 11:44:22-12:04:22Z: 3 datapoints (0.186, 0.186, 0.10 msg/s), all comfortably above the <0.005 alert threshold -- consumer actively processing at scan time, canonical quiet-period-flap self-recovery. last_notified_at (2026-07-12T10:56:21Z) ~1h08m ago, WITHIN 24h suppression window; occurrence 51 not %10 -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-12-0228bfbae7990f34.md."
+      },
+      {
+        "ts": "2026-07-12T14:26:21Z",
+        "note": "2026-07-12 triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-12T14:09:07Z cutoff; hash ec42f54f98c13854): monitor 302055141 (method-mobile-notifications-subscriber heartbeat) fired 14:26:21Z, occ 52->53. Sparse metric sampling (3 points, 13:56:21-14:26:21Z) didn't directly catch the sub-threshold dip but monitor self-recovered to OK by scan time; 0 DD error logs -- same disproof shape as prior occurrences. last_notified_at (2026-07-12T10:56:21Z) ~3h30m old, WITHIN 24h suppression window; occ 53 not %10 -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-12-ec42f54f98c13854.md."
+      },
+      {
+        "ts": "2026-07-12T15:04:31Z",
+        "note": "2026-07-12 triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-12T14:09:07Z cutoff; hash 7029efd9a59731f6): monitor 302057011 (runtime-core-subscriber throughput) fired 15:04:31Z, occ 53->54. Metric 14:34:31-15:04:31Z: 91 of 174 points below the 2 msg/s threshold, min 0.1 at 14:57:50Z close to fire time -- genuine quiet-period dip; 0 DD error logs. Still Alert state at scan time (not yet confirmed self-recovered). last_notified_at (2026-07-12T10:56:21Z, unchanged by the earlier same-cycle group ec42f54f98c13854 which also suppressed) ~4h08m old, WITHIN 24h suppression window; occ 54 not %10 -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-12-7029efd9a59731f6.md."
       }
     ]
   },
@@ -2756,6 +2768,49 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.6
+  },
+  {
+    "id": "ki-2026-07-12-designer-core-api-throughput-anomaly-monitor-noise",
+    "title": "designer-core-api abnormal-throughput-change anomaly monitor (115452625, team:poiesis) fires on normal low-volume traffic -- no error signal, no confirmed spike/drop at either documented occurrence",
+    "first_seen": "2026-07-10T09:53:25Z",
+    "last_seen": "2026-07-12T14:11:26Z",
+    "occurrences": 2,
+    "match": {
+      "channels": [
+        "alert-system",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/115452625"
+        },
+        {
+          "contains": "designer-core-api has an abnormal change in throughput"
+        }
+      ]
+    },
+    "evidence_source": "datadog_apm",
+    "evidence_query": "sum:trace.aspnet_core.request.hits{env:prod,service:designer-core-api}.as_count() -- re-run over the fire's 30-40min pre-fire window; the monitor itself is a weekly-seasonality anomaly detector (avg(last_4h):anomalies(sum:trace.aspnet_core.request.hits{env:prod,service:designer-core-api}.as_count(), 'agile', 3, direction='both', interval=60, alert_window='last_15m', seasonality='weekly', timezone='utc', count_default_zero='true') >= 1) whose own baseline band isn't exposed by dd_search.py metric -- the absolute-count query is a proxy, not the detector's actual signal.",
+    "evidence_threshold_s": null,
+    "evidence_note": "Anomaly-detector-sourced, not a fixed-threshold breach -- there is no single number to compare against. Confirm the shape (steady low-absolute traffic 1-10 hits/20s bucket, no visible spike/drop near the fire timestamp) and 0 error logs. Do NOT build a Kibana log link unless a 3rd occurrence actually surfaces an ES/error signal.",
+    "diagnosis": "DD monitor 115452625 ('Service designer-core-api has an abnormal change in throughput on env:prod', team:poiesis) uses a weekly-seasonality anomaly detector on request-hit count. Both documented occurrences (2026-07-10T09:53:25Z and 2026-07-12T14:11:26Z) show the same shape: designer-core-api serves low absolute traffic (roughly 1-10 requests per 20s bucket), 0 error logs, 0 ES hits, and no visible spike or drop in the raw count around the fire timestamp. Most likely a low-traffic-window false-positive from the relative-deviation anomaly algorithm rather than a genuine throughput incident -- same theory as the ki-2026-07-04/07-07 monitor-noise sibling entries, though the detector's own baseline band was not directly queryable either time, so this remains unconfirmed rather than proven.",
+    "playbook": "1) Confirm shape: monitor 115452625 in Alert (or recently-recovered) state. 2) Run `dd_search.py metric --query 'sum:trace.aspnet_core.request.hits{env:prod,service:designer-core-api}.as_count()'` over the fire's pre-fire window -- expect steady low counts (1-10/20s bucket), no dramatic absolute change at the fire timestamp. 3) Check `service:designer-core-api status:error env:prod` DD Logs -- expect 0 hits, consistent with both documented occurrences. 4) If a future occurrence instead shows a real absolute spike/drop or a nonzero error signal, treat as a break from this pattern and escalate immediately rather than assuming noise -- this entry has only 2 occurrences, thinner evidence than the sibling monitor-noise entries.",
+    "fix_status": "monitoring-noise-suspected-unconfirmed",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.7,
+    "owning_team": "No Code Next Gen",
+    "last_notified_at": null,
+    "notes": [
+      {
+        "ts": "2026-07-10T09:53:25Z",
+        "note": "1st occurrence: docs/investigations/2026-07-10-b1028af66e639ae0.md. Scored 2 (novel_no_kb only) -> actionable-append, gate_reason=low-impact. Not yet a KB entry -- recommendation at the time was to hold off until a 2nd occurrence confirmed the shape."
+      },
+      {
+        "ts": "2026-07-12T14:11:26Z",
+        "note": "2026-07-12 triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-12T14:09:07Z cutoff; hash 6c159a4f919c7bb1): 2nd occurrence, ~2 days after the 1st, identical shape (steady 1-10 hits/20s bucket, no visible spike/drop near the 14:11:26Z fire, 0 DD error logs, 0 ES hits). Still in `Alert` state at scan time (not yet self-recovered, unlike the 1st occurrence). Created this KB entry now (confidence 0.7, 2 consistent occurrences) following the same 2nd-occurrence-creates-the-entry precedent used for ki-2026-07-04-ms-account-api-4xx-spike-monitor-noise / ki-2026-07-07-gateway-4xx-spike-monitor-noise / ki-2026-07-07-notifications-p95-latency-monitor-noise. This specific fire pre-dates the KB entry (match_kb.py ran before this write) so it stays classified needs-human, scored 2 (novel_no_kb) -> actionable-append, gate_reason=low-impact. See docs/investigations/2026-07-12-6c159a4f919c7bb1.md."
+      }
+    ]
   },
   {
     "id": "ki-2026-07-12-rest-api-tables-endpoint-5xx-recurring-burst",
