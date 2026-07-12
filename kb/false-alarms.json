@@ -163,11 +163,11 @@
         }
       ]
     },
-    "reason": "Monitor query is avg(last_15m):avg:trace.aspnet.request{env:prod,service:signup} > 5. This fired at 05:55:41Z despite raw points in the monitor's own exact 15-min evaluation window (05:40:41-05:55:41Z) showing 0.003-0.43s -- nowhere near the 5s threshold. Only 7 requests in the window (low traffic), consistent with a sparse-data average-computation artifact rather than a real latency incident. Same low-traffic-noise theme already documented for two other signup monitors (154163500, 154252126).",
+    "reason": "Monitor query is avg(last_15m):avg:trace.aspnet.request{env:prod,service:signup} > 5. This fired at 05:55:41Z despite raw points in the monitor's own exact 15-min evaluation window (05:40:41-05:55:41Z) showing 0.003-0.43s -- nowhere near the 5s threshold. Only 7 requests in the window (low traffic), consistent with a sparse-data average-computation artifact rather than a real latency incident. Same low-traffic-noise theme already documented for two other signup monitors (154163500, 154252126). Recurred 2026-07-12T11:39:41Z: 9 requests in window, one 14.40s outlier (11:27:30Z) among near-zero-latency requests dragged the 15-min average over threshold -- same mechanism.",
     "silence_for": "24h",
     "first_seen": "2026-07-12T05:55:41Z",
-    "last_seen": "2026-07-12T05:55:41Z",
-    "occurrences": 1,
+    "last_seen": "2026-07-12T11:39:41Z",
+    "occurrences": 2,
     "recommendation": "widen the evaluation window, switch to p95/p99 with a minimum-request-volume floor, or consolidate under one review with the other two noisy signup monitors"
   },
   {

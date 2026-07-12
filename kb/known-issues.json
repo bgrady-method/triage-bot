@@ -1587,8 +1587,8 @@
     "id": "ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap",
     "title": "New team:crm AMQP-consumer heartbeat/throughput-stall monitors (5 sibling IDs, created 2026-07-02) intermittently trip on quiet-period low-traffic dips, then self-recover within minutes \u2014 no corroborating errors",
     "first_seen": "2026-07-04T13:07:31Z",
-    "last_seen": "2026-07-12T10:56:21Z",
-    "occurrences": 50,
+    "last_seen": "2026-07-12T12:04:22Z",
+    "occurrences": 51,
     "match": {
       "channels": [
         "alert-system",
@@ -1739,6 +1739,10 @@
       {
         "ts": "2026-07-12T10:56:21Z",
         "note": "2026-07-12 triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-11T21:54:31Z cutoff): 2 fires this cycle, occ 48->50. (1) hash a3c9ec1c1cde94d6, monitor 302057011 (runtime-core-subscriber throughput) fired 10:14:31Z: sum:trace.amqp.command.hits{service:runtime-core-subscriber}.as_rate() 09:59:31-10:14:31Z shows 82 points mostly sub-2msg/s with clearing bursts up to 102.6msg/s -- canonical quiet-period-flap shape, 0 error logs. Suppressed, known-issue-window (last_notified_at 22h54m old). (2) hash 118b57747fbd8b2a, monitor 302055141 (method-mobile-notifications-subscriber heartbeat) fired 10:56:21Z, occ 50: sum:trace.amqp.command.hits{service:method-mobile-notifications-subscriber}.as_rate() 10:36:21-10:56:21Z shows only 1 datapoint (0.2msg/s), rest empty -- near-zero volume matching the documented low-traffic heartbeat pattern, 0 error logs. Occ 50 crossed the every-10th-occurrence resurface threshold -> POSTED to #triage-results, last_notified_at bumped to 10:56:21Z. See docs/investigations/2026-07-12-a3c9ec1c1cde94d6.md, -118b57747fbd8b2a.md."
+      },
+      {
+        "ts": "2026-07-12T12:07:00Z",
+        "note": "2026-07-12 12:07Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-12T10:56:21Z cutoff): monitor 302055141 (method-mobile-notifications-subscriber heartbeat) fired 12:04:22Z, hash 0228bfbae7990f34, occ 50->51. DD metric avg:trace.amqp.command.hits{service:method-mobile-notifications-subscriber,env:prod}.as_rate() 11:44:22-12:04:22Z: 3 datapoints (0.186, 0.186, 0.10 msg/s), all comfortably above the <0.005 alert threshold -- consumer actively processing at scan time, canonical quiet-period-flap self-recovery. last_notified_at (2026-07-12T10:56:21Z) ~1h08m ago, WITHIN 24h suppression window; occurrence 51 not %10 -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-12-0228bfbae7990f34.md."
       }
     ]
   },
@@ -1805,8 +1809,8 @@
     "id": "ki-2026-07-04-ms-account-api-4xx-spike-monitor-noise",
     "title": "[Admin][AccountAPI][P3] 4xx-spike monitor transitions state without a real 4xx breach (monitor-sensitivity/config artifact, not a service issue)",
     "first_seen": "2026-07-03T12:08:59Z",
-    "last_seen": "2026-07-12T10:48:18Z",
-    "occurrences": 24,
+    "last_seen": "2026-07-12T12:04:18Z",
+    "occurrences": 25,
     "match": {
       "channels": [
         "alert-system",
@@ -1831,7 +1835,7 @@
     "fix_template": null,
     "confidence": 0.8,
     "owning_team": "Admin",
-    "last_notified_at": "2026-07-11T11:20:00Z",
+    "last_notified_at": "2026-07-12T12:04:18Z",
     "notes": [
       {
         "ts": "2026-07-03T12:08:59Z",
@@ -1912,6 +1916,10 @@
       {
         "ts": "2026-07-12T10:48:18Z",
         "note": "2026-07-12 triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-11T21:54:31Z cutoff): monitor 299551518 fired 10:48:18Z, hash 1ec8014e64d931da, occ 23->24 (24th consecutive disproof). sum:trace.aspnet_core.request.hits.by_http_status{service:ms-account-api,http.status_class:4xx} over 10:33:18-10:48:18Z: 1 hit total, far below the >300 threshold. last_notified_at (2026-07-11T11:20:00Z) ~23h28m old, within 24h window (close to expiry); occ 24 not %10 -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-12-1ec8014e64d931da.md."
+      },
+      {
+        "ts": "2026-07-12T12:07:00Z",
+        "note": "2026-07-12 12:07Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-12T10:56:21Z cutoff): monitor 299551518 fired 12:04:18Z, hash c61d06b728cbe70a, occ 24->25 (25th consecutive disproof). Monitor's own overall_state was 'No Data' at scan time (first documented No-Data-shaped occurrence vs prior occurrences' Alert-state churn) -- sum:trace.aspnet_core.request.hits.by_http_status{service:ms-account-api,env:prod,http.status_class:4xx}.as_count() over 11:49:18-12:04:18Z returned an entirely empty series (no datapoints), consistent with No Data state and still nowhere near the >300 threshold. last_notified_at (2026-07-11T11:20:00Z) ~24h44m old, EXCEEDED 24h suppression window -> POST, gate_reason=null (window-expiry), last_notified_at bumped to 2026-07-12T12:04:18Z. See docs/investigations/2026-07-12-c61d06b728cbe70a.md."
       }
     ]
   },
@@ -2087,8 +2095,8 @@
     "id": "ki-2026-07-06-runtime-core-redis-cache-timeout-transient-burst",
     "title": "runtime-core-api Runtime.Caching.CacheContext brief Redis command-timeout burst (DD monitor 227940275 'Redis Errors is High') -- self-recovers in ~1min, hits 20+ distinct accounts simultaneously",
     "first_seen": "2026-07-05T16:42:35+00:00",
-    "last_seen": "2026-07-12T07:44:45Z",
-    "occurrences": 11,
+    "last_seen": "2026-07-12T12:02:07Z",
+    "occurrences": 15,
     "match": {
       "channels": [
         "alert-system",
@@ -2125,6 +2133,12 @@
         },
         {
           "contains": "monitors/299551589"
+        },
+        {
+          "contains": "monitors/65493111"
+        },
+        {
+          "contains": "monitors/299544851"
         }
       ],
       "precedence_note": "Distinct from ki-runtime-core-ansible-redis-deploy-burst (deploy-day Ansible-failure/version-skew root cause, morning release window) and ki-redis-keyspace-scan-cache-clear-spike (CacheClearEventConsumer pattern-delete-driven Redis CPU spike) -- this entry has no deploy correlation and no CacheClearEventConsumer signal on either occurrence; it is a standalone, brief (~1 monitor-eval-window) command-timeout burst of unknown trigger."
@@ -2171,6 +2185,10 @@
       {
         "ts": "2026-07-12T05:48:48Z",
         "note": "2026-07-12 triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-11T21:54:31Z cutoff): 3 fires this cycle, occ 8->11. (1) hash fabba3832e3a41a3, monitor 299544648 (gateway P95) fired 05:48:48Z, occ 9: ES messageTemplate.keyword Redis-timeout query 05:18:48-05:49:07Z returned 0 hits (no corroboration, unlike the KB's founding 2026-07-06 occurrence). trace.redis.command.errors 05:18:48-07:44:45Z: only 6 sparse single-count points, well under the >10/5min alert threshold. last_notified_at (2026-07-10T19:09:29Z) was 34h39m old, 24h window EXPIRED -> POST, gate_reason=null, last_notified_at bumped to 05:48:48Z. (2) hash 6ba592a21816732d, monitor 299551507 (ms-account-api P95) fired 05:49:07Z, 19s later, occ 10: same 0-hit ES result, ms-account-api-scoped p95 metric query returned empty series. Occ 10 crossed the every-10th-occurrence resurface threshold -> POST, gate_reason=known-issue-occurrence-resurface, last_notified_at bumped to 05:49:07Z. (3) hash 3c35033c28605fdd, monitor 17872725 (runtime-core-api p90) fired 07:44:45Z, occ 11: same 0-hit ES result. Suppressed, known-issue-window (last_notified_at 1h55m old). FLAG: unlike the KB's 2 founding occurrences (both had positive ES Redis-timeout corroboration), all 3 of today's fires show 0 ES hits -- worth revisiting whether these P95/p90 latency-only monitors should stay bundled with the Redis-error-driven diagnosis. See docs/investigations/2026-07-12-fabba3832e3a41a3.md, -6ba592a21816732d.md, -3c35033c28605fdd.md."
+      },
+      {
+        "ts": "2026-07-12T12:07:00Z",
+        "note": "2026-07-12 12:07Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-12T10:56:21Z cutoff): 4 fires this cycle, occ 11->15, all attributed to ONE shared latency burst 11:45:20-11:49:30Z hitting ms-account-api / ms-authentication-api / signin simultaneously (all Admin-owned, account/auth call path). Order: (1) hash cb6253ab745a0b9c, monitor 299551532 (ms-authentication-api P95) fired 11:57:32Z, occ 12: P95 spiked to 15.55s at 11:46:20Z. (2) hash 6014bb66ff4266e0, monitor 65493111 (ms-account-api avg latency, NEW to this KB's match.any_of) fired 11:57:51Z, occ 13: avg spiked to 6.11s at 11:49:30Z. (3) hash a55469d4b2dc14cf, monitor 299544851 ([Admin][Signin][P2] P95, NEW to this KB's match.any_of) fired 11:59:11Z, occ 14: P95 spiked to 23.75s at 11:46:50Z -- first-ever documented co-fire of signin alongside the account/auth pair, widening the known blast radius to 3 services. (4) hash 64d0ea2d00d27c43, monitor 299551507 (ms-account-api P95) fired 12:02:07Z, occ 15: P95 spiked to 29.83s at 11:45:30Z (largest magnitude of the batch). Across the full 11:32:32-12:04:22Z window: ES messageTemplate.keyword Redis-timeout query returned 0 hits; DD trace.redis.command.errors metric returned an EMPTY series (no datapoints at all -- weaker even than this morning's 6-sparse-point batch); DD logs service:ms-account-api status:error returned 0 results. This is the 2nd consecutive investigated batch today (after 05:48-07:44Z, occ 8->11, also 0 ES hits) with zero Redis corroboration. Widened match.any_of to add monitors/65493111 and monitors/299544851 as newly-confirmed downstream-fan-out signals of the same event, per the established 2026-07-08 precedent of widening this entry for new family members. last_notified_at (2026-07-12T05:49:07Z) ~6h13m old, WITHIN 24h suppression window -> SUPPRESS all 4, gate_reason=known-issue-window. ESCALATING FLAG (continuing from this morning's note): 0 of the last 2 investigated batches (7 total fires) showed any Redis-error corroboration, versus the KB's 2 founding occurrences which both had strong positive corroboration. Recommend the team split this into a mechanism-agnostic 'account/auth latency-burst family' entry, since the Redis-timeout diagnosis in the title/diagnosis field is no longer supported by the majority of recent evidence. See docs/investigations/2026-07-12-cb6253ab745a0b9c.md, -6014bb66ff4266e0.md, -a55469d4b2dc14cf.md, -64d0ea2d00d27c43.md."
       }
     ]
   },
