@@ -1595,8 +1595,8 @@
     "id": "ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap",
     "title": "New team:crm AMQP-consumer heartbeat/throughput-stall monitors (5 sibling IDs, created 2026-07-02) intermittently trip on quiet-period low-traffic dips, then self-recover within minutes \u2014 no corroborating errors",
     "first_seen": "2026-07-04T13:07:31Z",
-    "last_seen": "2026-07-12T16:46:31Z",
-    "occurrences": 55,
+    "last_seen": "2026-07-12T18:59:21Z",
+    "occurrences": 57,
     "match": {
       "channels": [
         "alert-system",
@@ -1763,6 +1763,10 @@
       {
         "ts": "2026-07-12T17:08:19Z",
         "note": "2026-07-12 17:08Z triage (degraded cycle, no Slack MCP; hash d09d6544d43f9d6d): monitor 302057011 last_triggered 16:46:31Z, still Alert at scan time. DD metric sum:trace.amqp.command.hits{service:runtime-core-subscriber,env:prod}.as_rate() over 16:16:31-16:46:31Z: 167 points, 84 below the 2 msg/s threshold, min 0.1, max 140.2 (mixed quiet-dip-then-burst shape, consistent with the documented pattern). 0 status:error DD logs in the same window. last_notified_at 2026-07-12T10:56:21Z (~5h50m ago), WITHIN the 24h suppression window; occ 54->55 (not %10); fix_status unchanged -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-12-d09d6544d43f9d6d.md."
+      },
+      {
+        "ts": "2026-07-12T19:12:08Z",
+        "note": "2026-07-12 19:12Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-12T17:01:33Z cutoff): 2 fires this cycle, occ 55->57, processed in ts order. (1) hash ac1072c6286f96fa, monitor 302057011 (runtime-core-subscriber throughput) fired 18:56:32Z, OK by scan time. DD metric sum:trace.amqp.command.hits{service:runtime-core-subscriber,env:prod}.as_rate() over 18:26:32-18:56:32Z: 180 points, 122 below the 2 msg/s threshold, min 0.1, max 129.5 -- canonical quiet-dip-then-burst shape. 0 status:error DD logs. last_notified_at 2026-07-12T10:56:21Z (~8h ago), WITHIN 24h suppression window; occ 55->56, not %10 -> SUPPRESS gate_reason=known-issue-window. (2) hash 42caf53f67bc473f, monitor 302055141 (method-mobile-notifications-subscriber heartbeat) fired 18:59:21Z, still No Data at scan time. DD metric sum:trace.amqp.command.hits{service:method-mobile-notifications-subscriber,env:prod}.as_rate() over 18:39:21-18:59:21Z: 7 points, all above the 0.005 msg/s threshold (min 0.1, max 0.9) -- consumer actively processing, same near-threshold self-resolving shape seen in prior mns fires. 0 status:error DD logs. last_notified_at unchanged (302057011 fire immediately prior in this same cycle also suppressed, did not bump) ~8h03m ago, WITHIN 24h window; occ 56->57, not %10 -> SUPPRESS gate_reason=known-issue-window. No sibling monitor in the 5-monitor family co-fired this cycle beyond these two (full 179-monitor scan). Both appended to docs/actionable/2026-07-12.md. See docs/investigations/2026-07-12-ac1072c6286f96fa.md and docs/investigations/2026-07-12-42caf53f67bc473f.md."
       }
     ]
   },
