@@ -1430,8 +1430,8 @@
     "id": "ki-2026-07-03-ms-scheduler-api-seriesid-negative-recordid",
     "title": "ms-scheduler-api GetSeriesAsync throws InvalidOperationException when called with recordId=-1 (chronic, code-level missing-guard bug, now confirmed across multiple accounts, ~10-21+/day for 7+ days)",
     "first_seen": "2026-06-26T00:00:00Z",
-    "last_seen": "2026-07-11T11:40:33Z",
-    "occurrences": 141,
+    "last_seen": "2026-07-12T20:14:33Z",
+    "occurrences": 142,
     "match": {
       "channels": [
         "alert-system"
@@ -1458,7 +1458,7 @@
       ]
     },
     "evidence_source": "elasticsearch",
-    "evidence_query": "fields.dd_service.keyword:\"ms-scheduler-api\" AND fields.Error.keyword:\"Failed to Get Series Id for record -1 in table Activity\"",
+    "evidence_query": "fields.dd_service.keyword:\"ms-scheduler-api\" AND exceptions.Message.keyword:\"Failed to Get Series Id for record -1 in table Activity\"",
     "evidence_threshold_s": null,
     "diagnosis": "ms-scheduler-api's SeriesDataProvider.GetSeriesIdAsync (Scheduler.Core) is called with recordId=-1 for account lafittesseafood via API.Controllers.SeriesController.GetSeriesAsync (RequestPath /v1/series/getseries). The provider queries SQL expecting a row for that record and does not guard against the sentinel/invalid recordId=-1 before reading; SqlDataReader.GetValue() then throws System.InvalidOperationException ('Invalid attempt to read when no data is present'), which surfaces as System.Exception('Failed to Get Series Id for record -1 in table Activity'). ES confirms 125 identical occurrences over the last 7 days (2026-06-26 to 2026-07-03), steady daily volume (10-21/day), single account, single stack trace -- a chronic pre-existing bug, not a new incident. DD's '[CRM] ms-scheduler-api error rate high' monitor (302054543) is a newly-observed monitor that tripped for the first time today only because this service's low overall traffic makes its error-rate percentage sensitive to a handful of absolute errors (6 errors / 233 hits = 2.56% vs 2% threshold in the trigger window) -- the underlying bug itself did not spike. UPDATE 2026-07-03T21:08Z: this cycle's ES recurrence check (13:04:37Z\u201321:08:31Z window) found 21 new identical-signature events spanning 6 distinct accounts (completeelectricalsolutions:8, foamtechinc:7, refexpertsandhvacllc:3, cooksmart2:1, farmxs:1, lafittesseafood:1) \u2014 lafittesseafood is now the smallest contributor, not the sole one. This upgrades the diagnosis from a single-account client/data issue to a code-level defect: SeriesDataProvider.GetSeriesIdAsync does not guard recordId=-1 before calling SqlDataReader.GetValue(), and reproduces for ANY account whose caller passes the -1 sentinel. Root cause location unchanged (SeriesDataProvider.cs:143 call site, :123 throw site; SeriesController.cs:100 entry point).",
     "playbook": "1) Confirm shape: DD monitor 302054543 in 'Alert' state, OR ES query fields.dd_service.keyword:\"ms-scheduler-api\" AND fields.Account.keyword:\"lafittesseafood\" returning the 'Failed to Get Series Id for record -1' signature. 2) Compute the error-rate ratio in DD (errors/hits over the alert's own last_10m window) -- historically marginal (~2.5%), not a severe spike; do not over-escalate on the DD monitor state alone. 3) The root cause is a code-level missing-guard bug in SeriesDataProvider.GetSeriesIdAsync (not account-specific) -- as of 2026-07-03T21:08Z it has reproduced across 6 distinct accounts, not just lafittesseafood. Still not infra-wide (no elevated volume, no user-facing impact beyond scattered per-account 500s), but do not describe it as single-account going forward. 4) File/bump a defect for CRM Experience (#team-customer-management) rather than re-diagnosing from scratch each cycle.",
@@ -1467,7 +1467,7 @@
     "fix_template": null,
     "confidence": 0.8,
     "owning_team": "CRM Experience",
-    "last_notified_at": "2026-07-11T11:20:00Z",
+    "last_notified_at": "2026-07-12T21:19:01Z",
     "notes": [
       {
         "ts": "2026-07-03T13:09:00Z",
@@ -1524,6 +1524,10 @@
       {
         "ts": "2026-07-11T12:08:18Z",
         "note": "2026-07-11 12:08Z triage (degraded cycle, no Slack MCP): monitor 303750093 fired again 2026-07-11T11:40:33Z, hash 6d3626a918386290, occurrences -> 141. ES fields.dd_service.keyword:ms-scheduler-api AND level.keyword:Error, 11:10:33-11:40:33Z: 10 hits, all account lafittesseafood, identical GetSeriesIdAsync(recordId=-1) / SeriesDataProvider.cs:143/123 signature confirmed via raw sample. last_notified_at (2026-07-11T11:20:00Z) ~20min ago, WITHIN 24h suppression window; occ 141 not %10; fix_status unchanged (proposed) -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-11-6d3626a918386290.md."
+      },
+      {
+        "ts": "2026-07-12T21:19:01Z",
+        "note": "2026-07-12 21:19Z triage (degraded cycle, no Slack MCP; hash 5f2d45262bb4b59e): 142nd occurrence, monitor 303750093 last_triggered 2026-07-12T20:14:33Z, self-recovered (OK) by scan time. First fire since 2026-07-11T11:40:33Z (~32.5h quiet gap -- longest gap on record for this entry). Root-caused the entry's chronic evidence_query field-name mismatch (flagged unresolved since 2026-07-05T19:08:48Z, worked around every cycle since via raw-search substitution): ran es_search.py mapping against method-microservices-scheduler-2026.07 and confirmed the exception message lives at exceptions.Message.keyword (and fields.ExceptionDetail.Message.keyword), not fields.Error.keyword. Corrected ES search (fields.dd_service.keyword:\"ms-scheduler-api\" AND exceptions.Message.keyword:\"Failed to Get Series Id for record -1 in table Activity\", 18:00:00Z-21:08:31Z 3h window) = 3 hits, all account refexpertsandhvacllc, identical signature. evidence_query field updated to exceptions.Message.keyword so future cycles' automated verification no longer needs the raw-search workaround. last_notified_at was 2026-07-11T11:20:00Z, ~33h48m ago -- EXCEEDS the 24h suppression_window_hours -> POST to #triage-results per the window-expiry gate (gate_reason=null), last_notified_at bumped to now. See docs/investigations/2026-07-12-5f2d45262bb4b59e.md."
       }
     ]
   },
@@ -1595,8 +1599,8 @@
     "id": "ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap",
     "title": "New team:crm AMQP-consumer heartbeat/throughput-stall monitors (5 sibling IDs, created 2026-07-02) intermittently trip on quiet-period low-traffic dips, then self-recover within minutes \u2014 no corroborating errors",
     "first_seen": "2026-07-04T13:07:31Z",
-    "last_seen": "2026-07-12T18:59:21Z",
-    "occurrences": 57,
+    "last_seen": "2026-07-12T21:08:21Z",
+    "occurrences": 59,
     "match": {
       "channels": [
         "alert-system",
@@ -1767,6 +1771,10 @@
       {
         "ts": "2026-07-12T19:12:08Z",
         "note": "2026-07-12 19:12Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-12T17:01:33Z cutoff): 2 fires this cycle, occ 55->57, processed in ts order. (1) hash ac1072c6286f96fa, monitor 302057011 (runtime-core-subscriber throughput) fired 18:56:32Z, OK by scan time. DD metric sum:trace.amqp.command.hits{service:runtime-core-subscriber,env:prod}.as_rate() over 18:26:32-18:56:32Z: 180 points, 122 below the 2 msg/s threshold, min 0.1, max 129.5 -- canonical quiet-dip-then-burst shape. 0 status:error DD logs. last_notified_at 2026-07-12T10:56:21Z (~8h ago), WITHIN 24h suppression window; occ 55->56, not %10 -> SUPPRESS gate_reason=known-issue-window. (2) hash 42caf53f67bc473f, monitor 302055141 (method-mobile-notifications-subscriber heartbeat) fired 18:59:21Z, still No Data at scan time. DD metric sum:trace.amqp.command.hits{service:method-mobile-notifications-subscriber,env:prod}.as_rate() over 18:39:21-18:59:21Z: 7 points, all above the 0.005 msg/s threshold (min 0.1, max 0.9) -- consumer actively processing, same near-threshold self-resolving shape seen in prior mns fires. 0 status:error DD logs. last_notified_at unchanged (302057011 fire immediately prior in this same cycle also suppressed, did not bump) ~8h03m ago, WITHIN 24h window; occ 56->57, not %10 -> SUPPRESS gate_reason=known-issue-window. No sibling monitor in the 5-monitor family co-fired this cycle beyond these two (full 179-monitor scan). Both appended to docs/actionable/2026-07-12.md. See docs/investigations/2026-07-12-ac1072c6286f96fa.md and docs/investigations/2026-07-12-42caf53f67bc473f.md."
+      },
+      {
+        "ts": "2026-07-12T21:20:00Z",
+        "note": "2026-07-12 21:20Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-12T18:59:21Z cutoff): 2 fires this cycle, occ 57->59, processed in ts order. (1) hash a94f7e9b42e7165a, monitor 302057011 (runtime-core-subscriber throughput) fired 20:48:31Z, STILL 'Alert' at scan time (21:08:31Z, ~20min unresolved -- well under the entry's playbook step-5 ~1h escalation threshold, so treated as the ordinary flap, not a deviation). DD metric sum:trace.amqp.command.hits{service:runtime-core-subscriber,env:prod}.as_rate() over 20:28:31-21:08:31Z: 233 points, majority sitting well below the 2 msg/s floor (min 0.1) with a handful of transient bursts (peaks 85.0, 36.9, 26.1) -- same quiet-dip-then-burst shape as every prior occurrence. 0 status:error DD logs. last_notified_at 2026-07-12T10:56:21Z (~10h12m ago), WITHIN 24h suppression window; occ 57->58, not %10 -> SUPPRESS gate_reason=known-issue-window. (2) hash 5b42881656c3925e, monitor 302055141 (method-mobile-notifications-subscriber heartbeat) fired 21:08:21Z, OK at scan time (self-recovered). DD metric sum:trace.amqp.command.hits{service:method-mobile-notifications-subscriber,env:prod}.as_rate() over 20:48:21-21:08:21Z: 2 points, both 0.1, above the 0.005 msg/s threshold -- consumer actively processing, same near-threshold self-resolving shape as prior mns fires. 0 status:error DD logs. last_notified_at unchanged (302057011 fire immediately prior in this same cycle also suppressed, did not bump) ~10h32m ago, WITHIN 24h window; occ 58->59, not %10 -> SUPPRESS gate_reason=known-issue-window. No sibling monitor in the 5-monitor family co-fired this cycle beyond these two (full 179-monitor scan). Both appended to docs/actionable/2026-07-12.md. See docs/investigations/2026-07-12-a94f7e9b42e7165a.md and docs/investigations/2026-07-12-5b42881656c3925e.md."
       }
     ]
   },
@@ -1833,8 +1841,8 @@
     "id": "ki-2026-07-04-ms-account-api-4xx-spike-monitor-noise",
     "title": "[Admin][AccountAPI][P3] 4xx-spike monitor transitions state without a real 4xx breach (monitor-sensitivity/config artifact, not a service issue)",
     "first_seen": "2026-07-03T12:08:59Z",
-    "last_seen": "2026-07-12T13:45:18Z",
-    "occurrences": 26,
+    "last_seen": "2026-07-12T20:38:18Z",
+    "occurrences": 27,
     "match": {
       "channels": [
         "alert-system",
@@ -1944,6 +1952,10 @@
       {
         "ts": "2026-07-12T12:07:00Z",
         "note": "2026-07-12 12:07Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-12T10:56:21Z cutoff): monitor 299551518 fired 12:04:18Z, hash c61d06b728cbe70a, occ 24->25 (25th consecutive disproof). Monitor's own overall_state was 'No Data' at scan time (first documented No-Data-shaped occurrence vs prior occurrences' Alert-state churn) -- sum:trace.aspnet_core.request.hits.by_http_status{service:ms-account-api,env:prod,http.status_class:4xx}.as_count() over 11:49:18-12:04:18Z returned an entirely empty series (no datapoints), consistent with No Data state and still nowhere near the >300 threshold. last_notified_at (2026-07-11T11:20:00Z) ~24h44m old, EXCEEDED 24h suppression window -> POST, gate_reason=null (window-expiry), last_notified_at bumped to 2026-07-12T12:04:18Z. See docs/investigations/2026-07-12-c61d06b728cbe70a.md."
+      },
+      {
+        "ts": "2026-07-12T21:19:45Z",
+        "note": "2026-07-12 21:19Z triage (degraded cycle, no Slack MCP; hash 2defc59a38fe1e8e): occurrence 26->27, monitor 299551518 fired 2026-07-12T20:38:18Z. evidence_query metric (sum:trace.aspnet_core.request.hits.by_http_status{service:ms-account-api,env:prod,http.status_class:4xx}.as_count(), 20:23:18-20:38:18Z): 2 total hits, nowhere near the >300/15min threshold -- same confirmed monitor-noise shape as all 26 prior occurrences. service:ms-account-api status:error DD Logs = 0 hits same window. last_notified_at (2026-07-12T12:04:18Z) ~9h15m ago, WITHIN 24h suppression window; occ 27 not %10; fix_status unchanged (monitoring-noise-suspected-unconfirmed) -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-12-2defc59a38fe1e8e.md."
       }
     ]
   },
