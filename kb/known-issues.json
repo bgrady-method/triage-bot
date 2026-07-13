@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-13T19:06:12Z",
-    "occurrences": 576,
+    "last_seen": "2026-07-13T20:03:11Z",
+    "occurrences": 577,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -427,6 +427,10 @@
       {
         "ts": "2026-07-13T15:08:12Z",
         "note": "2026-07-13 15:08Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-13T13:46:00Z cutoff; synthetic hash b403ea5da5297a3c, channel C03TYHGRS23/alert-frontend-errors per match.channels + DD monitor last_triggered_ts 2026-07-13T15:08:12Z): monitor 77419271 fired again, occurrences 573->574. ES aggregate (Exception.keyword:*TimedOut* OR message:*Ocelot* OR message:*ResponderMiddleware*, 14:53:12-15:08:12Z): 356 hits, dominant service gateway (178) -- chronic mechanism reproduces at normal (non-surge) magnitude. service:ms-gateway-api status:error DD Logs: 0 hits -- 4th CONSECUTIVE occurrence with this split (2026-07-12T14:08Z, 21:48Z, 22:50Z, and this one; see docs/investigations/2026-07-13-ed64f777cf142276.md and 2026-07-13-b403ea5da5297a3c.md), crossing the 'escalate on 3rd consecutive split' threshold a second time without resolution. Client-side XHR sample (service:method-ui, 100 hits): diffuse account fan-out (top coastalready 10%), canonical chronic shape. No ki-24 co-fire (115456700/117279738 both OK). last_notified_at (2026-07-12T14:08:12Z) ~25h ago -- PAST the 24h suppression window -> POST to #triage-results (gate_reason=null, window-expiry), last_notified_at bumped to 2026-07-13T15:08:12Z. Flagged in the post itself (not just this note) the standing ES-vs-DD-Logs discrepancy: ES independently confirms the Ocelot mechanism every occurrence while DD Logs status:error stays at 0 for ms-gateway-api across 4 straight fires -- recommend Admin verify whether this is a genuine DD-Logs tagging gap or a real signal the failure mode no longer produces server-side errors. See docs/investigations/2026-07-13-b403ea5da5297a3c.md."
+      },
+      {
+        "ts": "2026-07-13T20:03:11Z",
+        "note": "2026-07-13 20:08Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-13T19:06:12Z cutoff; synthetic hash 3ebd1b376b299394, channel C03TYHGRS23 alert-frontend-errors): 577th occurrence, monitor 77419271 fired 20:03:11Z. ES Exception.keyword:*TimedOut* OR message:*Ocelot* OR message:*ResponderMiddleware*, 19:53:11-20:03:11Z: 244 hits, gateway dominant (119) -- confirms chronic Ocelot/ResponderMiddleware mechanism. DD Logs service:ms-gateway-api status:error env:prod same window = 0 hits -- 7th CONSECUTIVE occurrence with this ES-vs-DD-Logs split. DD method-ui XHR sample (5 hits): diffuse accounts (impressioncarpetcleaningandrepair, efloor, acmouldingandmillworkltd, indianaautomotiveequipment, cpffloorsllc), no concentration -- canonical chronic shape. last_notified_at (2026-07-13T15:08:12Z) ~4h55m ago, within 24h window; occ 577 not %10 -> SUPPRESS, gate_reason=known-issue-window. ES-vs-DD-Logs gap already flagged to Ben last cycle (19:22Z DM) -- not re-flagging to avoid duplicate noise. See docs/investigations/2026-07-13-3ebd1b376b299394.md."
       }
     ]
   },
@@ -2110,8 +2114,8 @@
     "id": "ki-2026-07-06-rainforest-merchant-details-503-serviceunavailable",
     "title": "runtime-core-api Rainforest GetMerchantAsync (merchant-details lookup) fails with ServiceUnavailable when Rainforest's own API returns a 503 -- third-party payment-processor degradation, not a Method-side defect",
     "first_seen": "2026-07-06T13:02:25Z",
-    "last_seen": "2026-07-13T18:51:30Z",
-    "occurrences": 6,
+    "last_seen": "2026-07-13T19:40:52Z",
+    "occurrences": 7,
     "match": {
       "channels": [
         "alert-system"
@@ -2158,6 +2162,10 @@
       {
         "ts": "2026-07-12T08:26:53Z",
         "note": "2026-07-12 triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-11T21:54:31Z cutoff): monitor 295882732 fired 08:26:53Z, hash 3fd10124bd0c9144, occ 3->4. ES fields.dd_service.keyword:runtime-core-api AND message:*rainforest* 07:56:53-08:26:53Z: 2 hits, BUT a DIFFERENT error signature than this entrys documented GetMerchantAsync/503 diagnosis -- both hits are System.InvalidOperationException 'Rainforest API returned status code: BadRequest' from RainforestProvider.CreatePaymentMethodPayinAsync (payment-method creation rejected), single request, account alocetsystem (Methods own internal system account, AccountId 2, UserAgent RestSharp -- likely internal/test traffic, not a real customer). FLAG: monitor-name-only match criterion is too broad, absorbing a distinct Rainforest-outbound failure mode under this entrys stale diagnosis -- recommend tightening match to the specific error signature or splitting into a separate entry if this BadRequest shape recurs. last_notified_at (2026-07-10T17:07:26Z) was ~1d15h19m old, window EXPIRED -> POST, gate_reason=null, last_notified_at bumped to 08:26:53Z. See docs/investigations/2026-07-12-3fd10124bd0c9144.md."
+      },
+      {
+        "ts": "2026-07-13T19:40:52Z",
+        "note": "2026-07-13 20:08Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-13T19:06:12Z cutoff; synthetic hash 77dfa8997a243da7, channel CPHHABKAA alert-system): 7th occurrence, monitor 295882732 fired 19:40:52Z, self-recovered by scan time. ES fields.dd_service.keyword:runtime-core-api AND message:*rainforest*, tight window 19:30:52-19:50:52Z = 0 hits; widened 19:15:00-20:00:00Z = 1 hit @19:29:28Z: RainforestProvider 'create payin config request failed with status: BadRequest' for merchant mid_3CiWKRBsVy01nkQmRpMuyXjzc11, amount 0, account sierrashredllc (real customer, not internal test traffic). THIRD BadRequest-shaped occurrence absorbed under this monitor-scoped entry (following 2026-07-10 CreatePaymentMethodPayinAsync/BadRequest and 2026-07-12 CreatePaymentMethodPayinAsync/BadRequest-internal) -- reinforces the 2026-07-12 flag that match-on-monitor-name is too broad and should be split by error signature (503/ServiceUnavailable vs 400/BadRequest), especially since the amount:0 detail recurring on a real account suggests a possible application-level validation gap rather than pure third-party outage. No co-firing on sibling Rainforest monitors checked. last_notified_at (2026-07-13T19:08:18Z) ~32min ago, well within 24h window -> SUPPRESS, gate_reason=known-issue-window. See docs/investigations/2026-07-13-77dfa8997a243da7.md."
       }
     ]
   },
@@ -2266,8 +2274,8 @@
     "id": "ki-2026-07-06-signup-low-traffic-p90-latency-monitor-noise",
     "title": "[Growth][Signup][P?] 'Service Signup post requests have a high p90 latency' trips on single-request percentile noise on a very low-traffic endpoint",
     "first_seen": "2026-07-05T21:57:46Z",
-    "last_seen": "2026-07-12T06:04:46Z",
-    "occurrences": 8,
+    "last_seen": "2026-07-13T19:44:46Z",
+    "occurrences": 9,
     "match": {
       "channels": [
         "alert-system",
@@ -2292,7 +2300,7 @@
     "evidence_source": "datadog_apm",
     "evidence_query": "p90:trace.aspnet.request{env:prod,service:signup,resource_name:post_/*}",
     "evidence_threshold_s": 12.0,
-    "last_notified_at": "2026-07-11T12:35:46Z",
+    "last_notified_at": "2026-07-13T19:44:46Z",
     "notes": [
       {
         "ts": "2026-07-06T15:09:00Z",
@@ -2317,6 +2325,10 @@
       {
         "ts": "2026-07-12T06:04:46Z",
         "note": "2026-07-12 triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-11T21:54:31Z cutoff): monitor 154252126 fired 06:04:46Z, hash 2922747b87dadf6f, occ 7->8. p90:trace.aspnet.request{service:signup,resource_name:post_/*} over 05:34:46-06:04:46Z: mostly ~3ms, one 467.8ms outlier -- classic low-traffic percentile artifact, matches documented shape. last_notified_at (2026-07-11T12:35:46Z) ~17h29m old, within 24h window; occ 8 not %10 -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-12-2922747b87dadf6f.md."
+      },
+      {
+        "ts": "2026-07-13T19:44:46Z",
+        "note": "2026-07-13 20:08Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-13T19:06:12Z cutoff; synthetic hash 2b84e07c49a4a0f7, channel CPHHABKAA alert-system): 9th occurrence, monitor 154252126 fired 19:44:46Z, self-recovered by scan time. p90:trace.aspnet.request{service:signup,resource_name:post_/*} widened 19:14:46-19:44:46Z: 3 points, peak 33.36s @19:23:50Z (ratio 1.78 vs 12s threshold, second-largest on record for this entry after the 07-09 34.73s spike), other points near-zero -- same single-request-dominates-p90 shape as all 8 priors. DD Logs service:signup status:error env:prod (19:29:46-19:44:46Z) = 0 hits -- confirms latency-only. last_notified_at (2026-07-11T12:35:46Z) ~2d7h9m ago, well PAST the 24h suppression window -> POST to #triage-results, gate_reason=null (window-expiry), last_notified_at bumped to 2026-07-13T19:44:46Z. See docs/investigations/2026-07-13-2b84e07c49a4a0f7.md."
       }
     ]
   },
@@ -2324,8 +2336,8 @@
     "id": "ki-2026-07-06-synthetics-signin-transient-step-duration-spike",
     "title": "[Synthetics] Sign in to Method step-duration monitor (127198928) intermittently spikes >20s for a single test run then self-recovers, with no corroborating error signal on any critical-path service",
     "first_seen": "2026-05-27T19:02:08Z",
-    "last_seen": "2026-07-13T19:00:00Z",
-    "occurrences": 22,
+    "last_seen": "2026-07-13T19:11:08Z",
+    "occurrences": 23,
     "match": {
       "channels": [
         "alert-system"
@@ -2407,6 +2419,10 @@
       {
         "ts": "2026-07-11T23:21:08Z",
         "note": "2026-07-11 23:21Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-11T21:54:31Z cutoff): monitor 127198928 fired 23:21:08Z, hash 56bece54115a28da, occ 18->19. avg:synthetics.browser.step.duration over 22:51:08-23:21:08Z shows 3 points (10560, 21106, 6795 ms) -- genuine transient spike to ~21s mid-window, matching the documented shape. last_notified_at (2026-07-11T18:15:00Z) ~5h06m old, within 24h window; occ 19 not %10 -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-11-56bece54115a28da.md."
+      },
+      {
+        "ts": "2026-07-13T19:11:08Z",
+        "note": "2026-07-13 20:08Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-13T19:06:12Z cutoff; synthetic hash 302faa7379fe3ec3, channel CPHHABKAA alert-system): 23rd occurrence, monitor 127198928 fired 19:11:08Z. DD metric re-query 18:55:00-19:15:00Z: breach point 21422ms @19:00:00Z is the SAME data point already reported/suppressed last cycle under hash 6b95f6b02dfda776 (fired 19:02:08Z) -- this fire is the monitor's trailing window re-evaluating the same single spike, not an independent event (same rolling-window re-fire shape documented for ki-24 under 6804d31db9ca8fa8). Recovered to 7936ms by 19:10:00Z. ES level:Error across oauth2.identity.server/ms-gateway-api/ms-authentication-api/ms-identity-api 18:55:00-19:15:00Z: 1 hit, unrelated Zapier OAuth refresh_token access_denied -- no sign-in-flow error correlation. last_notified_at (2026-07-13T17:07:55Z) ~2h4m ago, within 24h window; occ 23 not %10 -> SUPPRESS, gate_reason=known-issue-window. See docs/investigations/2026-07-13-302faa7379fe3ec3.md."
       }
     ]
   },
