@@ -434,8 +434,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-07-12T14:41:18Z",
-    "occurrences": 233,
+    "last_seen": "2026-07-13T18:05:20Z",
+    "occurrences": 234,
     "match": {
       "channels": [
         "alert-system",
@@ -476,9 +476,13 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.85,
-    "last_notified_at": "2026-07-12T14:41:18Z",
-    "prior_last_notified_at": "2026-07-07T14:08:20Z",
+    "last_notified_at": "2026-07-13T18:40:00Z",
+    "prior_last_notified_at": "2026-07-12T14:41:18Z",
     "notes": [
+      {
+        "ts": "2026-07-13T18:40:00Z",
+        "note": "2026-07-13 18:40Z triage (degraded cycle, DD monitor scan diff -- widened diff to ALL last_triggered_ts > prior cutoff 2026-07-13T17:02:08Z, not just currently-Alert/No-Data; hash a6eda848605c9479): occ#234 via monitor 115456700 last_triggered 2026-07-13T18:05:20Z (OK by scan time, self-recovered). DD metric p95:trace.aspnet_core.request{env:prod,service:runtime-core-api,resource_name:post_/api/v1/runtime/load/_screenid*} re-queried 17:35:20-18:05:20Z: 7 of 180 points > 3s threshold, peak 9.47s @18:02:50Z (ratio 2.16, bracket >=2.0). Dual-endpoint co-spike confirmed: RTC Action Execution p95 also breached 7 points same window, peak 7.28s at the SAME 18:02:50Z timestamp -- canonical dual-endpoint shared-upstream signature. Latency-only confirmed: service:runtime-core-api status:error env:prod DD Logs same window = 0 hits. No Redis-error corroboration this occurrence (monitor 227940275 OK, 0 log hits -- unlike several severe historical occurrences with concurrent Redis command errors/timeouts). TEMPORAL NOTE: DD monitor 77419271 (ki-21, gateway XHR errors) fired 6 min earlier (17:59:11Z) this same cycle -- precedence_note's co-fire criterion (>=2 alerts each in the same 60-min window) not met (1 alert each), so processed as an independent group, but proximity flagged. OWNERSHIP CORRECTION: this entry had no owning_team recorded (last posted message showed 'unmapped'); re-checked references/architecture/ownership.md this cycle -- runtime-core-api -> Vertical App Experience (Project-table exact match) -- recorded going forward. last_notified_at (2026-07-12T14:41:18Z) ~27h24m ago -- PAST 24h suppression window -> POSTED to #triage-results, gate_reason=null (window-expiry), last_notified_at bumped to 2026-07-13T18:40:00Z. fix_status 'investigating' unchanged. See docs/investigations/2026-07-13-a6eda848605c9479.md."
+      },
       {
         "ts": "2026-06-05T15:11:30Z",
         "note": "2026-06-05 15:11Z triage (G4): 5 new occurrences in alert-system (14:47:27Z + 14:53:33Z + 15:05:29Z + 15:05:53Z + 15:06:25Z, all B011R3D650X Datadog bot). DD monitor 17872725 (runtime-core-api p90) in Alert state last_triggered 15:05:45Z aligns with 15:05:29Z + 15:05:53Z fires; DD monitor 117279738 (RTC Action Execution p95) in Alert state last_triggered 15:06:18Z aligns with 15:06:25Z fire. Earlier 14:47/14:53 fires don't show in DD monitors API (overall_state recovered between fires) \u2014 assumed same monitors firing repeatedly during sustained spike. ES Level:Error 14:30-15:10Z = 0 runtime-core errors (`service:runtime-core-api status:error` 14:55-15:10Z = empty in DD logs). LATENCY-ONLY consistent with ki-rtc-p95 signature. Spike window 14:47-15:06 brackets Yuri's 14:44Z swat revert announcement \u2014 plausibly cold-start latency from revert deploy (cf. ki-runtime-core-ansible-redis-deploy-burst) OR coincident chronic ki-rtc-p95. last_notified_at 2026-06-03T14:14:49Z (~49h ago, past 24h suppression window). DM resurfaced. occ 68->73. last_notified_at bumped to NOW. fix_status 'investigating' unchanged. G3 (cross-channel cluster 15:01-15:04Z) will hit same KB but suppress on 24h window since this G4 just bumped last_notified_at."
@@ -607,7 +611,8 @@
         "ts": "2026-07-12T14:41:18Z",
         "note": "2026-07-12 triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-12T14:09:07Z cutoff; hash 08ff4f26effa4299): monitor 117279738 (RTC Action Execution) fired 14:41:18Z, occ 232->233. p95 14:11:18-14:41:18Z: 6 of 175 points exceeded the 3.0s threshold, peak 4.16s at 14:31:40Z; 0 DD error logs -- genuine transient spike, matching the documented shape. last_notified_at (2026-07-11T11:20:00Z) ~27h21m old, EXCEEDED 24h suppression window -> POST, gate_reason=null (window-expiry), last_notified_at bumped to 2026-07-12T14:41:18Z. See docs/investigations/2026-07-12-08ff4f26effa4299.md."
       }
-    ]
+    ],
+    "owning_team": "Vertical App Experience"
   },
   {
     "id": "ki-2026-05-28-mobile-asyncstorage-securestore-keychain",
