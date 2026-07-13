@@ -605,8 +605,8 @@
     "id": "ki-2026-05-28-mobile-asyncstorage-securestore-keychain",
     "title": "Method iOS app (v2.1.537): 'Failed to migrate from AsyncStorage to SecureStore' (ERR_KEY_CHAIN) storm",
     "first_seen": "2026-05-28T00:07:21Z",
-    "last_seen": "2026-07-02T17:17:37Z",
-    "occurrences": 19,
+    "last_seen": "2026-07-13T12:44:33Z",
+    "occurrences": 20,
     "match": {
       "channels": [
         "alert-system",
@@ -654,7 +654,8 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.8,
-    "last_notified_at": "2026-07-02T12:43:53Z",
+    "owning_team": "Admin",
+    "last_notified_at": "2026-07-13T13:08:00Z",
     "notes": [
       {
         "ts": "2026-06-24T18:27:25Z",
@@ -663,6 +664,10 @@
       {
         "ts": "2026-07-02T15:08:30Z",
         "note": "2026-07-02 15:08Z triage (degraded cycle, no Slack MCP): ki-28 occ#17. NOTE: evidence_source field says datadog_logs but the query dd_search.py logs 'service:nonprod/apps (ERR_KEY_CHAIN OR ...)' returned 0 hits over a full 7-day window even though DD Logs is otherwise flowing (wildcard sanity query returned fresh hits) -- likely a stale/wrong evidence_source field, since every actual investigation this KB has ever used es_search.py instead (see 2026-07-02-6e1ea59c0b765c41.md: 'ki-28 is ES-sourced, not RUM'). Fell back to the demonstrated ES query: fields.dd_service.keyword:\"nonprod/apps\" AND message:*ERR_KEY_CHAIN* -> 123 hits in the 14:12-15:08Z (56-min) window (~2.2/min), down sharply from ~42.9/min last cycle -- continued deceleration. Synthetic hash d9ef818a95ee7e1f (channel C03TYHGRS23 + window-end ts). last_notified_at 2026-07-02T12:43:53Z = ~2h24m ago, WITHIN 24h suppression window; occ 16->17 (not %10); fix_status needs-human unchanged -> SUPPRESS gate_reason=known-issue-window. Flagging the evidence_source field for correction to 'elasticsearch' in a future pass."
+      },
+      {
+        "ts": "2026-07-13T13:08:00Z",
+        "note": "2026-07-13 triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-13T11:18:32Z cutoff): ki-28 occ#20, longest quiet gap yet (11 days since last fire on 2026-07-02). Surfaced via the Watchdog catch-all monitor 236570583 ('New issue to review', fired 12:44:33Z) -- alert body empty (same standing coverage gap noted 2026-06-24), so classification came entirely from an ES sweep rather than match_kb.py text matching. Verified this was NOT the sibling ki-2026-05-29-methodsession-getaccountbysubdomain-nre entry (which also lists monitor 236570583 in its match set): ES check for 'JWT Retrieval Failed' returned 0 hits in the fire window, ruling that KB out per the bare-monitor-id false-match lesson. Confirmed the canonical signature instead: fields.dd_service.keyword:\"nonprod/apps\" AND messageTemplate.keyword:\"Failed to migrate from AsyncStorage to SecureStore: {\\\"code\\\":\\\"ERR_KEY_CHAIN\\\"}\" -> 6251 hits in the 12:14:33-12:44:33Z window vs only 2 total (0 matching) in the same window 24h prior -- a genuine fresh spike, not steady-state. 100% single UserAgent (Method/2.1.537, same pinned version as the original May incident) and only 2 distinct client IPs (216.77.93.3 x4526, 170.55.86.83 x1725) -- concentrated in a handful of retry-looping devices, not broad impact. Re-confirmed the standing evidence_source discrepancy: the documented DD-logs evidence_query returned 0 hits again (should be elasticsearch, not datadog_logs -- still not corrected). last_notified_at (2026-07-02T12:43:53Z) = ~11 days stale -- PAST 24h suppression window (occurrence 20 also independently crosses the every-10th-occurrence threshold) -> POSTED to #triage-results, gate_reason=null, last_notified_at bumped to now. Re-evaluated owning_team per ownership.md step 4.1a precedence (Project match beats Component fallback): both method-nativemobile-ui and method-platform-ui have explicit Project rows -> Admin, superseding the 2026-06-24 note's Component-table-derived 'Service Delivery'; recorded owning_team: Admin on this entry. Synthetic hash d2d87e5b4c9d3f94 (channel CPHHABKAA + DD monitor ts 2026-07-13T12:44:33Z). See docs/investigations/2026-07-13-d2d87e5b4c9d3f94.md."
       }
     ]
   },
@@ -1265,8 +1270,8 @@
     "id": "ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata",
     "title": "\"Method UI Grid and Dropdown Performance Test\" synthetics (team:qa, non-prod, 5 monitor-ID variants: Day run / Day run 2 / Evening run / Midnight run / Release Run) chronically go No Data; never correlates to a real incident",
     "first_seen": "2026-05-02T13:46:00Z",
-    "last_seen": "2026-07-13T04:01:00Z",
-    "occurrences": 76,
+    "last_seen": "2026-07-13T12:30:00Z",
+    "occurrences": 77,
     "match": {
       "channels": [
         "alert-system"
@@ -1302,7 +1307,7 @@
     "fix_template": null,
     "confidence": 0.85,
     "owning_team": "unmapped",
-    "last_notified_at": "2026-07-12T12:30:00Z",
+    "last_notified_at": "2026-07-13T12:30:00Z",
     "notes": [
       {
         "ts": "2026-07-03T13:09:00Z",
@@ -1423,6 +1428,10 @@
       {
         "ts": "2026-07-12T13:14:01Z",
         "note": "2026-07-12 13:14Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-12T12:04:22Z cutoff): Midnight run variant (123495390) No Data 12:30:00Z, still No Data at scan time -- 70th documented occurrence. Confirmed via this cycle's own full-179-monitor DD scan (entry's evidence_query is monitor-state-based: overall_state=='No Data' for this monitor set) -- matches. No co-firing signal with any prod service this cycle. Synthetic hash 43d908c32ac85995 (channel CPHHABKAA + DD monitor ts 2026-07-12T12:30:00Z). last_notified_at (2026-07-11T11:20:00Z) = ~25h10m ago -- PAST the 24h suppression window -> RESURFACE POST (gate_reason=null, window-expiry), last_notified_at bumped to 2026-07-12T12:30:00Z. See docs/investigations/2026-07-12-43d908c32ac85995.md."
+      },
+      {
+        "ts": "2026-07-13T13:08:00Z",
+        "note": "2026-07-13 triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-13T11:18:32Z cutoff): Midnight run variant (123495390) No Data 12:30:00Z, still No Data at scan time -- 77th documented occurrence. Confirmed via this cycle's own full-179-monitor DD scan (entry's evidence_query is monitor-state-based: overall_state=='No Data' for this monitor set) -- matches. No co-firing signal with any prod service this cycle. Synthetic hash 9e083e6974923e62 (channel CPHHABKAA + DD monitor ts 2026-07-13T12:30:00Z). last_notified_at (2026-07-12T12:30:00Z) = ~24h38m ago -- PAST the 24h suppression window -> RESURFACE POST (gate_reason=null, window-expiry), last_notified_at bumped to 2026-07-13T12:30:00Z. Data-quality note: occurrences field was already at 76 (bumped from 72 earlier today per the 11:03Z cycle's summary, covering 4 sibling-monitor fires) but last_seen/last_notified_at/notes were not updated for those 4 fires -- last_seen corrected to this occurrence's timestamp; the earlier gap is not retroactively backfilled. See docs/investigations/2026-07-13-9e083e6974923e62.md."
       }
     ]
   },
