@@ -2110,8 +2110,8 @@
     "id": "ki-2026-07-06-rainforest-merchant-details-503-serviceunavailable",
     "title": "runtime-core-api Rainforest GetMerchantAsync (merchant-details lookup) fails with ServiceUnavailable when Rainforest's own API returns a 503 -- third-party payment-processor degradation, not a Method-side defect",
     "first_seen": "2026-07-06T13:02:25Z",
-    "last_seen": "2026-07-13T00:15:52Z",
-    "occurrences": 5,
+    "last_seen": "2026-07-13T18:51:30Z",
+    "occurrences": 6,
     "match": {
       "channels": [
         "alert-system"
@@ -2141,7 +2141,7 @@
     "fix_template": null,
     "confidence": 0.85,
     "owning_team": "Transactions",
-    "last_notified_at": "2026-07-12T08:26:53Z",
+    "last_notified_at": "2026-07-13T19:08:18Z",
     "notes": [
       {
         "ts": "2026-07-06T13:11:37Z",
