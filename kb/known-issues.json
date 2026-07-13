@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-13T15:08:12Z",
-    "occurrences": 574,
+    "last_seen": "2026-07-13T17:59:11Z",
+    "occurrences": 575,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -160,6 +160,10 @@
     "last_notified_at": "2026-07-13T15:08:12Z",
     "prior_fix_status": "needs-ops-decision",
     "notes": [
+      {
+        "ts": "2026-07-13T18:32:00Z",
+        "note": "2026-07-13 18:32Z triage (degraded cycle, DD monitor scan diff -- widened diff to ALL last_triggered_ts > prior cutoff 2026-07-13T17:02:08Z; hash edb12131bb7f7ddc): occ#575 via monitor 77419271 last_triggered 2026-07-13T17:59:11Z (OK by scan time, self-recovered). DD logs (service:method-ui XHR errors, GetSyncWidgetInfoAsync) 17:44:11-17:59:11Z: 200+ hits (limit-capped), diffuse account fan-out (top EnglandLogistics 6%, intrepidrocks2 5%), canonical chronic shape -- no single-account concentration. ES aggregate (Exception.keyword:*TimedOut* OR message:*Ocelot* OR message:*ResponderMiddleware*) same window: 399 hits, dominant service gateway (212) -- chronic mechanism confirmed, elevated vs the 15:08:12Z occurrence's 356/178. service:ms-gateway-api status:error DD Logs: 0 hits -- 5th CONSECUTIVE occurrence with this ES-vs-DD-Logs split (following 2026-07-12T14:08Z/21:48Z/22:50Z and 2026-07-13T15:08:12Z), continuing the pattern flagged for Ben in the last POSTED occurrence's message (which already recommended checking whether DD Logs' status:error facet is capturing Ocelot ResponderMiddleware timeouts for ms-gateway-api at all). TEMPORAL NOTE: DD monitor 115456700 (ki-24, RTC Screen Load p95) fired 6 min later at 18:05:20Z -- both processed as separate groups this same cycle; precedence_note's co-fire criterion (>=2 alerts each in the same 60-min window) is not met (1 alert each this cycle) so NOT treated as a joint shared-upstream incident, but the proximity is noted. last_notified_at (2026-07-13T15:08:12Z) ~2h51m ago, WITHIN 24h suppression window; occ 575 not %10; fix_status (chronic-residual-post-rollback-2026-06-05) unchanged -> SUPPRESS, gate_reason=known-issue-window, appended to docs/actionable/2026-07-13.md. See docs/investigations/2026-07-13-edb12131bb7f7ddc.md."
+      },
       {
         "ts": "2026-06-04T13:05:00Z",
         "note": "2026-06-04 13:00Z catch-up triage: 5 new occurrences (F1/F2/F3/F4 chronic-baseline + OUTAGE surge at ~100x chronic magnitude). Operators engaged in #swat 12:59:51Z. Gateway 5XX rate peaked ~1000/30s 12:54-13:00Z; subsiding by 13:03Z. No deploys in last 48h on critical-path repos. fix_status temporarily set to 'active-outage' for this cycle \u2014 revert to prior in next cycle if surge resolves."
