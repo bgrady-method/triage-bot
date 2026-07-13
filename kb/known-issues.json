@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-13T20:03:11Z",
-    "occurrences": 577,
+    "last_seen": "2026-07-13T21:07:12Z",
+    "occurrences": 578,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -2173,8 +2173,8 @@
     "id": "ki-2026-07-06-runtime-core-redis-cache-timeout-transient-burst",
     "title": "runtime-core-api Runtime.Caching.CacheContext brief Redis command-timeout burst (DD monitor 227940275 'Redis Errors is High') -- self-recovers in ~1min, hits 20+ distinct accounts simultaneously",
     "first_seen": "2026-07-05T16:42:35+00:00",
-    "last_seen": "2026-07-13T00:45:35Z",
-    "occurrences": 17,
+    "last_seen": "2026-07-13T20:17:35Z",
+    "occurrences": 18,
     "match": {
       "channels": [
         "alert-system",
@@ -2230,7 +2230,7 @@
     "fix_template": null,
     "confidence": 0.75,
     "owning_team": "Vertical App Experience",
-    "last_notified_at": "2026-07-12T05:49:07Z",
+    "last_notified_at": "2026-07-13T21:20:00Z",
     "notes": [
       {
         "ts": "2026-07-06T21:11:27Z",
@@ -2267,6 +2267,10 @@
       {
         "ts": "2026-07-12T12:07:00Z",
         "note": "2026-07-12 12:07Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-12T10:56:21Z cutoff): 4 fires this cycle, occ 11->15, all attributed to ONE shared latency burst 11:45:20-11:49:30Z hitting ms-account-api / ms-authentication-api / signin simultaneously (all Admin-owned, account/auth call path). Order: (1) hash cb6253ab745a0b9c, monitor 299551532 (ms-authentication-api P95) fired 11:57:32Z, occ 12: P95 spiked to 15.55s at 11:46:20Z. (2) hash 6014bb66ff4266e0, monitor 65493111 (ms-account-api avg latency, NEW to this KB's match.any_of) fired 11:57:51Z, occ 13: avg spiked to 6.11s at 11:49:30Z. (3) hash a55469d4b2dc14cf, monitor 299544851 ([Admin][Signin][P2] P95, NEW to this KB's match.any_of) fired 11:59:11Z, occ 14: P95 spiked to 23.75s at 11:46:50Z -- first-ever documented co-fire of signin alongside the account/auth pair, widening the known blast radius to 3 services. (4) hash 64d0ea2d00d27c43, monitor 299551507 (ms-account-api P95) fired 12:02:07Z, occ 15: P95 spiked to 29.83s at 11:45:30Z (largest magnitude of the batch). Across the full 11:32:32-12:04:22Z window: ES messageTemplate.keyword Redis-timeout query returned 0 hits; DD trace.redis.command.errors metric returned an EMPTY series (no datapoints at all -- weaker even than this morning's 6-sparse-point batch); DD logs service:ms-account-api status:error returned 0 results. This is the 2nd consecutive investigated batch today (after 05:48-07:44Z, occ 8->11, also 0 ES hits) with zero Redis corroboration. Widened match.any_of to add monitors/65493111 and monitors/299544851 as newly-confirmed downstream-fan-out signals of the same event, per the established 2026-07-08 precedent of widening this entry for new family members. last_notified_at (2026-07-12T05:49:07Z) ~6h13m old, WITHIN 24h suppression window -> SUPPRESS all 4, gate_reason=known-issue-window. ESCALATING FLAG (continuing from this morning's note): 0 of the last 2 investigated batches (7 total fires) showed any Redis-error corroboration, versus the KB's 2 founding occurrences which both had strong positive corroboration. Recommend the team split this into a mechanism-agnostic 'account/auth latency-burst family' entry, since the Redis-timeout diagnosis in the title/diagnosis field is no longer supported by the majority of recent evidence. See docs/investigations/2026-07-12-cb6253ab745a0b9c.md, -6014bb66ff4266e0.md, -a55469d4b2dc14cf.md, -64d0ea2d00d27c43.md."
+      },
+      {
+        "ts": "2026-07-13T21:20:00Z",
+        "note": "2026-07-13 21:20Z triage (degraded cycle, no Slack MCP; synthetic hash 5fabafcfa060120e, DD monitor scan diff vs 2026-07-13T20:03:11Z cutoff): 18th occurrence, monitor 227940275 fired 20:17:35Z, self-recovered to OK by scan time. WEAKER/DIFFERENT evidence than the founding diagnosis: ES messageTemplate 'Redis operation timed out after 5 seconds' (fields.dd_service.keyword:runtime-core-api) query returned 0 hits (3rd consecutive occurrence with 0 ES hits, continuing the trend flagged 2026-07-12). trace.redis.command.errors by service in the +/-10min window showed only 6 total errors, and for the first time NONE on runtime-core-api -- the nonzero points were on service:gateway (2) and service:nonprod/apps (4) instead. No co-firing RTC p95 (115456700 last 18:09:20Z, 2h+ earlier), tables-fields circuit-breaker (302103451 last 07-08), or any of the entry's downstream fan-out monitors. last_notified_at (2026-07-12T05:49:07Z) ~39h20m ago -- PAST 24h suppression window -> POST to #triage-results, gate_reason=null (window-expiry), last_notified_at bumped to 2026-07-13T21:20:00Z. fix_status needs-human unchanged. FLAG (compounding the 2026-07-12 flag): this is now the 3rd straight occurrence with no runtime-core-api ES corroboration, and this occurrence's Redis-error signal wasn't even on runtime-core-api -- recommend the team re-scope or split this entry, it may be absorbing unrelated low-volume Redis noise across services under one chronic label. See docs/investigations/2026-07-13-5fabafcfa060120e.md."
       }
     ]
   },
