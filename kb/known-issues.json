@@ -2311,8 +2311,8 @@
     "id": "ki-2026-07-06-synthetics-signin-transient-step-duration-spike",
     "title": "[Synthetics] Sign in to Method step-duration monitor (127198928) intermittently spikes >20s for a single test run then self-recovers, with no corroborating error signal on any critical-path service",
     "first_seen": "2026-05-27T19:02:08Z",
-    "last_seen": "2026-07-13T17:02:08Z",
-    "occurrences": 20,
+    "last_seen": "2026-07-13T17:31:08Z",
+    "occurrences": 21,
     "match": {
       "channels": [
         "alert-system"
@@ -2339,6 +2339,10 @@
     "owning_team": "Admin",
     "last_notified_at": "2026-07-13T17:07:55Z",
     "notes": [
+      {
+        "ts": "2026-07-13T18:12:00Z",
+        "note": "2026-07-13 18:12Z triage (degraded cycle, DD monitor scan diff -- widened diff to ALL last_triggered_ts > prior cutoff 2026-07-13T17:02:08Z, not just currently-Alert/No-Data, which is what surfaced this fire; hash 7bb44c943a4e1dd3): occ#21 via monitor 127198928 last_triggered 2026-07-13T17:31:08Z, recovered to OK by scan time (18:09Z). DD metric avg:synthetics.browser.step.duration{step_id IN (447-as9-ktg,x93-d6z-ir9,3w5-4fp-rsq,rrq-u73-wwr)} re-queried 17:01:08-17:31:08Z: single-point breach 21875ms @17:20:00Z (ratio 0.094 over the 20s threshold), same canonical one-point-spike-then-recover shape as all 20 priors. No co-firing critical-path monitor in the 17:15-17:35Z window (the only other monitors that changed state this cycle -- 299251404 tables-fields @17:52:24Z, 77419271 gateway XHR @17:59:11Z, 115456700 RTC p95 @18:05:20Z -- all postdate this spike by 20+ minutes, ruled out as concurrent). ES aggregate level:Error 17:15-17:35Z across all services: 1654 hits, top buckets nonprod/apps 1157, approutine-subscriber 336, tables-fields 37, runtime-core-api 36, oauth2.identity.server 5 -- all unrelated chronic baseline noise (oauth2 volume consistent with prior occurrences' unrelated 3rd-party-client errors, not drilled further given the low count). DD RUM errortracking service:method-signin-ui 17:15-17:35Z: 0 client errors. Same no-corroboration shape as all 20 priors. last_notified_at (2026-07-13T17:07:55Z) ~23m26s ago -- WITHIN 24h suppression window; occ 21 not %10; fix_status unchanged -> SUPPRESS, gate_reason=known-issue-window, appended to docs/actionable/2026-07-13.md. See docs/investigations/2026-07-13-7bb44c943a4e1dd3.md."
+      },
       {
         "ts": "2026-07-13T17:07:55Z",
         "note": "2026-07-13 17:07Z triage (degraded cycle, no Slack MCP read path this session -- ToolSearch confirmed no slack tool surfaced, consistent with the gap since 2026-07-03, day 11+; DD monitor scan diff vs prior cycle cutoff 2026-07-13T15:08:12Z, hash be6fc90ae7963977): occ#20 via monitor 127198928 last_triggered 2026-07-13T17:02:08Z (Alert at scan time). DD metric avg:synthetics.browser.step.duration{step_id IN (447-as9-ktg,x93-d6z-ir9,3w5-4fp-rsq,rrq-u73-wwr)} re-queried 16:45:00Z-17:15:00Z: single-point breach 20894ms @17:00:00Z (4.5% over the 20s threshold), immediately preceded by 9142ms @16:50:00Z -- canonical one-point-spike shape, 20th consecutive occurrence with this signature. Checked co-firing per this entry's own playbook step 2: all team:admin gateway/oauth2/ms-authentication-api/ms-identity-api/signin monitors (299544648/655/656/658/660/677/678/847/850/851, 299551528/532/537/603/611) OK with last_triggered_ts stale by hours-to-days, none near 17:00Z -- no co-firing critical-path monitor. ES aggregate level:Error across oauth2.identity.server/ms-gateway-api/ms-authentication-api/ms-identity-api 16:55:00-17:05:00Z: 0 hits. DD RUM errortracking service:method-signin-ui 16:55:00-17:05:00Z: 0 client errors. Same no-corroboration shape as all 19 priors. last_notified_at (2026-07-11T18:15:00Z) was ~46h53m ago -- PAST the 24h suppression window (independently, occurrence 20 also hits the every-10th-occurrence rule -- both conditions would have triggered POST; the >24h branch takes precedence per the gate's if/elif order, gate_reason=null) -> POST to #triage-results, last_notified_at bumped to 2026-07-13T17:07:55Z. See docs/investigations/2026-07-13-be6fc90ae7963977.md."
