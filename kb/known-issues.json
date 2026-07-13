@@ -2324,8 +2324,8 @@
     "id": "ki-2026-07-06-synthetics-signin-transient-step-duration-spike",
     "title": "[Synthetics] Sign in to Method step-duration monitor (127198928) intermittently spikes >20s for a single test run then self-recovers, with no corroborating error signal on any critical-path service",
     "first_seen": "2026-05-27T19:02:08Z",
-    "last_seen": "2026-07-13T17:31:08Z",
-    "occurrences": 21,
+    "last_seen": "2026-07-13T19:00:00Z",
+    "occurrences": 22,
     "match": {
       "channels": [
         "alert-system"
