@@ -438,8 +438,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-07-13T18:09:20Z",
-    "occurrences": 235,
+    "last_seen": "2026-07-14T18:03:19Z",
+    "occurrences": 237,
     "match": {
       "channels": [
         "alert-system",
@@ -468,7 +468,7 @@
           "regex": "post_/api/v1/runtime/_actionid_"
         }
       ],
-      "precedence_note": "2026-06-10: When ki-24 and ki-21 (ki-2026-05-21-gateway-microservices-timeout) both fire in the same 60-min window with \u22652 alerts each, treat as shared-upstream signal \u2014 see ki-2026-05-21-gateway-microservices-timeout precedence_note. Root cause is more likely upstream (microservices.methodlocal.int pool, ms-account-api ClusterInfo lookup, runtime-core RTC backpressure shared with gateway) than endpoint-specific."
+      "precedence_note": "2026-06-10: When ki-24 and ki-21 (ki-2026-05-21-gateway-microservices-timeout) both fire in the same 60-min window with \u22652 alerts each, treat as shared-upstream signal \u2014 see ki-2026-05-21-gateway-microservices-timeout precedence_note. Root cause is more likely upstream (microservices.methodlocal.int pool, ms-account-api ClusterInfo lookup, runtime-core RTC backpressure shared with gateway) than endpoint-specific. 2026-07-14: first observed 4-service simultaneous co-fire -- ki-24 (both monitors), ki-2026-07-07-classicmethod-p95-latency-monitor-recurring (monitor 299603201), and two previously-unmatched monitors (302048329 miurl P95, 299551623 ms-search-api P95, new entry ki-2026-07-14-cross-service-p95-latency-shared-upstream) all breached over the SAME ~17:36-18:05Z sustained window, confirmed via each service's own APM metric series. Broader footprint than any prior ki-24 co-fire (previously scoped only to ki-21/Redis). Treat co-fire with any of those entries as this same expanded signature."
     },
     "evidence_source": "datadog_apm",
     "evidence_query": "p95:trace.aspnet_core.request{env:prod,service:runtime-core-api,resource_name:post_/api/v1/runtime/load/_screenid*}",
@@ -614,6 +614,10 @@
       {
         "ts": "2026-07-12T14:41:18Z",
         "note": "2026-07-12 triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-12T14:09:07Z cutoff; hash 08ff4f26effa4299): monitor 117279738 (RTC Action Execution) fired 14:41:18Z, occ 232->233. p95 14:11:18-14:41:18Z: 6 of 175 points exceeded the 3.0s threshold, peak 4.16s at 14:31:40Z; 0 DD error logs -- genuine transient spike, matching the documented shape. last_notified_at (2026-07-11T11:20:00Z) ~27h21m old, EXCEEDED 24h suppression window -> POST, gate_reason=null (window-expiry), last_notified_at bumped to 2026-07-12T14:41:18Z. See docs/investigations/2026-07-12-08ff4f26effa4299.md."
+      },
+      {
+        "ts": "2026-07-14T18:10:00Z",
+        "note": "2026-07-14 18:10Z triage (degraded cycle, DD monitor scan diff vs prior cutoff 2026-07-14T17:02:08Z, hashes f88306325925a47c [115456700] + 0396d3a8e1b6caa5 [117279738]): occ 235->237. Both monitors last_triggered within the same 18:01:21-18:03:19Z window (OK by scan time, self-recovered). DD metric re-query 17:35:00-18:08:00Z: Screen Load p95 63/198 points >3s, peak 43.27s@17:44:20Z; Action Execution p95 55/198 points >3s, peak 37.64s@18:01:10Z -- both far above the KB's prior worst peaks (~30.8s), and SUSTAINED for ~29min (17:36-18:05Z) rather than the usual single-sample spike-then-recover shape. Latency-only confirmed (0 status:error DD Logs). NEW THIS OCCURRENCE: confirmed genuine 4-service simultaneous correlation (see precedence_note update) -- classic/method, ms-search-api, and miurl all independently breached their own p95 thresholds over the identical window. Weak Redis corroboration: 4 'Redis operation cancelled' (Runtime.Caching.CacheContext) ES hits on runtime-core-api, diffuse across 4 accounts, time-clustered near 18:03Z. Host CPU checked and ruled out (peak 19.2%, prod-rt-04). No infra-monitor (Redis/SQL/Mongo/gateway/DNS) co-fire. No deploy visibility (methodcrm-org GH_TOKEN 403 confirmed still blocking runtime-core fetch). last_notified_at (2026-07-13T18:40:00Z) ~23h28m ago, WITHIN 24h suppression window; neither occ 236 nor 237 is %10; fix_status 'investigating' unchanged -> SUPPRESS both, gate_reason=known-issue-window, appended to docs/actionable/2026-07-14.md. New KB entry created for the two non-matching co-firing monitors: ki-2026-07-14-cross-service-p95-latency-shared-upstream. See docs/investigations/2026-07-14-f88306325925a47c.md and -0396d3a8e1b6caa5.md."
       }
     ],
     "owning_team": "Vertical App Experience"
@@ -2562,8 +2566,8 @@
     "id": "ki-2026-07-07-classicmethod-p95-latency-monitor-recurring",
     "title": "Classic (classic/method) P95 request latency spikes, self-recovering, no correlated errors -- 2 occurrences same day, differing shape",
     "first_seen": "2026-07-07T01:49:42Z",
-    "last_seen": "2026-07-08T11:03:41Z",
-    "occurrences": 3,
+    "last_seen": "2026-07-14T18:02:41Z",
+    "occurrences": 4,
     "match": {
       "channels": [
         "alert-system",
@@ -2591,11 +2595,15 @@
     "fix_template": null,
     "confidence": 0.6,
     "owning_team": "Admin",
-    "last_notified_at": "2026-07-07T11:45:41Z",
+    "last_notified_at": "2026-07-14T18:10:00Z",
     "notes": [
       {
         "ts": "2026-07-07T11:45:41Z",
         "note": "2026-07-07 12:08Z triage (degraded cycle, no Slack MCP; hash b953ea74242eadfc): 2nd occurrence of monitor 299603201 same UTC day (1st: 01:49:42Z, hash 7e75e016cee9b94c, docs/investigations/2026-07-07-7e75e016cee9b94c.md, scored 5, posted). This occurrence: last_triggered 11:45:41Z, OK by scan time (self-recovered). DD metric re-query 11:25:41Z-12:05:41Z shows 3/222 points over the 10.0 threshold, 11:33:20Z-11:38:10Z (~5min), peak 169.33, mean of elevated stretch 68.57 (ratio 5.86) -- shorter but sharper than occurrence 1 (16min/37pts, peak 257.36, mean 52.4, ratio 4.24). 0 error logs both times. Created this KB entry now (confidence 0.6, lower than usual given the differing shape between occurrences) so a 3rd occurrence is recognized without re-deriving from scratch, and so the ki-classic-clb-to-alb-ssl-redirect-loss false-match trap is documented for this monitor specifically. Scored needs-human: metric_breach (+3, ratio 5.86) + truly_novel (+2, no KB entry existed at investigation start) + recency_decay (-1, 2nd fire same UTC day) = 4 >= threshold 4; today_post_count (needs-human) 2/5 -> POSTED to #triage-results."
+      },
+      {
+        "ts": "2026-07-14T18:10:00Z",
+        "note": "2026-07-14 18:10Z triage (degraded cycle, DD monitor scan diff, hash c2fc6232dde0f625): occ 3->4 via monitor 299603201 last_triggered 18:02:41Z (OK by scan time, self-recovered). DD metric re-query 17:35:00-18:08:00Z: 51/198 points >20.0s threshold, peak 116.72s@18:01:40Z, span 17:36:50-18:05:00Z (~28.5min) -- closer to occurrence 1's sustained-burst profile (16min/37pts) than occurrence 2's brief spike (5min/3pts), partially answering the KB's open 'one mechanism or two' question. NEW THIS OCCURRENCE: first-ever confirmed simultaneous co-fire with ki-2026-05-24-runtime-core-rtc-p95-recurring (both monitors) plus two newly-flagged monitors (miurl P95 302048329, ms-search-api P95 299551623) -- all 5 breached over the identical ~17:36-18:05Z window per each service's own APM series. See docs/investigations/2026-07-14-f88306325925a47c.md and -77bdf6b53feea7ae.md for the full cross-service evidence. No error-log signal on classic/method (not ES-instrumented; combined status:error DD sweep across all 5 co-firing services = 0 hits). last_notified_at (2026-07-07T11:45:41Z) ~7 days ago -- PAST 24h suppression window -> POST to #triage-results, gate_reason=null (window-expiry), last_notified_at bumped to now. fix_status 'needs-human' unchanged (root cause still not identified for this service specifically). See docs/investigations/2026-07-14-c2fc6232dde0f625.md."
       }
     ]
   },
@@ -2944,6 +2952,52 @@
       {
         "ts": "2026-07-12T02:40:38Z",
         "note": "2026-07-12 triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-11T21:54:31Z cutoff): first formal KB entry for this long-recurring monitor (dozens of prior fires per incident-log grep, never converted to a KB entry before). Monitor 70171778 fired 02:40:38Z, hash 4a8ad233614c9da2. sum:trace.aspnet_core.request.errors by {service} 02:10:38-02:40:38Z: 596 total, 100% on rest-api. By {resource_name}: 100% on post_/api/v_version_/tables/_table. 0 error logs. Scored needs-human: metric_breach_magnitude +3 (ratio 18.9), novel_no_kb +2 = 5 >= escalation_threshold(4) -> POSTED to #triage-results, gate_reason=scored. See docs/investigations/2026-07-12-4a8ad233614c9da2.md."
+      }
+    ]
+  },
+  {
+    "id": "ki-2026-07-14-cross-service-p95-latency-shared-upstream",
+    "title": "Cross-service P95 latency correlated spike (runtime-core RTC, classic/method, ms-search-api, miurl) -- shared-upstream, latency-only, self-recovering",
+    "first_seen": "2026-07-14T17:36:00Z",
+    "last_seen": "2026-07-14T18:04:03Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-system",
+        "alert-runtime-monitoring"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/302048329"
+        },
+        {
+          "contains": "monitors/299551623"
+        },
+        {
+          "regex": "P95 latency high \\(miurl\\)"
+        },
+        {
+          "regex": "P95 latency high \\(ms-search-api\\)"
+        }
+      ],
+      "precedence_note": "Do NOT broad-match on bare \"miurl\" or \"ms-search\" substrings -- \"miurl\" bare-matches ki-2026-06-16-miurl-shortlink-domain-unreachable (DNS/domain-resolution issue, unrelated mechanism) and ki-2026-07-04-miurl-5xx-monitor-noise (different monitor 302048068, 5xx error rate not p95 latency); \"ms-search\" bare-matches ki-stockapp-ms-search-cpu-contention-msn-crash (resolved 2025-01-02 CPU-contention/host-crash incident, unrelated mechanism -- host CPU was independently checked and ruled out for this entry's 2026-07-14 occurrence). Confirm the exact monitor id (302048329 or 299551623) or the literal \"P95 latency high (...)\" text before accepting a match against this entry. First occurrence (2026-07-14) co-fired with ki-2026-05-24-runtime-core-rtc-p95-recurring (monitors 115456700/117279738) and ki-2026-07-07-classicmethod-p95-latency-monitor-recurring (monitor 299603201) -- all 5 monitors elevated simultaneously across the SAME ~17:36-18:05Z sustained window, confirmed via each service's own underlying APM metric series, not just alert-timestamp proximity. Treat a co-fire with any of those 3 entries as this same expanded shared-upstream signature."
+    },
+    "evidence_source": "datadog_apm",
+    "evidence_query": "p95:trace.aspnet.request{service:miurl,env:prod} > 2.0 ; p95:trace.aspnet_core.request{service:ms-search-api,env:prod} > 2.0",
+    "evidence_threshold_s": 2.0,
+    "evidence_note": "Two distinct monitor queries share the same 2.0s threshold. Latency-only / APM-sourced -- miurl is not ES-instrumented at all (legacy .NET Framework); ms-search-api's small volume of ES errors during any given window has so far been unrelated user-input validation noise, not an infra signal. Corroborate via DD: run both evidence queries (count points > 2.0s, note peak + timestamp), confirm 0 errors via dd_search.py logs on both services, and check whether ki-24 / classicmethod monitors are ALSO elevated in the same window (the defining feature of this entry).",
+    "diagnosis": "First observed 2026-07-14: DD monitors 302048329 ([VAE][miurl][P2] P95 latency high, threshold 2.0s) and 299551623 ([Admin][SearchAPI][P2] P95 latency high, threshold 2.0s) breached simultaneously with runtime-core-api's RTC p95 monitors (115456700/117279738, threshold 3.0s) and classic/method's p95 monitor (299603201, threshold 20.0s) during a sustained ~29-minute window (17:36-18:05Z). Peaks: miurl 56.32s (ratio 27.16x), ms-search-api 22.22s (ratio 10.11x). Zero error-log signal on any of the 4 services (0 status:error DD logs across the board). The only corroborating error signal anywhere is a weak cluster of 4 \"Redis operation cancelled\" (Runtime.Caching.CacheContext) errors on runtime-core-api, diffuse across 4 unrelated accounts -- consistent with but not conclusive of the existing ki-24 Redis-backpressure hypothesis, and does not obviously explain classic/method or miurl (legacy IIS apps not known to share runtime-core's Redis cache). Host CPU checked across all runtime-core/classic/msl/svc hosts and ruled out (peak 19.2%, well below saturation) -- rules out a repeat of the ki-stockapp-ms-search-cpu-contention-msn-crash mechanism. No co-firing SQL/Mongo/Redis/gateway/DNS monitor. No deploy correlation available (methodcrm-org GH_TOKEN 403 gap blocks all 4 candidate repos). All 5 monitors self-recovered without intervention by ~18:06-18:08Z. Breadth (4 independently-deployed codebases spanning 3 owning teams: Admin, Vertical App Experience, Transactions) makes an application-code-level cause on any single service unlikely -- root cause is most probably shared infrastructure (network path, load balancer, DNS, or a datastore/cache shared more broadly than previously scoped) but is NOT identified. DD APM trace search (not wired into dd_search.py) would be needed to pinpoint the actual shared span.",
+    "playbook": "1) On monitors 302048329 (miurl P95>2s) or 299551623 (ms-search-api P95>2s) firing, first check whether ki-24 (115456700/117279738) and/or the classicmethod monitor (299603201) are ALSO in Alert/recently-triggered in the same window -- if so, this is the shared-upstream signature, not two independent service-specific issues. 2) Re-run p95:trace.aspnet.request{service:miurl,env:prod} and p95:trace.aspnet_core.request{service:ms-search-api,env:prod} over the window; note point-count over 2.0s threshold, peak, and span. 3) Confirm latency-only: status:error DD Logs on all co-firing services should be ~0. 4) Check ES for \"Redis operation cancelled\" / Runtime.Caching.CacheContext on runtime-core-api in the same window -- weak but real corroboration of a shared caching/Redis dependency. 5) Check per-host CPU (runtime.dotnet.cpu.percent) across prod-rt-*/prod-classic-*/prod-msl-*/prod-svc-* -- if elevated, suspect a repeat of the ki-stockapp CPU-contention pattern instead (different root cause; check for a co-located StockApp/tables-fields release). 6) No fix identified yet -- if this recurs, escalate to Admin/VAE/Transactions jointly (the co-firing services span 3 different owning teams) to investigate a shared dependency: load balancer, DNS resolution path, or a common backing datastore. No single team owns enough of the picture to root-cause this alone.",
+    "fix_status": "needs-human",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.55,
+    "owning_team": "Admin, Vertical App Experience, Transactions (multi-team -- see playbook step 6)",
+    "last_notified_at": "2026-07-14T18:10:00Z",
+    "notes": [
+      {
+        "ts": "2026-07-14T18:10:00Z",
+        "note": "2026-07-14 18:10Z triage (degraded cycle, DD monitor scan diff, hash 77bdf6b53feea7ae primary [302048329 miurl] + satellite 309da2754834a99a [299551623 ms-search-api]): entry created this cycle after verifying and REJECTING two bare-substring false-matches (see match.precedence_note). Scored needs-human: metric_breach (+3, miurl ratio 27.16) + group_size (+1, 2 alerts) + truly_novel (+2, no valid KB match, no prior 7-day alert_hash for either monitor) = 6 >= threshold 4; today's needs-human post count 0/5 -> POSTED to #triage-results, gate_reason=scored. See docs/investigations/2026-07-14-77bdf6b53feea7ae.md for full evidence."
       }
     ]
   },
