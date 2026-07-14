@@ -1291,8 +1291,8 @@
     "id": "ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata",
     "title": "\"Method UI Grid and Dropdown Performance Test\" synthetics (team:qa, non-prod, 5 monitor-ID variants: Day run / Day run 2 / Evening run / Midnight run / Release Run) chronically go No Data; never correlates to a real incident",
     "first_seen": "2026-05-02T13:46:00Z",
-    "last_seen": "2026-07-13T13:46:00Z",
-    "occurrences": 78,
+    "last_seen": "2026-07-14T04:00:12Z",
+    "occurrences": 81,
     "match": {
       "channels": [
         "alert-system"
@@ -1457,6 +1457,10 @@
       {
         "ts": "2026-07-13T14:12:00Z",
         "note": "2026-07-13 14:12Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-13T12:44:33Z cutoff): Release Run variant (142200330) No Data 13:46:00Z, still No Data at scan time -- 78th documented occurrence. Confirmed via this cycle's own full-179-monitor DD scan (entry's evidence_query is monitor-state-based: overall_state=='No Data' for this monitor set) -- matches exactly, canonical shape (team:qa, non-prod, env:prod tag only on the check itself not a prod service). No co-firing signal with any prod service this cycle (only 1 monitor state-changed since last cutoff, per the 179-monitor scan diff). Synthetic hash 5091e8cbb81d5ce3 (channel CPHHABKAA + DD monitor ts 2026-07-13T13:46:00+00:00). last_notified_at (2026-07-13T12:30:00Z) = ~1h16m ago (relative to fire ts) -- WITHIN 24h suppression window and occurrence 78 is not a 10th-occurrence multiple -> SUPPRESSED, gate_reason=known-issue-window, appended to docs/actionable/2026-07-13.md. See docs/investigations/2026-07-13-5091e8cbb81d5ce3.md."
+      },
+      {
+        "ts": "2026-07-14T11:10:51Z",
+        "note": "2026-07-14 11:10Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-13T21:07:12Z cutoff): 3 family members fired overnight -- Day run (121308660, hash 6900bcd286a49abb) No Data 00:01:00Z; Day run 2 (133625690, hash 2a4d9df513e5bcff) No Data 00:01:20Z; Evening run (123495492, hash 03358c91af530db7) No Data 04:00:12Z -- 79th-81st documented occurrences, each processed as its own singleton group per the most recent precedent (2026-07-12 note: text_fingerprint differs by monitor name even when close in time). Confirmed via this cycle's own full-179-monitor DD scan (entry's evidence_query is monitor-state-based: overall_state=='No Data'); 0 status:error DD logs on runtime-core-api/ms-gateway-api across the full 09:00-11:10Z window this cycle, no co-firing signal with any prod service. last_notified_at (2026-07-13T12:30:00Z) = ~22h40m ago (relative to first fire) -- WITHIN 24h suppression window; occurrences 79/80/81 are not 10th-occurrence multiples; fix_status confirmed-non-prod-noise unchanged -> SUPPRESSED all 3, gate_reason=known-issue-window, appended to docs/actionable/2026-07-14.md. See docs/investigations/2026-07-14-6900bcd286a49abb.md, -2a4d9df513e5bcff.md, -03358c91af530db7.md."
       }
     ]
   },
@@ -1569,8 +1573,8 @@
     "id": "ki-2026-07-03-warehouse-dashboard-network-test-nodata",
     "title": "\"Warehouse Dashboard Network Test\" synthetics (team:qa, non-prod) go No Data daily ~09:31-10:01Z UTC; never correlates to a real incident",
     "first_seen": "2026-05-07T09:31:00Z",
-    "last_seen": "2026-07-13T10:01:07Z",
-    "occurrences": 21,
+    "last_seen": "2026-07-14T10:01:07Z",
+    "occurrences": 22,
     "match": {
       "channels": [
         "alert-system"
@@ -1597,7 +1601,7 @@
     "fix_template": null,
     "confidence": 0.88,
     "owning_team": "unmapped",
-    "last_notified_at": "2026-07-13T09:41:21Z",
+    "last_notified_at": "2026-07-14T09:31:01Z",
     "notes": [
       {
         "ts": "2026-05-07T00:00:00Z",
@@ -1626,6 +1630,10 @@
       {
         "ts": "2026-07-10T11:20:00Z",
         "note": "2026-07-10 11:20Z triage (degraded cycle, no Slack MCP): 3 fires this cycle, one group -- 175074570 No Data 09:31:00Z (primary, hash 75ad4afb645fe975) + 176337981 No Data 09:41:21Z (satellite, hash 410774f6749195b1) + 176338057 No Data 10:01:07Z (satellite, hash f86f586eb08541ab), all identically-named Warehouse Dashboard Network Test probes clustered within the documented ~09:31-10:01Z UTC daily window. occ 17->18 (single group bump). Same confirmed non-prod QA-synthetics noise, no co-firing signal with any prod service. Coincidentally overlaps ki-21 XHR-errors fire (77419271, 09:38:11Z) in time but no mechanism link -- different systems (synthetic browser probe schedule vs real customer XHR), treated as coincidence. last_notified_at (2026-07-08T11:23:19Z) is about 46h08m ago, EXCEEDED 24h suppression window -> POST, gate_reason=null (window-expiry), last_notified_at bumped to 2026-07-10T09:31:00Z. See docs/investigations/2026-07-10-75ad4afb645fe975.md."
+      },
+      {
+        "ts": "2026-07-14T11:10:51Z",
+        "note": "2026-07-14 11:10Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-13T21:07:12Z cutoff): 3 fires this cycle, one group (all within the 30-min group window) -- 175074570 No Data 09:31:01Z (primary, hash fb5b081902eb706f) + 176337981 No Data 09:41:21Z (satellite, hash 0508ac7dbdaf8403) + 176338057 No Data 10:01:07Z (satellite, hash afb19cef7e8934a4), identically-named Warehouse Dashboard Network Test probes clustered within the documented ~09:31-10:01Z UTC daily window. occ 21->22 (single group bump). 0 status:error DD logs on runtime-core-api/ms-gateway-api across the 09:00-11:10Z window this cycle, no co-firing signal with any prod service -- same confirmed non-prod QA-synthetics noise as all 22 prior occurrences. last_notified_at (2026-07-13T09:41:21Z) = ~25h29m ago, EXCEEDED 24h suppression window -> POST, gate_reason=null (window-expiry), last_notified_at bumped to 2026-07-14T09:31:01Z. See docs/investigations/2026-07-14-fb5b081902eb706f.md."
       }
     ]
   },
