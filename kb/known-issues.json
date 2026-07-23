@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-15T14:57:12Z",
-    "occurrences": 579,
+    "last_seen": "2026-07-23T20:59:12Z",
+    "occurrences": 580,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -157,7 +157,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.88,
-    "last_notified_at": "2026-07-15T14:57:12Z",
+    "last_notified_at": "2026-07-23T20:59:12Z",
     "prior_fix_status": "needs-ops-decision",
     "notes": [
       {
@@ -435,15 +435,20 @@
       {
         "ts": "2026-07-15T15:14:30Z",
         "note": "2026-07-15 15:14Z triage: monitor 77419271 fired 14:57:12Z, hash aae32cb4bb7ddc15, occ 578->579. ES aggregate (Exception.keyword:*TimedOut* OR message:*Ocelot* OR message:*ResponderMiddleware*, 14:42:12-14:57:12Z): 342 hits, dominant service gateway (184) -- chronic mechanism confirmed. service:ms-gateway-api status:error DD Logs: 0 hits -- 9th+ CONSECUTIVE occurrence with this ES-vs-DD-Logs split (continuing the standing, already-flagged-to-Ben open question). last_notified_at (2026-07-13T15:08:12Z) ~47h49m ago, PAST 24h -> POSTED, gate_reason=null (window-expiry). Not re-flagging the split to Ben as a fresh DM since already flagged in prior cycles."
+      },
+      {
+        "ts": "2026-07-23T21:04:00Z",
+        "note": "2026-07-23 21:04Z triage (degraded cycle, DD monitor scan diff vs prior cutoff 2026-07-23T20:08:32Z; hash 8d1274f8e73cab37): occ via monitor 77419271 last_triggered 2026-07-23T20:59:12Z (OK by scan time, self-recovered). DD logs (service:method-ui XHR errors) 20:54:12-20:59:12Z: 100 hits (limit-capped), 60 distinct accounts (top sdelevatorlifts/summitlaboratories2 8 each, 8%), 76/100=76% on GET /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync, 100% status_code:0 origin:network 'Failed to load' -- canonical chronic diffuse shape, NOT a surge. ES aggregate (Exception.keyword:*TimedOut* OR message:*Ocelot* OR message:*ResponderMiddleware*) same window: 285 hits, single bucket 'gateway' -- confirms Ocelot mechanism. service:ms-gateway-api status:error DD Logs = 0 hits -- continuing the standing ES-vs-DD-Logs facet split (documented in prior notes). NO ki-24 co-fire this cycle (1 alert each, below >=2-each precedence_note threshold; ki-24's 115456700 fire 32 min earlier at 20:27:20Z noted for proximity only). CHANNEL-LABEL CORRECTION: the immediately-prior cycle (2026-07-23T20:12:31Z) processed this same monitor under synthetic channel 'alert-system' and got a KB MISS against this entry's channel-scoped match (channels: [alert-frontend-errors] only) -- misclassified that occurrence as a standalone false-alarm instead of this chronic recurrence (~579 prior occurrences all matched via alert-frontend-errors). This cycle used the historically-correct channel and matched correctly; no lasting KB damage from the prior slip (no false-alarm entry was written), but flagging so future degraded-cycle synthetic-channel assignments for monitor 77419271 use alert-frontend-errors. last_notified_at (2026-07-15T14:57:12Z) ~8d6h ago, PAST 24h suppression window -> POSTED to #triage-results, gate_reason=null (window-expiry). fix_status 'chronic-residual-post-rollback-2026-06-05' unchanged. See docs/investigations/2026-07-23-8d1274f8e73cab37.md."
       }
-    ]
+    ],
+    "prior_last_notified_at": "2026-07-15T14:57:12Z"
   },
   {
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-07-20T01:23:18+00:00",
-    "occurrences": 240,
+    "last_seen": "2026-07-23T20:27:20Z",
+    "occurrences": 241,
     "match": {
       "channels": [
         "alert-system",
@@ -485,7 +490,7 @@
     "fix_template": null,
     "confidence": 0.85,
     "last_notified_at": "2026-07-23T20:12:31Z",
-    "prior_last_notified_at": "2026-07-12T14:41:18Z",
+    "prior_last_notified_at": "2026-07-23T20:12:31Z",
     "notes": [
       {
         "ts": "2026-07-13T18:40:00Z",
@@ -622,6 +627,10 @@
       {
         "ts": "2026-07-14T18:10:00Z",
         "note": "2026-07-14 18:10Z triage (degraded cycle, DD monitor scan diff vs prior cutoff 2026-07-14T17:02:08Z, hashes f88306325925a47c [115456700] + 0396d3a8e1b6caa5 [117279738]): occ 235->237. Both monitors last_triggered within the same 18:01:21-18:03:19Z window (OK by scan time, self-recovered). DD metric re-query 17:35:00-18:08:00Z: Screen Load p95 63/198 points >3s, peak 43.27s@17:44:20Z; Action Execution p95 55/198 points >3s, peak 37.64s@18:01:10Z -- both far above the KB's prior worst peaks (~30.8s), and SUSTAINED for ~29min (17:36-18:05Z) rather than the usual single-sample spike-then-recover shape. Latency-only confirmed (0 status:error DD Logs). NEW THIS OCCURRENCE: confirmed genuine 4-service simultaneous correlation (see precedence_note update) -- classic/method, ms-search-api, and miurl all independently breached their own p95 thresholds over the identical window. Weak Redis corroboration: 4 'Redis operation cancelled' (Runtime.Caching.CacheContext) ES hits on runtime-core-api, diffuse across 4 accounts, time-clustered near 18:03Z. Host CPU checked and ruled out (peak 19.2%, prod-rt-04). No infra-monitor (Redis/SQL/Mongo/gateway/DNS) co-fire. No deploy visibility (methodcrm-org GH_TOKEN 403 confirmed still blocking runtime-core fetch). last_notified_at (2026-07-13T18:40:00Z) ~23h28m ago, WITHIN 24h suppression window; neither occ 236 nor 237 is %10; fix_status 'investigating' unchanged -> SUPPRESS both, gate_reason=known-issue-window, appended to docs/actionable/2026-07-14.md. New KB entry created for the two non-matching co-firing monitors: ki-2026-07-14-cross-service-p95-latency-shared-upstream. See docs/investigations/2026-07-14-f88306325925a47c.md and -0396d3a8e1b6caa5.md."
+      },
+      {
+        "ts": "2026-07-23T20:32:00Z",
+        "note": "2026-07-23 20:32Z triage (degraded cycle, DD monitor scan diff vs prior cutoff 2026-07-23T20:08:32Z; hash 693cbbe86fc1627d): occ via monitor 115456700 last_triggered 2026-07-23T20:27:20Z (OK by scan time, self-recovered). Re-queried p95:trace.aspnet_core.request{env:prod,service:runtime-core-api,resource_name:post_/api/v1/runtime/load/_screenid*} 20:12:20-20:37:20Z: 9 of 150 points > 3s, peak 7.74s @20:20:10Z (ratio 1.58, bracket 1.0-2.0). Latency-only confirmed: service:runtime-core-api status:error env:prod DD Logs same window = 0 hits. Breach cluster (20:15-20:37Z) is temporally distinct from the prior occurrence posted 20:12:31Z (breach ending ~20:08Z) -- genuinely new occurrence, not a re-fire on stale data. No ki-24-sibling (117279738) co-fire, no ki-21 co-fire this cycle (1 alert each, below the >=2-each precedence_note threshold). last_notified_at (2026-07-23T20:12:31Z) ~15m ago, WITHIN 24h suppression window -> SUPPRESS, gate_reason=known-issue-window, appended to docs/actionable/2026-07-23.md. fix_status 'investigating' unchanged. OWNERSHIP NOTE: correcting owning_team to 'Vertical App Experience' per ownership.md exact match (runtime-core-api); last posted occurrence this cycle-window recorded 'runtime' in error, not retroactively edited. See docs/investigations/2026-07-23-693cbbe86fc1627d.md."
       }
     ],
     "owning_team": "Vertical App Experience"
