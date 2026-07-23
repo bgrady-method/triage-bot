@@ -442,8 +442,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-07-15T14:56:23Z",
-    "occurrences": 238,
+    "last_seen": "2026-07-20T01:23:18+00:00",
+    "occurrences": 240,
     "match": {
       "channels": [
         "alert-system",
@@ -484,7 +484,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.85,
-    "last_notified_at": "2026-07-15T15:10:00Z",
+    "last_notified_at": "2026-07-23T20:12:31Z",
     "prior_last_notified_at": "2026-07-12T14:41:18Z",
     "notes": [
       {
@@ -700,8 +700,8 @@
     "id": "ki-2026-05-29-methodsession-getaccountbysubdomain-nre",
     "title": "method-platform-ui apps backend NRE in MethodSessionService.GetAccountBySubdomain() -> 'JWT Retrieval Failed' on subdomain-less synthetic monitor probes (Centreon + Datadog Watchdog noise)",
     "first_seen": "2026-05-29T12:49:31Z",
-    "last_seen": "2026-07-15T13:14:33Z",
-    "occurrences": 24,
+    "last_seen": "2026-07-22T03:38:33+00:00",
+    "occurrences": 26,
     "match": {
       "channels": [
         "alert-system"
@@ -733,7 +733,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.85,
-    "last_notified_at": "2026-07-15T13:08:27Z",
+    "last_notified_at": "2026-07-23T20:12:31Z",
     "notes": [
       {
         "ts": "2026-07-05T20:28:02Z",
@@ -938,8 +938,8 @@
     "id": "ki-2026-06-18-rainforest-webhook-inactive-account-500",
     "title": "runtime-core-api Rainforest inbound webhook endpoint returns 500 for inactive accounts (unhandled AccountNotActiveException → Svix retry storm)",
     "first_seen": "2026-06-18T16:23:00Z",
-    "last_seen": "2026-06-19T16:09:00Z",
-    "occurrences": 4,
+    "last_seen": "2026-07-16T14:57:07+00:00",
+    "occurrences": 5,
     "match": {
       "channels": [
         "alert-system"
@@ -966,7 +966,7 @@
     "fix_template": "--- a/Runtime.Core.Api/Controllers/PaymentsController.Rainforest.cs\n+++ b/Runtime.Core.Api/Controllers/PaymentsController.Rainforest.cs\n@@ ProcessRainforestWebhookAsync — InitAsync/process try-catch\n             await _paymentService.SendRainforestWebhookSlackNotificationAsync(rainforestWebhookMessage, _context);\n                 return Ok();\n             }\n+            catch (AccountNotActiveException ex)\n+            {\n+                // Account is inactive — retrying this webhook will never succeed. The webhook is\n+                // already persisted above for debugging/requeue, so ack with 200 to stop Svix retries.\n+                _logger.LogWarning(ex, \"Rainforest webhook for inactive account {AccountId} — acking to halt retries. EventType: {EventType}\", accountId.Value, rainforestWebhookMessage?.EventType);\n+                return Ok();\n+            }\n             catch (Exception ex)\n             {\n                 _logger.LogError(ex, \"Failed to process webhook from Rainforest. EventType: {EventType}, AccountId: {AccountId}\", rainforestWebhookMessage?.EventType, accountId.Value);\n                 throw;\n             }\n",
     "confidence": 0.9,
     "owning_team": "transactions",
-    "last_notified_at": "2026-06-18T21:09:00Z",
+    "last_notified_at": "2026-07-23T20:12:31Z",
     "recurrence_note": "Firing intermittently all day 2026-06-18 (16:23Z first KB'd; 16:49/17:47/20:34-21:04Z observed). occurrences undercounts — prior cycles couldn't DM (no token) so weren't bumped. First DM sent this cycle (21:09Z)."
   },
   {
@@ -1079,8 +1079,8 @@
     "id": "ki-2026-07-02-miurl-agent-account-cluster-internal-lookup",
     "title": "miurl-agent 100%-failure calls to ms-account-api internal cluster-lookup endpoint (chronic, low-volume)",
     "first_seen": "2026-07-02T14:07:56Z",
-    "last_seen": "2026-07-08T17:55:57Z",
-    "occurrences": 5,
+    "last_seen": "2026-07-20T16:43:56+00:00",
+    "occurrences": 6,
     "match": {
       "channels": [
         "alert-system"
@@ -1106,7 +1106,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.65,
-    "last_notified_at": "2026-07-08T17:55:57Z",
+    "last_notified_at": "2026-07-23T20:12:31Z",
     "notes": [
       {
         "ts": "2026-07-02T15:08:30Z",
@@ -1130,8 +1130,8 @@
     "id": "ki-2026-07-02-tables-fields-fieldtablenameref-null-linked-fields",
     "title": "ms-tables-fields-api ArgumentNullException on account-specific linked fields with null FieldTableNameRef -- App Update SaveViewBundleInternal fails 400 (chronic, account-specific)",
     "first_seen": "2026-05-28T17:27:49Z",
-    "last_seen": "2026-07-13T17:52:24Z",
-    "occurrences": 9,
+    "last_seen": "2026-07-23T19:27:24+00:00",
+    "occurrences": 10,
     "match": {
       "channels": [
         "alert-system",
@@ -1162,7 +1162,7 @@
     "fix_template": null,
     "confidence": 0.75,
     "owning_team": "Admin",
-    "last_notified_at": "2026-07-13T18:23:31Z",
+    "last_notified_at": "2026-07-23T20:12:31Z",
     "notes": [
       {
         "ts": "2026-07-13T18:23:31Z",
@@ -1202,8 +1202,8 @@
     "id": "ki-2026-07-03-eda-consumer-amqp-stopped-publishing",
     "title": "[EDA][Consumer][P3] eda_consumer AMQP publish-hits monitor intermittently goes No Data (team:devops, self-recovering, no correlated pipeline impact)",
     "first_seen": "2026-06-20T10:21:00Z",
-    "last_seen": "2026-07-15T10:44:26Z",
-    "occurrences": 25,
+    "last_seen": "2026-07-23T11:11:27+00:00",
+    "occurrences": 28,
     "match": {
       "channels": [
         "alert-system",
@@ -1243,7 +1243,7 @@
     "fix_template": null,
     "confidence": 0.8,
     "owning_team": "Integrations",
-    "last_notified_at": "2026-07-15T10:44:26Z",
+    "last_notified_at": "2026-07-23T20:12:31Z",
     "notes": [
       {
         "ts": "2026-06-20T10:13:00Z",
@@ -1311,8 +1311,8 @@
     "id": "ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata",
     "title": "\"Method UI Grid and Dropdown Performance Test\" synthetics (team:qa, non-prod, 5 monitor-ID variants: Day run / Day run 2 / Evening run / Midnight run / Release Run) chronically go No Data; never correlates to a real incident",
     "first_seen": "2026-05-02T13:46:00Z",
-    "last_seen": "2026-07-15T13:51:20Z",
-    "occurrences": 87,
+    "last_seen": "2026-07-23T13:46:00+00:00",
+    "occurrences": 92,
     "match": {
       "channels": [
         "alert-system"
@@ -1348,7 +1348,7 @@
     "fix_template": null,
     "confidence": 0.85,
     "owning_team": "unmapped",
-    "last_notified_at": "2026-07-15T04:00:13Z",
+    "last_notified_at": "2026-07-23T20:12:31Z",
     "notes": [
       {
         "ts": "2026-07-03T13:09:00Z",
@@ -1508,8 +1508,8 @@
     "id": "ki-2026-07-03-ms-scheduler-api-seriesid-negative-recordid",
     "title": "ms-scheduler-api GetSeriesAsync throws InvalidOperationException when called with recordId=-1 (chronic, code-level missing-guard bug, now confirmed across multiple accounts, ~10-21+/day for 7+ days)",
     "first_seen": "2026-06-26T00:00:00Z",
-    "last_seen": "2026-07-12T20:14:33Z",
-    "occurrences": 142,
+    "last_seen": "2026-07-18T04:09:33+00:00",
+    "occurrences": 143,
     "match": {
       "channels": [
         "alert-system"
@@ -1545,7 +1545,7 @@
     "fix_template": null,
     "confidence": 0.8,
     "owning_team": "CRM Experience",
-    "last_notified_at": "2026-07-12T21:19:01Z",
+    "last_notified_at": "2026-07-23T20:12:31Z",
     "notes": [
       {
         "ts": "2026-07-03T13:09:00Z",
@@ -1613,8 +1613,8 @@
     "id": "ki-2026-07-03-warehouse-dashboard-network-test-nodata",
     "title": "\"Warehouse Dashboard Network Test\" synthetics (team:qa, non-prod) go No Data daily ~09:31-10:01Z UTC; never correlates to a real incident",
     "first_seen": "2026-05-07T09:31:00Z",
-    "last_seen": "2026-07-15T10:01:07Z",
-    "occurrences": 23,
+    "last_seen": "2026-07-23T10:01:07+00:00",
+    "occurrences": 26,
     "match": {
       "channels": [
         "alert-system"
@@ -1641,7 +1641,7 @@
     "fix_template": null,
     "confidence": 0.88,
     "owning_team": "unmapped",
-    "last_notified_at": "2026-07-15T09:31:00Z",
+    "last_notified_at": "2026-07-23T20:12:31Z",
     "notes": [
       {
         "ts": "2026-05-07T00:00:00Z",
@@ -1685,8 +1685,8 @@
     "id": "ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap",
     "title": "New team:crm AMQP-consumer heartbeat/throughput-stall monitors (5 sibling IDs, created 2026-07-02) intermittently trip on quiet-period low-traffic dips, then self-recover within minutes — no corroborating errors",
     "first_seen": "2026-07-04T13:07:31Z",
-    "last_seen": "2026-07-15T10:33:21Z",
-    "occurrences": 64,
+    "last_seen": "2026-07-18T01:47:35+00:00",
+    "occurrences": 67,
     "match": {
       "channels": [
         "alert-system",
@@ -1732,7 +1732,7 @@
     "fix_template": null,
     "confidence": 0.82,
     "owning_team": "CRM Experience (runtime-core-subscriber-api, per ownership.md:454) / Admin (mobile-notifications-stack, per ownership.md:416) — split by service; DD monitor tags say team:crm for both, ownership.md disagrees for the mobile-notifications component",
-    "last_notified_at": "2026-07-15T02:49:31Z",
+    "last_notified_at": "2026-07-23T20:12:31Z",
     "notes": [
       {
         "ts": "2026-07-04T16:10:00Z",
@@ -1880,8 +1880,8 @@
     "id": "ki-2026-07-04-miurl-5xx-monitor-noise",
     "title": "[VAE][miurl][P1] 5xx error rate elevated (miurl) monitor trips on a handful of absolute errors against low overall traffic (monitor-sensitivity artifact, not a service issue)",
     "first_seen": "2026-07-04T19:52:29Z",
-    "last_seen": "2026-07-05T17:22:28Z",
-    "occurrences": 7,
+    "last_seen": "2026-07-15T22:39:29+00:00",
+    "occurrences": 8,
     "match": {
       "channels": [
         "alert-system",
@@ -1907,7 +1907,7 @@
     "fix_template": null,
     "confidence": 0.8,
     "owning_team": "Transactions (per ownership.md; DD tag says team:vae, unresolved discrepancy)",
-    "last_notified_at": "2026-07-04T22:17:00Z",
+    "last_notified_at": "2026-07-23T20:12:31Z",
     "notes": [
       {
         "ts": "2026-07-04T20:08:30Z",
@@ -1939,8 +1939,8 @@
     "id": "ki-2026-07-04-ms-account-api-4xx-spike-monitor-noise",
     "title": "[Admin][AccountAPI][P3] 4xx-spike monitor transitions state without a real 4xx breach (monitor-sensitivity/config artifact, not a service issue)",
     "first_seen": "2026-07-03T12:08:59Z",
-    "last_seen": "2026-07-15T07:10:18Z",
-    "occurrences": 29,
+    "last_seen": "2026-07-23T04:30:18+00:00",
+    "occurrences": 30,
     "match": {
       "channels": [
         "alert-system",
@@ -1965,7 +1965,7 @@
     "fix_template": null,
     "confidence": 0.8,
     "owning_team": "Admin",
-    "last_notified_at": "2026-07-15T07:10:18Z",
+    "last_notified_at": "2026-07-23T20:12:31Z",
     "notes": [
       {
         "ts": "2026-07-03T12:08:59Z",
@@ -2065,8 +2065,8 @@
     "id": "ki-2026-07-04-synthetics-release-browser-step-duration-nodata",
     "title": "\"[Synthetics] [Release] *\" browser-step-duration checks (team:qa-adjacent, non-prod, 6 monitor-ID variants: Sign in to Method / Loading Contacts Drop-down / Search for Activities / Open Activity / Load Activities App / Navigate to Method Sign In) chronically go No Data; never correlates to a real incident",
     "first_seen": "2026-05-06T13:52:10Z",
-    "last_seen": "2026-07-11T13:52:31Z",
-    "occurrences": 8,
+    "last_seen": "2026-07-22T12:39:31+00:00",
+    "occurrences": 9,
     "match": {
       "channels": [
         "alert-system"
@@ -2105,7 +2105,7 @@
     "fix_template": null,
     "confidence": 0.85,
     "owning_team": "unmapped",
-    "last_notified_at": "2026-07-11T13:52:31Z",
+    "last_notified_at": "2026-07-23T20:12:31Z",
     "notes": [
       {
         "ts": "2026-07-04T14:09:20Z",
@@ -2125,8 +2125,8 @@
     "id": "ki-2026-07-05-rainforest-outbound-api-p95-latency",
     "title": "[Rainforest] Outbound API P95 Latency > 3s -- runtime-core-api outbound calls to api.rainforestpay.com intermittently breach 3s p95, self-recovering, zero corroborating errors (third-party latency, not a Method-side defect)",
     "first_seen": "2026-07-05T08:31:25Z",
-    "last_seen": "2026-07-15T01:24:25Z",
-    "occurrences": 8,
+    "last_seen": "2026-07-23T16:05:25+00:00",
+    "occurrences": 9,
     "match": {
       "channels": [
         "alert-system",
@@ -2154,7 +2154,7 @@
     "fix_template": null,
     "confidence": 0.7,
     "owning_team": "Transactions (per ownership.md:119, Payment processing component; monitor tag team:transactions agrees)",
-    "last_notified_at": "2026-07-15T01:24:25Z",
+    "last_notified_at": "2026-07-23T20:12:31Z",
     "notes": [
       {
         "ts": "2026-07-05T15:20:44Z",
@@ -2182,8 +2182,8 @@
     "id": "ki-2026-07-06-rainforest-merchant-details-503-serviceunavailable",
     "title": "runtime-core-api Rainforest GetMerchantAsync (merchant-details lookup) fails with ServiceUnavailable when Rainforest's own API returns a 503 -- third-party payment-processor degradation, not a Method-side defect",
     "first_seen": "2026-07-06T13:02:25Z",
-    "last_seen": "2026-07-15T15:08:52Z",
-    "occurrences": 8,
+    "last_seen": "2026-07-23T08:09:52+00:00",
+    "occurrences": 9,
     "match": {
       "channels": [
         "alert-system"
@@ -2213,7 +2213,7 @@
     "fix_template": null,
     "confidence": 0.85,
     "owning_team": "Transactions",
-    "last_notified_at": "2026-07-15T15:08:52Z",
+    "last_notified_at": "2026-07-23T20:12:31Z",
     "notes": [
       {
         "ts": "2026-07-06T13:11:37Z",
@@ -2245,8 +2245,8 @@
     "id": "ki-2026-07-06-runtime-core-redis-cache-timeout-transient-burst",
     "title": "runtime-core-api Runtime.Caching.CacheContext brief Redis command-timeout burst (DD monitor 227940275 'Redis Errors is High') -- self-recovers in ~1min, hits 20+ distinct accounts simultaneously",
     "first_seen": "2026-07-05T16:42:35+00:00",
-    "last_seen": "2026-07-15T14:55:29Z",
-    "occurrences": 19,
+    "last_seen": "2026-07-23T13:27:35+00:00",
+    "occurrences": 20,
     "match": {
       "channels": [
         "alert-system",
@@ -2302,7 +2302,7 @@
     "fix_template": null,
     "confidence": 0.75,
     "owning_team": "Vertical App Experience",
-    "last_notified_at": "2026-07-15T14:55:29Z",
+    "last_notified_at": "2026-07-23T20:12:31Z",
     "notes": [
       {
         "ts": "2026-07-06T21:11:27Z",
@@ -2354,8 +2354,8 @@
     "id": "ki-2026-07-06-signup-low-traffic-p90-latency-monitor-noise",
     "title": "[Growth][Signup][P?] 'Service Signup post requests have a high p90 latency' trips on single-request percentile noise on a very low-traffic endpoint",
     "first_seen": "2026-07-05T21:57:46Z",
-    "last_seen": "2026-07-13T19:44:46Z",
-    "occurrences": 9,
+    "last_seen": "2026-07-16T14:12:47+00:00",
+    "occurrences": 10,
     "match": {
       "channels": [
         "alert-system",
@@ -2380,7 +2380,7 @@
     "evidence_source": "datadog_apm",
     "evidence_query": "p90:trace.aspnet.request{env:prod,service:signup,resource_name:post_/*}",
     "evidence_threshold_s": 12.0,
-    "last_notified_at": "2026-07-13T19:44:46Z",
+    "last_notified_at": "2026-07-23T20:12:31Z",
     "notes": [
       {
         "ts": "2026-07-06T15:09:00Z",
@@ -2416,8 +2416,8 @@
     "id": "ki-2026-07-06-synthetics-signin-transient-step-duration-spike",
     "title": "[Synthetics] Sign in to Method step-duration monitor (127198928) intermittently spikes >20s for a single test run then self-recovers, with no corroborating error signal on any critical-path service",
     "first_seen": "2026-05-27T19:02:08Z",
-    "last_seen": "2026-07-14T17:02:08Z",
-    "occurrences": 24,
+    "last_seen": "2026-07-21T19:51:08+00:00",
+    "occurrences": 25,
     "match": {
       "channels": [
         "alert-system"
@@ -2442,7 +2442,7 @@
     "fix_template": null,
     "confidence": 0.7,
     "owning_team": "Admin",
-    "last_notified_at": "2026-07-14T17:07:59Z",
+    "last_notified_at": "2026-07-23T20:12:31Z",
     "notes": [
       {
         "ts": "2026-07-13T18:12:00Z",
@@ -2555,8 +2555,8 @@
     "id": "ki-2026-07-06-tables-fields-redis-circuitbreaker-p95-latency",
     "title": "ms-tables-fields-api p95 request latency spike driven by a transient Redis connectivity blip (circuit breaker OPENED); first confirmed cross-service correlation with runtime-core-api RTC p95 (ki-24)",
     "first_seen": "2026-07-06T13:36:39Z",
-    "last_seen": "2026-07-08T16:24:31Z",
-    "occurrences": 6,
+    "last_seen": "2026-07-23T15:25:31+00:00",
+    "occurrences": 8,
     "match": {
       "channels": [
         "alert-system",
@@ -2594,7 +2594,7 @@
     "fix_template": null,
     "confidence": 0.8,
     "owning_team": "Admin (ms-tables-fields-api); Vertical App Experience (runtime-core-api, cross-service corroboration)",
-    "last_notified_at": "2026-07-08T16:24:31Z",
+    "last_notified_at": "2026-07-23T20:12:31Z",
     "notes": [
       {
         "ts": "2026-07-06T14:16:00Z",
@@ -2671,8 +2671,8 @@
     "id": "ki-2026-07-07-gateway-4xx-spike-monitor-noise",
     "title": "[Admin][Gateway][P3] 4xx spike (gateway) monitor trips on a brief isolated single-bucket burst, self-recovers -- same shape as ms-account-api-4xx-spike-monitor-noise but a different monitor ID",
     "first_seen": "2026-07-06T10:16:00Z",
-    "last_seen": "2026-07-15T10:32:57Z",
-    "occurrences": 9,
+    "last_seen": "2026-07-23T10:32:56+00:00",
+    "occurrences": 10,
     "match": {
       "channels": [
         "alert-system",
@@ -2697,7 +2697,7 @@
     "fix_template": null,
     "confidence": 0.75,
     "owning_team": "Admin",
-    "last_notified_at": "2026-07-15T10:32:57Z",
+    "last_notified_at": "2026-07-23T20:12:31Z",
     "notes": [
       {
         "ts": "2026-07-06T11:35:00Z",
@@ -2733,8 +2733,8 @@
     "id": "ki-2026-07-07-notifications-p95-latency-monitor-noise",
     "title": "[CRM][P2] notifications P95 latency high monitor fires but re-query of the same evaluation window shows the metric never approaches the threshold -- monitor/data artifact, not real latency",
     "first_seen": "2026-07-06T10:01:07Z",
-    "last_seen": "2026-07-15T08:43:08Z",
-    "occurrences": 9,
+    "last_seen": "2026-07-22T08:43:07+00:00",
+    "occurrences": 10,
     "match": {
       "channels": [
         "alert-system",
@@ -2759,7 +2759,7 @@
     "fix_template": null,
     "confidence": 0.72,
     "owning_team": "CRM Experience",
-    "last_notified_at": "2026-07-15T08:43:08Z",
+    "last_notified_at": "2026-07-23T20:12:31Z",
     "notes": [
       {
         "ts": "2026-07-06T11:40:00Z",
@@ -2838,8 +2838,8 @@
     "id": "ki-2026-07-09-ms-authentication-api-p95-latency-sustained-noerrors",
     "title": "ms-authentication-api P95 latency sustained elevation (~1h, up to 3.5x threshold) on critical-path auth service, zero corroborating errors, NOT correlated with same-morning Redis-errors monitor",
     "first_seen": "2026-07-09T09:27:32Z",
-    "last_seen": "2026-07-09T09:27:32Z",
-    "occurrences": 1,
+    "last_seen": "2026-07-16T09:01:32+00:00",
+    "occurrences": 2,
     "match": {
       "channels": [
         "alert-system",
@@ -2865,7 +2865,7 @@
     "fix_template": null,
     "confidence": 0.7,
     "owning_team": "Admin",
-    "last_notified_at": "2026-07-09T11:29:32Z",
+    "last_notified_at": "2026-07-23T20:12:31Z",
     "notes": [
       {
         "ts": "2026-07-09T11:29:32Z",
@@ -2947,8 +2947,8 @@
     "id": "ki-2026-07-12-designer-core-api-throughput-anomaly-monitor-noise",
     "title": "designer-core-api abnormal-throughput-change anomaly monitor (115452625, team:poiesis) fires on normal low-volume traffic -- no error signal, no confirmed spike/drop at either documented occurrence",
     "first_seen": "2026-07-10T09:53:25Z",
-    "last_seen": "2026-07-12T14:11:26Z",
-    "occurrences": 2,
+    "last_seen": "2026-07-17T09:05:26+00:00",
+    "occurrences": 3,
     "match": {
       "channels": [
         "alert-system",
@@ -2974,7 +2974,7 @@
     "fix_template": null,
     "confidence": 0.7,
     "owning_team": "No Code Next Gen",
-    "last_notified_at": null,
+    "last_notified_at": "2026-07-23T20:12:31Z",
     "notes": [
       {
         "ts": "2026-07-10T09:53:25Z",
@@ -2990,8 +2990,8 @@
     "id": "ki-2026-07-12-rest-api-tables-endpoint-5xx-recurring-burst",
     "title": "rest-api POST /api/{version}/tables/{table} recurring 5xx burst (APM-only, self-recovering, no error-log trace)",
     "first_seen": "2026-07-12T02:40:38Z",
-    "last_seen": "2026-07-12T02:40:38Z",
-    "occurrences": 1,
+    "last_seen": "2026-07-23T13:40:38+00:00",
+    "occurrences": 2,
     "match": {
       "channels": [
         "alert-system"
@@ -3015,7 +3015,7 @@
     "fix_template": null,
     "confidence": 0.7,
     "owning_team": "unmapped",
-    "last_notified_at": "2026-07-12T02:40:38Z",
+    "last_notified_at": "2026-07-23T20:12:31Z",
     "notes": [
       {
         "ts": "2026-07-12T02:40:38Z",
