@@ -2235,8 +2235,8 @@
     "id": "ki-2026-07-06-rainforest-merchant-details-503-serviceunavailable",
     "title": "runtime-core-api Rainforest GetMerchantAsync (merchant-details lookup) fails with ServiceUnavailable when Rainforest's own API returns a 503 -- third-party payment-processor degradation, not a Method-side defect",
     "first_seen": "2026-07-06T13:02:25Z",
-    "last_seen": "2026-07-24T13:58:52Z",
-    "occurrences": 10,
+    "last_seen": "2026-07-24T15:05:52Z",
+    "occurrences": 11,
     "match": {
       "channels": [
         "alert-system"
@@ -2299,6 +2299,10 @@
       {
         "ts": "2026-07-24T13:58:52Z",
         "note": "2026-07-24 14:08Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-24T13:25:11Z cutoff): monitor 295882732 fired again 13:58:52Z, hash ad02cff4e0ab35cd, occ 9->10 -- this time IS the recurring sierrashredllc/amount:0/CreatePayinConfigAsync sub-signature (matches 2026-07-13 and 2026-07-15 exactly), distinct from this morning's 08:28:52Z alocetsystem-bulk occurrence (correctly NOT absorbed, see 11:25:00Z note above). ES fields.dd_service.keyword:runtime-core-api AND message:*rainforest*, 13:28:52-14:08:52Z: 1 hit, full record read -- account sierrashredllc, merchant mid_3CiWKRBsVy01nkQmRpMuyXjzc11, amount:0, real user session via Guest Payment screen (not test/internal traffic). This is the 5th+ occurrence of this exact sub-signature since 2026-07-10 (07-10, 07-13, 07-15, now 07-24) -- standing recommendation to split this KB by error signature (503 third-party vs 400 sierrashredllc/amount:0 application-level) reiterated for the 3rd cycle running with no split applied yet; flagged for Ben as increasingly looking like an account-specific data/UI defect on sierrashredllc's Guest Payment screen rather than incidental noise. account_impact.py: sierrashredllc on prod3/4/5 (clusters_unconfigured) -> not_found, same standing tooling gap. Extrapolation: not warranted, account-specific. occurrences 9->10 trips the every-10th-occurrence resurface rule (10 % 10 == 0) -> POSTED to #triage-results, gate_reason=known-issue-occurrence-resurface, last_notified_at bumped 2026-07-23T20:12:31Z -> 2026-07-24T13:58:52Z. See docs/investigations/2026-07-24-ad02cff4e0ab35cd.md."
+      },
+      {
+        "ts": "2026-07-24T15:20:00Z",
+        "note": "2026-07-24 15:20Z triage (degraded cycle, DD monitor scan diff vs 2026-07-24T13:58:52Z cutoff): monitor 295882732 fired again 15:05:52Z, hash 238794b28d036de6, occ 10->11 -- 67min gap since the prior 13:58:52Z fire (outside group_window_minutes, treated as a new standalone group, not a satellite). ES fields.dd_service.keyword:runtime-core-api AND message:*rainforest*, 14:35:52-15:05:52Z (non-overlapping with the prior cycle's window): 1 hit, full record read -- same sierrashredllc/mid_3CiWKRBsVy01nkQmRpMuyXjzc11/amount:0 sub-signature, but this time via a logged-in real user (Ana Rodri, Billing) on the account's own Payments app 'Guest - Payment*' screen (Portal), not an anonymous Guest Payment link session -- confirms the amount:0 gap reproduces from at least two distinct entry points into the same screen family, reinforcing the standing application-level-defect hypothesis over pure guest-link abuse. 6th+ occurrence of this exact sub-signature since 2026-07-10. account_impact.py not re-run (no new account). Extrapolation: not warranted, account-specific. occ 10->11 does not trip the every-10th resurface rule (11%10!=0); last_notified_at (2026-07-24T13:58:52Z) only ~67min old, well within 24h window -> SUPPRESSED, gate_reason=known-issue-window, logged to docs/actionable/2026-07-24.md. See docs/investigations/2026-07-24-238794b28d036de6.md."
       }
     ]
   },
