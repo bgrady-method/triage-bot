@@ -1332,8 +1332,8 @@
     "id": "ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata",
     "title": "\"Method UI Grid and Dropdown Performance Test\" synthetics (team:qa, non-prod, 5 monitor-ID variants: Day run / Day run 2 / Evening run / Midnight run / Release Run) chronically go No Data; never correlates to a real incident",
     "first_seen": "2026-05-02T13:46:00Z",
-    "last_seen": "2026-07-24T04:01:00Z",
-    "occurrences": 96,
+    "last_seen": "2026-07-24T12:31:00Z",
+    "occurrences": 98,
     "match": {
       "channels": [
         "alert-system"
@@ -1530,6 +1530,10 @@
       {
         "ts": "2026-07-24T11:25:00Z",
         "note": "2026-07-24 11:25Z triage (degraded cycle): Midnight/Evening pair -- 123495492 (Evening run, No Data 04:00:12Z) + 123495390 (Midnight run, OK/self-recovered 04:01:00Z), hash c8840f623493867e, occ 94->96. Same synthetic-test family, exact monitor-id matches. Gate: suppressed (known-issue-window, occ 96 not a 10th-multiple)."
+      },
+      {
+        "ts": "2026-07-24T13:22:19Z",
+        "note": "2026-07-24 13:22Z triage (degraded cycle, DD monitor scan diff vs 2026-07-24T10:58:26Z cutoff): Midnight/Release pair -- 123495390 (Midnight run, No Data 12:30:00Z, hash b3d1b6c27f2379b7) + 142200330 (Release Run, OK/self-recovered 12:31:00Z, hash e1ba46bd7e9af4aa), 1min apart, grouped. Occ 96->98. Same confirmed non-prod QA-synthetics noise, exact monitor-id matches, no co-firing signal with any prod service this window (this cycle's only prod-service signal was the separate expiresessiontoken burst at 13:07:38Z, unrelated family). last_notified_at (2026-07-23T20:12:31Z) = ~17h10m ago, WITHIN 24h suppression window; occ 98 not a 10th-multiple; fix_status confirmed-non-prod-noise unchanged -> SUPPRESS gate_reason=known-issue-window, appended to docs/actionable/2026-07-24.md."
       }
     ]
   },
@@ -2856,8 +2860,8 @@
     "id": "ki-2026-07-07-runtime-core-expiresessiontoken-accountnotfound",
     "title": "runtime-core-api POST /api/v1/security/expiresessiontoken throws AccountNotFoundExceptions (HTTP 500) when the request's accountName is empty",
     "first_seen": "2026-06-14T06:26:27Z",
-    "last_seen": "2026-07-07T14:59:39Z",
-    "occurrences": 2,
+    "last_seen": "2026-07-24T13:07:38Z",
+    "occurrences": 3,
     "match": {
       "channels": [
         "alert-system"
@@ -2887,11 +2891,15 @@
     "owning_team": "Vertical App Experience",
     "evidence_source": "elasticsearch",
     "evidence_query": "fields.dd_service.keyword:\"runtime-core-api\" AND message.keyword:\"Session Token Expiry Failed\"",
-    "last_notified_at": "2026-07-07T15:24:41Z",
+    "last_notified_at": "2026-07-24T13:22:19Z",
     "notes": [
       {
         "ts": "2026-07-07T15:24:41Z",
         "note": "2nd occurrence (1st: 2026-06-14T06:26-06:57Z, docs/investigations/2026-06-14-f95ce4256d5f99f2.md, root cause unconfirmed at the time -- ES was 401-down). This cycle: DD monitor 70171778 ('Unexpected number of 5XX errors', generic service-agnostic >30/5min-across-all-services check) last_triggered 14:59:39Z; the 14:50-14:55Z 5-min bucket summed to 32 across services (runtime-core-api 24, gateway 4, ms-authentication-api 4) crossing the 30 threshold. Isolated runtime-core-api's 24 errors via DD metric by resource_name: 100% on post_/api/v1/security/expiresessiontoken (24 errors / 25 hits = 96% error rate on that resource -- narrow, not platform-wide). ES now reachable (post-2026-06-18 auth fix) and returns the full stack trace this time: Runtime.Core.Exceptions.AccountNotFoundExceptions in AccountContext.InitAsync, called from SecurityController.ExpireSessionTokenAsync. All 24 failures share the same AdditionalMetaData (email westbrookmanager@staplesoil.com, accountName empty) -- single-session/account-specific, not multi-tenant. account_impact.py could not resolve 'staplesoil'/'staplesoilinc' (clusters_unconfigured prod3-5, tool/env gap) -- active_users_affected recorded as 0 (named_only, unresolved). No deploy signal (runtime-core git fetch 403'd, methodcrm-org GH_TOKEN gap, non-blocking). Score: critical_path_service +3 (runtime-core) + truly_novel +2 (no KB match before this cycle, no prior alert_hash in 7d) = 5 >= escalation_score_threshold(4); today's needs-human post count was 3 < daily_escalation_cap(5) -> POST, gate_reason=scored. New KB entry written this cycle so a 3rd occurrence is recognized without re-deriving from scratch. See docs/investigations/2026-07-07-b0ae47b9a8a720ad.md."
+      },
+      {
+        "ts": "2026-07-24T13:22:19Z",
+        "note": "2026-07-24 13:22Z triage (degraded cycle, DD monitor scan diff): 3rd occurrence. DD monitor 70171778 ('Unexpected number of 5XX errors', generic service-agnostic check) fired 13:07:38Z, self-recovered to OK by 13:13:38Z. Bare monitor-id match_kb.py hit initially returned ki-2026-07-12-rest-api-tables-endpoint-5xx-recurring-burst (also keys on 'monitors/70171778') -- per this entry's own precedence_note, disambiguated via DD metric by resource_name: 100% of the burst (~55 errors in the last ~3min of the 5-min window) landed on runtime-core-api resource_name:post_/api/v1/security/expiresessiontoken, NOT rest-api/tables -- confirms THIS entry, not the tables-endpoint one (no occurrence bump applied to ki-2026-07-12). ES confirms via message.keyword:'Session Token Expiry Failed': 64 hits, exact stack match (SecurityController.ExpireSessionTokenAsync -> ActionContext.InitAsync -> AccountContext.InitAsync -> AccountNotFoundExceptions, same file/line shape as documented, dd_version 2026-07-22 13-38-master i.e. 2 days old, not a fresh-deploy correlation). UNLIKE the prior 2 occurrences (each single-account/single-session), this one spans 3 accounts by email: b.farrell@method.me (52), c.pantachhetri+k@method.me (8), lj@acoustiblok.com (4) -- broadening beyond the documented single-session shape, though the root-cause mechanism (empty accountName on session-expiry call) is identical. account_impact.py / SQL user-lookup could not resolve email->account (SSH bastion down: 'Could not connect to gateway hq.method.me:9433 -- WinError 10061 refused'), active_users_affected recorded as 0 (named_only, unresolved, tool gap). No deploy signal beyond the dd_version tag (methodcrm-org GH_TOKEN 403 gap on runtime-core, non-blocking). Hash ee1acc254f3c67c5 (channel CPHHABKAA + DD monitor ts 2026-07-24T13:07:38Z). last_notified_at (2026-07-07T15:24:41Z) = ~17 days ago -- PAST 24h suppression window -> POST (gate_reason=null, window-expiry), last_notified_at bumped to now. See docs/investigations/2026-07-24-ee1acc254f3c67c5.md."
       }
     ]
   },
