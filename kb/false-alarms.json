@@ -21,8 +21,8 @@
     "reason": "method-import-subscriber is a low-frequency batch AMQP consumer, not a continuous one. 24h history (2026-07-05 13:05 -> 2026-07-06 10:33) shows only 8 non-zero hit buckets, in bursts of 1-2060 messages separated by gaps of 3-11.5 hours. The monitor's 'sum(last_30m) < 1' threshold trips on every natural idle gap over 30 minutes, which happens multiple times a day by design -- not a service outage. 0 error logs on the service for the full day. This fire (11:05:32Z) came 32 minutes after the last burst ended (10:33:30Z), squarely inside the service's normal idle pattern.",
     "silence_for": "24h",
     "first_seen": "2026-07-06T11:05:32Z",
-    "last_seen": "2026-07-24T18:03:32Z",
-    "occurrences": 62,
+    "last_seen": "2026-07-24T18:37:32Z",
+    "occurrences": 63,
     "recommendation": "monitor threshold mismatch, not a false-alarm-forever situation -- recommend widening the No-Data window (e.g. 6h) or switching to a message-backlog-depth check instead of a hits-in-window check; flagging for Admin team, not silencing indefinitely",
     "notes": [
       {
@@ -128,6 +128,10 @@
       {
         "ts": "2026-07-24T16:59:33Z",
         "note": "2026-07-24 17:09Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-24T16:02:33Z cutoff): monitor 299551472 fired again 16:59:33Z, hash aac325b73ebde336, occ 60->61 -- 32min13s after the prior burst ended (16:27:20Z), squarely the same idle-gap pattern documented since 2026-07-06. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}, 15:59:33-16:59:33Z: sparse points -- 1@16:01:20Z, then a large burst 3@16:26:40Z + 339@16:27:00Z + 1714@16:27:20Z, then quiet until this fire. 0 status:error DD logs on the service across the window. Same low-frequency-batch-consumer shape as all prior 60 occurrences -- monitor's 30-min no-data threshold trips on ordinary idle gaps. gate: no thread-reply path (no Slack MCP), kb-update + self-DM only. See docs/investigations/2026-07-24-aac325b73ebde336.md."
+      },
+      {
+        "ts": "2026-07-24T19:15:00Z",
+        "note": "2026-07-24 19:15Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-24T18:07:11Z cutoff): monitor 299551472 fired 18:37:32Z (overall_state OK by scan time -- self-recovered), hash 1f10b4e15b59efa1, occ 62->63 (note: the intervening 18:03:32Z fire, hash 4b1f654bb7c9818e, bumped occurrences/last_seen last cycle but no note was appended then -- occ 62 carried over here). DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over 18:07:32-18:37:32Z: 2 sparse points (1, 27) clustered at 18:36:00-18:36:10Z, rest of window null/absent -- consistent with the documented low-frequency-batch-consumer idle-gap pattern. 0 status:error DD logs over the window. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only. See docs/investigations/2026-07-24-1f10b4e15b59efa1.md."
       }
     ]
   },
