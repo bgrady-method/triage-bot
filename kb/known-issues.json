@@ -1332,8 +1332,8 @@
     "id": "ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata",
     "title": "\"Method UI Grid and Dropdown Performance Test\" synthetics (team:qa, non-prod, 5 monitor-ID variants: Day run / Day run 2 / Evening run / Midnight run / Release Run) chronically go No Data; never correlates to a real incident",
     "first_seen": "2026-05-02T13:46:00Z",
-    "last_seen": "2026-07-24T12:31:00Z",
-    "occurrences": 98,
+    "last_seen": "2026-07-24T13:51:20Z",
+    "occurrences": 101,
     "match": {
       "channels": [
         "alert-system"
@@ -2235,8 +2235,8 @@
     "id": "ki-2026-07-06-rainforest-merchant-details-503-serviceunavailable",
     "title": "runtime-core-api Rainforest GetMerchantAsync (merchant-details lookup) fails with ServiceUnavailable when Rainforest's own API returns a 503 -- third-party payment-processor degradation, not a Method-side defect",
     "first_seen": "2026-07-06T13:02:25Z",
-    "last_seen": "2026-07-23T08:09:52+00:00",
-    "occurrences": 9,
+    "last_seen": "2026-07-24T13:58:52Z",
+    "occurrences": 10,
     "match": {
       "channels": [
         "alert-system"
@@ -2266,7 +2266,7 @@
     "fix_template": null,
     "confidence": 0.85,
     "owning_team": "Transactions",
-    "last_notified_at": "2026-07-23T20:12:31Z",
+    "last_notified_at": "2026-07-24T13:58:52Z",
     "notes": [
       {
         "ts": "2026-07-06T13:11:37Z",
@@ -2295,6 +2295,10 @@
       {
         "ts": "2026-07-24T11:25:00Z",
         "note": "2026-07-24 11:25Z triage: monitor 295882732 ('[Rainforest] Outbound API Error Rate (4xx+5xx) > 5%') fired 2026-07-24T08:28:52Z, hash 4a380342e3eee0b9. Checked this KB as the mechanical exact-monitor-id candidate, but the ES signature does NOT match: this occurrence is 10x BadRequest (400) errors from RainforestProvider.CreatePayinConfigAsync / payment-method payin creation ('Rainforest Subscription Payment Processing Failed', 'create payin config/payment method payin request failed with status: BadRequest'), all logged under AccountName=alocetsystem (system/internal billing-job context) -- NOT the documented GetMerchantAsync ServiceUnavailable/503 merchant-lookup signature. Per the causality/signature-verification rule, did NOT bump this entry's occurrences -- treated as a distinct needs-human finding (see docs/investigations/2026-07-24-4a380342e3eee0b9.md) rather than folding a mismatched signature into this KB's occurrence count."
+      },
+      {
+        "ts": "2026-07-24T13:58:52Z",
+        "note": "2026-07-24 14:08Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-24T13:25:11Z cutoff): monitor 295882732 fired again 13:58:52Z, hash ad02cff4e0ab35cd, occ 9->10 -- this time IS the recurring sierrashredllc/amount:0/CreatePayinConfigAsync sub-signature (matches 2026-07-13 and 2026-07-15 exactly), distinct from this morning's 08:28:52Z alocetsystem-bulk occurrence (correctly NOT absorbed, see 11:25:00Z note above). ES fields.dd_service.keyword:runtime-core-api AND message:*rainforest*, 13:28:52-14:08:52Z: 1 hit, full record read -- account sierrashredllc, merchant mid_3CiWKRBsVy01nkQmRpMuyXjzc11, amount:0, real user session via Guest Payment screen (not test/internal traffic). This is the 5th+ occurrence of this exact sub-signature since 2026-07-10 (07-10, 07-13, 07-15, now 07-24) -- standing recommendation to split this KB by error signature (503 third-party vs 400 sierrashredllc/amount:0 application-level) reiterated for the 3rd cycle running with no split applied yet; flagged for Ben as increasingly looking like an account-specific data/UI defect on sierrashredllc's Guest Payment screen rather than incidental noise. account_impact.py: sierrashredllc on prod3/4/5 (clusters_unconfigured) -> not_found, same standing tooling gap. Extrapolation: not warranted, account-specific. occurrences 9->10 trips the every-10th-occurrence resurface rule (10 % 10 == 0) -> POSTED to #triage-results, gate_reason=known-issue-occurrence-resurface, last_notified_at bumped 2026-07-23T20:12:31Z -> 2026-07-24T13:58:52Z. See docs/investigations/2026-07-24-ad02cff4e0ab35cd.md."
       }
     ]
   },
