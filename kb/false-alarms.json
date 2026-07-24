@@ -430,13 +430,17 @@
     },
     "reason": "DD metric sum:trace.amqp.command.hits{service:sync-queue-consumer,env:prod} over 2026-07-22T15:44:01-16:24:01Z: continuous non-zero throughput throughout (54-638 messages per 30s bucket, no gap approaching the monitor's stall threshold). The 'stalled' condition does not match observed reality -- same monitoring-artifact class as the already-documented fa-2026-07-11-sync-api-queue-consumer-bursty-idle-gap, but for the sibling QBO-specific consumer service (sync-queue-consumer, not sync-api-queue-consumer). NOT the same incident as ki-qbo-sync-datadog-mass-transit-blockage (a mitigated, historical MassTransit blockage from a different date) -- a bare 'QBO Sync' text match to that entry is unverified without checking the metric, which is why this got its own entry instead of a blind occurrence bump.",
     "first_seen": "2026-07-22T16:14:01Z",
-    "last_seen": "2026-07-24T19:14:01Z",
-    "occurrences": 3,
+    "last_seen": "2026-07-24T21:14:01Z",
+    "occurrences": 4,
     "silence_for": "24h",
     "notes": [
       {
         "ts": "2026-07-24T19:14:01Z",
         "note": "2026-07-24 19:14Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-24T18:39:11Z cutoff): monitor 301037701 fired 19:14:01Z (OK at scan time, self-recovered), hash 1e465eb3289bed07, occ 2->3. DD metric sum:trace.amqp.command.hits{service:sync-queue-consumer,env:prod}.as_count() over 18:44:01-19:14:01Z: near-continuous non-zero throughput throughout, with one ~12min data gap (~18:59:50-19:12:00Z) immediately followed by resumed throughput -- same monitoring-artifact shape as the 2 documented priors, not a genuine stall. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only. See docs/investigations/2026-07-24-1e465eb3289bed07.md."
+      },
+      {
+        "ts": "2026-07-24T21:14:01Z",
+        "note": "2026-07-24 21:14Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-24T21:00:52Z cutoff): monitor 301037701 fired 21:14:01Z (OK at scan time, self-recovered), hash e6d4996605b43a92, occ 3->4. DD metric sum:trace.amqp.command.hits{service:sync-queue-consumer,env:prod}.as_count() over 20:44:01-21:14:01Z: near-continuous non-zero throughput, with one ~12min data gap (21:00:00-21:12:00Z) immediately followed by resumed throughput -- same monitoring-artifact shape as the 3 documented priors, not a genuine stall. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only. See docs/investigations/2026-07-24-e6d4996605b43a92.md."
       }
     ]
   },
