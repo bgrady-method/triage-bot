@@ -188,8 +188,8 @@
     "reason": "ES fields.dd_service.keyword:signup AND level.keyword:Error, 04:49:40-05:24:40Z: 1 hit. Full sample: System.Web.HttpException thrown from System.Web.Handlers.TraceHandler.ProcessRequest (classic ASP.NET trace.axd diagnostic handler, disabled in prod). fields.Account.AccountId=0 (no real tenant attached) -- consistent with an external request probing /trace.axd rather than a real user action. Self-recovered, single occurrence, DD Logs 0 corroborating hits (client-request-level noise, not app-logic).",
     "silence_for": "24h",
     "first_seen": "2026-07-11T05:19:40Z",
-    "last_seen": "2026-07-25T09:42:40Z",
-    "occurrences": 5,
+    "last_seen": "2026-07-25T12:45:40Z",
+    "occurrences": 6,
     "notes": [
       {
         "ts": "2026-07-23T22:08:16Z",
@@ -202,6 +202,10 @@
       {
         "ts": "2026-07-25T11:09:00Z",
         "note": "2026-07-25 11:09Z triage (degraded cycle, no Slack MCP): monitor 154163500 (Service Signup has unexpected number of errors) fired 2026-07-25T09:42:40Z, hash db1e39a932998206, occ->5. ES fields.dd_service.keyword:signup AND level.keyword:Error over 09:12:40-09:42:40Z: 1 hit, \"Unhandled Exception - System.Web\" -- matches the documented TraceHandler scanner-probe signature. No thread-reply path in degraded mode -- kb-update only."
+      },
+      {
+        "ts": "2026-07-25T13:15:00Z",
+        "note": "2026-07-25 13:15Z triage (degraded cycle, no Slack MCP; DD monitor scan diff vs 2026-07-25T11:56:21Z cutoff): monitor 154163500 fired 12:45:40Z, hash cde1d2e0ef5aaf0d, occ 5->6. ES fields.dd_service.keyword:signup AND level.keyword:Error, 12:15:40-12:45:40Z: 1 hit, same signature -- System.Web.HttpException from System.Web.Handlers.TraceHandler.ProcessRequest, Request.Path=/trace.axd, StatusCode 403, Account.AccountId=0, this time Client.UserAgent=Amzn-SearchBot/1.0 (Amazon crawler, a new bot UA for this entry). DD Logs service:signup status:error env:prod over the same window: 0 hits. Self-recovered by scan time. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only. See docs/investigations/2026-07-25-cde1d2e0ef5aaf0d.md."
       }
     ]
   },
