@@ -21,8 +21,8 @@
     "reason": "method-import-subscriber is a low-frequency batch AMQP consumer, not a continuous one. 24h history (2026-07-05 13:05 -> 2026-07-06 10:33) shows only 8 non-zero hit buckets, in bursts of 1-2060 messages separated by gaps of 3-11.5 hours. The monitor's 'sum(last_30m) < 1' threshold trips on every natural idle gap over 30 minutes, which happens multiple times a day by design -- not a service outage. 0 error logs on the service for the full day. This fire (11:05:32Z) came 32 minutes after the last burst ended (10:33:30Z), squarely inside the service's normal idle pattern.",
     "silence_for": "24h",
     "first_seen": "2026-07-06T11:05:32Z",
-    "last_seen": "2026-07-25T14:02:32Z",
-    "occurrences": 66,
+    "last_seen": "2026-07-25T14:32:32Z",
+    "occurrences": 67,
     "recommendation": "monitor threshold mismatch, not a false-alarm-forever situation -- recommend widening the No-Data window (e.g. 6h) or switching to a message-backlog-depth check instead of a hits-in-window check; flagging for Admin team, not silencing indefinitely",
     "notes": [
       {
@@ -144,6 +144,10 @@
       {
         "ts": "2026-07-25T14:20:00Z",
         "note": "2026-07-25 14:20Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-25T12:45:40Z cutoff): monitor 299551472 fired 2026-07-25T14:02:32Z, hash cba5791d8bc82923, occurrences -> 66. 0 service:method-import-subscriber status:error DD logs 13:32:32-14:02:32Z. 8h metric shows a single 101-hit burst landing right at the end of the window -- classic bursty-idle-gap shape matching all 65 prior occurrences. kb-update self-DM sent (no thread-reply path in degraded mode). See docs/investigations/2026-07-25-cba5791d8bc82923.md."
+      },
+      {
+        "ts": "2026-07-25T15:12:00Z",
+        "note": "2026-07-25 15:12Z triage (degraded cycle, no Slack MCP -- ToolSearch confirmed no slack/conversations tool surfaced this session): DD monitor scan diff vs 2026-07-25T14:06:21Z cutoff (185-monitor full scan, count unchanged) found one state change: monitor 299551472 fired 2026-07-25T14:32:32Z, hash 62d117fcc0746723, occurrences -> 67 -- 30min exactly after the prior occurrence (14:02:32Z), same idle-gap threshold trip. 0 service:method-import-subscriber status:error DD logs 14:02:32-14:32:32Z. 8h metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() shows only the same single 101-hit burst at the 14:00Z bucket (already captured by the prior occurrence's window) with zero further activity through 14:32:32Z -- consistent with the documented low-frequency-batch-consumer idle-gap pattern, 67th occurrence. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only. See docs/investigations/2026-07-25-62d117fcc0746723.md."
       }
     ]
   },
