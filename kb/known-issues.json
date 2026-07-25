@@ -2044,8 +2044,8 @@
     "id": "ki-2026-07-04-ms-account-api-4xx-spike-monitor-noise",
     "title": "[Admin][AccountAPI][P3] 4xx-spike monitor transitions state without a real 4xx breach (monitor-sensitivity/config artifact, not a service issue)",
     "first_seen": "2026-07-03T12:08:59Z",
-    "last_seen": "2026-07-25T11:52:18Z",
-    "occurrences": 33,
+    "last_seen": "2026-07-25T18:56:18Z",
+    "occurrences": 34,
     "match": {
       "channels": [
         "alert-system",
@@ -2171,6 +2171,10 @@
       {
         "ts": "2026-07-25T11:09:00Z",
         "note": "2026-07-25 11:09Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch confirmed no slack/conversations tool). Monitor 299551518 ([Admin][AccountAPI][P3] 4xx spike (ms-account-api)) fired 2026-07-25T10:59:19Z, hash bdf16f131c49ad61, occ->32. DD metric sum:trace.aspnet_core.request.hits.by_http_status{service:ms-account-api,env:prod,http.status_class:4xx}.as_count() over 10:44:19-10:59:19Z: 1 point, value=1 -- nowhere near the monitor's own >300/15min threshold. Rejected the bare-word matches to ki-ms-account-nginx-soft-limit-1024-deploy (2024-04-05 one-off) and ki-ms-account-redis-cache-timeout-on-cold-start (2023-12-01 one-off) per the causality-check precedent -- both are resolved, unrelated incidents that only match on generic 'ms-account-api'/'ms-account' text. The correct entry is the monitor-id-specific ki-2026-07-04-ms-account-api-4xx-spike-monitor-noise (299551518 listed explicitly in match.any_of). gate_reason=null. See docs/investigations/2026-07-25-bdf16f131c49ad61.md."
+      },
+      {
+        "ts": "2026-07-25T19:08:23Z",
+        "note": "2026-07-25 19:08Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch confirmed no slack/conversations tool). Monitor 299551518 fired 2026-07-25T18:56:18Z, hash 9c5a6793365590dd, occ->34 (34th consecutive disproof). sum:trace.aspnet_core.request.hits.by_http_status{service:ms-account-api,env:prod,http.status_class:4xx}.as_count() over 18:41:18-18:56:18Z: 1 hit total, far below the >300/15min threshold. service:ms-account-api status:error DD Logs 18:41:18-18:56:18Z: 0 hits. last_notified_at (2026-07-25T10:59:19Z) ~7h57m ago, WITHIN 24h suppression window; occ 34 not %10; fix_status unchanged (monitoring-noise-suspected-unconfirmed) -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-25-9c5a6793365590dd.md."
       }
     ]
   },
@@ -2732,8 +2736,8 @@
     "id": "ki-2026-07-06-tables-fields-redis-circuitbreaker-p95-latency",
     "title": "ms-tables-fields-api p95 request latency spike driven by a transient Redis connectivity blip (circuit breaker OPENED); first confirmed cross-service correlation with runtime-core-api RTC p95 (ki-24)",
     "first_seen": "2026-07-06T13:36:39Z",
-    "last_seen": "2026-07-23T15:25:31+00:00",
-    "occurrences": 8,
+    "last_seen": "2026-07-25T17:33:31Z",
+    "occurrences": 9,
     "match": {
       "channels": [
         "alert-system",
@@ -2771,7 +2775,7 @@
     "fix_template": null,
     "confidence": 0.8,
     "owning_team": "Admin (ms-tables-fields-api); Vertical App Experience (runtime-core-api, cross-service corroboration)",
-    "last_notified_at": "2026-07-23T20:12:31Z",
+    "last_notified_at": "2026-07-25T19:08:23Z",
     "notes": [
       {
         "ts": "2026-07-06T14:16:00Z",
@@ -2796,6 +2800,10 @@
       {
         "ts": "2026-07-08T16:24:31Z",
         "note": "2026-07-08 16:24Z triage (degraded cycle, no Slack MCP; synthetic hash c87163391187ba40, channel CPHHABKAA + DD monitor ts 2026-07-08T16:24:31Z): 6th occurrence, monitor 302103451 last_triggered 16:24:31Z, OK by scan time (self-recovered). Evidence_query (Redis Cache Circuit Breaker OPENED) re-run 15:54:31Z-16:39:31Z -- 0 hits, mechanism did NOT reproduce (5th of 6 occurrences now without Redis corroboration). DD metric re-query on the monitor's own trailing-5m eval window (16:19:31-16:24:31Z, 28 points) shows values in the 0.009s-0.20s range, entirely under the 0.25s threshold in this coarser re-aggregation -- no visible breach, similar to occurrence 5. No co-firing on ki-2026-05-24-runtime-core-rtc-p95-recurring this cycle (not in the 3-monitor diff set: 302103451, 299551472, 77419271 only). last_notified_at (2026-07-06T14:16:00Z) = ~50h8m ago -- EXCEEDS the 24h suppression window -> POST to #triage-results, gate_reason=null (window-expiry, first notify since the entry's creation). Corroboration for this post: the DD metric-explorer query above returned real (non-empty, 28-point) data confirming the monitor's own metric is live and queryable even though it stayed under threshold this re-aggregation -- per the entry's own established precedent (occurrences 2-5), a bare monitor-id match without fresh Redis-mechanism corroboration is still treated as a genuine (if weaker-evidence) recurrence of the same monitor, not discarded. Flagging in the post that the Redis-circuit-breaker mechanism has now failed to reproduce in 5 of the last 6 occurrences -- the bare-monitor-id match clause may be over-matching against plain latency-monitor noise distinct from the original Redis-blip diagnosis (same caution already flagged for this entry's occurrence 3 note and for ki-2026-07-02-tables-fields-fieldtablenameref-null-linked-fields). See docs/investigations/2026-07-08-c87163391187ba40.md."
+      },
+      {
+        "ts": "2026-07-25T19:08:23Z",
+        "note": "2026-07-25 19:08Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch confirmed no slack/conversations tool). 9th occurrence, monitor 302103451 last_triggered 2026-07-25T17:33:31Z, hash 3940d14a3ca280a7, OK by scan time (self-recovered). Evidence_query (Redis Cache Circuit Breaker OPENED) re-run 17:28:31-17:33:31Z and widened 17:03:31-17:33:31Z -- 0 hits both windows, mechanism did NOT reproduce (6th of 9 occurrences now without Redis corroboration). DD metric re-query p95:trace.aspnet_core.request{env:prod,service:tables-fields} on the monitor's own trailing-5m eval window (17:28:31-17:33:31Z, 22 points): range 0.0029s-0.0534s, entirely under the 0.25s threshold in this coarser re-aggregation -- no visible sustained breach (same pattern as occurrences 2,3,5,6,7 -- momentary excursions the coarse re-query smooths out). No co-firing on ki-2026-05-24-runtime-core-rtc-p95-recurring this cycle (3-monitor diff set this cycle: 299551644 methodportal, 302103451 tables-fields, 299551518 ms-account-api only). last_notified_at (2026-07-23T20:12:31Z) was ~45h21m old -- EXCEEDS 24h suppression window -> POST to #triage-results, gate_reason=null (window-expiry). Corroboration: the DD metric-explorer query above returned real (non-empty, 22-point) data confirming the monitor's own metric is live and queryable even though it stayed under threshold in this re-aggregation -- per established precedent (occurrences 2-8), a bare monitor-id match without fresh Redis-mechanism corroboration is still treated as a genuine (if weaker-evidence) recurrence, not discarded. Flagging again: Redis-circuit-breaker mechanism has now failed to reproduce in 6 of 9 occurrences -- standing recommendation to split this KB entry or add a minimum-hits/sustained-duration floor remains open. See docs/investigations/2026-07-25-3940d14a3ca280a7.md."
       }
     ]
   },
