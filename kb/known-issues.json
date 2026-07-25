@@ -1762,8 +1762,8 @@
     "id": "ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap",
     "title": "New team:crm AMQP-consumer heartbeat/throughput-stall monitors (5 sibling IDs, created 2026-07-02) intermittently trip on quiet-period low-traffic dips, then self-recover within minutes — no corroborating errors",
     "first_seen": "2026-07-04T13:07:31Z",
-    "last_seen": "2026-07-25T15:34:31Z",
-    "occurrences": 75,
+    "last_seen": "2026-07-25T21:55:31Z",
+    "occurrences": 77,
     "match": {
       "channels": [
         "alert-system",
@@ -1978,6 +1978,14 @@
       {
         "ts": "2026-07-25T16:20:00Z",
         "note": "2026-07-25 16:20Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-25T14:32:32Z cutoff, synthetic hash 704b547b78ad5560, channel CPHHABKAA alert-system): monitor 302057011 fired again 2026-07-25T15:34:31Z, occurrences -> 75. DD metric sum:trace.amqp.command.hits{service:runtime-core-subscriber,env:prod}.as_rate(), 15:04:31-15:34:31Z: 180 points, 60% below the 2msg/s threshold, min 0.1 max 381.6 (periodic clearing bursts) -- canonical quiet-period-flap shape, matching all 74 prior occurrences. 0 service:runtime-core-subscriber status:error DD logs this window. Self-recovered to OK by scan time. No sibling monitor in the 5-monitor family co-fired this cycle (full 185-monitor scan, only this monitor plus 2 unrelated state-changes -- synthetics-signin 127198928 and methodportal 5xx 299551644 -- had a last_triggered_ts newer than cutoff). last_notified_at (2026-07-25T04:01:31Z) ~11h33m ago, WITHIN 24h suppression window; occurrence 75 not %10; fix_status unchanged -> SUPPRESS gate_reason=known-issue-window, appended to docs/actionable/2026-07-25.md. See docs/investigations/2026-07-25-704b547b78ad5560.md."
+      },
+      {
+        "ts": "2026-07-25T20:31:21Z",
+        "note": "2026-07-25 22:xxZ triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-25T18:56:18Z cutoff, hash 27299f37513f7960): monitor 302055141 (mns) fired 2026-07-25T20:31:21Z, occurrences -> 76. DD metric sum:trace.amqp.command.hits{service:method-mobile-notifications-subscriber,env:prod}.as_rate(), 20:01:21-20:31:21Z: only 2 datapoints (0.1, 0.3msg/s), rest of window a genuine data gap -- canonical sparse quiet-period shape, matching prior mns occurrences. 0 service:method-mobile-notifications-subscriber status:error DD logs this window. No sibling monitor co-fired within its own 30-min group window (302057011 fired 84min later, processed separately below). last_notified_at (2026-07-25T04:01:31Z) ~16h30m ago, WITHIN 24h suppression window; occurrence 76 not %10; fix_status unchanged -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-25-27299f37513f7960.md."
+      },
+      {
+        "ts": "2026-07-25T21:55:31Z",
+        "note": "2026-07-25 22:xxZ triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-25T18:56:18Z cutoff, hash 7be4a19b9b457623): monitor 302057011 (rcs) fired 2026-07-25T21:55:31Z, occurrences -> 77. DD metric sum:trace.amqp.command.hits{service:runtime-core-subscriber,env:prod}.as_rate(), 21:25:31-21:55:31Z: mostly sub-2msg/s baseline for ~26min then a sustained clearing burst (100-110msg/s) from ~21:53:20Z -- canonical quiet-period-then-recovery shape, matching all 76 prior occurrences. 0 service:runtime-core-subscriber status:error DD logs this window. last_notified_at (2026-07-25T04:01:31Z, unchanged -- the mns fire earlier this cycle was itself suppressed and did not bump it) ~17h54m ago, WITHIN 24h suppression window; occurrence 77 not %10; fix_status unchanged -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-25-7be4a19b9b457623.md."
       }
     ]
   },
@@ -2044,8 +2052,8 @@
     "id": "ki-2026-07-04-ms-account-api-4xx-spike-monitor-noise",
     "title": "[Admin][AccountAPI][P3] 4xx-spike monitor transitions state without a real 4xx breach (monitor-sensitivity/config artifact, not a service issue)",
     "first_seen": "2026-07-03T12:08:59Z",
-    "last_seen": "2026-07-25T18:56:18Z",
-    "occurrences": 34,
+    "last_seen": "2026-07-25T20:31:18Z",
+    "occurrences": 35,
     "match": {
       "channels": [
         "alert-system",
@@ -2175,6 +2183,10 @@
       {
         "ts": "2026-07-25T19:08:23Z",
         "note": "2026-07-25 19:08Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch confirmed no slack/conversations tool). Monitor 299551518 fired 2026-07-25T18:56:18Z, hash 9c5a6793365590dd, occ->34 (34th consecutive disproof). sum:trace.aspnet_core.request.hits.by_http_status{service:ms-account-api,env:prod,http.status_class:4xx}.as_count() over 18:41:18-18:56:18Z: 1 hit total, far below the >300/15min threshold. service:ms-account-api status:error DD Logs 18:41:18-18:56:18Z: 0 hits. last_notified_at (2026-07-25T10:59:19Z) ~7h57m ago, WITHIN 24h suppression window; occ 34 not %10; fix_status unchanged (monitoring-noise-suspected-unconfirmed) -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-25-9c5a6793365590dd.md."
+      },
+      {
+        "ts": "2026-07-25T20:31:18Z",
+        "note": "2026-07-25 22:xxZ triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-25T18:56:18Z cutoff, hash 22d71d49f8b7dff8). Monitor 299551518 fired 2026-07-25T20:31:18Z, occ->35 (35th consecutive disproof). sum:trace.aspnet_core.request.hits.by_http_status{service:ms-account-api,env:prod,http.status_class:4xx}.as_count() over 20:16:18-20:31:18Z: 3 points, value=1 each, far below the >300/15min threshold. service:ms-account-api status:error DD Logs 20:16:18-20:31:18Z: 0 hits. last_notified_at (2026-07-25T10:59:19Z) ~9h32m ago, WITHIN 24h suppression window; occ 35 not %10; fix_status unchanged -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-25-22d71d49f8b7dff8.md."
       }
     ]
   },
@@ -2589,8 +2601,8 @@
     "id": "ki-2026-07-06-synthetics-signin-transient-step-duration-spike",
     "title": "[Synthetics] Sign in to Method step-duration monitor (127198928) intermittently spikes >20s for a single test run then self-recovers, with no corroborating error signal on any critical-path service",
     "first_seen": "2026-05-27T19:02:08Z",
-    "last_seen": "2026-07-25T15:41:09Z",
-    "occurrences": 27,
+    "last_seen": "2026-07-25T19:51:08Z",
+    "occurrences": 28,
     "match": {
       "channels": [
         "alert-system"
@@ -2688,6 +2700,10 @@
       {
         "ts": "2026-07-25T16:20:00Z",
         "note": "2026-07-25 16:20Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-25T14:32:32Z cutoff, synthetic hash 3ec8aa895cc3948b, channel CPHHABKAA alert-system): 27th occurrence, monitor 127198928 fired 2026-07-25T15:41:09Z. DD metric avg:synthetics.browser.step.duration{step_id IN (447-as9-ktg,x93-d6z-ir9,3w5-4fp-rsq,rrq-u73-wwr)} re-queried 15:11:09-15:41:09Z: 3 points (5786ms@15:20, 21412ms@15:30 breach ratio 0.071, 9756ms@15:40 recovered) -- canonical one-point-then-recover shape, same as all 26 priors. Checked co-firing: no team:admin gateway/oauth2/ms-authentication-api/ms-identity-api/signin monitor changed state this cycle (full 185-monitor scan-diff, only 2 other unrelated state-changes). ES aggregate level:Error across all services 15:25:00-15:35:00Z: 30 hits, top buckets approutine-subscriber 11, runtime-core-api 5, email-subscriber-agent 4, email-publisher-agent 3, sync-queue-consumer 2, sync-xero-subscriber 2, Method.Webhooks.BgService 1 -- zero on oauth2.identity.server/ms-gateway-api/ms-authentication-api/ms-identity-api/signin. DD RUM errortracking service:method-signin-ui 15:25:00-15:35:00Z: 0 client errors. Same no-corroboration shape as all 26 priors. GATE: last_notified_at (2026-07-23T20:12:31Z) measured against cycle-evaluation time is ~43h29m -- past the 24h suppression window -> POST to #triage-results, gate_reason=null (occurrence 27 is not independently a %10 resurface, but window-expiry fires regardless). last_notified_at bumped to 2026-07-25T16:20:00Z. Posted to #triage-results at 16:16:47Z. See docs/investigations/2026-07-25-3ec8aa895cc3948b.md."
+      },
+      {
+        "ts": "2026-07-25T19:51:08Z",
+        "note": "2026-07-25 22:xxZ triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-25T18:56:18Z cutoff, hash d0454d69b5dec60f, channel CPHHABKAA alert-system): 28th occurrence, monitor 127198928 fired 2026-07-25T19:51:08Z. DD metric avg:synthetics.browser.step.duration{step_id IN (447-as9-ktg,x93-d6z-ir9,3w5-4fp-rsq,rrq-u73-wwr)} re-queried 19:21:08-19:51:08Z: 3 points (5157ms, 21987ms@19:40:00Z breach ratio 0.099, 5816ms recovered) -- canonical one-point-then-recover shape, same as all 27 priors. ES aggregate level:Error across all services 19:36:08-19:56:08Z: 36 hits, top buckets nonprod/apps 7, sync-queue-consumer 7, email-subscriber-agent 5, runtime-core-api 4, email-publisher-agent 3 -- zero on oauth2.identity.server/ms-gateway-api/ms-authentication-api/ms-identity-api. DD RUM errortracking service:method-signin-ui 19:36:08-19:56:08Z: 0 client errors. No co-firing critical-path monitor (full 185-monitor scan, 5 other unrelated state-changes this cycle, none on gateway/oauth2/ms-authentication-api/ms-identity-api/signin). last_notified_at (2026-07-25T16:20:00Z) ~3h31m ago, WITHIN 24h suppression window; occ 28 not %10; fix_status needs-human unchanged -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-25-d0454d69b5dec60f.md."
       }
     ]
   },
