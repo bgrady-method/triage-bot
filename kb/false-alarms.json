@@ -21,8 +21,8 @@
     "reason": "method-import-subscriber is a low-frequency batch AMQP consumer, not a continuous one. 24h history (2026-07-05 13:05 -> 2026-07-06 10:33) shows only 8 non-zero hit buckets, in bursts of 1-2060 messages separated by gaps of 3-11.5 hours. The monitor's 'sum(last_30m) < 1' threshold trips on every natural idle gap over 30 minutes, which happens multiple times a day by design -- not a service outage. 0 error logs on the service for the full day. This fire (11:05:32Z) came 32 minutes after the last burst ended (10:33:30Z), squarely inside the service's normal idle pattern.",
     "silence_for": "24h",
     "first_seen": "2026-07-06T11:05:32Z",
-    "last_seen": "2026-07-24T19:47:33Z",
-    "occurrences": 64,
+    "last_seen": "2026-07-24T23:43:32Z",
+    "occurrences": 65,
     "recommendation": "monitor threshold mismatch, not a false-alarm-forever situation -- recommend widening the No-Data window (e.g. 6h) or switching to a message-backlog-depth check instead of a hits-in-window check; flagging for Admin team, not silencing indefinitely",
     "notes": [
       {
@@ -136,6 +136,10 @@
       {
         "ts": "2026-07-24T19:47:33Z",
         "note": "2026-07-24 19:47Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-24T18:39:11Z cutoff): monitor 299551472 fired 19:47:33Z (OK at scan time, self-recovered), hash f3b108b345191f1b, occ 63->64. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over 19:17:33-19:47:33Z shows 4 sparse points (1, 5, 281, 435) clustered in the last ~40s of the window, rest null/absent -- consistent with the documented low-frequency-batch-consumer idle-gap pattern. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only. See docs/investigations/2026-07-24-f3b108b345191f1b.md."
+      },
+      {
+        "ts": "2026-07-25T11:09:00Z",
+        "note": "2026-07-25 11:09Z triage (degraded cycle, no Slack MCP): monitor 299551472 ([Admin][ImportSubscriber][P1] No messages processed in 30m (method-import-subscriber)) fired 2026-07-24T23:43:32Z, hash 88b98f78b83ba270, occ->65. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over 23:13:32-23:43:32Z: empty series (0 points) -- consistent with the documented low-frequency-batch-consumer idle-gap pattern. No thread-reply path in degraded mode -- kb-update only."
       }
     ]
   },
@@ -184,8 +188,8 @@
     "reason": "ES fields.dd_service.keyword:signup AND level.keyword:Error, 04:49:40-05:24:40Z: 1 hit. Full sample: System.Web.HttpException thrown from System.Web.Handlers.TraceHandler.ProcessRequest (classic ASP.NET trace.axd diagnostic handler, disabled in prod). fields.Account.AccountId=0 (no real tenant attached) -- consistent with an external request probing /trace.axd rather than a real user action. Self-recovered, single occurrence, DD Logs 0 corroborating hits (client-request-level noise, not app-logic).",
     "silence_for": "24h",
     "first_seen": "2026-07-11T05:19:40Z",
-    "last_seen": "2026-07-24T09:45:40Z",
-    "occurrences": 4,
+    "last_seen": "2026-07-25T09:42:40Z",
+    "occurrences": 5,
     "notes": [
       {
         "ts": "2026-07-23T22:08:16Z",
@@ -194,6 +198,10 @@
       {
         "ts": "2026-07-24T11:25:00Z",
         "note": "2026-07-24 11:25Z triage (degraded cycle): monitor 154163500 fired 09:45:40Z, hash a2ce1de45dd3d143, occ 3->4. ES fields.dd_service.keyword:signup AND level.keyword:Error, 07:30-09:50Z: 2 hits, both confirmed same signature -- System.Web.HttpException from System.Web.Handlers.TraceHandler.ProcessRequest, Request.Path=/trace.axd, StatusCode 403, Account.AccountId=0 (bot UAs: Applebot-Extended/0.1 and CCBot/2.0). These same 2 hits also independently drove today's Signup Availability SLO fire (154229727, see docs/investigations/2026-07-24-e39d68628e10a744.md) -- documented as the connection between the two Signup alerts this cycle. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only."
+      },
+      {
+        "ts": "2026-07-25T11:09:00Z",
+        "note": "2026-07-25 11:09Z triage (degraded cycle, no Slack MCP): monitor 154163500 (Service Signup has unexpected number of errors) fired 2026-07-25T09:42:40Z, hash db1e39a932998206, occ->5. ES fields.dd_service.keyword:signup AND level.keyword:Error over 09:12:40-09:42:40Z: 1 hit, \"Unhandled Exception - System.Web\" -- matches the documented TraceHandler scanner-probe signature. No thread-reply path in degraded mode -- kb-update only."
       }
     ]
   },
@@ -244,9 +252,15 @@
     "reason": "Monitor query is 100 * sum:trace.aspnet.request.errors{service:services/mapi,env:prod}.as_count() / sum:trace.aspnet.request.hits{...}.as_count() > 100 -- i.e. errors must exceed hits, only possible via a bucket-alignment counting artifact between two independently-aggregated metrics on very low traffic (2 total hits in the 15-min window). 0 errors found in DD metrics for the same window -- no corroborating evidence of a real error-rate spike. Same family as the already-documented gateway-4xx and ms-account-api-4xx monitoring-noise patterns.",
     "silence_for": "24h",
     "first_seen": "2026-07-12T09:53:21Z",
-    "last_seen": "2026-07-20T08:15:21+00:00",
-    "occurrences": 2,
-    "recommendation": "add a minimum-request-volume floor to this monitor's query, mirroring the fix already recommended for the sibling 4xx-spike monitors"
+    "last_seen": "2026-07-25T08:32:21Z",
+    "occurrences": 3,
+    "recommendation": "add a minimum-request-volume floor to this monitor's query, mirroring the fix already recommended for the sibling 4xx-spike monitors",
+    "notes": [
+      {
+        "ts": "2026-07-25T11:09:00Z",
+        "note": "2026-07-25 11:09Z triage (degraded cycle, no Slack MCP): monitor 299551641 ([Admin][MAPI][P1] 5xx error rate elevated (services/mapi)) fired 2026-07-25T08:32:21Z, hash 14cdbc4e93756c22, occ->3. DD metric errors=1 (1 point), hits=3 (2 points: 1,2) for service:services/mapi over 08:22:21-08:32:21Z -- a single error against ~3 total requests is enough to trip the errors/hits > 100% ratio threshold at this volume, consistent with the documented low-traffic-ratio artifact. No thread-reply path in degraded mode -- kb-update only."
+      }
+    ]
   },
   {
     "target": "false-alarms",
@@ -360,9 +374,15 @@
     },
     "reason": "DD metric sum:trace.aspnet.request.errors{service:methodportal.com,env:prod} over 2026-07-23T04:02:24-04:42:24Z (+/-20min around the fire): 0 errors. Same low-traffic-ratio-artifact mechanism as fa-2026-07-12-mapi-5xx-rate-low-traffic-ratio-artifact and the signup low-traffic family, applied to a different service.",
     "first_seen": "2026-07-23T04:22:24Z",
-    "last_seen": "2026-07-23T04:22:24Z",
-    "occurrences": 1,
-    "silence_for": "24h"
+    "last_seen": "2026-07-25T10:23:24Z",
+    "occurrences": 2,
+    "silence_for": "24h",
+    "notes": [
+      {
+        "ts": "2026-07-25T11:09:00Z",
+        "note": "2026-07-25 11:09Z triage (degraded cycle, no Slack MCP): monitor 299551644 ([VAE][Portal][P1] 5xx error rate elevated (methodportal.com)) fired 2026-07-25T10:23:24Z, hash 9031801a0371029c, occ->2. DD metric errors=0 (empty series), hits=1 (1 point) for service:methodportal.com over 10:13:24-10:23:24Z -- near-zero traffic, consistent with the documented low-traffic-ratio artifact. No thread-reply path in degraded mode -- kb-update only."
+      }
+    ]
   },
   {
     "id": "fa-2026-07-23-ms-audittrail-api-5xx-low-traffic-artifact",
