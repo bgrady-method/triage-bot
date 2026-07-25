@@ -386,13 +386,17 @@
     },
     "reason": "DD metric sum:trace.aspnet.request.errors{service:methodportal.com,env:prod} over 2026-07-23T04:02:24-04:42:24Z (+/-20min around the fire): 0 errors. Same low-traffic-ratio-artifact mechanism as fa-2026-07-12-mapi-5xx-rate-low-traffic-ratio-artifact and the signup low-traffic family, applied to a different service.",
     "first_seen": "2026-07-23T04:22:24Z",
-    "last_seen": "2026-07-25T10:23:24Z",
-    "occurrences": 2,
+    "last_seen": "2026-07-25T15:43:24Z",
+    "occurrences": 3,
     "silence_for": "24h",
     "notes": [
       {
         "ts": "2026-07-25T11:09:00Z",
         "note": "2026-07-25 11:09Z triage (degraded cycle, no Slack MCP): monitor 299551644 ([VAE][Portal][P1] 5xx error rate elevated (methodportal.com)) fired 2026-07-25T10:23:24Z, hash 9031801a0371029c, occ->2. DD metric errors=0 (empty series), hits=1 (1 point) for service:methodportal.com over 10:13:24-10:23:24Z -- near-zero traffic, consistent with the documented low-traffic-ratio artifact. No thread-reply path in degraded mode -- kb-update only."
+      },
+      {
+        "ts": "2026-07-25T16:20:00Z",
+        "note": "2026-07-25 16:20Z triage (degraded cycle, no Slack MCP): monitor 299551644 ([VAE][Portal][P1] 5xx error rate elevated (methodportal.com)) fired 2026-07-25T15:43:24Z, hash 5909e8d8e4298cb6, occ->3. DD metric sum:trace.aspnet.request.errors{service:methodportal.com,env:prod} 15:33:24-15:43:24Z: empty series (0 errors). sum:trace.aspnet.request.hits same window: 3 points, 67.8/1/2 -- near-zero traffic, same low-traffic-ratio-artifact mechanism as the prior occurrence. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-07-25-5909e8d8e4298cb6.md."
       }
     ]
   },
