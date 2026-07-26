@@ -386,8 +386,8 @@
     },
     "reason": "DD metric sum:trace.aspnet.request.errors{service:methodportal.com,env:prod} over 2026-07-23T04:02:24-04:42:24Z (+/-20min around the fire): 0 errors. Same low-traffic-ratio-artifact mechanism as fa-2026-07-12-mapi-5xx-rate-low-traffic-ratio-artifact and the signup low-traffic family, applied to a different service.",
     "first_seen": "2026-07-23T04:22:24Z",
-    "last_seen": "2026-07-26T11:29:25Z",
-    "occurrences": 7,
+    "last_seen": "2026-07-26T15:09:24Z",
+    "occurrences": 8,
     "silence_for": "24h",
     "notes": [
       {
@@ -409,6 +409,10 @@
       {
         "ts": "2026-07-26T11:29:25Z",
         "note": "2026-07-26 poll cycle (degraded, no Slack MCP; DD monitor scan-diff fallback). Monitor 299551644 ([VAE][Portal][P1] 5xx error rate elevated (methodportal.com)) fired 2026-07-26T11:29:25Z, hash 0d6fb897dc390d18, occ->7 (backfill catch -- this occurrence's overall_state_modified predates the prior cycle's own scan cutoff of 2026-07-26T12:10:45Z but was not previously logged; no duplicate incident-log entry exists for monitor_id 299551644 at this timestamp, confirmed by grep before writing). DD metric sum:trace.aspnet.request.errors{service:methodportal.com,env:prod} 11:14:25-11:44:25Z: 1 error point (11:18:00Z, count=1.0) -- same low-traffic-ratio-artifact mechanism as the prior 5 occurrences. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-07-26-0d6fb897dc390d18.md."
+      },
+      {
+        "ts": "2026-07-26T15:09:24Z",
+        "note": "2026-07-26 15:09Z triage (degraded cycle, no Slack MCP surfaced this session; DD monitor scan-diff fallback vs prior cutoff 2026-07-26T14:23:00Z). Monitor 299551644 ([VAE][Portal][P1] 5xx error rate elevated (methodportal.com)) fired 2026-07-26T15:09:24Z, hash 130be0c34c1683d1, occ->8, state=Warn (not Critical). DD metric sum:trace.aspnet.request.errors{service:methodportal.com,env:prod}.as_count() 14:59:24-15:09:24Z: 1 error point (15:07:50Z, count=1.0). sum:trace.aspnet.request.hits same window: 4 points (1,1,25,40), sum=67 -- ratio 1/67=1.49%, over the 1.0 Warn threshold but well under the 5.0 Critical threshold (monitor correctly stayed Warn, not Alert). DD Logs query service:methodportal.com status:error env:prod (and unfiltered service:methodportal.com) for the same window: 0 hits both -- this service is not DD-Logs-instrumented, consistent with every prior occurrence. Unlike occurrences 1-7 (all literally 0 errors), this one has a genuine single error point, but the mechanism is the same: low absolute traffic (67 hits/10min) means even 1 error swings the ratio past the Warn floor. No thread-reply path in degraded mode (no Slack MCP -- no real primary.ts to reply to). kb-update self-DM sent. See docs/investigations/2026-07-26-130be0c34c1683d1.md."
       }
     ]
   },
