@@ -21,8 +21,8 @@
     "reason": "method-import-subscriber is a low-frequency batch AMQP consumer, not a continuous one. 24h history (2026-07-05 13:05 -> 2026-07-06 10:33) shows only 8 non-zero hit buckets, in bursts of 1-2060 messages separated by gaps of 3-11.5 hours. The monitor's 'sum(last_30m) < 1' threshold trips on every natural idle gap over 30 minutes, which happens multiple times a day by design -- not a service outage. 0 error logs on the service for the full day. This fire (11:05:32Z) came 32 minutes after the last burst ended (10:33:30Z), squarely inside the service's normal idle pattern.",
     "silence_for": "24h",
     "first_seen": "2026-07-06T11:05:32Z",
-    "last_seen": "2026-07-25T14:32:32Z",
-    "occurrences": 67,
+    "last_seen": "2026-07-25T23:31:32Z",
+    "occurrences": 68,
     "recommendation": "monitor threshold mismatch, not a false-alarm-forever situation -- recommend widening the No-Data window (e.g. 6h) or switching to a message-backlog-depth check instead of a hits-in-window check; flagging for Admin team, not silencing indefinitely",
     "notes": [
       {
@@ -196,8 +196,8 @@
     "reason": "ES fields.dd_service.keyword:signup AND level.keyword:Error, 04:49:40-05:24:40Z: 1 hit. Full sample: System.Web.HttpException thrown from System.Web.Handlers.TraceHandler.ProcessRequest (classic ASP.NET trace.axd diagnostic handler, disabled in prod). fields.Account.AccountId=0 (no real tenant attached) -- consistent with an external request probing /trace.axd rather than a real user action. Self-recovered, single occurrence, DD Logs 0 corroborating hits (client-request-level noise, not app-logic).",
     "silence_for": "24h",
     "first_seen": "2026-07-11T05:19:40Z",
-    "last_seen": "2026-07-25T12:45:40Z",
-    "occurrences": 6,
+    "last_seen": "2026-07-26T01:19:40Z",
+    "occurrences": 7,
     "notes": [
       {
         "ts": "2026-07-23T22:08:16Z",
@@ -264,8 +264,8 @@
     "reason": "Monitor query is 100 * sum:trace.aspnet.request.errors{service:services/mapi,env:prod}.as_count() / sum:trace.aspnet.request.hits{...}.as_count() > 100 -- i.e. errors must exceed hits, only possible via a bucket-alignment counting artifact between two independently-aggregated metrics on very low traffic (2 total hits in the 15-min window). 0 errors found in DD metrics for the same window -- no corroborating evidence of a real error-rate spike. Same family as the already-documented gateway-4xx and ms-account-api-4xx monitoring-noise patterns.",
     "silence_for": "24h",
     "first_seen": "2026-07-12T09:53:21Z",
-    "last_seen": "2026-07-25T08:32:21Z",
-    "occurrences": 3,
+    "last_seen": "2026-07-26T10:53:21Z",
+    "occurrences": 4,
     "recommendation": "add a minimum-request-volume floor to this monitor's query, mirroring the fix already recommended for the sibling 4xx-spike monitors",
     "notes": [
       {
@@ -386,8 +386,8 @@
     },
     "reason": "DD metric sum:trace.aspnet.request.errors{service:methodportal.com,env:prod} over 2026-07-23T04:02:24-04:42:24Z (+/-20min around the fire): 0 errors. Same low-traffic-ratio-artifact mechanism as fa-2026-07-12-mapi-5xx-rate-low-traffic-ratio-artifact and the signup low-traffic family, applied to a different service.",
     "first_seen": "2026-07-23T04:22:24Z",
-    "last_seen": "2026-07-25T20:35:24Z",
-    "occurrences": 5,
+    "last_seen": "2026-07-26T11:00:25Z",
+    "occurrences": 6,
     "silence_for": "24h",
     "notes": [
       {
@@ -452,8 +452,8 @@
     },
     "reason": "Three [QA][Gatling] monitors fired across the backlog window (ms-support-api, eda_orchestrator_api, ms-apps-api P95 latency), all tagged env:warehouse team:qa source:gatling -- these are load-test result monitors against the warehouse (non-prod) environment, not production alerts. Same non-prod-noise class as the already-documented ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata and ki-2026-07-03-warehouse-dashboard-network-test-nodata (both 'confirmed-non-prod-noise').",
     "first_seen": "2026-07-16T15:28:39Z",
-    "last_seen": "2026-07-25T21:44:48Z",
-    "occurrences": 4,
+    "last_seen": "2026-07-25T22:43:55Z",
+    "occurrences": 5,
     "silence_for": "24h",
     "notes": [
       {
@@ -580,5 +580,28 @@
     "last_seen": "2026-07-20T21:52:01Z",
     "occurrences": 1,
     "silence_for": "24h"
+  },
+  {
+    "target": "false-alarms",
+    "id": "fa-2026-07-26-methodportal-apps-5xx-low-traffic-artifact",
+    "match": {
+      "channels": [
+        "alert-system"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/299551647"
+        },
+        {
+          "contains": "[VAE][PortalApps][P1] 5xx error rate elevated (methodportal.com/apps)"
+        }
+      ]
+    },
+    "reason": "DD metric sum:trace.aspnet.request.errors{service:methodportal.com/apps,env:prod} over 2026-07-26T05:26:27-06:06:27Z (+/-20min around the fire): exactly 1 error point (05:34:40Z, count=1.0). Monitor computes a >25% error-RATE over a 10-min window; a single raw error against a small request denominator during a quiet period trips the ratio threshold with negligible real impact. Same low-traffic-ratio-artifact mechanism as fa-2026-07-12-mapi-5xx-rate-low-traffic-ratio-artifact and fa-2026-07-23-methodportal-5xx-low-traffic-artifact (methodportal.com, without /apps), applied to the /apps sub-path variant. Rejected an initial match_kb.py hit against ki-2026-05-29-methodsession-getaccountbysubdomain-nre (bare 'ms-account-api'-adjacent match) -- ES query for that entry's own evidence (JWT Retrieval Failed / GetAccountBySubdomain / MethodSessionService) returned 0 hits in the window, refuting it.",
+    "silence_for": "24h",
+    "first_seen": "2026-07-26T05:46:27Z",
+    "last_seen": "2026-07-26T05:46:27Z",
+    "occurrences": 1,
+    "recommendation": "Same recommendation as the sibling low-traffic-ratio-artifact entries: consider widening the monitor eval window or adding a minimum-request-count floor so a single error cannot trip a percentage threshold during low-traffic periods."
   }
 ]

@@ -451,8 +451,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-07-25T11:53:20Z",
-    "occurrences": 244,
+    "last_seen": "2026-07-26T09:08:18Z",
+    "occurrences": 246,
     "match": {
       "channels": [
         "alert-system",
@@ -1227,8 +1227,8 @@
     "id": "ki-2026-07-03-eda-consumer-amqp-stopped-publishing",
     "title": "[EDA][Consumer][P3] eda_consumer AMQP publish-hits monitor intermittently goes No Data (team:devops, self-recovering, no correlated pipeline impact)",
     "first_seen": "2026-06-20T10:21:00Z",
-    "last_seen": "2026-07-25T11:43:26Z",
-    "occurrences": 31,
+    "last_seen": "2026-07-26T10:46:27Z",
+    "occurrences": 32,
     "match": {
       "channels": [
         "alert-system",
@@ -1344,8 +1344,8 @@
     "id": "ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata",
     "title": "\"Method UI Grid and Dropdown Performance Test\" synthetics (team:qa, non-prod, 5 monitor-ID variants: Day run / Day run 2 / Evening run / Midnight run / Release Run) chronically go No Data; never correlates to a real incident",
     "first_seen": "2026-05-02T13:46:00Z",
-    "last_seen": "2026-07-25T13:51:20Z",
-    "occurrences": 108,
+    "last_seen": "2026-07-26T04:01:30Z",
+    "occurrences": 112,
     "match": {
       "channels": [
         "alert-system"
@@ -1381,7 +1381,7 @@
     "fix_template": null,
     "confidence": 0.85,
     "owning_team": "unmapped",
-    "last_notified_at": "2026-07-25T00:01:00Z",
+    "last_notified_at": "2026-07-26T00:01:20Z",
     "notes": [
       {
         "ts": "2026-07-03T13:09:00Z",
@@ -1762,8 +1762,8 @@
     "id": "ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap",
     "title": "New team:crm AMQP-consumer heartbeat/throughput-stall monitors (5 sibling IDs, created 2026-07-02) intermittently trip on quiet-period low-traffic dips, then self-recover within minutes — no corroborating errors",
     "first_seen": "2026-07-04T13:07:31Z",
-    "last_seen": "2026-07-25T21:55:31Z",
-    "occurrences": 77,
+    "last_seen": "2026-07-26T11:06:22Z",
+    "occurrences": 79,
     "match": {
       "channels": [
         "alert-system",
@@ -2052,8 +2052,8 @@
     "id": "ki-2026-07-04-ms-account-api-4xx-spike-monitor-noise",
     "title": "[Admin][AccountAPI][P3] 4xx-spike monitor transitions state without a real 4xx breach (monitor-sensitivity/config artifact, not a service issue)",
     "first_seen": "2026-07-03T12:08:59Z",
-    "last_seen": "2026-07-25T20:31:18Z",
-    "occurrences": 35,
+    "last_seen": "2026-07-26T11:08:19Z",
+    "occurrences": 36,
     "match": {
       "channels": [
         "alert-system",
@@ -2415,6 +2415,10 @@
       {
         "ts": "2026-07-25T11:09:00Z",
         "note": "2026-07-25 11:09Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch confirmed no slack/conversations tool). Monitor 295882732 ([Rainforest] Outbound API Error Rate (4xx+5xx) > 5%) fired 2026-07-25T08:10:52Z, hash 81c4f1497a1b01aa, occ->16. ES fields.dd_service.keyword:\"runtime-core-api\" AND message:*rainforest* over 07:40:52-08:10:52Z: 6 hits (3 distinct events, each logged as a paired 'Subscription Payment Processing Failed' + 'API create payment method payin request failed with status: BadRequest' message). 3 distinct payment-method IDs (mtd_38r1aUCxB5HxwQGIx1NTdxY9H67, mtd_3DdXNBuhD5LG8ZiNKaXrdOkPhnS, mtd_3DdXP0aHZb17aW20xB8k2wcPBXM) at 08:01:45-08:02:58Z -- NOT the previously-tracked sierrashredllc/mid_3CiWKRBsVy01nkQmRpMuyXjzc11/amount:0 sub-signature; genuinely distinct evidence this time (different accounts, different window, no overlap with the prior cycle's 20:30:52-21:00:52Z (07-24) evidence -- ruled out as a duplicate-fire re-arm). gate_reason=known-issue-window (last_notified_at 2026-07-24T13:58:52Z, ~18h12m ago, still inside the 24h suppression window; occurrences 15->16, not a 10th-multiple). See docs/investigations/2026-07-25-81c4f1497a1b01aa.md."
+      },
+      {
+        "ts": "2026-07-26T08:12:00Z",
+        "note": "2026-07-26 08:00-08:11Z: monitor 295882732 fired again (bare monitor-id match). REFUTED for this occurrence: ES shows 0 hits for this entry specific Rainforest Merchant Details Retrieval Failed / GetMerchantAsync signature in the alert window; the actual runtime-core-api errors were Rainforest API create payment method payin request failed (3) and Rainforest Subscription Payment Processing Failed (3) -- a different Rainforest-API failure mode, same third-party-dependency class but not this entry specific mechanism. Logged as a fresh needs-human finding (hash 0b8df6168ddcdefe), not counted toward this entry occurrences. See docs/investigations/2026-07-26-0b8df6168ddcdefe.md."
       }
     ]
   },
@@ -2528,6 +2532,14 @@
       {
         "ts": "2026-07-24T16:55:36Z",
         "note": "2026-07-24 17:09Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-24T16:02:33Z cutoff): monitor 227940275 (Redis Errors is High) fired again 16:55:36Z, hash 1ec9daf833cf318e, occ 20->21. Verified per this entry's own playbook step 2 (break out by {service} before matching, per the 2026-07-15 refuted-match lesson): sum:trace.redis.command.errors{env:prod} by {service} for the +/-10min window showed hits on service:nonprod/apps (12) and service:classic/methodapi (1), NOT runtime-core-api -- initially looked like a repeat of the 2026-07-15 wrong-service refutation. However the entry's actual application-log signature (messageTemplate variants, not the raw trace.redis.command.errors metric) DID confirm on runtime-core-api: ES message:*redis* 16:45:36-17:05:36Z returned 2 hits, both 'Redis operation cancelled' (SourceContext Runtime.Caching.CacheContext, the documented alternate-message variant added 2026-07-07) at 16:49:29Z (account heartlandforestconsultingllc, user Daric Denney) and 16:54:10Z (account wirelesstechnologiesinc, user MethodSupport) -- two distinct accounts, standalone brief burst, matching this entry's mechanism. No co-firing on the disqualifying monitor set (RTC p95 115456700/117279738, tables-fields circuit-breaker 302103451, gateway XHR 77419271 all last-fired days ago or, for XHR, 8m35s later -- treated as chronic/non-correlated per the entry's own 2026-07-07 branch-6 precedent). last_notified_at (2026-07-23T20:12:31Z) ~20h43m ago, still within the 24h window -> SUPPRESSED, gate_reason=known-issue-window, logged to docs/actionable/2026-07-24.md. Note for future cycles: the raw trace.redis.command.errors metric broken out by {service} is not a reliable discriminator for this entry (unrelated services also emit it) -- match on the application-log messageTemplate signature instead. See docs/investigations/2026-07-24-1ec9daf833cf318e.md."
+      },
+      {
+        "ts": "2026-07-26T11:19:00Z",
+        "note": "2026-07-26 11:06-11:19Z: monitors 299551507 (ms-account-api P95 latency, Alert) + 65493111 (avg latency, Warn) co-fired 44s apart. REFUTED MATCH: bare monitor-id membership in this entry's match array, but ES sample shows Microsoft.Data.SqlClient.SqlException (Execution Timeout Expired) in Account.Services.Providers.SpiderSecurityProvider.GetExistingColumnsAsync against METHODDBCLUS1, across 3 distinct tenant DBs (mxglobalcenter, m18stockmichael, thebookkeepingxpertsllc) -- a SQL-cluster query timeout, not a Redis command timeout/Runtime.Caching.CacheContext signature. No Redis error text found. Logged as a fresh needs-human finding (hash 3078233c658980af), not counted toward this entry occurrences. See docs/investigations/2026-07-26-3078233c658980af.md."
+      },
+      {
+        "ts": "2026-07-26T07:58:00Z",
+        "note": "2026-07-26 07:26-07:58Z: monitors 299544648 (gateway P95, peak 29.83s vs 1.5s threshold) + 299551611 (ms-identity-api P95, peak 38.22s vs 1.5s threshold) co-fired, both breaching at the identical timestamp 07:32:30Z. REFUTED MATCH: bare monitor-id membership in this entry match array, but ES shows gateway Ocelot RequestTimedOutError (TaskCanceledException, HttpClient.Timeout=90s) proxying to /identity/memberships, and ms-identity-api threw one Unexpected Exception Occurred at 07:31:58Z -- no Redis signature. Logged as a fresh needs-human finding (hash 2e7fded2e1eaf6de), not counted toward this entry occurrences. See docs/investigations/2026-07-26-2e7fded2e1eaf6de.md."
       }
     ]
   },
@@ -2872,8 +2884,8 @@
     "id": "ki-2026-07-07-gateway-4xx-spike-monitor-noise",
     "title": "[Admin][Gateway][P3] 4xx spike (gateway) monitor trips on a brief isolated single-bucket burst, self-recovers -- same shape as ms-account-api-4xx-spike-monitor-noise but a different monitor ID",
     "first_seen": "2026-07-06T10:16:00Z",
-    "last_seen": "2026-07-25T10:32:56Z",
-    "occurrences": 12,
+    "last_seen": "2026-07-26T10:52:56Z",
+    "occurrences": 13,
     "match": {
       "channels": [
         "alert-system",
@@ -2942,8 +2954,8 @@
     "id": "ki-2026-07-07-notifications-p95-latency-monitor-noise",
     "title": "[CRM][P2] notifications P95 latency high monitor fires but re-query of the same evaluation window shows the metric never approaches the threshold -- monitor/data artifact, not real latency",
     "first_seen": "2026-07-06T10:01:07Z",
-    "last_seen": "2026-07-25T08:43:07Z",
-    "occurrences": 12,
+    "last_seen": "2026-07-26T08:43:07Z",
+    "occurrences": 13,
     "match": {
       "channels": [
         "alert-system",
@@ -2968,7 +2980,7 @@
     "fix_template": null,
     "confidence": 0.72,
     "owning_team": "CRM Experience",
-    "last_notified_at": "2026-07-24T11:25:00Z",
+    "last_notified_at": "2026-07-26T08:43:07Z",
     "notes": [
       {
         "ts": "2026-07-06T11:40:00Z",
@@ -3168,8 +3180,8 @@
     "id": "ki-2026-07-12-designer-core-api-throughput-anomaly-monitor-noise",
     "title": "designer-core-api abnormal-throughput-change anomaly monitor (115452625, team:poiesis) fires on normal low-volume traffic -- no error signal, no confirmed spike/drop at either documented occurrence",
     "first_seen": "2026-07-10T09:53:25Z",
-    "last_seen": "2026-07-17T09:05:26+00:00",
-    "occurrences": 3,
+    "last_seen": "2026-07-26T02:28:25Z",
+    "occurrences": 4,
     "match": {
       "channels": [
         "alert-system",
@@ -3195,7 +3207,7 @@
     "fix_template": null,
     "confidence": 0.7,
     "owning_team": "No Code Next Gen",
-    "last_notified_at": "2026-07-23T20:12:31Z",
+    "last_notified_at": "2026-07-26T02:28:25Z",
     "notes": [
       {
         "ts": "2026-07-10T09:53:25Z",
