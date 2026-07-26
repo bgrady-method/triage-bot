@@ -451,8 +451,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-07-26T09:08:18Z",
-    "occurrences": 246,
+    "last_seen": "2026-07-26T12:41:20Z",
+    "occurrences": 247,
     "match": {
       "channels": [
         "alert-system",
@@ -493,8 +493,8 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.85,
-    "last_notified_at": "2026-07-25T10:04:21Z",
-    "prior_last_notified_at": "2026-07-23T20:12:31Z",
+    "last_notified_at": "2026-07-26T12:41:20Z",
+    "prior_last_notified_at": "2026-07-25T10:04:21Z",
     "notes": [
       {
         "ts": "2026-07-13T18:40:00Z",
@@ -1344,8 +1344,8 @@
     "id": "ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata",
     "title": "\"Method UI Grid and Dropdown Performance Test\" synthetics (team:qa, non-prod, 5 monitor-ID variants: Day run / Day run 2 / Evening run / Midnight run / Release Run) chronically go No Data; never correlates to a real incident",
     "first_seen": "2026-05-02T13:46:00Z",
-    "last_seen": "2026-07-26T04:01:30Z",
-    "occurrences": 112,
+    "last_seen": "2026-07-26T12:30:01Z",
+    "occurrences": 113,
     "match": {
       "channels": [
         "alert-system"
@@ -1762,8 +1762,8 @@
     "id": "ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap",
     "title": "New team:crm AMQP-consumer heartbeat/throughput-stall monitors (5 sibling IDs, created 2026-07-02) intermittently trip on quiet-period low-traffic dips, then self-recover within minutes — no corroborating errors",
     "first_seen": "2026-07-04T13:07:31Z",
-    "last_seen": "2026-07-26T11:06:22Z",
-    "occurrences": 79,
+    "last_seen": "2026-07-26T12:39:21Z",
+    "occurrences": 80,
     "match": {
       "channels": [
         "alert-system",
@@ -1809,7 +1809,7 @@
     "fix_template": null,
     "confidence": 0.82,
     "owning_team": "CRM Experience (runtime-core-subscriber-api, per ownership.md:454) / Admin (mobile-notifications-stack, per ownership.md:416) — split by service; DD monitor tags say team:crm for both, ownership.md disagrees for the mobile-notifications component",
-    "last_notified_at": "2026-07-25T04:01:31Z",
+    "last_notified_at": "2026-07-26T12:39:21Z",
     "notes": [
       {
         "ts": "2026-07-04T16:10:00Z",
@@ -2052,8 +2052,8 @@
     "id": "ki-2026-07-04-ms-account-api-4xx-spike-monitor-noise",
     "title": "[Admin][AccountAPI][P3] 4xx-spike monitor transitions state without a real 4xx breach (monitor-sensitivity/config artifact, not a service issue)",
     "first_seen": "2026-07-03T12:08:59Z",
-    "last_seen": "2026-07-26T11:08:19Z",
-    "occurrences": 36,
+    "last_seen": "2026-07-26T12:52:18Z",
+    "occurrences": 37,
     "match": {
       "channels": [
         "alert-system",
@@ -2078,7 +2078,7 @@
     "fix_template": null,
     "confidence": 0.8,
     "owning_team": "Admin",
-    "last_notified_at": "2026-07-25T10:59:19Z",
+    "last_notified_at": "2026-07-26T12:52:18Z",
     "notes": [
       {
         "ts": "2026-07-03T12:08:59Z",
@@ -2884,8 +2884,8 @@
     "id": "ki-2026-07-07-gateway-4xx-spike-monitor-noise",
     "title": "[Admin][Gateway][P3] 4xx spike (gateway) monitor trips on a brief isolated single-bucket burst, self-recovers -- same shape as ms-account-api-4xx-spike-monitor-noise but a different monitor ID",
     "first_seen": "2026-07-06T10:16:00Z",
-    "last_seen": "2026-07-26T10:52:56Z",
-    "occurrences": 13,
+    "last_seen": "2026-07-26T12:47:56Z",
+    "occurrences": 14,
     "match": {
       "channels": [
         "alert-system",
@@ -2910,7 +2910,7 @@
     "fix_template": null,
     "confidence": 0.75,
     "owning_team": "Admin",
-    "last_notified_at": "2026-07-25T10:32:56Z",
+    "last_notified_at": "2026-07-26T12:47:56Z",
     "notes": [
       {
         "ts": "2026-07-06T11:35:00Z",

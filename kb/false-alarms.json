@@ -386,8 +386,8 @@
     },
     "reason": "DD metric sum:trace.aspnet.request.errors{service:methodportal.com,env:prod} over 2026-07-23T04:02:24-04:42:24Z (+/-20min around the fire): 0 errors. Same low-traffic-ratio-artifact mechanism as fa-2026-07-12-mapi-5xx-rate-low-traffic-ratio-artifact and the signup low-traffic family, applied to a different service.",
     "first_seen": "2026-07-23T04:22:24Z",
-    "last_seen": "2026-07-26T11:00:25Z",
-    "occurrences": 6,
+    "last_seen": "2026-07-26T11:29:25Z",
+    "occurrences": 7,
     "silence_for": "24h",
     "notes": [
       {
@@ -405,6 +405,10 @@
       {
         "ts": "2026-07-25T20:35:24Z",
         "note": "2026-07-25 22:xxZ triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-25T18:56:18Z cutoff, hash 71e4ede0fe6967ad). Monitor 299551644 ([VAE][Portal][P1] 5xx error rate elevated (methodportal.com)) fired 2026-07-25T20:35:24Z, occ->5. DD metric sum:trace.aspnet.request.errors{service:methodportal.com,env:prod} 20:25:24-20:35:24Z: empty series (0 errors). sum:trace.aspnet.request.hits same window: 5 points (67,67,68,64,5) -- modest tapering traffic, same low-traffic-ratio-artifact mechanism as the prior 4 occurrences. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-07-25-71e4ede0fe6967ad.md."
+      },
+      {
+        "ts": "2026-07-26T11:29:25Z",
+        "note": "2026-07-26 poll cycle (degraded, no Slack MCP; DD monitor scan-diff fallback). Monitor 299551644 ([VAE][Portal][P1] 5xx error rate elevated (methodportal.com)) fired 2026-07-26T11:29:25Z, hash 0d6fb897dc390d18, occ->7 (backfill catch -- this occurrence's overall_state_modified predates the prior cycle's own scan cutoff of 2026-07-26T12:10:45Z but was not previously logged; no duplicate incident-log entry exists for monitor_id 299551644 at this timestamp, confirmed by grep before writing). DD metric sum:trace.aspnet.request.errors{service:methodportal.com,env:prod} 11:14:25-11:44:25Z: 1 error point (11:18:00Z, count=1.0) -- same low-traffic-ratio-artifact mechanism as the prior 5 occurrences. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-07-26-0d6fb897dc390d18.md."
       }
     ]
   },
