@@ -803,6 +803,10 @@
       {
         "ts": "2026-07-26T13:33:34Z",
         "note": "2026-07-26 13:33Z triage (degraded cycle, DD monitor scan diff vs 2026-07-26T13:15:00Z cutoff): monitor 236570583 ('New issue to review' Watchdog, hash e5edbf3680bf4cf5) fired 13:33:34Z, self-recovered by scan time. ES aggregate message:\"JWT Retrieval Failed\" OR message:\"GetAccountBySubdomain\" by fields.UserAgent.keyword over 13:18:34-13:48:34Z: 0 hits -- the canonical synthetic-probe NRE signature did NOT reproduce. Per the 2026-07-08 precedent for this exact monitor/entry pair, REJECTED as a confirmed recurrence of this entry (no same-window evidence) -- NOT bumping occurrences/last_seen. Logged separately as needs-human, score 0 (below actionable_score_threshold), actionable.md low-impact line only. See docs/investigations/2026-07-26-e5edbf3680bf4cf5.md."
+      },
+      {
+        "ts": "2026-07-26T20:03:33Z",
+        "note": "2026-07-26 20:03Z triage (degraded cycle, DD monitor scan diff vs 2026-07-26T19:09:31Z cutoff): monitor 236570583 ('New issue to review' Watchdog, hash f2a8566815d8fb74) fired 20:03:33Z, still in Alert at scan time. ES aggregate message:\"JWT Retrieval Failed\" OR message:\"GetAccountBySubdomain\" by fields.UserAgent.keyword over 19:48:33-20:18:33Z: 0 hits -- the canonical synthetic-probe NRE signature did NOT reproduce. Per the 2026-07-08/07-26 precedent for this exact monitor/entry pair, REJECTED as a confirmed recurrence of this entry (no same-window evidence) -- NOT bumping occurrences/last_seen. Logged separately as needs-human, score 0 (below actionable_score_threshold), actionable.md low-impact line only. See docs/investigations/2026-07-26-f2a8566815d8fb74.md."
       }
     ]
   },
@@ -1778,8 +1782,8 @@
     "id": "ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap",
     "title": "New team:crm AMQP-consumer heartbeat/throughput-stall monitors (5 sibling IDs, created 2026-07-02) intermittently trip on quiet-period low-traffic dips, then self-recover within minutes \u2014 no corroborating errors",
     "first_seen": "2026-07-04T13:07:31Z",
-    "last_seen": "2026-07-26T19:09:31Z",
-    "occurrences": 85,
+    "last_seen": "2026-07-26T19:48:31Z",
+    "occurrences": 87,
     "match": {
       "channels": [
         "alert-system",
@@ -2014,6 +2018,14 @@
       {
         "ts": "2026-07-26T19:11:00Z",
         "note": "2026-07-26 19:11Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch confirmed no slack/conversations/chat.postMessage tool). DD monitor scan diffed vs prior cutoff 2026-07-26T18:30:00Z (last poll-cycle summary ts): 185-monitor count unchanged (rules out monitor-creation blind spot, confirmed via created_at check), 1 monitor with overall_state_modified after cutoff (of 36 currently in Alert/Warn/No-Data). Monitor 302057011 ([CRM] runtime-core-subscriber throughput dropped (possible stall)) fired 2026-07-26T19:09:31Z, hash 9189e865326247b3, occurrences 84->85. DD metric sum:trace.amqp.command.hits{service:runtime-core-subscriber,env:prod}.as_rate() over 18:39:31-19:10:24Z: 164 points, 146 (89%) below the 2msg/s threshold, min 0.1, max 91.6 (periodic clearing bursts: 7.9/7.4, 91.6, 37.1, 9.5/6.5, 12.2) -- canonical quiet-period-flap shape, matching all 84 prior occurrences. 0 service:runtime-core-subscriber status:error DD logs this window. Still in Alert state at scan time (~1-2min old, well under the ~1h escalation threshold). No sibling monitor in the 5-monitor family co-fired this cycle (full 185-monitor scan, only this one had overall_state_modified newer than cutoff). last_notified_at (2026-07-26T12:39:21Z) ~6h30m ago, WITHIN 24h suppression window; occurrence 85 not %10; fix_status unchanged -> SUPPRESS gate_reason=known-issue-window, appended to docs/actionable/2026-07-26.md. See docs/investigations/2026-07-26-9189e865326247b3.md."
+      },
+      {
+        "ts": "2026-07-26T19:48:21Z",
+        "note": "2026-07-26 ~20:08Z triage (degraded cycle, no Slack MCP; DD monitor scan-diff fallback vs 2026-07-26T19:09:31Z cutoff). Monitor 302055141 (method-mobile-notifications-subscriber heartbeat) fired 19:48:21Z, hash 9c7fe3d9a50d0bd2, occ->86. AMQP rate 0.05-0.15 msg/s over 19:18:21-20:18:21Z, 0 error logs -- canonical quiet-period-flap shape. Suppressed (known-issue-window, last_notified_at 12:39:21Z ~7h9m prior). See docs/investigations/2026-07-26-9c7fe3d9a50d0bd2.md."
+      },
+      {
+        "ts": "2026-07-26T19:48:31Z",
+        "note": "2026-07-26 ~20:08Z triage (degraded cycle, no Slack MCP; DD monitor scan-diff fallback vs 2026-07-26T19:09:31Z cutoff, same cycle as 302055141 above). Monitor 302057011 (runtime-core-subscriber throughput dropped) fired 19:48:31Z, hash 0951b9f245efdb6d, occ->87. AMQP rate 163 points over 19:18:31-20:18:31Z, 137 (84%) below the 2msg/s threshold, periodic clearing bursts (max 103.25), 0 error logs -- canonical quiet-period-flap shape. Suppressed (known-issue-window, last_notified_at 12:39:21Z ~7h9m prior). See docs/investigations/2026-07-26-0951b9f245efdb6d.md."
       }
     ]
   },
@@ -2645,8 +2657,8 @@
     "id": "ki-2026-07-06-synthetics-signin-transient-step-duration-spike",
     "title": "[Synthetics] Sign in to Method step-duration monitor (127198928) intermittently spikes >20s for a single test run then self-recovers, with no corroborating error signal on any critical-path service",
     "first_seen": "2026-05-27T19:02:08Z",
-    "last_seen": "2026-07-26T15:01:08Z",
-    "occurrences": 29,
+    "last_seen": "2026-07-26T20:02:08Z",
+    "occurrences": 30,
     "match": {
       "channels": [
         "alert-system"
@@ -2671,7 +2683,7 @@
     "fix_template": null,
     "confidence": 0.7,
     "owning_team": "Admin",
-    "last_notified_at": "2026-07-25T16:20:00Z",
+    "last_notified_at": "2026-07-26T20:02:08Z",
     "notes": [
       {
         "ts": "2026-07-13T18:12:00Z",
@@ -2752,6 +2764,10 @@
       {
         "ts": "2026-07-26T15:01:08Z",
         "note": "2026-07-26 15:01Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch confirmed absent; DD monitor scan-diff fallback vs prior cutoff 2026-07-26T14:23:00Z). Monitor 127198928 ([Synthetics] Sign in to Method) overall_state_modified 2026-07-26T15:01:08Z (transitioned to OK -- recovery), hash ea34722158c7c5a5, occ->29. DD metric avg:synthetics.browser.step.duration{step_id IN (447-as9-ktg,x93-d6z-ir9,3w5-4fp-rsq,rrq-u73-wwr)} 14:21:08-15:01:08Z: single-point spike to 21774ms at 14:50:00Z (8.9% over the 20000ms threshold), immediately preceded by 6120ms (14:40:00Z) and followed by 5420ms (15:00:00Z) -- same single-run-spike-then-self-recover shape as all 28 prior occurrences. Suppressed (known-issue-window -- last_notified_at 2026-07-25T16:20:00Z, ~22h41m ago, under the 24h suppression_window_hours; occurrence 29 is not a 10th-multiple; fix_status unchanged). No thread-reply/post path exercised. See docs/investigations/2026-07-26-ea34722158c7c5a5.md."
+      },
+      {
+        "ts": "2026-07-26T20:02:08Z",
+        "note": "2026-07-26 ~20:08Z triage (degraded cycle, no Slack MCP; DD monitor scan-diff fallback vs 2026-07-26T19:09:31Z cutoff). Monitor 127198928 fired 20:02:08Z, hash a4cf86ab6b860b7d, occ->30. Step-duration metric 19:32:08-20:12:08Z: 3 points (8198, 20867 peak/4.3% over threshold, 7887ms) -- same single-run-spike-then-recover shape as all 29 prior occurrences. 0 error logs on signin.methodlocal.com. last_notified_at (2026-07-25T16:20:00Z) ~27h42m prior, PAST the 24h suppression window -> POSTED to #triage-results, gate_reason=null, last_notified_at bumped to 20:02:08Z. See docs/investigations/2026-07-26-a4cf86ab6b860b7d.md."
       }
     ]
   },
