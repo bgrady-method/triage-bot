@@ -1778,8 +1778,8 @@
     "id": "ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap",
     "title": "New team:crm AMQP-consumer heartbeat/throughput-stall monitors (5 sibling IDs, created 2026-07-02) intermittently trip on quiet-period low-traffic dips, then self-recover within minutes \u2014 no corroborating errors",
     "first_seen": "2026-07-04T13:07:31Z",
-    "last_seen": "2026-07-26T16:50:31Z",
-    "occurrences": 84,
+    "last_seen": "2026-07-26T19:09:31Z",
+    "occurrences": 85,
     "match": {
       "channels": [
         "alert-system",
@@ -2010,6 +2010,10 @@
       {
         "ts": "2026-07-26T16:50:31Z",
         "note": "2026-07-26 16:45-16:50Z triage (degraded cycle, DD monitor scan diff vs 2026-07-26T16:09:34Z cutoff): 2 fires this cycle. Monitor 302055141 (method-mobile-notifications-subscriber heartbeat) fired 16:45:21Z, hash 3cd2c22926f374dc, occ 82->83: sparse AMQP rate (0.05-0.3 msg/s, long no-data gaps), 0 error logs. Monitor 302057011 (runtime-core-subscriber throughput) fired 16:50:31Z, hash 2e63b41bbec4d3ad, occ 83->84: throughput sub-2msg/s from ~16:05Z onward (0.05-4.7 range) after an unrelated legit burst (76-135msg/s ~15:53-16:04Z), 0 error logs. Both consistent with documented quiet-period flap. last_notified_at (2026-07-26T12:39:21Z) ~4h6-11m prior, WITHIN 24h window; neither a 10th-multiple -> SUPPRESS both, gate_reason=known-issue-window. See docs/investigations/2026-07-26-3cd2c22926f374dc.md, -2e63b41bbec4d3ad.md."
+      },
+      {
+        "ts": "2026-07-26T19:11:00Z",
+        "note": "2026-07-26 19:11Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch confirmed no slack/conversations/chat.postMessage tool). DD monitor scan diffed vs prior cutoff 2026-07-26T18:30:00Z (last poll-cycle summary ts): 185-monitor count unchanged (rules out monitor-creation blind spot, confirmed via created_at check), 1 monitor with overall_state_modified after cutoff (of 36 currently in Alert/Warn/No-Data). Monitor 302057011 ([CRM] runtime-core-subscriber throughput dropped (possible stall)) fired 2026-07-26T19:09:31Z, hash 9189e865326247b3, occurrences 84->85. DD metric sum:trace.amqp.command.hits{service:runtime-core-subscriber,env:prod}.as_rate() over 18:39:31-19:10:24Z: 164 points, 146 (89%) below the 2msg/s threshold, min 0.1, max 91.6 (periodic clearing bursts: 7.9/7.4, 91.6, 37.1, 9.5/6.5, 12.2) -- canonical quiet-period-flap shape, matching all 84 prior occurrences. 0 service:runtime-core-subscriber status:error DD logs this window. Still in Alert state at scan time (~1-2min old, well under the ~1h escalation threshold). No sibling monitor in the 5-monitor family co-fired this cycle (full 185-monitor scan, only this one had overall_state_modified newer than cutoff). last_notified_at (2026-07-26T12:39:21Z) ~6h30m ago, WITHIN 24h suppression window; occurrence 85 not %10; fix_status unchanged -> SUPPRESS gate_reason=known-issue-window, appended to docs/actionable/2026-07-26.md. See docs/investigations/2026-07-26-9189e865326247b3.md."
       }
     ]
   },
