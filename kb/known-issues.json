@@ -1782,8 +1782,8 @@
     "id": "ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap",
     "title": "New team:crm AMQP-consumer heartbeat/throughput-stall monitors (5 sibling IDs, created 2026-07-02) intermittently trip on quiet-period low-traffic dips, then self-recover within minutes \u2014 no corroborating errors",
     "first_seen": "2026-07-04T13:07:31Z",
-    "last_seen": "2026-07-26T19:48:31Z",
-    "occurrences": 87,
+    "last_seen": "2026-07-26T20:58:21Z",
+    "occurrences": 89,
     "match": {
       "channels": [
         "alert-system",
@@ -2026,6 +2026,10 @@
       {
         "ts": "2026-07-26T19:48:31Z",
         "note": "2026-07-26 ~20:08Z triage (degraded cycle, no Slack MCP; DD monitor scan-diff fallback vs 2026-07-26T19:09:31Z cutoff, same cycle as 302055141 above). Monitor 302057011 (runtime-core-subscriber throughput dropped) fired 19:48:31Z, hash 0951b9f245efdb6d, occ->87. AMQP rate 163 points over 19:18:31-20:18:31Z, 137 (84%) below the 2msg/s threshold, periodic clearing bursts (max 103.25), 0 error logs -- canonical quiet-period-flap shape. Suppressed (known-issue-window, last_notified_at 12:39:21Z ~7h9m prior). See docs/investigations/2026-07-26-0951b9f245efdb6d.md."
+      },
+      {
+        "ts": "2026-07-26T21:12:00Z",
+        "note": "2026-07-26 21:12Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-26T20:03:33Z cutoff): two sibling fires this cycle. (1) monitor 302057011 (runtime-core-subscriber throughput dropped) last_triggered 20:48:31Z, hash df389843172fcc4d, occ 87->88: rate metric mostly sub-2msg/s with intermittent bursts (15.1, 14.3 msg/s), canonical flap shape. (2) monitor 302055141 (method-mobile-notifications-subscriber heartbeat) last_triggered 20:58:21Z, hash 83f57e83fa756ea5, occ 88->89: sparse rate data (0.3 msg/s sampled), consistent with a brief dip below the 0.005 msg/s heartbeat threshold during its 20m evaluation window, self-recovered by scan time. last_notified_at (2026-07-26T12:39:21Z) ~8h9m-8h19m old for both, WITHIN 24h suppression window; occurrences 88 and 89 neither a %10 resurface -> SUPPRESS both, gate_reason=known-issue-window. See docs/investigations/2026-07-26-df389843172fcc4d.md and docs/investigations/2026-07-26-83f57e83fa756ea5.md."
       }
     ]
   },
@@ -2092,8 +2096,8 @@
     "id": "ki-2026-07-04-ms-account-api-4xx-spike-monitor-noise",
     "title": "[Admin][AccountAPI][P3] 4xx-spike monitor transitions state without a real 4xx breach (monitor-sensitivity/config artifact, not a service issue)",
     "first_seen": "2026-07-03T12:08:59Z",
-    "last_seen": "2026-07-26T17:06:18Z",
-    "occurrences": 38,
+    "last_seen": "2026-07-26T21:07:18Z",
+    "occurrences": 39,
     "match": {
       "channels": [
         "alert-system",
@@ -2231,6 +2235,10 @@
       {
         "ts": "2026-07-26T17:06:18Z",
         "note": "2026-07-26 17:06Z triage (degraded cycle, DD monitor scan diff vs 2026-07-26T16:09:34Z cutoff, hash 15763d3c77c48e3d). Monitor 299551518 fired 2026-07-26T17:06:18Z, occ->38 (38th consecutive disproof). sum:trace.aspnet_core.request.hits.by_http_status{service:ms-account-api,env:prod,http.status_class:4xx}.as_count() over 16:51:18-17:06:18Z: 1-2 hits/bucket, far below the >300/15min threshold. service:ms-account-api status:error DD Logs same window: 0 hits. last_notified_at (2026-07-26T12:52:18Z) ~4h14m ago, WITHIN 24h suppression window; occ 38 not %10; fix_status unchanged -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-26-15763d3c77c48e3d.md."
+      },
+      {
+        "ts": "2026-07-26T21:13:00Z",
+        "note": "2026-07-26 21:13Z triage (degraded cycle, DD monitor scan diff vs 2026-07-26T20:03:33Z cutoff, hash 4cd1a2d60ad25d28). Monitor 299551518 fired 2026-07-26T21:07:18Z, occ->39 (39th consecutive disproof). sum:trace.aspnet_core.request.hits.by_http_status{service:ms-account-api,env:prod,http.status_class:4xx}.as_count() over 20:52:18-21:07:18Z: entirely empty series, far below the >300/15min threshold. service:ms-account-api status:error DD Logs same window: 0 hits. last_notified_at (2026-07-26T12:52:18Z) ~8h15m ago, WITHIN 24h suppression window; occ 39 not %10; fix_status unchanged -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-26-4cd1a2d60ad25d28.md."
       }
     ]
   },
@@ -2657,8 +2665,8 @@
     "id": "ki-2026-07-06-synthetics-signin-transient-step-duration-spike",
     "title": "[Synthetics] Sign in to Method step-duration monitor (127198928) intermittently spikes >20s for a single test run then self-recovers, with no corroborating error signal on any critical-path service",
     "first_seen": "2026-05-27T19:02:08Z",
-    "last_seen": "2026-07-26T20:02:08Z",
-    "occurrences": 30,
+    "last_seen": "2026-07-26T20:11:08Z",
+    "occurrences": 31,
     "match": {
       "channels": [
         "alert-system"
@@ -2768,6 +2776,10 @@
       {
         "ts": "2026-07-26T20:02:08Z",
         "note": "2026-07-26 ~20:08Z triage (degraded cycle, no Slack MCP; DD monitor scan-diff fallback vs 2026-07-26T19:09:31Z cutoff). Monitor 127198928 fired 20:02:08Z, hash a4cf86ab6b860b7d, occ->30. Step-duration metric 19:32:08-20:12:08Z: 3 points (8198, 20867 peak/4.3% over threshold, 7887ms) -- same single-run-spike-then-recover shape as all 29 prior occurrences. 0 error logs on signin.methodlocal.com. last_notified_at (2026-07-25T16:20:00Z) ~27h42m prior, PAST the 24h suppression window -> POSTED to #triage-results, gate_reason=null, last_notified_at bumped to 20:02:08Z. See docs/investigations/2026-07-26-a4cf86ab6b860b7d.md."
+      },
+      {
+        "ts": "2026-07-26T21:11:00Z",
+        "note": "2026-07-26 21:11Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-26T20:03:33Z cutoff, hash 79e7f070f4ccad82): occ#31 via monitor 127198928 last_triggered 20:11:08Z. DD metric avg:synthetics.browser.step.duration re-queried 19:56:08-20:26:08Z: single-point breach 20867ms @20:00:00Z (4.3% over the 20s threshold), recovered to 7887ms then 6131ms on next two runs -- canonical one-point-then-recover shape. No co-firing critical-path monitor. last_notified_at (2026-07-26T20:02:08Z) ~9min ago, WITHIN 24h suppression window; occ 31 not %10 -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-26-79e7f070f4ccad82.md."
       }
     ]
   },
