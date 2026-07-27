@@ -21,10 +21,14 @@
     "reason": "method-import-subscriber is a low-frequency batch AMQP consumer, not a continuous one. 24h history (2026-07-05 13:05 -> 2026-07-06 10:33) shows only 8 non-zero hit buckets, in bursts of 1-2060 messages separated by gaps of 3-11.5 hours. The monitor's 'sum(last_30m) < 1' threshold trips on every natural idle gap over 30 minutes, which happens multiple times a day by design -- not a service outage. 0 error logs on the service for the full day. This fire (11:05:32Z) came 32 minutes after the last burst ended (10:33:30Z), squarely inside the service's normal idle pattern.",
     "silence_for": "24h",
     "first_seen": "2026-07-06T11:05:32Z",
-    "last_seen": "2026-07-27T18:41:33Z",
-    "occurrences": 77,
+    "last_seen": "2026-07-27T19:38:32Z",
+    "occurrences": 78,
     "recommendation": "monitor threshold mismatch, not a false-alarm-forever situation -- recommend widening the No-Data window (e.g. 6h) or switching to a message-backlog-depth check instead of a hits-in-window check; flagging for Admin team, not silencing indefinitely",
     "notes": [
+      {
+        "ts": "2026-07-27T20:20:00Z",
+        "note": "2026-07-27 ~20:08-20:20Z triage (degraded cycle, no Slack MCP surfaced this session): monitor 299551472 No Data 19:38:32Z, hash 692beb3ad2108b4a, occ 77->78. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} over 19:08:32-19:38:32Z: empty series (no points at all). 0 status:error DD logs on the service over the same window. Same idle-gap shape as prior 77 occurrences. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only."
+      },
       {
         "ts": "2026-07-10T11:20:00Z",
         "note": "2026-07-10 11:20Z triage (degraded cycle, no Slack MCP): monitor 299551472 No Data 10:46:32Z, hash f30a9d63440def84, occ 32->33. DD metric sparse points (1,7,1,5) across the 45min-pre/15min-post window with mostly null/absent buckets in between -- consistent with the documented low-frequency-batch-consumer idle-gap pattern (bursts of 1-2060 msgs separated by 3-11.5h gaps). No thread-reply path in degraded mode (no Slack read access to the original alert ts) -- kb-update + self-DM confirmation only."
@@ -375,7 +379,8 @@
     "first_seen": "2026-07-21T13:56:02Z",
     "last_seen": "2026-07-21T14:02:47Z",
     "occurrences": 1,
-    "silence_for": "24h"
+    "silence_for": "24h",
+    "match_precedence_note": "2026-07-27T20:20:00Z: monitor 302042747 (P1 5xx) fired ALONE at 19:43:47Z (302046482 P2 latency did NOT co-fire this time) -- REJECTED as a match for this entry. Re-verification found a real, non-zero error signal this time: sum:trace.http.request.errors{service:eda_inventory,env:prod} showed 17 error-tagged spans clustered 19:32:30-19:34:30Z against ~99 hits in that sub-window (~17% local rate, vs this entry's origin case which was a clean 0-error blip). 0 status:error DD logs either time (service isn't log-pipeline-instrumented), so that signal doesn't discriminate. Given the differing co-fire shape (solo vs paired) and the differing error magnitude (17 real spans vs 0), classified this occurrence as needs-human (hash a876b9df89dfdde0) instead of bumping this entry's occurrence count. See docs/investigations/2026-07-27-a876b9df89dfdde0.md."
   },
   {
     "id": "fa-2026-07-23-method-import-api-transient-blips-low-traffic",

@@ -513,9 +513,13 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.85,
-    "last_notified_at": "2026-07-27T17:11:00Z",
-    "prior_last_notified_at": "2026-07-25T10:04:21Z",
+    "last_notified_at": "2026-07-27T20:20:00Z",
+    "prior_last_notified_at": "2026-07-27T17:11:00Z",
     "notes": [
+      {
+        "ts": "2026-07-27T20:20:00Z",
+        "note": "2026-07-27 ~20:08-20:20Z triage (degraded cycle, no Slack MCP surfaced this session): monitor 115456700 (RTC Screen Load) last_triggered 19:44:20Z (OK by scan time, self-recovered), hash 8c120b03904c5257, occ 249->250. DD metric p95:trace.aspnet_core.request{...screenid*} re-queried 19:14:20-19:44:20Z: 27+ of 180 points > 3s threshold, peak 10.39s @19:36:30Z. Latency-only confirmed: 0 status:error DD logs same window. CO-FIRE: monitor 299551623 ([Admin][SearchAPI][P2] P95 latency) ALSO breached 19:49:03Z (OK by scan time) -- ms-search-api's own p95 metric independently re-queried 19:19:03-19:49:03Z shows the SAME spike window (19:35:30-19:38:20Z, peak 13.74s @19:38:10Z), confirmed via each service's own APM series, not just alert-timestamp proximity -- matches the ki-2026-07-14-cross-service-p95-latency-shared-upstream signature per that entry's own precedence_note ('treat co-fire with any of those entries as this same expanded signature'). Grouped both monitors as one investigation (RTC primary, ms-search-api satellite); classification/posting driven primarily off the cross-service entry (occ 1->2, see that entry's note) -- this entry's own occurrence counter bumped in parallel since RTC's own criteria independently matched. occurrence 250 crosses the every-10th-occurrence resurface threshold -> POSTED to #triage-results regardless of the 24h window (last_notified_at was only ~3h09m old), gate_reason=known-issue-occurrence-resurface. fix_status 'investigating' unchanged. See docs/investigations/2026-07-27-8c120b03904c5257.md."
+      },
       {
         "ts": "2026-07-13T18:40:00Z",
         "note": "2026-07-13 18:40Z triage (degraded cycle, DD monitor scan diff -- widened diff to ALL last_triggered_ts > prior cutoff 2026-07-13T17:02:08Z, not just currently-Alert/No-Data; hash a6eda848605c9479): occ#234 via monitor 115456700 last_triggered 2026-07-13T18:05:20Z (OK by scan time, self-recovered). DD metric p95:trace.aspnet_core.request{env:prod,service:runtime-core-api,resource_name:post_/api/v1/runtime/load/_screenid*} re-queried 17:35:20-18:05:20Z: 7 of 180 points > 3s threshold, peak 9.47s @18:02:50Z (ratio 2.16, bracket >=2.0). Dual-endpoint co-spike confirmed: RTC Action Execution p95 also breached 7 points same window, peak 7.28s at the SAME 18:02:50Z timestamp -- canonical dual-endpoint shared-upstream signature. Latency-only confirmed: service:runtime-core-api status:error env:prod DD Logs same window = 0 hits. No Redis-error corroboration this occurrence (monitor 227940275 OK, 0 log hits -- unlike several severe historical occurrences with concurrent Redis command errors/timeouts). TEMPORAL NOTE: DD monitor 77419271 (ki-21, gateway XHR errors) fired 6 min earlier (17:59:11Z) this same cycle -- precedence_note's co-fire criterion (>=2 alerts each in the same 60-min window) not met (1 alert each), so processed as an independent group, but proximity flagged. OWNERSHIP CORRECTION: this entry had no owning_team recorded (last posted message showed 'unmapped'); re-checked references/architecture/ownership.md this cycle -- runtime-core-api -> Vertical App Experience (Project-table exact match) -- recorded going forward. last_notified_at (2026-07-12T14:41:18Z) ~27h24m ago -- PAST 24h suppression window -> POSTED to #triage-results, gate_reason=null (window-expiry), last_notified_at bumped to 2026-07-13T18:40:00Z. fix_status 'investigating' unchanged. See docs/investigations/2026-07-13-a6eda848605c9479.md."
@@ -3432,8 +3436,8 @@
     "id": "ki-2026-07-14-cross-service-p95-latency-shared-upstream",
     "title": "Cross-service P95 latency correlated spike (runtime-core RTC, classic/method, ms-search-api, miurl) -- shared-upstream, latency-only, self-recovering",
     "first_seen": "2026-07-14T17:36:00Z",
-    "last_seen": "2026-07-14T18:04:03Z",
-    "occurrences": 1,
+    "last_seen": "2026-07-27T19:49:03Z",
+    "occurrences": 2,
     "match": {
       "channels": [
         "alert-system",
@@ -3466,8 +3470,13 @@
     "fix_template": null,
     "confidence": 0.55,
     "owning_team": "Admin, Vertical App Experience, Transactions (multi-team -- see playbook step 6)",
-    "last_notified_at": "2026-07-14T18:10:00Z",
+    "last_notified_at": "2026-07-27T20:20:00Z",
+    "prior_last_notified_at": "2026-07-14T18:10:00Z",
     "notes": [
+      {
+        "ts": "2026-07-27T20:20:00Z",
+        "note": "2026-07-27 ~20:08-20:20Z triage (degraded cycle, no Slack MCP): 2nd occurrence, occ 1->2 -- narrower than the origin case (only 2 of the prior 5 co-firing monitors this time: runtime-core RTC 115456700 @19:44:20Z + ms-search-api 299551623 @19:49:03Z; classicmethod 299603201 and miurl 302048329/302046482 did NOT co-fire). Verified via each service's own APM series (not alert-timestamp proximity): runtime-core RTC p95 spiked 19:35:40-19:38:20Z (peak 10.39s @19:36:30Z, 27+/180 points >3s); ms-search-api p95 spiked the SAME window 19:35:30-19:38:20Z (peak 13.74s @19:38:10Z). 0 status:error DD logs on either service in-window -- latency-only confirmed, consistent with the entry's diagnosis. Did not check Redis 'operation cancelled' corroboration or per-host CPU this cycle (no ES/SSH-bastion tooling invoked -- time-boxed to the two DD metric series + log-error checks). Root cause remains NOT identified (still needs-human per playbook step 6 -- Admin/VAE/Transactions joint investigation still outstanding since 2026-07-14, now 13 days). last_notified_at (2026-07-14T18:10:00Z) far past the 24h suppression window -> POSTED to #triage-results, gate_reason=null (window-expiry). Grouped with (and cross-referenced against) ki-2026-05-24-runtime-core-rtc-p95-recurring's parallel occurrence bump (249->250) for the same event -- see that entry's note. See docs/investigations/2026-07-27-8c120b03904c5257.md."
+      },
       {
         "ts": "2026-07-14T18:10:00Z",
         "note": "2026-07-14 18:10Z triage (degraded cycle, DD monitor scan diff, hash 77bdf6b53feea7ae primary [302048329 miurl] + satellite 309da2754834a99a [299551623 ms-search-api]): entry created this cycle after verifying and REJECTING two bare-substring false-matches (see match.precedence_note). Scored needs-human: metric_breach (+3, miurl ratio 27.16) + group_size (+1, 2 alerts) + truly_novel (+2, no valid KB match, no prior 7-day alert_hash for either monitor) = 6 >= threshold 4; today's needs-human post count 0/5 -> POSTED to #triage-results, gate_reason=scored. See docs/investigations/2026-07-14-77bdf6b53feea7ae.md for full evidence."
