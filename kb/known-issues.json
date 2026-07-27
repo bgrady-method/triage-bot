@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-27T14:24:12Z",
-    "occurrences": 584,
+    "last_seen": "2026-07-27T17:00:11Z",
+    "occurrences": 585,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -455,6 +455,10 @@
       {
         "ts": "2026-07-27T15:20:00Z",
         "note": "2026-07-27 15:20Z triage (degraded cycle, no Slack MCP -- ToolSearch confirmed no slack/conversations tool surfaced this session): DD monitor scan diff vs 2026-07-27T14:09:32Z cutoff (185-monitor full scan, count unchanged) found monitor 77419271 last_triggered 14:24:12Z (OK now, self-recovered), hash f2e7615b1efe991c, occ 583->584. DD method-ui XHR logs 14:09:12-14:24:12Z (query: service:method-ui status:error *xhr*, noise-excluded): 15-sample diffuse fan-out across ~14 distinct accounts (1-1 each), gateway-proxied /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync paths, status_code:0 -- canonical chronic ki-21 shape, no single-account concentration. last_notified_at 2026-07-26T14:01:11Z = ~25h19m ago, PAST the 24h suppression window -> POST (window-expiry resurface), gate_reason=null. fix_status chronic-residual-post-rollback-2026-06-05 unchanged. Posted to #triage-results. See docs/investigations/2026-07-27-f2e7615b1efe991c.md."
+      },
+      {
+        "ts": "2026-07-27T17:11:00Z",
+        "note": "2026-07-27 17:11Z triage (degraded cycle, no Slack MCP surfaced this session): occ#585 via monitor 77419271 last_triggered 17:00:11Z (OK by scan time, self-recovered). DD logs sample (15 hits, 16:45:11-17:00:11Z) confirmed canonical diffuse chronic shape across 12 accounts, no single-account concentration; ES corroboration-of-absence returned 0 hits (known index/field mismatch for this signal). last_notified_at 2026-07-27T15:20:00Z was ~1h40m ago, WITHIN the 24h suppression window -> SUPPRESSED, gate_reason=known-issue-window. See docs/investigations/2026-07-27-435e7a5dd5b8bde7.md."
       }
     ],
     "prior_last_notified_at": "2026-07-26T14:01:11Z"
@@ -463,8 +467,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-07-26T13:18:18Z",
-    "occurrences": 248,
+    "last_seen": "2026-07-27T16:51:20Z",
+    "occurrences": 249,
     "match": {
       "channels": [
         "alert-system",
@@ -505,7 +509,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.85,
-    "last_notified_at": "2026-07-26T12:41:20Z",
+    "last_notified_at": "2026-07-27T17:11:00Z",
     "prior_last_notified_at": "2026-07-25T10:04:21Z",
     "notes": [
       {
@@ -659,6 +663,10 @@
       {
         "ts": "2026-07-26T13:18:18Z",
         "note": "2026-07-26 13:18Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-26T13:15:00Z cutoff): monitor 117279738 fired, hash 5d54dd592ac96a09, occ 247->248. DD metric p95:trace.aspnet_core.request{env:prod,service:runtime-core-api,resource_name:post_/api/v1/runtime/load/_screenid*} over 13:03:18-13:33:18Z: 1 point over the 3.0s threshold (8.11s at 13:20:00Z), rest <2s -- same brief latency-only spike shape as prior occurrences. last_notified_at (2026-07-26T12:41:20Z) ~37min prior, WITHIN 24h window; occ 248 not %10 -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-26-5d54dd592ac96a09.md."
+      },
+      {
+        "ts": "2026-07-27T17:11:00Z",
+        "note": "2026-07-27 17:11Z triage (degraded cycle, no Slack MCP surfaced this session): occ#249 via monitor 115456700 last_triggered 16:51:20Z (OK by scan time, self-recovered). DD metric confirmed the pattern: p95:trace.aspnet_core.request{env:prod,service:runtime-core-api,resource_name:post_/api/v1/runtime/load/_screenid*} over 16:21:20-16:51:20Z showed 7 points >3.0s threshold clustered 16:42:40-16:43:40Z, peak 13.74s @16:43:20Z. DD logs (service:runtime-core-api status:error env:prod) returned 0 hits, confirming latency-only per playbook step 2. last_notified_at 2026-07-26T12:41:20Z was ~28h10m ago, EXCEEDED the 24h suppression window -> POSTED to #triage-results, gate_reason=null (window-expiry). See docs/investigations/2026-07-27-b5b26eeb69b29083.md."
       }
     ],
     "owning_team": "Vertical App Experience"
@@ -1183,8 +1191,8 @@
     "id": "ki-2026-07-02-tables-fields-fieldtablenameref-null-linked-fields",
     "title": "ms-tables-fields-api ArgumentNullException on account-specific linked fields with null FieldTableNameRef -- App Update SaveViewBundleInternal fails 400 (chronic, account-specific)",
     "first_seen": "2026-05-28T17:27:49Z",
-    "last_seen": "2026-07-23T19:27:24+00:00",
-    "occurrences": 10,
+    "last_seen": "2026-07-27T17:07:25Z",
+    "occurrences": 11,
     "match": {
       "channels": [
         "alert-system",
@@ -1215,7 +1223,7 @@
     "fix_template": null,
     "confidence": 0.75,
     "owning_team": "Admin",
-    "last_notified_at": "2026-07-23T20:12:31Z",
+    "last_notified_at": "2026-07-27T17:11:00Z",
     "notes": [
       {
         "ts": "2026-07-13T18:23:31Z",
@@ -1248,6 +1256,10 @@
       {
         "ts": "2026-07-09T20:02:24Z",
         "note": "2026-07-09 20:02Z triage (degraded cycle, no Slack MCP; hash dd88ed3ce75424ed): occ#8 via DD monitor 299251404 last_triggered 20:02:24Z (OK by scan time, self-recovered). Re-verified against the standing bare-monitor-id false-match risk (this monitor now backs 3 distinct KB entries): ES message.keyword aggregation confirmed top-3 buckets FieldTableNameRef Is Null / GetAllFields Failed / GetColumnForAllFields failed (20 each, 60/92 total error-level hits), matching THIS entry's documented signature, not the AlterTableToDropColumn or duplicate-key-ShippingAddress entries. 60 hits across only 2 distinct traces, ActionName SaveViewBundleInternal, RequestPath /v1/field/SaveViewBundleInternal -- matches documented pipeline. last_notified_at 2026-07-07T20:24:00Z was ~47h38m ago, EXCEEDED the 24h suppression window -> POSTED to #triage-results, gate_reason=null (window-expiry). See docs/investigations/2026-07-09-dd88ed3ce75424ed.md."
+      },
+      {
+        "ts": "2026-07-27T17:11:00Z",
+        "note": "2026-07-27 17:11Z triage (degraded cycle, no Slack MCP surfaced this session): occ#11 via monitor 299251404 last_triggered 17:07:25Z (OK by scan time, self-recovered). Re-verified against the standing bare-monitor-id false-match risk (this monitor now backs 3 distinct KB entries): ES message.keyword aggregation over 16:27:25-17:07:25Z confirmed top-3 buckets FieldTableNameRef Is Null / GetAllFields Failed / GetColumnForAllFields failed (18 each, 80 total hits), matching THIS entry's documented signature. 80 hits across 3 distinct traces (42/29/9); sample record confirms account stellarair, app af798a20-e6de-4fee-b4df-a5f000b17a47, view ActivityJobItems -- identical to all 10 prior occurrences. DD APM error-rate peaked 5.08% @17:01:00Z vs 1% threshold (ratio ~4.08). last_notified_at 2026-07-23T20:12:31Z was ~3d21h ago, EXCEEDED the 24h suppression window -> POSTED to #triage-results, gate_reason=null (window-expiry). See docs/investigations/2026-07-27-1cb0a9ee38b2b5cc.md."
       }
     ]
   },
