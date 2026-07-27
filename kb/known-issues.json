@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-27T11:29:11Z",
-    "occurrences": 583,
+    "last_seen": "2026-07-27T14:24:12Z",
+    "occurrences": 584,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -157,7 +157,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.88,
-    "last_notified_at": "2026-07-26T14:01:11Z",
+    "last_notified_at": "2026-07-27T15:20:00Z",
     "prior_fix_status": "needs-ops-decision",
     "notes": [
       {
@@ -451,9 +451,13 @@
       {
         "ts": "2026-07-27T13:15:00Z",
         "note": "2026-07-27 13:15Z triage (degraded cycle, DD monitor scan diff): monitor 77419271 last_triggered 11:29:11Z (OK now, self-recovered), hash f966a16f46972a54. DD method-ui XHR logs 11:14-11:29Z: 15-sample diffuse fan-out (top dewesoft 5/15, others 1-2 each), all gateway-proxied paths status_code:0 -- canonical chronic shape. occ 582->583 (not %10). last_notified_at 2026-07-26T14:01:11Z = ~23h9m ago, WITHIN 24h suppression window (~51min margin remaining); fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-27-f966a16f46972a54.md."
+      },
+      {
+        "ts": "2026-07-27T15:20:00Z",
+        "note": "2026-07-27 15:20Z triage (degraded cycle, no Slack MCP -- ToolSearch confirmed no slack/conversations tool surfaced this session): DD monitor scan diff vs 2026-07-27T14:09:32Z cutoff (185-monitor full scan, count unchanged) found monitor 77419271 last_triggered 14:24:12Z (OK now, self-recovered), hash f2e7615b1efe991c, occ 583->584. DD method-ui XHR logs 14:09:12-14:24:12Z (query: service:method-ui status:error *xhr*, noise-excluded): 15-sample diffuse fan-out across ~14 distinct accounts (1-1 each), gateway-proxied /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync paths, status_code:0 -- canonical chronic ki-21 shape, no single-account concentration. last_notified_at 2026-07-26T14:01:11Z = ~25h19m ago, PAST the 24h suppression window -> POST (window-expiry resurface), gate_reason=null. fix_status chronic-residual-post-rollback-2026-06-05 unchanged. Posted to #triage-results. See docs/investigations/2026-07-27-f2e7615b1efe991c.md."
       }
     ],
-    "prior_last_notified_at": "2026-07-15T14:57:12Z"
+    "prior_last_notified_at": "2026-07-26T14:01:11Z"
   },
   {
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
