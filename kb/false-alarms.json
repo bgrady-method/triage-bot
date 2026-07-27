@@ -377,8 +377,8 @@
     },
     "reason": "Two method-import-api monitors fired 3 days apart: P2 p95-latency (2026-07-20T15:42:25Z) and P1 5xx-rate (2026-07-23T18:29:19Z). DD metric checks: p95:trace.aspnet_core.request{service:method-import-api,env:prod} over the first window shows a baseline ~0.01s with two brief spikes to 0.72s/0.19s (still far below the 5s threshold at its peak-adjacent points, consistent with a sparse-sample percentile artifact); sum:trace.aspnet_core.request.errors{service:method-import-api,env:prod} over the second window = 0 errors. Both self-recovered, no corroborating error signal.",
     "first_seen": "2026-07-20T15:42:25Z",
-    "last_seen": "2026-07-27T00:37:25Z",
-    "occurrences": 4,
+    "last_seen": "2026-07-27T13:07:19Z",
+    "occurrences": 5,
     "silence_for": "24h"
   },
   {
@@ -488,8 +488,8 @@
     },
     "reason": "Three [QA][Gatling] monitors fired across the backlog window (ms-support-api, eda_orchestrator_api, ms-apps-api P95 latency), all tagged env:warehouse team:qa source:gatling -- these are load-test result monitors against the warehouse (non-prod) environment, not production alerts. Same non-prod-noise class as the already-documented ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata and ki-2026-07-03-warehouse-dashboard-network-test-nodata (both 'confirmed-non-prod-noise').",
     "first_seen": "2026-07-16T15:28:39Z",
-    "last_seen": "2026-07-27T08:59:55Z",
-    "occurrences": 7,
+    "last_seen": "2026-07-27T12:31:55Z",
+    "occurrences": 8,
     "silence_for": "24h",
     "notes": [
       {
