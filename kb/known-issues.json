@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-28T16:58:11Z",
-    "occurrences": 589,
+    "last_seen": "2026-07-28T17:29:11Z",
+    "occurrences": 590,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -467,6 +467,10 @@
       {
         "ts": "2026-07-28T17:08:38Z",
         "note": "2026-07-28 17:08Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-28T13:46:00Z cutoff): monitor 77419271 fired/recovered by 16:58:11Z, hash 06bd3986364c115a (channel corrected to alert-frontend-errors/C03TYHGRS23 -- this monitor's KB match.channels scope, distinct from the alert-system/CPHHABKAA proxy channel used for the other 6 monitor-scan-diff groups this cycle). occ 588->589. DD logs service:method-ui status:error *xhr* over 16:28:11-16:58:11Z: 100-sample-capped, diffuse across accounts (top account coastalready only 10/100, widened per the widen-before-concentration-call lesson), dozens of distinct accounts each 1-6 hits. Message-text check: gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync path dominant across sampled messages (topstitchoffloridainc2, arrowconservation2 x2, duralinesystemsinc2, optimalimagingsupplies all matching the ki-21 signature). last_notified_at (2026-07-27T15:20:00Z) = ~25h48m ago -- PAST the 24h suppression window -> RESURFACE POST (gate_reason=null, window-expiry), last_notified_at bumped to 2026-07-28T17:08:38Z. fix_status chronic-residual-post-rollback-2026-06-05 unchanged. See docs/investigations/2026-07-28-06bd3986364c115a.md."
+      },
+      {
+        "ts": "2026-07-28T18:10:00Z",
+        "note": "2026-07-28 18:10Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed 'slack conversations history mcp', no matching deferred tool found): monitor 77419271 fired/recovered by 17:29:11Z, hash bd97028fc2ac75b6, occ 589->590. DD logs service:method-ui status:error *xhr* over 17:19:11-17:29:11Z (noise-excluded): 5-sample check, 5 distinct accounts (constructionmaterialspecialists, concreteetc, skyproduct, ghcmechanical, boothmedicalequipment2), each 1 hit -- diffuse, no single-account concentration. Message-text check: gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync path dominant (matches ki-21 signature); one non-gateway hit (dashboardview/GetApps) also present, consistent with the documented diffuse fan-out. last_notified_at (2026-07-28T17:08:38Z) = ~21min ago, WELL WITHIN the 24h suppression window; occ 590 not a 10th-multiple -> SUPPRESS, gate_reason=known-issue-window. fix_status chronic-residual-post-rollback-2026-06-05 unchanged. See docs/investigations/2026-07-28-bd97028fc2ac75b6.md."
       }
     ],
     "prior_last_notified_at": "2026-07-26T14:01:11Z"
@@ -3569,6 +3573,39 @@
     "last_notified_at": "2026-07-15T15:10:00Z",
     "owning_team": "CRM Experience",
     "notes": "Follow-ups: (a) make bundle application atomic or roll back SuccessfulBundle entries on partial failure -- highest-value fix; (b) throttle/stagger the push consumer (~5,500 accounts in 27 min = 4.5x load on a critical-path service, and it grows with the subscriber base); (c) reconcile the 196 accounts left on v181 content + a v182 preference field; (d) NO monitor exists on app-update job failure rate -- 196 accounts failed and every monitor that fired named the wrong service."
+  },
+  {
+    "id": "ki-2026-07-28-tables-fields-editview-viewgen-failed-after-retry",
+    "title": "ms-tables-fields-api EditView view-regeneration fails after retry (System.Exception 'Failed to generate view {X} after retry') -- 4th distinct bug class on monitor 299251404",
+    "first_seen": "2026-07-28T17:48:24Z",
+    "last_seen": "2026-07-28T17:48:24Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-system",
+        "alert-runtime-monitoring"
+      ],
+      "any_of": [
+        {
+          "contains": "EditView ViewGen failed after retry"
+        },
+        {
+          "contains": "Failed to generate view"
+        },
+        {
+          "regex": "ViewService\\.EditView.*after retry"
+        }
+      ],
+      "precedence_note": "2026-07-28: DD monitor 299251404 ('Service tables-fields has a high error rate') fired again but the ES message.keyword buckets were 'Table View Creation Failed' (8), 'EditView ViewGen failed after retry...' (4), and 'SaveFieldLegacyExtended Failed' (4) -- all 4 underlying trace_ids share this one cascade, NOT ki-2026-07-02 (FieldTableNameRef Is Null), ki-2026-07-06 (AlterTableToDropColumn/Incorrect syntax near COLUMN), or ki-2026-07-09/ki-2026-07-11 (duplicate-key ShippingAddress / HelperConverter.GetFields NRE -- note this entry's 'SaveFieldLegacyExtended Failed' bucket text is IDENTICAL to ki-2026-07-11's any_of clause; the two are distinguished ONLY by exception type -- this entry's exceptions[0].StackTraceString shows Services.Views.ViewService.EditView (ViewService.cs:394) throwing System.Exception, ki-2026-07-11's shows Models.Converters.HelperConverter.GetFields throwing NullReferenceException. ALWAYS read the full exceptions[0].StackTraceString before accepting either match -- a bare 'SaveFieldLegacyExtended Failed' text match is not sufficient (5th trap on this monitor, see feedback_kb_bare_monitor_id_false_match precedent)."
+    },
+    "diagnosis": "API.Controllers.FieldController.SaveFieldLegacyExtended -> Services.Views.ViewService.EditView (ViewService.cs:~383) calls TryGenerateView, which wraps ViewProvider.GenerateView in a try/catch-retry-once (200ms sleep) pattern (ViewService.cs:502-525). ViewProvider.GenerateView (ViewProvider.cs:310-329) calls the legacy SyncServicesHelper.fnCreateViewFromTableName(db, tableName, ...); when that returns a non-'Success' syncMessage, it logs 'Table View Creation Failed' (table/mode/error as unstructured positional log args -- NOT indexed as separate ES fields, an observability gap: the actual syncMessage/error text is not queryable) and throws. After both the initial attempt and the single retry fail, TryGenerateView returns false; EditView (ViewService.cs:390-394) logs the Error-level 'EditView ViewGen failed after retry; metadata for new fields is already committed and the view does not reflect it. spiderColumns/spiderColumnsMultiSelect/spiderViewFields/Bridge_* rows may be orphaned.' and throws System.Exception('Failed to generate view {FriendlyName} after retry.'), caught and re-logged by the controller as 'SaveFieldLegacyExtended Failed'. This cycle: 4 distinct dd_trace_ids in a 28s window (17:41:49-17:42:17Z), 2 for view 'Customer' and 2 for view 'Entity' -- all field-add/edit operations against the same two core entity views. Root cause of WHY fnCreateViewFromTableName fails is not traced this session (legacy SyncServicesHelper, no stack trace surfaces past ViewProvider.GenerateView's own throw -- the original inner failure is not logged as an InnerException). No account/tenant identifier is present in any of the three log lines' indexed fields (db/account are passed as unstructured positional args, not indexed) -- account impact could not be resolved via account_impact.py this cycle.",
+    "playbook": "1) Confirm via ES message.keyword agg for tables-fields/level:Error -- if buckets are 'Table View Creation Failed' + 'EditView ViewGen failed after retry...' + 'SaveFieldLegacyExtended Failed' together (co-occurring on the same dd_trace_id), this is the entry. 2) Pull the 'SaveFieldLegacyExtended Failed' sample's exceptions[0].StackTraceString -- confirm ClassName System.Exception, message 'Failed to generate view {X} after retry', origin Services.Views.ViewService.EditView (ViewService.cs:394) -- if instead ClassName is System.NullReferenceException at HelperConverter.GetFields, that's ki-2026-07-11, not this entry. 3) The db/tenant is not captured in indexed ES fields for this signature -- if account impact matters, the fix should also add db/account as an indexed structured field (not a raw positional log arg) to close this observability gap. 4) Root cause is inside the legacy SyncServicesHelper.fnCreateViewFromTableName -- needs-human to trace further (methodcrm-org GH_TOKEN access gap blocked a fresh fetch this session; local ms-tables-fields-api clone last confirmed at d5a7e25 2026-07-06).",
+    "fix_status": "needs-human",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.7,
+    "evidence_source": "elasticsearch",
+    "evidence_query": "fields.dd_service.keyword:tables-fields AND level.keyword:Error AND message.keyword:\"SaveFieldLegacyExtended Failed\""
   },
   {
     "id": "ki-billingengine-api-key1-removed-in-refactor",
