@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-28T11:20:00Z",
-    "occurrences": 588,
+    "last_seen": "2026-07-28T16:58:11Z",
+    "occurrences": 589,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -157,7 +157,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.88,
-    "last_notified_at": "2026-07-27T15:20:00Z",
+    "last_notified_at": "2026-07-28T17:08:38Z",
     "prior_fix_status": "needs-ops-decision",
     "notes": [
       {
@@ -463,6 +463,10 @@
       {
         "ts": "2026-07-27T19:09:00Z",
         "note": "2026-07-27 19:09Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-27T17:42:33Z cutoff): monitor 77419271 (Unusual number of XHR errors) fired/recovered by 19:04:12Z, hash 98a34a0e71eb2324, occ 585->586. DD logs service:method-ui status:error *xhr* over 18:34:12-19:04:12Z: 100-sample-capped, diffuse across accounts (top account chimeraintegrationsllc only 4/100), 3-4 hits/account across dozens of distinct accounts -- canonical chronic diffuse shape, not concentration (per the widen-before-concentration-call lesson). Message-text check: gateway/syncutil/syncwidget path dominant across top messages (rev320, psg2, avantsleep, hisigns, saturnelectricalservices all matching the ki-2026-05-21 signature). last_notified_at (2026-07-27T15:20:00Z) = ~3h44m ago, WITHIN 24h suppression window; occ 586 not %10 -> SUPPRESS, gate_reason=known-issue-window. fix_status chronic-residual-post-rollback-2026-06-05 unchanged. See docs/investigations/2026-07-27-98a34a0e71eb2324.md."
+      },
+      {
+        "ts": "2026-07-28T17:08:38Z",
+        "note": "2026-07-28 17:08Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-28T13:46:00Z cutoff): monitor 77419271 fired/recovered by 16:58:11Z, hash 06bd3986364c115a (channel corrected to alert-frontend-errors/C03TYHGRS23 -- this monitor's KB match.channels scope, distinct from the alert-system/CPHHABKAA proxy channel used for the other 6 monitor-scan-diff groups this cycle). occ 588->589. DD logs service:method-ui status:error *xhr* over 16:28:11-16:58:11Z: 100-sample-capped, diffuse across accounts (top account coastalready only 10/100, widened per the widen-before-concentration-call lesson), dozens of distinct accounts each 1-6 hits. Message-text check: gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync path dominant across sampled messages (topstitchoffloridainc2, arrowconservation2 x2, duralinesystemsinc2, optimalimagingsupplies all matching the ki-21 signature). last_notified_at (2026-07-27T15:20:00Z) = ~25h48m ago -- PAST the 24h suppression window -> RESURFACE POST (gate_reason=null, window-expiry), last_notified_at bumped to 2026-07-28T17:08:38Z. fix_status chronic-residual-post-rollback-2026-06-05 unchanged. See docs/investigations/2026-07-28-06bd3986364c115a.md."
       }
     ],
     "prior_last_notified_at": "2026-07-26T14:01:11Z"
@@ -778,7 +782,8 @@
         {
           "contains": "methodportal.com/apps"
         }
-      ]
+      ],
+      "precedence_note": "Bare monitor-id match on 236570583 ('New issue to review' Watchdog, generic APM/infrastructure catch-all) is NOT sufficient on its own -- always corroborate with the ES aggregate (message:'JWT Retrieval Failed' OR message:'GetAccountBySubdomain') in the fire window before accepting. 2026-07-28 ~17:08Z REFUTED MATCH: monitor fired 14:40:33Z but the same-window ES aggregate returned 0 hits for the JWT/GetAccountBySubdomain signature -- this Watchdog fire flagged some other story, not this one. No occurrence bump; logged as a fresh needs-human finding instead (hash to be filled by the triage run)."
     },
     "diagnosis": "Datadog Watchdog monitor 236570583 ('New issue to review', APM/infrastructure) and Centreon synthetic service-checks (bot B03GBAMHUTB, #alert-system) fire when the method-platform-ui apps backend (Com.Method.ServiceContract, .NET Framework, hosts PROD-NEW-04/5/6 serving method.ws + methodportal.com) throws System.NullReferenceException in Services.Account.MethodSessionService.GetAccountBySubdomain(), logged as 'JWT Retrieval Failed' (level Error). The NRE only triggers for requests with no resolvable account subdomain -- observed EXCLUSIVELY from synthetic monitor probes: UserAgent WindowsPowerShell/5.1, client IPs 172.31.105.207 (internal) + 52.9.26.127 (external), account id '0', paths /apps/api/system/getsessiondata, /apps/api/dashboard/getdashboardrightpanel/0, /apps/api/outlookgadget/getnavigation/0, /apps/api/search/recents. First investigated 2026-05-29 ~12:51Z (sharp 0->~28/5min onset; 84 hits 12:50-13:10Z vs 0 same-window 24h-ago). NO real-user impact: 0 non-PowerShell occurrences in window; real users always carry a valid subdomain so GetAccountBySubdomain() returns non-null for them. NOT a deploy regression -- method-platform-ui last commit 2026-05-06 (23d), ms-authentication-api healthy (1 error in window), gateway unaffected. Recurring/intermittent: 'JWT Retrieval Failed' = 336 over the prior 7 days but 0 in the same 24h-ago window, so it bursts when the probes run. Most likely trigger is a Centreon synthetic-check addition/change at ~12:51Z that probes these endpoints without a valid Host/subdomain, exposing a pre-existing missing null-guard. | 2026-06-19 ~12:50Z recurrence (occ7): synthetic JWT-NRE storm confirmed AGAIN 100% WindowsPowerShell (84 fails across PROD-NEW-04/5/6, 0 real-browser, 0 real-account-overview 404s) — benign per playbook. IMPORTANT: this time it CO-OCCURRED with a REAL #swat customer incident (multiple humans: blank white screen on login, intermittent/flapping 12:50-13:06Z, status.method.me incident 9ef87f6b). The real incident left ZERO backend fingerprint (gateway/auth/signin/apps all at baseline for real traffic) → root cause client-side/session/transient, undetermined from backend telemetry; tracked as needs-human group 3a30ee0f36c6939c. Lesson: do NOT let this benign synthetic match auto-dismiss a co-timed real incident.",
     "playbook": "1) Confirm synthetic-only: ES aggregate message:'JWT Retrieval Failed' by fields.UserAgent.keyword -- if 100% WindowsPowerShell and 0 real browsers, there is no customer impact; deprioritize. 2) Confirm the NRE: search the same docs for exceptions[].StackTraceString containing GetAccountBySubdomain in Com.Method.ServiceContract/Services/Account/MethodSessionService.cs. 3) Two independent fixes, pick per owner: (a) CODE -- add a null guard in MethodSessionService.GetAccountBySubdomain() so a missing/unknown subdomain returns 400/empty-session instead of dereferencing null (source is TFS-built Com.Method.ServiceContract, NOT in the GitHub clones -- route to the platform-ui/MethodUI backend owner); (b) MONITORING -- fix the Centreon synthetic check to send a valid account subdomain / Host header, or point it at a health endpoint that doesn't require an account, which silences both the false-CRITICAL Centreon alerts and the Datadog Watchdog 236570583 'New issue to review' noise. 4) Establish WHY it started at ~12:51Z (check Centreon check-config change history around that time). 5) Until fixed, #alert-system will keep getting intermittent Centreon CRITICALs + Watchdog 236570583 fires for this pattern -- treat as monitoring noise, not a customer outage.",
@@ -839,6 +844,10 @@
       {
         "ts": "2026-07-28T13:15:00Z",
         "note": "2026-07-28 13:15Z triage (degraded cycle, no Slack MCP surfaced this session): monitor 236570583 ('New issue to review' Watchdog), Alert 12:53:34Z, hash 56f92e263d05b962. ES aggregate message:\"JWT Retrieval Failed\" OR message:\"GetAccountBySubdomain\" by fields.UserAgent.keyword over 12:38:34-13:08:34Z: 70 hits, 100% WindowsPowerShell/5.1.20348.1850 UA -- canonical synthetic-probe NRE signature CONFIRMED this cycle (per the 2026-07-08/07-26 precedent requiring same-window ES corroboration before accepting a bare monitor-id match on this generic Watchdog monitor). occ 28->29. last_notified_at (2026-07-27T13:15:00Z) = ~23h57m ago (cycle-eval-time 13:12:33Z) -- WITHIN the 24h suppression window by only ~3min (same tight margin as the sibling grid-dropdown group this cycle, both last notified in the same prior cycle) and occurrence 29 is not a 10th-multiple -> SUPPRESSED, gate_reason=known-issue-window, appended to docs/actionable/2026-07-28.md. owning_team recorded unmapped (monitor 236570583 carries no service tag, consistent with prior cycles' attribution for this specific monitor). See docs/investigations/2026-07-28-56f92e263d05b962.md."
+      },
+      {
+        "ts": "2026-07-28T17:08:38Z",
+        "note": "2026-07-28 17:08Z triage (degraded cycle, no Slack MCP): monitor 236570583 ('New issue to review' Watchdog) fired again 14:40:33Z (now OK, 30m-rollup recovered). Attempted the required same-window ES corroboration (message:'JWT Retrieval Failed' OR message:'GetAccountBySubdomain', 14:25:33-14:55:33Z) per the 2026-07-28 13:15Z precedent -- 0 hits, REFUTED. Broader ES sweep (level.keyword:Error, same window) shows 348 total errors, top buckets runtime-core-api 162 / nonprod-apps 53 / email-subscriber-agent 39 / rest-api 18 / email-publisher-agent 16 -- no standout anomaly identifiable without a 24h-ago baseline, and DD logs status:error env:prod returned 0 (generic Watchdog catch-all gives no service tag to scope further). Not counted toward this entry's occurrences -- logged as a fresh needs-human finding (hash 5040cd743eae967d), score -1 (novel +2, monitor-maturity -2 [fire_count 13/30d, dm_rate 0.0], recency-decay -1 [2nd same-monitor fire today]) -> actionable low-impact, not posted. See docs/investigations/2026-07-28-5040cd743eae967d.md."
       }
     ]
   },
@@ -1400,8 +1409,8 @@
     "id": "ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata",
     "title": "\"Method UI Grid and Dropdown Performance Test\" synthetics (team:qa, non-prod, 5 monitor-ID variants: Day run / Day run 2 / Evening run / Midnight run / Release Run) chronically go No Data; never correlates to a real incident",
     "first_seen": "2026-05-02T13:46:00Z",
-    "last_seen": "2026-07-28T14:11:00Z",
-    "occurrences": 128,
+    "last_seen": "2026-07-28T13:50:50Z",
+    "occurrences": 130,
     "match": {
       "channels": [
         "alert-system"
@@ -1437,7 +1446,7 @@
     "fix_template": null,
     "confidence": 0.85,
     "owning_team": "unmapped",
-    "last_notified_at": "2026-07-28T14:11:00Z",
+    "last_notified_at": "2026-07-28T17:08:38Z",
     "notes": [
       {
         "ts": "2026-07-03T13:09:00Z",
@@ -1662,6 +1671,10 @@
       {
         "ts": "2026-07-28T14:11:00Z",
         "note": "2026-07-28 14:11Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch confirmed no slack/conversations tool). Release Run variant (142200330) No Data 13:46:00Z, still No Data at scan time -- 128th documented occurrence. DD monitor scan diffed vs prior cutoff 2026-07-28T12:53:34Z: 185-monitor count unchanged, exactly 1 monitor state-changed after cutoff (this one) -- no other group this cycle. Confirmed via this cycle's own full-185-monitor DD scan (entry's evidence_query is monitor-state-based: overall_state=='No Data' for this monitor set) -- matches exactly. No co-firing signal with any prod service this cycle. Synthetic hash ce22ab59c52bf229 (channel CPHHABKAA + DD monitor ts 2026-07-28T13:46:00+00:00). last_notified_at (2026-07-27T13:15:00Z) = ~24h56m ago, PAST the 24h suppression window -> RESURFACE POST, gate_reason=null (window-expiry), last_notified_at bumped to now. See docs/investigations/2026-07-28-ce22ab59c52bf229.md."
+      },
+      {
+        "ts": "2026-07-28T17:08:38Z",
+        "note": "2026-07-28 17:05-17:08Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-28T13:46:00Z cutoff): Day run (121308660, hash 9e65667df010d985) and Day run 2 (133625690, hash 755f5f51e49b1380) both OK-recovered-by-scan (17:08Z) but last_triggered_ts 13:47:30Z / 13:50:50Z respectively fall inside this cycle's scan window -- 129th/130th documented occurrences, same brief-flap-then-self-recover shape as every prior fire in this family. Confirmed non-prod (team:qa, no prod service tag); 0 status:error DD logs on runtime-core-api env:prod for 13:40-14:00Z window, no co-firing signal with any prod service. last_notified_at (2026-07-28T14:11:00Z, bumped by the ce22ab59c52bf229/142200330 occurrence earlier this same cycle window) was only ~2h57m old -- inside the 24h suppression window -- but occurrences landed on an exact multiple of 10 (130) -> RESURFACE POST (gate_reason=known-issue-occurrence-resurface), last_notified_at bumped to 2026-07-28T17:08:38Z. Grouped as one incident-log group (primary 9e65667df010d985, satellite 755f5f51e49b1380) per the standard text_fingerprint-match/same-family grouping rule. See docs/investigations/2026-07-28-9e65667df010d985.md."
       }
     ]
   },
@@ -3294,8 +3307,8 @@
     "id": "ki-2026-07-09-tables-fields-getfieldnames-duplicate-key-shippingaddress",
     "title": "ms-tables-fields-api System.ArgumentException 'An item with the same key has already been added: ShippingAddress' in FieldController.GetFieldNamesWithRestriction (distinct from ki-2026-07-02's FieldTableNameRef signature)",
     "first_seen": "2026-07-09T04:07:36Z",
-    "last_seen": "2026-07-09T04:08:52Z",
-    "occurrences": 2,
+    "last_seen": "2026-07-28T16:47:25Z",
+    "occurrences": 4,
     "match": {
       "channels": [
         "alert-system",
@@ -3310,6 +3323,12 @@
         },
         {
           "contains": "FieldController.GetFieldNamesWithRestriction"
+        },
+        {
+          "contains": "GetFieldNamesAndTypesFriendly Failed"
+        },
+        {
+          "contains": "FieldController.GetFieldNamesAndTypesFriendly"
         }
       ],
       "precedence_note": "Distinct from ki-2026-07-02-tables-fields-fieldtablenameref-null-linked-fields -- both fire under bare monitor 299251404 ('tables-fields high error rate'), but the two have unrelated exception types/messages/stack traces. ALWAYS disambiguate via ES message.keyword before accepting either KIR (see feedback_kb_bare_monitor_id_false_match precedent). This entry's signature: System.ArgumentException in FieldController.cs:808 (Dictionary duplicate-key add), NOT System.ArgumentNullException in MetadataDataProvider.cs:1087."
@@ -3324,11 +3343,15 @@
     "fix_template": null,
     "confidence": 0.75,
     "owning_team": "Admin",
-    "last_notified_at": null,
+    "last_notified_at": "2026-07-28T17:08:38Z",
     "notes": [
       {
         "ts": "2026-07-09T11:29:32Z",
         "note": "2026-07-09 11:29Z triage (degraded cycle, DD monitor scan diff, alert-system, hash d13ed0adfb12f9e4): created this cycle. Score 3 (critical_path_service ms-tables-fields-api +3, novel_no_kb +2, monitor_maturity -2 [monitor 299251404 fire_count=5 in last 30d, dm_rate low -- historically mostly-suppressed/noisy for the OTHER (ki-2026-07-02) signature it usually carries]) < escalation_score_threshold(4) but >= actionable_score_threshold(2) -> actionable-append (high-borderline), gate_reason=low-impact, no post this cycle. Flagging for human review given the clean, fully-diagnosed stack trace despite the low score."
+      },
+      {
+        "ts": "2026-07-28T17:08:38Z",
+        "note": "2026-07-28 17:08Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-28T13:46:00Z cutoff): two monitors state-changed near-simultaneously and were processed as two separate groups per the standard text_fingerprint grouping rule, but both trace to the SAME underlying tables-fields incident. Group A: monitor 70171778 ('Unexpected number of 5XX errors', generic all-service sum, fired 16:45:38Z, hash c75844fd9d4f91fa) -- naive bare-text match_kb hit was ki-2026-07-12-rest-api-tables-endpoint-5xx-recurring-burst (monitor-id-only), but by-service breakdown showed rest-api's own errors were baseline-level (5 total, all GET tables/{table}, matching that entry's normal chronic background rate) -- NOT the driver; refuted, see that entry's own notes. Group B: monitor 299251404 ('Service tables-fields has a high error rate', fired 16:47:25Z, hash dd6e30fef1cad917) -- the actual service-scoped signal. ES aggregate fields.dd_service.keyword:tables-fields AND level.keyword:Error, 16:30-16:50Z: 45 total -- 24x 'GetFieldNamesWithResctriction Failed' (System.ArgumentException 'same key has already been added. Key: TeamMultiSelect', FieldController.cs:808, SAME class as this entry's ShippingAddress occurrence, different account/key) + 15x 'GetFieldNamesAndTypesFriendly Failed' (System.ArgumentException 'same key has already been added. Key: MultiEntityName', FieldController.cs:767, sibling method building a Dictionary via ToDictionary -- SAME unguarded-duplicate-key defect class, added to this entry's any_of) + 4x 'Failed to SaveViewBundleInternal' (no exception detail captured in these 4 records -- plausibly ki-2026-07-02 but NOT confirmed, not attributed to either entry) + 2x 'FillViewBasicInfo Failed' (Models.Exceptions.InvalidViewName -- unrelated, not this entry). Concurrent gateway 5xx spike (18 errors at 16:38:50Z, same bucket as tables-fields' own spike) is consistent with gateway proxying tables-fields' 500 responses, explaining why the generic cross-service monitor 70171778 also tripped. occ 2->4 (both fires). Group A processed first (earlier fire time) and got the first-ever notify on this entry (last_notified_at was null) -> POSTED to #triage-results under this entry's id. Group B processed second, same cycle -> last_notified_at now ~0min old -> SUPPRESSED (gate_reason=known-issue-window), same-cycle gate-ordering artifact, not a real 24h suppression. See docs/investigations/2026-07-28-c75844fd9d4f91fa.md and docs/investigations/2026-07-28-dd6e30fef1cad917.md."
       }
     ]
   },
@@ -3420,7 +3443,8 @@
         {
           "contains": "Unexpected number of 5XX errors"
         }
-      ]
+      ],
+      "precedence_note": "2026-07-28 ~17:08Z REFUTED MATCH: monitor 70171778 fired 16:45:38Z (hash c75844fd9d4f91fa) but by-{service} breakdown for the 30-min window showed rest-api's own 5xx total was only 5 (all on the usual GET /api/{version}/tables/{table} resource, baseline-chronic rate per this entry) -- NOT the driver of the fire. The real driver was a tables-fields duplicate-key exception cascade (ki-2026-07-09-tables-fields-getfieldnames-duplicate-key-shippingaddress) plus a co-occurring gateway 5xx spike, both dated 16:38-16:39Z, that pushed the all-service summed total over the generic monitor's threshold. No occurrence bump for this entry. See docs/investigations/2026-07-28-c75844fd9d4f91fa.md."
     },
     "evidence_source": "datadog_apm",
     "evidence_query": "sum(last_30m):sum:trace.aspnet_core.request.errors{env:prod,service:rest-api,http.status_code:5*,resource_name:post_/api/v_version_/tables/_table}.as_count()",
@@ -3441,6 +3465,10 @@
       {
         "ts": "2026-07-27T00:31:38Z",
         "note": "2026-07-27 degraded cycle (no Slack MCP surfaced this session; DD monitor scan-diff vs 2026-07-26T21:59:31Z cutoff): monitor 70171778 fired 2026-07-27T00:31:38Z, hash 951115d7302e580e, occurrences -> 3. Fresh check this cycle: sum:trace.aspnet_core.request.errors{service:rest-api,env:prod}.as_count() and sum:trace.aspnet_core.request.hits.by_http_status{...,http.status_class:5xx}.as_count() over 00:01:38-00:31:38Z both returned 0 datapoints; service:rest-api status:error env:prod DD Logs same window = 0 hits. Did NOT reproduce a service-level 5xx burst this cycle (unlike the entry-creating occurrence, which showed 596 5xx errors during the live burst) -- monitor already OK at scan time, consistent with a brief self-recovering burst that cleared before/within the sampled window. last_notified_at (2026-07-23T20:12:31Z) ~3.5 days old -- past the 24h suppression window -> POST (window-expiry), independent of this cycle's non-reproduction. See docs/investigations/2026-07-27-951115d7302e580e.md."
+      },
+      {
+        "ts": "2026-07-28T17:08:38Z",
+        "note": "2026-07-28 17:08Z triage (degraded cycle, no Slack MCP): monitor 70171778 fired 16:45:38Z, hash c75844fd9d4f91fa. sum:trace.aspnet_core.request.errors{env:prod,http.status_code:5*} by {service} over 16:15:38-16:45:38Z: rest-api total only 5 (all resource_name:get_/api/v_version_/tables/_table, matching this entry's normal chronic baseline) -- NOT elevated, NOT the driver. Dominant contributors this window were service:gateway (~47, incl. an 18-point spike at 16:38:50Z) and service:tables-fields (~41, incl. matching 18-point spike same bucket) -- a genuinely different root cause (see ki-2026-07-09's notes for the full breakdown). REFUTED for this occurrence; not counted toward this entry's occurrences. Reclassified as known-issue-recurrence against ki-2026-07-09 instead."
       }
     ]
   },
