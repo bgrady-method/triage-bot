@@ -457,8 +457,8 @@
     },
     "reason": "DD metric sum:trace.aspnet.request.errors{service:methodportal.com,env:prod} over 2026-07-23T04:02:24-04:42:24Z (+/-20min around the fire): 0 errors. Same low-traffic-ratio-artifact mechanism as fa-2026-07-12-mapi-5xx-rate-low-traffic-ratio-artifact and the signup low-traffic family, applied to a different service.",
     "first_seen": "2026-07-23T04:22:24Z",
-    "last_seen": "2026-07-29T16:25:24Z",
-    "occurrences": 24,
+    "last_seen": "2026-07-29T18:01:24Z",
+    "occurrences": 25,
     "silence_for": "24h",
     "notes": [
       {
