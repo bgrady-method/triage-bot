@@ -256,8 +256,8 @@
     "reason": "ES fields.dd_service.keyword:signup AND level.keyword:Error, 04:49:40-05:24:40Z: 1 hit. Full sample: System.Web.HttpException thrown from System.Web.Handlers.TraceHandler.ProcessRequest (classic ASP.NET trace.axd diagnostic handler, disabled in prod). fields.Account.AccountId=0 (no real tenant attached) -- consistent with an external request probing /trace.axd rather than a real user action. Self-recovered, single occurrence, DD Logs 0 corroborating hits (client-request-level noise, not app-logic).",
     "silence_for": "24h",
     "first_seen": "2026-07-11T05:19:40Z",
-    "last_seen": "2026-07-26T01:19:40Z",
-    "occurrences": 7,
+    "last_seen": "2026-07-29T16:48:40Z",
+    "occurrences": 8,
     "notes": [
       {
         "ts": "2026-07-23T22:08:16Z",
@@ -274,6 +274,10 @@
       {
         "ts": "2026-07-25T13:15:00Z",
         "note": "2026-07-25 13:15Z triage (degraded cycle, no Slack MCP; DD monitor scan diff vs 2026-07-25T11:56:21Z cutoff): monitor 154163500 fired 12:45:40Z, hash cde1d2e0ef5aaf0d, occ 5->6. ES fields.dd_service.keyword:signup AND level.keyword:Error, 12:15:40-12:45:40Z: 1 hit, same signature -- System.Web.HttpException from System.Web.Handlers.TraceHandler.ProcessRequest, Request.Path=/trace.axd, StatusCode 403, Account.AccountId=0, this time Client.UserAgent=Amzn-SearchBot/1.0 (Amazon crawler, a new bot UA for this entry). DD Logs service:signup status:error env:prod over the same window: 0 hits. Self-recovered by scan time. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only. See docs/investigations/2026-07-25-cde1d2e0ef5aaf0d.md."
+      },
+      {
+        "ts": "2026-07-29T17:13:00Z",
+        "note": "2026-07-29 17:13Z triage (degraded cycle, no Slack MCP; DD monitor scan-diff vs prior cutoff 2026-07-29T16:09:11Z). Monitor 154163500 (Service Signup has unexpected number of errors) fired 2026-07-29T16:48:40Z, hash ebe7bfd7abd96920, occ->8, self-recovered (OK at scan time). ES fields.dd_service.keyword:signup AND level.keyword:Error, 16:43:40-16:48:40Z (monitor's own last_5m eval window): 0 hits -- no corroborating error signal, same probe/scanner-noise mechanism as prior 7 occurrences. No thread-reply path in degraded mode -- kb-update self-DM sent."
       }
     ]
   },
@@ -426,9 +430,15 @@
     },
     "reason": "Two method-import-api monitors fired 3 days apart: P2 p95-latency (2026-07-20T15:42:25Z) and P1 5xx-rate (2026-07-23T18:29:19Z). DD metric checks: p95:trace.aspnet_core.request{service:method-import-api,env:prod} over the first window shows a baseline ~0.01s with two brief spikes to 0.72s/0.19s (still far below the 5s threshold at its peak-adjacent points, consistent with a sparse-sample percentile artifact); sum:trace.aspnet_core.request.errors{service:method-import-api,env:prod} over the second window = 0 errors. Both self-recovered, no corroborating error signal.",
     "first_seen": "2026-07-20T15:42:25Z",
-    "last_seen": "2026-07-27T13:07:19Z",
-    "occurrences": 5,
-    "silence_for": "24h"
+    "last_seen": "2026-07-29T16:35:19Z",
+    "occurrences": 6,
+    "silence_for": "24h",
+    "notes": [
+      {
+        "ts": "2026-07-29T17:12:00Z",
+        "note": "2026-07-29 17:12Z triage (degraded cycle, no Slack MCP; DD monitor scan-diff vs prior cutoff 2026-07-29T16:09:11Z). Monitor 299551459 ([Admin][ImportAPI][P1] 5xx error rate elevated (method-import-api)) fired 2026-07-29T16:35:19Z, hash ba1b5c4de25ce717, occ->6. Monitor query is 5xx-rate>5% over last_5m; exact eval window (16:30:19-16:35:19Z): sum:trace.aspnet_core.request.errors{service:method-import-api,env:prod}.as_count() = empty series (0 errors), sum:trace.aspnet_core.request.hits same window = 25 points summing ~53. A 4-error blip visible just outside this window (16:29:00Z, in a wider +/-5min probe) predates the monitor's own eval window -- known DD-metric-API/monitor-evaluator resampling-gap artifact documented on other entries (e.g. ki-2026-07-06-runtime-core-redis-cache-timeout-transient-burst), not evidence within the window that actually tripped the monitor. Self-recovered, no corroborating error signal inside the real eval window -- same transient-blip mechanism as prior 5 occurrences. No thread-reply path in degraded mode -- kb-update self-DM sent."
+      }
+    ]
   },
   {
     "id": "fa-2026-07-23-methodportal-5xx-low-traffic-artifact",
@@ -447,8 +457,8 @@
     },
     "reason": "DD metric sum:trace.aspnet.request.errors{service:methodportal.com,env:prod} over 2026-07-23T04:02:24-04:42:24Z (+/-20min around the fire): 0 errors. Same low-traffic-ratio-artifact mechanism as fa-2026-07-12-mapi-5xx-rate-low-traffic-ratio-artifact and the signup low-traffic family, applied to a different service.",
     "first_seen": "2026-07-23T04:22:24Z",
-    "last_seen": "2026-07-29T15:54:24Z",
-    "occurrences": 23,
+    "last_seen": "2026-07-29T16:25:24Z",
+    "occurrences": 24,
     "silence_for": "24h",
     "notes": [
       {
@@ -526,6 +536,10 @@
       {
         "ts": "2026-07-29T16:09:47Z",
         "note": "2026-07-29 16:09Z triage (degraded cycle, no Slack MCP; DD monitor scan-diff vs prior cutoff 2026-07-29T15:08:11Z). Monitor 299551644 ([VAE][Portal][P1] 5xx error rate elevated (methodportal.com)) fired 2026-07-29T15:54:24Z, hash eda72edc0ec7cbb0, occ->23. DD metric sum:trace.aspnet.request.errors{service:methodportal.com,env:prod}.as_count() 15:44:24-15:54:24Z: empty series (0 errors). sum:trace.aspnet.request.hits same window: 1 point, 4.0 -- extremely sparse traffic, same low-traffic-ratio-artifact mechanism as prior 22 occurrences. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-07-29-eda72edc0ec7cbb0.md."
+      },
+      {
+        "ts": "2026-07-29T17:11:00Z",
+        "note": "2026-07-29 17:11Z triage (degraded cycle, no Slack MCP; DD monitor scan-diff vs prior cutoff 2026-07-29T16:09:11Z). Monitor 299551644 ([VAE][Portal][P1] 5xx error rate elevated (methodportal.com)) fired 2026-07-29T16:25:24Z, hash 6ba9adc060580341, occ->24. DD metric sum:trace.aspnet.request.errors{service:methodportal.com,env:prod}.as_count() 16:15:24-16:25:24Z: empty series (0 errors). sum:trace.aspnet.request.hits same window: 3 points (1,1,4), sum=6 -- extremely sparse traffic, same low-traffic-ratio-artifact mechanism as prior 23 occurrences. No thread-reply path in degraded mode -- kb-update self-DM sent."
       }
     ]
   },
