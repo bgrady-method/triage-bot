@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-29T13:49:11Z",
-    "occurrences": 595,
+    "last_seen": "2026-07-29T15:08:11Z",
+    "occurrences": 596,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -487,6 +487,10 @@
       {
         "ts": "2026-07-29T12:12:48Z",
         "note": "2026-07-29 12:12Z triage (degraded cycle, no Slack MCP -- ToolSearch confirmed no slack/conversations tool; DD monitor scan diff vs 2026-07-29T10:32:57Z cutoff, hash 3026405e43b98460). Monitor 77419271 fired 2026-07-29T12:06:11Z (OK at scan time, self-recovered), occ 593->594. DD logs (service:method-ui status:error *xhr*) 11:36:11-12:06:11Z: 100 hits, 41 distinct accounts, top georgiapowdercoating3 14% -- diffuse, NOT concentrated (chronic shape unchanged). 74/100 http.url_details.path contains GetSyncWidgetInfoAsync, 98/100 status_code:0 (gateway timeout) -- canonical ki-21 signature. ki-24 co-fire check: monitors 115456700 (last fired 2026-07-28T13:41:20Z) and 117279738 (last fired 2026-07-26T13:18:18Z) both stale/OK -- no co-firing this cycle, classified independently per precedence_note. last_notified_at 2026-07-28T17:08:38Z = ~19h04m ago, WITHIN 24h suppression window; occ 594 not a 10th-multiple; fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS, gate_reason=known-issue-window, appended to docs/actionable/2026-07-29.md. No thread-reply/DM-per-alert path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-07-29-3026405e43b98460.md."
+      },
+      {
+        "ts": "2026-07-29T15:20:00Z",
+        "note": "2026-07-29 15:20Z triage (degraded cycle, no Slack MCP; DD monitor scan diff vs prior cutoff 2026-07-29T13:53:24Z, hash 3f4292850a9cfa08): monitor 77419271 (Unusual number of XHR errors for account) Warn, last_triggered_ts 2026-07-29T15:08:11Z (still firing, live attribution). Widened DD method-ui XHR log sample to 100 (query service:method-ui status:error @http.url_details.path:*syncwidget*, 14:58:11-15:08:11Z): 100/100 on GET /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync, status_code:0, 58 distinct accounts, top EnglandLogistics 10 (~10%) -- canonical diffuse chronic shape, NOT the 2026-06-04 100x OUTAGE surge, no concentration. No ki-24 co-fire treatment this cycle: monitor 115456700 (ki-24) fired separately 24min earlier (14:44:20Z) with only 1 alert each -- precedence_note >=2-alerts-each threshold not met. last_notified_at 2026-07-28T17:08:38Z = ~22h11m ago, WITHIN 24h suppression window; occ 595->596 (596%10!=0); fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window. Appended to docs/actionable/2026-07-29.md."
       }
     ],
     "prior_last_notified_at": "2026-07-26T14:01:11Z"
@@ -495,8 +499,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-07-27T16:51:20Z",
-    "occurrences": 249,
+    "last_seen": "2026-07-29T14:44:20Z",
+    "occurrences": 250,
     "match": {
       "channels": [
         "alert-system",
@@ -537,7 +541,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.85,
-    "last_notified_at": "2026-07-27T20:20:00Z",
+    "last_notified_at": "2026-07-29T15:16:35Z",
     "prior_last_notified_at": "2026-07-27T17:11:00Z",
     "notes": [
       {
@@ -699,6 +703,10 @@
       {
         "ts": "2026-07-27T17:11:00Z",
         "note": "2026-07-27 17:11Z triage (degraded cycle, no Slack MCP surfaced this session): occ#249 via monitor 115456700 last_triggered 16:51:20Z (OK by scan time, self-recovered). DD metric confirmed the pattern: p95:trace.aspnet_core.request{env:prod,service:runtime-core-api,resource_name:post_/api/v1/runtime/load/_screenid*} over 16:21:20-16:51:20Z showed 7 points >3.0s threshold clustered 16:42:40-16:43:40Z, peak 13.74s @16:43:20Z. DD logs (service:runtime-core-api status:error env:prod) returned 0 hits, confirming latency-only per playbook step 2. last_notified_at 2026-07-26T12:41:20Z was ~28h10m ago, EXCEEDED the 24h suppression window -> POSTED to #triage-results, gate_reason=null (window-expiry). See docs/investigations/2026-07-27-b5b26eeb69b29083.md."
+      },
+      {
+        "ts": "2026-07-29T15:16:35Z",
+        "note": "2026-07-29 15:16Z triage (degraded cycle, no Slack MCP; DD monitor scan-diff vs prior cutoff 2026-07-29T13:53:24Z). Monitor 115456700 (RTC Screen Load has a high p95 latency) fired, last_triggered_ts 2026-07-29T14:44:20Z (OK at scan time, self-recovered), hash 584047c7dbecf3b3, occ 249->250. p95:trace.aspnet_core.request{env:prod,service:runtime-core-api,resource_name:post_/api/v1/runtime/load/_screenid*} over 14:14:20-14:44:20Z: 11 points >=3.0s threshold (3 at 14:16:00-14:16:20Z, 7 clustered 14:35:50-14:37:00Z, 1 at 14:41:40Z); peak 7.62s @14:36:20Z. Confirmed latency-only: service:runtime-core-api status:error env:prod DD Logs = 0 hits. No ki-21 co-fire warranting shared-upstream treatment this cycle (ki-21 fired separately 24min later at 15:08:11Z, 1 alert each -- precedence_note threshold of >=2 alerts each not met). last_notified_at was 2026-07-27T20:20:00Z (~42h56m ago) -- PAST 24h suppression window -> POST, gate_reason=null, last_notified_at bumped to now. fix_status (investigating) unchanged. No thread-reply path in degraded mode -- posted directly to #triage-results via slack_send.py (no primary.ts needed for a channel post)."
       }
     ],
     "owning_team": "Vertical App Experience"
