@@ -1433,8 +1433,8 @@
     "id": "ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata",
     "title": "\"Method UI Grid and Dropdown Performance Test\" synthetics (team:qa, non-prod, 5 monitor-ID variants: Day run / Day run 2 / Evening run / Midnight run / Release Run) chronically go No Data; never correlates to a real incident",
     "first_seen": "2026-05-02T13:46:00Z",
-    "last_seen": "2026-07-29T04:01:30Z",
-    "occurrences": 132,
+    "last_seen": "2026-07-29T12:31:01Z",
+    "occurrences": 134,
     "match": {
       "channels": [
         "alert-system"
@@ -1703,6 +1703,10 @@
       {
         "ts": "2026-07-29T11:20:00Z",
         "note": "2026-07-29 11:20Z triage: family fired twice this cycle, treated as 2 separate groups per the 30min gap heuristic. (1) 00:01:00-00:01:20Z: Day run (121308660) + Day run 2 (133625690) both No Data, hash 0bc5144e5bc78e56 (satellite a478e2ab77e9e7bc), occ 130->131. (2) 04:00:12-04:01:30Z: Evening run (123495492, No Data) + Midnight run (123495390, recovered OK) -- Midnight's last_triggered_ts moving is the recovery from its own earlier No Data, hash 623fcd435ae9042d (satellite e624b7289614342c), occ 131->132. Both instances match the documented daily chronic shape (non-prod QA synthetics, team:qa, confirmed-non-prod-noise); no new evidence query needed beyond the monitor states themselves (entry has no evidence_source/query declared). last_notified_at 2026-07-28T17:08:38Z; both fires within 24h window -> SUPPRESSED, gate_reason=known-issue-window (neither 131 nor 132 is a 10th-multiple). See docs/investigations/2026-07-29-0bc5144e5bc78e56.md and docs/investigations/2026-07-29-623fcd435ae9042d.md."
+      },
+      {
+        "ts": "2026-07-29T12:30:00Z",
+        "note": "2026-07-29 13:12Z triage (degraded cycle, no Slack MCP): 2 fires this cycle vs the 12:10:55Z prior-cycle cutoff -- Midnight run (123495390) No Data 12:30:00Z (hash 93c940af85f7929f, occ 132->133), Release Run (142200330) recovered-OK 12:31:01Z (hash 097ef94ba2988bfe, occ 133->134). Same confirmed non-prod QA-synthetics noise, no co-firing signal with any prod service this cycle (full 185-monitor scan: only 2 Alert-state monitors, both chronic/pre-existing -- Service Signup Availability SLO last_triggered 2026-07-24, generic issue-review catch-all last_triggered 2025-10-16 -- neither correlates with this window). last_notified_at (2026-07-28T17:08:38Z) = ~20h ago -- WITHIN 24h suppression window for both; neither occurrence (133, 134) hits the 10th-occurrence resurface rule -> BOTH SUPPRESSED, gate_reason=known-issue-window, appended to docs/actionable/2026-07-29.md. See docs/investigations/2026-07-29-93c940af85f7929f.md, docs/investigations/2026-07-29-097ef94ba2988bfe.md."
       }
     ]
   },
