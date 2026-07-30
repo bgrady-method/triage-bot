@@ -21,8 +21,8 @@
     "reason": "method-import-subscriber is a low-frequency batch AMQP consumer, not a continuous one. 24h history (2026-07-05 13:05 -> 2026-07-06 10:33) shows only 8 non-zero hit buckets, in bursts of 1-2060 messages separated by gaps of 3-11.5 hours. The monitor's 'sum(last_30m) < 1' threshold trips on every natural idle gap over 30 minutes, which happens multiple times a day by design -- not a service outage. 0 error logs on the service for the full day. This fire (11:05:32Z) came 32 minutes after the last burst ended (10:33:30Z), squarely inside the service's normal idle pattern.",
     "silence_for": "24h",
     "first_seen": "2026-07-06T11:05:32Z",
-    "last_seen": "2026-07-29T13:51:32Z",
-    "occurrences": 87,
+    "last_seen": "2026-07-30T13:21:33Z",
+    "occurrences": 88,
     "recommendation": "monitor threshold mismatch, not a false-alarm-forever situation -- recommend widening the No-Data window (e.g. 6h) or switching to a message-backlog-depth check instead of a hits-in-window check; flagging for Admin team, not silencing indefinitely",
     "notes": [
       {
@@ -208,6 +208,10 @@
       {
         "ts": "2026-07-29T12:12:48Z",
         "note": "2026-07-29 12:12Z triage (degraded cycle, no Slack MCP -- ToolSearch confirmed no slack/conversations tool; DD monitor scan diff vs 2026-07-29T10:32:57Z cutoff, hash 4654682c6a813ad5). Monitor 299551472 No Data 2026-07-29T12:06:32Z, occ 85->86. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} over 11:36:32-12:06:32Z: 1 datapoint only (near window end) -- same natural idle-gap shape as all 85 prior occurrences. 0 status:error DD logs on the service over the same window. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-07-29-4654682c6a813ad5.md."
+      },
+      {
+        "ts": "2026-07-30T14:45:00Z",
+        "note": "2026-07-30 ~14:45Z triage (degraded cycle, no Slack MCP): monitor 299551472 fired 13:21:33Z, hash dfa51e531441d628, occ 87->88. Metric re-query: 9 hits total in the 30-min window (traffic resumed). Self-DM'd."
       }
     ]
   },
@@ -328,13 +332,17 @@
     "reason": "Monitor query is 100 * sum:trace.aspnet.request.errors{service:services/mapi,env:prod}.as_count() / sum:trace.aspnet.request.hits{...}.as_count() > 100 -- i.e. errors must exceed hits, only possible via a bucket-alignment counting artifact between two independently-aggregated metrics on very low traffic (2 total hits in the 15-min window). 0 errors found in DD metrics for the same window -- no corroborating evidence of a real error-rate spike. Same family as the already-documented gateway-4xx and ms-account-api-4xx monitoring-noise patterns.",
     "silence_for": "24h",
     "first_seen": "2026-07-12T09:53:21Z",
-    "last_seen": "2026-07-26T10:53:21Z",
-    "occurrences": 4,
+    "last_seen": "2026-07-30T08:12:21Z",
+    "occurrences": 5,
     "recommendation": "add a minimum-request-volume floor to this monitor's query, mirroring the fix already recommended for the sibling 4xx-spike monitors",
     "notes": [
       {
         "ts": "2026-07-25T11:09:00Z",
         "note": "2026-07-25 11:09Z triage (degraded cycle, no Slack MCP): monitor 299551641 ([Admin][MAPI][P1] 5xx error rate elevated (services/mapi)) fired 2026-07-25T08:32:21Z, hash 14cdbc4e93756c22, occ->3. DD metric errors=1 (1 point), hits=3 (2 points: 1,2) for service:services/mapi over 08:22:21-08:32:21Z -- a single error against ~3 total requests is enough to trip the errors/hits > 100% ratio threshold at this volume, consistent with the documented low-traffic-ratio artifact. No thread-reply path in degraded mode -- kb-update only."
+      },
+      {
+        "ts": "2026-07-30T14:45:00Z",
+        "note": "2026-07-30 ~14:45Z triage (degraded cycle, no Slack MCP): monitor 299551641 fired 08:12:21Z, hash 33d146f3af054911, occ 4->5. Metric re-query: 2 total errors in window. Self-DM'd."
       }
     ]
   },
@@ -357,9 +365,15 @@
     "reason": "Monitor query is avg(last_15m):avg:trace.aspnet.request{env:prod,service:signup} > 5. This fired at 05:55:41Z despite raw points in the monitor's own exact 15-min evaluation window (05:40:41-05:55:41Z) showing 0.003-0.43s -- nowhere near the 5s threshold. Only 7 requests in the window (low traffic), consistent with a sparse-data average-computation artifact rather than a real latency incident. Same low-traffic-noise theme already documented for two other signup monitors (154163500, 154252126). Recurred 2026-07-12T11:39:41Z: 9 requests in window, one 14.40s outlier (11:27:30Z) among near-zero-latency requests dragged the 15-min average over threshold -- same mechanism.",
     "silence_for": "24h",
     "first_seen": "2026-07-12T05:55:41Z",
-    "last_seen": "2026-07-17T07:38:41+00:00",
-    "occurrences": 3,
-    "recommendation": "widen the evaluation window, switch to p95/p99 with a minimum-request-volume floor, or consolidate under one review with the other two noisy signup monitors"
+    "last_seen": "2026-07-30T01:28:42Z",
+    "occurrences": 4,
+    "recommendation": "widen the evaluation window, switch to p95/p99 with a minimum-request-volume floor, or consolidate under one review with the other two noisy signup monitors",
+    "notes": [
+      {
+        "ts": "2026-07-30T14:45:00Z",
+        "note": "2026-07-30 ~14:45Z triage (degraded cycle, no Slack MCP): monitor 154252601 fired 01:28:42Z, hash a1e03b492c6b008c, occ 3->4. Metric re-query max avg 0.012s vs 5s threshold. Self-DM'd."
+      }
+    ]
   },
   {
     "target": "false-alarms",
@@ -430,13 +444,17 @@
     },
     "reason": "Two method-import-api monitors fired 3 days apart: P2 p95-latency (2026-07-20T15:42:25Z) and P1 5xx-rate (2026-07-23T18:29:19Z). DD metric checks: p95:trace.aspnet_core.request{service:method-import-api,env:prod} over the first window shows a baseline ~0.01s with two brief spikes to 0.72s/0.19s (still far below the 5s threshold at its peak-adjacent points, consistent with a sparse-sample percentile artifact); sum:trace.aspnet_core.request.errors{service:method-import-api,env:prod} over the second window = 0 errors. Both self-recovered, no corroborating error signal.",
     "first_seen": "2026-07-20T15:42:25Z",
-    "last_seen": "2026-07-29T16:35:19Z",
-    "occurrences": 6,
+    "last_seen": "2026-07-30T13:13:20Z",
+    "occurrences": 7,
     "silence_for": "24h",
     "notes": [
       {
         "ts": "2026-07-29T17:12:00Z",
         "note": "2026-07-29 17:12Z triage (degraded cycle, no Slack MCP; DD monitor scan-diff vs prior cutoff 2026-07-29T16:09:11Z). Monitor 299551459 ([Admin][ImportAPI][P1] 5xx error rate elevated (method-import-api)) fired 2026-07-29T16:35:19Z, hash ba1b5c4de25ce717, occ->6. Monitor query is 5xx-rate>5% over last_5m; exact eval window (16:30:19-16:35:19Z): sum:trace.aspnet_core.request.errors{service:method-import-api,env:prod}.as_count() = empty series (0 errors), sum:trace.aspnet_core.request.hits same window = 25 points summing ~53. A 4-error blip visible just outside this window (16:29:00Z, in a wider +/-5min probe) predates the monitor's own eval window -- known DD-metric-API/monitor-evaluator resampling-gap artifact documented on other entries (e.g. ki-2026-07-06-runtime-core-redis-cache-timeout-transient-burst), not evidence within the window that actually tripped the monitor. Self-recovered, no corroborating error signal inside the real eval window -- same transient-blip mechanism as prior 5 occurrences. No thread-reply path in degraded mode -- kb-update self-DM sent."
+      },
+      {
+        "ts": "2026-07-30T14:45:00Z",
+        "note": "2026-07-30 ~14:45Z triage (degraded cycle, no Slack MCP): monitor 299551459 fired 13:13:20Z, hash 4031a11dadbbe251, occ 6->7. Metric re-query: 0 errors (empty series) in exact eval window. Self-DM'd."
       }
     ]
   },
@@ -457,8 +475,8 @@
     },
     "reason": "DD metric sum:trace.aspnet.request.errors{service:methodportal.com,env:prod} over 2026-07-23T04:02:24-04:42:24Z (+/-20min around the fire): 0 errors. Same low-traffic-ratio-artifact mechanism as fa-2026-07-12-mapi-5xx-rate-low-traffic-ratio-artifact and the signup low-traffic family, applied to a different service.",
     "first_seen": "2026-07-23T04:22:24Z",
-    "last_seen": "2026-07-29T18:01:24Z",
-    "occurrences": 25,
+    "last_seen": "2026-07-30T14:26:24Z",
+    "occurrences": 26,
     "silence_for": "24h",
     "notes": [
       {
@@ -540,6 +558,10 @@
       {
         "ts": "2026-07-29T17:11:00Z",
         "note": "2026-07-29 17:11Z triage (degraded cycle, no Slack MCP; DD monitor scan-diff vs prior cutoff 2026-07-29T16:09:11Z). Monitor 299551644 ([VAE][Portal][P1] 5xx error rate elevated (methodportal.com)) fired 2026-07-29T16:25:24Z, hash 6ba9adc060580341, occ->24. DD metric sum:trace.aspnet.request.errors{service:methodportal.com,env:prod}.as_count() 16:15:24-16:25:24Z: empty series (0 errors). sum:trace.aspnet.request.hits same window: 3 points (1,1,4), sum=6 -- extremely sparse traffic, same low-traffic-ratio-artifact mechanism as prior 23 occurrences. No thread-reply path in degraded mode -- kb-update self-DM sent."
+      },
+      {
+        "ts": "2026-07-30T14:45:00Z",
+        "note": "2026-07-30 ~14:45Z triage (degraded cycle, no Slack MCP): monitor 299551644 fired 14:26:24Z, hash 70e9cfc4ba6320d6, occ 25->26. Metric re-query: 1 total error in window. Self-DM'd."
       }
     ]
   },
@@ -587,8 +609,8 @@
     },
     "reason": "Three [QA][Gatling] monitors fired across the backlog window (ms-support-api, eda_orchestrator_api, ms-apps-api P95 latency), all tagged env:warehouse team:qa source:gatling -- these are load-test result monitors against the warehouse (non-prod) environment, not production alerts. Same non-prod-noise class as the already-documented ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata and ki-2026-07-03-warehouse-dashboard-network-test-nodata (both 'confirmed-non-prod-noise').",
     "first_seen": "2026-07-16T15:28:39Z",
-    "last_seen": "2026-07-29T12:10:55Z",
-    "occurrences": 12,
+    "last_seen": "2026-07-30T10:33:56Z",
+    "occurrences": 13,
     "silence_for": "24h",
     "notes": [
       {
@@ -602,6 +624,10 @@
       {
         "ts": "2026-07-29T12:12:48Z",
         "note": "2026-07-29 12:12Z triage (degraded cycle, no Slack MCP; DD monitor scan diff vs 2026-07-29T10:32:57Z cutoff, hash 240296157d9893a0): monitor 305925415 ([QA][Gatling] ms-apps-api P95 latency high (warehouse)) fired 2026-07-29T12:10:55Z, occ 11->12. Monitor tags confirm env:warehouse team:qa source:gatling -- non-prod load-test monitor family, same mechanism as prior 11 occurrences. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-07-29-240296157d9893a0.md."
+      },
+      {
+        "ts": "2026-07-30T14:45:00Z",
+        "note": "2026-07-30 ~14:45Z triage (degraded cycle, no Slack MCP): monitor 305925415 fired 10:33:56Z, hash d0276e9120a5a22f, occ 12->13. Metric re-query max p95 1.00s vs 2s threshold. Self-DM'd."
       }
     ]
   },
@@ -734,9 +760,15 @@
     },
     "reason": "DD metric percentile(last_10m):p90:trace.aspnet.request{env:prod,service:signup,resource_name:get_/} over 2026-07-20T21:37-21:58Z: only 8 data points (very low traffic) with max 0.011s, far below the monitor's 4s threshold. Same low-traffic-percentile-artifact mechanism as the 2 already-documented signup monitor-noise entries (154252126, and fa-2026-07-12-signup-avg-latency-low-traffic-noise) -- a 3rd signup monitor in the same low-traffic-noise family, different resource_name/monitor id.",
     "first_seen": "2026-07-20T21:52:01Z",
-    "last_seen": "2026-07-20T21:52:01Z",
-    "occurrences": 1,
-    "silence_for": "24h"
+    "last_seen": "2026-07-30T01:23:01Z",
+    "occurrences": 2,
+    "silence_for": "24h",
+    "notes": [
+      {
+        "ts": "2026-07-30T14:45:00Z",
+        "note": "2026-07-30 ~14:45Z triage (degraded cycle, no Slack MCP): monitor 154251781 fired 01:23:01Z, hash 46a36c1ad1f82afa, occ 1->2. Metric re-query max p90 0.012s vs 4s threshold. Self-DM'd, no thread-reply path in degraded mode."
+      }
+    ]
   },
   {
     "target": "false-alarms",
@@ -760,5 +792,64 @@
     "last_seen": "2026-07-26T05:46:27Z",
     "occurrences": 1,
     "recommendation": "Same recommendation as the sibling low-traffic-ratio-artifact entries: consider widening the monitor eval window or adding a minimum-request-count floor so a single error cannot trip a percentage threshold during low-traffic periods."
+  },
+  {
+    "target": "false-alarms",
+    "id": "fa-2026-07-30-eda-orchestrator-kafka-produce-errors-monitor-noise",
+    "match": {
+      "channels": [
+        "alert-system"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/296639892"
+        },
+        {
+          "contains": "[EDA][Kafka][P1] Kafka produce errors"
+        }
+      ]
+    },
+    "reason": "eda_orchestrator_api Kafka-produce error-ratio monitor (sum(last_5m):100 * errors/hits > 1%). DD metric re-query for the alert window (09:50:13-10:30:13Z) shows a legitimate traffic burst (baseline ~5-135 hits/10s climbing to ~2,900 hits/10s for ~90s right before the trigger) against exactly 1 total produce error in the whole 40-min window -- nowhere near a genuine 1% error rate over any real interval. 0 status:error DD logs on the service in-window. Same low-traffic/burst-ratio monitor-noise shape already documented on HTTP-status-ratio monitors (ki-2026-07-04-ms-account-api-4xx-spike-monitor-noise, ki-2026-07-07-gateway-4xx-spike-monitor-noise, fa-2026-07-12-mapi-5xx-rate-low-traffic-ratio-artifact), now confirmed on a Kafka-produce-ratio monitor too.",
+    "silence_for": "24h",
+    "first_seen": "2026-07-30T10:20:13Z",
+    "last_seen": "2026-07-30T10:20:13Z",
+    "occurrences": 1,
+    "notes": [
+      {
+        "ts": "2026-07-30T14:29:00Z",
+        "note": "2026-07-30 ~14:29Z triage (degraded cycle, no Slack MCP; DD monitor scan-diff vs prior cutoff 2026-07-29T18:01:24Z). First-ever fire of monitor 296639892 in kb/incident-log.jsonl (0 prior mentions). See docs/investigations/2026-07-30-426161c97bbe9dea.md."
+      }
+    ]
+  },
+  {
+    "target": "false-alarms",
+    "id": "fa-2026-07-30-warehouse-hosts-high-cpu-monitor-noise",
+    "match": {
+      "channels": [
+        "alert-system"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/309602252"
+        },
+        {
+          "contains": "High CPU Usage — Warehouse Hosts"
+        },
+        {
+          "contains": "High CPU Usage - Warehouse Hosts"
+        }
+      ]
+    },
+    "reason": "Non-prod QA/warehouse host CPU monitor (team:qa, env:warehouse; avg(last_5m):avg:system.cpu.user{host:dev-warehouse-linux OR host:dev-warehouse-windows} by {host} > 95). DD metric re-query for the alert window (18:29:40-19:09:40Z) never approached the 95% threshold (linux peak ~7.7%, windows peak ~36.3%, both single 10s bursts consistent with a periodic scheduled QA job) -- the monitor's own 5-min rolling evaluator apparently caught a narrower spike the reconstructed series doesn't corroborate, a resampling-gap shape already documented on several other monitor-noise entries. 0 error logs on either host. Non-prod hosts -- even a genuine spike here has 0 customer impact.",
+    "silence_for": "24h",
+    "first_seen": "2026-07-29T18:59:40Z",
+    "last_seen": "2026-07-29T18:59:40Z",
+    "occurrences": 1,
+    "notes": [
+      {
+        "ts": "2026-07-30T14:29:00Z",
+        "note": "2026-07-30 ~14:29Z triage (degraded cycle, no Slack MCP; DD monitor scan-diff vs prior cutoff 2026-07-29T18:01:24Z). First-ever fire of monitor 309602252 in kb/incident-log.jsonl (0 prior mentions). See docs/investigations/2026-07-29-450a3fc60a73ab61.md."
+      }
+    ]
   }
 ]
