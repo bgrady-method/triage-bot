@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-30T14:28:11Z",
-    "occurrences": 600,
+    "last_seen": "2026-07-30T16:05:12Z",
+    "occurrences": 601,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -160,6 +160,10 @@
     "last_notified_at": "2026-07-30T14:28:11Z",
     "prior_fix_status": "needs-ops-decision",
     "notes": [
+      {
+        "ts": "2026-07-30T16:25:00Z",
+        "note": "2026-07-30 16:25Z triage (degraded cycle, no Slack MCP): occ#601 via monitor 77419271 last_triggered 16:05:12Z (Warn at scan time). ES aggregate (service:gateway, level:Warning) 15:45:12-16:05:12Z: 647 hits -- chronic magnitude, consistent with the documented pattern. last_notified_at (2026-07-30T14:28:11Z) ~1h37m ago, WITHIN 24h suppression window; occ 601 not %10 -> SUPPRESS, gate_reason=known-issue-window, appended to docs/actionable/2026-07-30.md. See docs/investigations/2026-07-30-7d61d5d6015d9c81.md."
+      },
       {
         "ts": "2026-07-13T18:32:00Z",
         "note": "2026-07-13 18:32Z triage (degraded cycle, DD monitor scan diff -- widened diff to ALL last_triggered_ts > prior cutoff 2026-07-13T17:02:08Z; hash edb12131bb7f7ddc): occ#575 via monitor 77419271 last_triggered 2026-07-13T17:59:11Z (OK by scan time, self-recovered). DD logs (service:method-ui XHR errors, GetSyncWidgetInfoAsync) 17:44:11-17:59:11Z: 200+ hits (limit-capped), diffuse account fan-out (top EnglandLogistics 6%, intrepidrocks2 5%), canonical chronic shape -- no single-account concentration. ES aggregate (Exception.keyword:*TimedOut* OR message:*Ocelot* OR message:*ResponderMiddleware*) same window: 399 hits, dominant service gateway (212) -- chronic mechanism confirmed, elevated vs the 15:08:12Z occurrence's 356/178. service:ms-gateway-api status:error DD Logs: 0 hits -- 5th CONSECUTIVE occurrence with this ES-vs-DD-Logs split (following 2026-07-12T14:08Z/21:48Z/22:50Z and 2026-07-13T15:08:12Z), continuing the pattern flagged for Ben in the last POSTED occurrence's message (which already recommended checking whether DD Logs' status:error facet is capturing Ocelot ResponderMiddleware timeouts for ms-gateway-api at all). TEMPORAL NOTE: DD monitor 115456700 (ki-24, RTC Screen Load p95) fired 6 min later at 18:05:20Z -- both processed as separate groups this same cycle; precedence_note's co-fire criterion (>=2 alerts each in the same 60-min window) is not met (1 alert each this cycle) so NOT treated as a joint shared-upstream incident, but the proximity is noted. last_notified_at (2026-07-13T15:08:12Z) ~2h51m ago, WITHIN 24h suppression window; occ 575 not %10; fix_status (chronic-residual-post-rollback-2026-06-05) unchanged -> SUPPRESS, gate_reason=known-issue-window, appended to docs/actionable/2026-07-13.md. See docs/investigations/2026-07-13-edb12131bb7f7ddc.md."
@@ -2596,8 +2600,8 @@
     "id": "ki-2026-07-06-rainforest-merchant-details-503-serviceunavailable",
     "title": "runtime-core-api Rainforest GetMerchantAsync (merchant-details lookup) fails with ServiceUnavailable when Rainforest's own API returns a 503 -- third-party payment-processor degradation, not a Method-side defect",
     "first_seen": "2026-07-06T13:02:25Z",
-    "last_seen": "2026-07-30T14:28:52Z",
-    "occurrences": 18,
+    "last_seen": "2026-07-30T16:06:52Z",
+    "occurrences": 19,
     "match": {
       "channels": [
         "alert-system"
@@ -2700,6 +2704,10 @@
       {
         "ts": "2026-07-29T11:20:00Z",
         "note": "2026-07-29 11:20Z triage (degraded cycle, no Slack MCP). Monitor 295882732 fired 08:12:52Z, hash 849bba02f863191f, occ 16->17. ES fields.dd_service.keyword:\"runtime-core-api\" AND message:*rainforest* 07:57:52-08:12:52Z: 6 hits (3 distinct events at 08:01:17Z/08:01:56Z/08:02:07Z, each a paired 'Subscription Payment Processing Failed' + 'create payment method payin request failed' log). Signature check: NOT this entry's founding GetMerchantAsync/503-ServiceUnavailable mechanism, and NOT the previously-tracked sierrashredllc/mid_3CiW.../amount:0/CreatePayinConfigAsync sub-signature either -- this is a third distinct sub-signature: RainforestProvider.CreatePaymentMethodPayinAsync failing with 400 BadRequest ('Payment method not available for processing', field payment_method_id), 3 distinct real PaymentMethodIds (mtd_3DdXP0aHZb17aW20xB8k2wcPBXM, mtd_3DdXOjJwmEzgwK5HwaBfkZ9NfIK, mtd_3DdXNBuhD5LG8ZiNKaXrdOkPhnS) and 3 distinct entityRecordIds, no AccountName field present in this log shape so account identity not directly confirmed but no alocetsystem/internal markers present either (unlike the 07-24 11:25Z REFUTED bulk-job case). Per the entry's own established precedent (07-25 note: absorb distinct-but-related real-traffic Rainforest BadRequest sub-signatures under this monitor-scoped entry; only refute when ES shows a genuinely unrelated service/mechanism or bulk-internal noise) -- ABSORBED, occurrences bumped. last_notified_at 2026-07-24T13:58:52Z, ~4d18h ago, well past the 24h window -> POSTED to #triage-results, gate_reason=null (window-expiry), last_notified_at bumped to 2026-07-29T08:12:52Z. Standing KB-split recommendation (503 third-party / sierrashredllc-amount:0 / this-new-CreatePaymentMethodPayinAsync-BadRequest) now covers 3 sub-signatures under one entry -- reiterating the split recommendation with an additional data point. See docs/investigations/2026-07-29-849bba02f863191f.md."
+      },
+      {
+        "ts": "2026-07-30T16:28:00Z",
+        "note": "2026-07-30 ~16:28Z triage (degraded cycle, no Slack MCP): occ 18->19. Monitor 295882732 fired 16:06:52Z. ES fields.dd_service.keyword:\"runtime-core-api\" AND message:*rainforest* 15:51:52-16:06:52Z: 1 hit -- 'Rainforest API create payin config request failed with status: BadRequest for merchant: mid_3CiWKRBsVy01nkQmRpMuyXjzc11, amount: 0' -- same sierrashredllc/CreatePayinConfigAsync/amount:0 sub-signature as the prior occurrence. last_notified_at (2026-07-30T14:28:52Z) ~1h38m ago, WITHIN 24h suppression window; occ 19 not %10 -> SUPPRESS, gate_reason=known-issue-window, appended to docs/actionable/2026-07-30.md. See docs/investigations/2026-07-30-48974610d5786f03.md."
       },
       {
         "ts": "2026-07-30T14:45:00Z",
@@ -3671,8 +3679,8 @@
     "id": "ki-2026-07-15-app-update-push-salesorders-v182-name-collision",
     "title": "App Update push of template app 'Sales Orders' v182 fails on ~196 accounts with 400 ErrorCode 50 \"The field 'Name' already exists\" on view InvSalesOrderRevertReason -- leaves partial schema (preference field created, target table missing); the ~5,500-account fan-out is also a 4.5x load storm on ms-tables-fields-api",
     "first_seen": "2026-07-15T13:13:13Z",
-    "last_seen": "2026-07-15T13:44:51Z",
-    "occurrences": 1,
+    "last_seen": "2026-07-30T15:57:35Z",
+    "occurrences": 2,
     "match": {
       "channels": [
         "alert-system",
@@ -3710,9 +3718,15 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.88,
-    "last_notified_at": "2026-07-15T15:10:00Z",
+    "last_notified_at": "2026-07-30T16:19:23Z",
     "owning_team": "CRM Experience",
-    "notes": "Follow-ups: (a) make bundle application atomic or roll back SuccessfulBundle entries on partial failure -- highest-value fix; (b) throttle/stagger the push consumer (~5,500 accounts in 27 min = 4.5x load on a critical-path service, and it grows with the subscriber base); (c) reconcile the 196 accounts left on v181 content + a v182 preference field; (d) NO monitor exists on app-update job failure rate -- 196 accounts failed and every monitor that fired named the wrong service."
+    "notes": "Follow-ups: (a) make bundle application atomic or roll back SuccessfulBundle entries on partial failure -- highest-value fix; (b) throttle/stagger the push consumer (~5,500 accounts in 27 min = 4.5x load on a critical-path service, and it grows with the subscriber base); (c) reconcile the 196 accounts left on v181 content + a v182 preference field; (d) NO monitor exists on app-update job failure rate -- 196 accounts failed and every monitor that fired named the wrong service.",
+    "history": [
+      {
+        "ts": "2026-07-30T16:19:23Z",
+        "note": "2026-07-30 ~15:57-16:06Z triage (degraded cycle, no Slack MCP): occ 1->2, 15 days after the origin incident, confirming the mechanism recurs across different apps. This occurrence: mass push of app \"Send Email\" v71 (JobId 8e0f2faa, ~5,174 subscriber accounts), started 15:49:52Z. Redis circuit breaker opened twice as an effect (15:53:10Z, 15:56:52Z), tripping monitor 227940275; tables-fields p95 spiked to 1.72s peak, tripping monitor 299251779 8 min later. Load story: 19,991 hits / 751 peak bucket vs 3,726 / 235 the same window 24h earlier (~5.4x volume, ~3.2x peak) -- comparable to the origin's 4.5x. Functional damage much smaller than the origin case: only 1 account (stellarair) failed, HTTP 400 on view Activity/field ReceivePaymentRecordID, and the bundle rejected ATOMICALLY (SuccessfulBundle and UnSuccessfulBundle both empty) -- no split-schema stranding this time, unlike the origin's 196-account partial-apply. RTC screen load (115456700) and RTC p95 (117279738) did not co-fire (last triggered 2026-07-29). last_notified_at (2026-07-15T15:10:00Z) far past the 24h suppression window -> POSTED to #triage-results, gate_reason=null. See docs/investigations/2026-07-30-d2be1b43cde2233b.md."
+      }
+    ]
   },
   {
     "id": "ki-2026-07-28-tables-fields-editview-viewgen-failed-after-retry",
