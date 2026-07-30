@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-30T21:07:12Z",
-    "occurrences": 604,
+    "last_seen": "2026-07-30T22:03:11Z",
+    "occurrences": 605,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -519,6 +519,10 @@
       {
         "ts": "2026-07-30T21:08:00Z",
         "note": "2026-07-30 ~21:08Z triage (degraded cycle, no Slack MCP): occ#604 via monitor 77419271 last_triggered 21:07:12Z (Warn at scan time). DD method-ui status:error *xhr* logs 20:52:12-21:07:12Z = 100 hits (limit reached), diffuse (top EnglandLogistics 11/100=11%), canonical error.stack:\"Failed to load\" chronic shape, no concentration. ki-24 co-fire check (monitors 115456700/117279738): both stale (last fired 19:40:20Z/19:44:18Z, from the earlier same-cycle Redis incident, not this fire) -- no co-firing, classified independently. last_notified_at 2026-07-30T14:28:11Z = ~6h39m ago, WITHIN 24h suppression window; occ 603->604 (not %10); fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-07-30-92e8d5d09a30f77a.md."
+      },
+      {
+        "ts": "2026-07-30T22:10:00Z",
+        "note": "2026-07-30 22:10Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed and found no matching deferred tool). Full 186-monitor DD scan diffed vs prior cutoff 2026-07-30T21:07:12Z (max last_triggered_ts processed last cycle, monitor 77419271): 155 OK, 28 No Data, 2 Alert, 1 Warn (persisting Alert-state monitors 154229727 Signup Availability SLO last fired 2026-07-24, 227951254 catch-all last fired 2025-10-16 -- both predate cutoff, already accounted for). Exactly 1 monitor with last_triggered_ts past cutoff: 77419271, fired 22:03:11Z, OK at scan time (self-recovered) -- ki-21 occurrence, no other new signal this cycle. DD method-ui status:error *xhr* logs 21:53:11-22:03:11Z: 100 hits (limit reached), 57 distinct accounts, diffuse (top holeintheroof2 7%, boswellwindows3 6, solariscanada 5, deltakits1 5, EnglandLogistics 3) -- canonical GetSyncWidgetInfoAsync/status_code:0 chronic shape, no concentration, NOT the 2026-06-04 100x OUTAGE surge. NO ki-24 co-fire: RTC monitors 115456700 (last 19:40:20Z) / 117279738 (last 19:44:18Z) both stale (>2h) relative to this fire. occ 604->605 (not %10). last_notified_at (2026-07-30T14:28:11Z) ~7h42m ago, WITHIN 24h suppression window; fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS, gate_reason=known-issue-window, appended to docs/actionable/2026-07-30.md. Synthetic hash 04b273df286b0c68 (channel C03TYHGRS23 + DD monitor ts 2026-07-30T22:03:11+00:00). Working branch alerting-system-grafana confirmed (not main). Pre-existing uncommitted WIP changes from other concurrent sessions in the working tree left untouched -- staged only this cycle's explicit file list, no git add -A."
       }
     ],
     "prior_last_notified_at": "2026-07-26T14:01:11Z"
