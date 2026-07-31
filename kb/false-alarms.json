@@ -21,8 +21,8 @@
     "reason": "method-import-subscriber is a low-frequency batch AMQP consumer, not a continuous one. 24h history (2026-07-05 13:05 -> 2026-07-06 10:33) shows only 8 non-zero hit buckets, in bursts of 1-2060 messages separated by gaps of 3-11.5 hours. The monitor's 'sum(last_30m) < 1' threshold trips on every natural idle gap over 30 minutes, which happens multiple times a day by design -- not a service outage. 0 error logs on the service for the full day. This fire (11:05:32Z) came 32 minutes after the last burst ended (10:33:30Z), squarely inside the service's normal idle pattern.",
     "silence_for": "24h",
     "first_seen": "2026-07-06T11:05:32Z",
-    "last_seen": "2026-07-30T17:51:32Z",
-    "occurrences": 89,
+    "last_seen": "2026-07-31T00:54:32Z",
+    "occurrences": 90,
     "recommendation": "monitor threshold mismatch, not a false-alarm-forever situation -- recommend widening the No-Data window (e.g. 6h) or switching to a message-backlog-depth check instead of a hits-in-window check; flagging for Admin team, not silencing indefinitely",
     "notes": [
       {
@@ -216,6 +216,10 @@
       {
         "ts": "2026-07-30T18:36:00Z",
         "note": "2026-07-30 ~18:36Z triage (degraded cycle, no Slack MCP): monitor 299551472 fired 17:51:32Z, hash cb14009696524e4a, occ 88->89. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() 17:32:12-17:58:12Z: two ~396-message bursts separated by idle gaps -- classic bursty-consumer idle-gap shape. 0 status:error DD logs. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-07-30-cb14009696524e4a.md."
+      },
+      {
+        "ts": "2026-07-31T11:24:00Z",
+        "note": "2026-07-31 ~11:08Z triage (degraded cycle, no Slack MCP; DD monitor scan diff vs 2026-07-30T22:03:11Z cutoff after a 13h scheduler gap): monitor 299551472 No Data 2026-07-31T00:54:32Z, hash 12bc30fb01790034, occ 89->90, still No Data at scan time (~10h13m later). DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() 00:24:32-00:54:32Z: empty series (0 points), 0 status:error DD logs over the same window -- consistent with the documented low-frequency-batch-consumer idle-gap pattern, 90th occurrence. No thread-reply path in degraded mode -- kb-update self-DM sent."
       }
     ]
   },
@@ -398,9 +402,15 @@
     "reason": "DD RUM Error Tracking for service:method-nativemobile-ui over the trailing 4h (2026-07-14T19:00-23:30Z): 181 @type:error events vs 1464 @type:view events = 12.4% error rate (monitor threshold >5%). Message breakdown of all 181 sampled errors: 83 'A server with the specified hostname could not be found.' (DNS resolution failure, 45.9%), 74 'cancelled' (request cancelled mid-flight, typically app backgrounding/navigation-away, 40.9%), 12 'A TLS error caused the secure connection to fail.' (6.6%), plus small counts of 'Network Error'/'offline'/Expo-token-fetch failures. Every message is a client-side network-connectivity signature (DNS/TLS/cancellation on mobile devices with flaky connectivity) -- none are application-level 4xx/5xx or server-side exceptions. No correlated backend service alert fired in the same window. This is inherent RUM noise from real-world mobile network conditions, not a backend incident.",
     "silence_for": "24h",
     "first_seen": "2026-07-14T23:01:19Z",
-    "last_seen": "2026-07-14T23:01:19Z",
-    "occurrences": 1,
-    "recommendation": "monitor threshold (>5% over trailing 4h) is too sensitive for a mobile RUM error-rate check that includes DNS/TLS/cancellation noise; recommend excluding 'cancelled' and DNS-resolution-failure messages from the numerator, or raising the threshold, before this becomes a recurring low-value fire; flag to Admin (owns method-nativemobile-ui per ownership.md, despite the monitor's team:crm tag)."
+    "last_seen": "2026-07-31T09:45:19Z",
+    "occurrences": 2,
+    "recommendation": "monitor threshold (>5% over trailing 4h) is too sensitive for a mobile RUM error-rate check that includes DNS/TLS/cancellation noise; recommend excluding 'cancelled' and DNS-resolution-failure messages from the numerator, or raising the threshold, before this becomes a recurring low-value fire; flag to Admin (owns method-nativemobile-ui per ownership.md, despite the monitor's team:crm tag).",
+    "notes": [
+      {
+        "ts": "2026-07-31T11:24:00Z",
+        "note": "2026-07-31 ~11:08Z triage (degraded cycle, no Slack MCP; DD monitor scan diff vs 2026-07-30T22:03:11Z cutoff): monitor 305454649 fired 2026-07-31T09:45:19Z, hash 95ee6237e9f2024b, occ 1->2, STILL Alert at scan time (~1h23m later -- longer-lived than the single documented occurrence, consistent with this monitor's 4h-trailing-window formula (query2/query1)*100>5 taking longer to clear than a spot-check monitor). DD RUM Error Tracking for service:method-nativemobile-ui over the monitor's own trailing 4h window (05:45:19-09:45:19Z): 25 @type:error vs 163 @type:view = 15.3% error rate. Full message breakdown of the 25 errors: 12 'Network error, saving log locally Network Error' (48%), 5 'cancelled' (20%), 3 'Memory Warning' (12%), 3 'The network connection was lost.' (12%), 1 Expo-token-fetch TypeError (4%), 1 'Request failed with status code 401' (4%) -- 21/25 (84%) are client-side network-connectivity signatures (same family as the documented DNS/TLS/cancellation noise, slightly different message mix this occurrence), no correlated backend service alert fired in this cycle. Still classified as client-side RUM noise, not a backend incident -- note the slightly wider message variety (Memory Warning, one 401) for future comparison if this pattern ever needs re-evaluation. No thread-reply path in degraded mode -- kb-update self-DM sent."
+      }
+    ]
   },
   {
     "id": "fa-2026-07-23-eda-inventory-p1-p2-cofire-monitoring-noise",
@@ -479,8 +489,8 @@
     },
     "reason": "DD metric sum:trace.aspnet.request.errors{service:methodportal.com,env:prod} over 2026-07-23T04:02:24-04:42:24Z (+/-20min around the fire): 0 errors. Same low-traffic-ratio-artifact mechanism as fa-2026-07-12-mapi-5xx-rate-low-traffic-ratio-artifact and the signup low-traffic family, applied to a different service.",
     "first_seen": "2026-07-23T04:22:24Z",
-    "last_seen": "2026-07-30T17:35:25Z",
-    "occurrences": 28,
+    "last_seen": "2026-07-30T22:25:24Z",
+    "occurrences": 29,
     "silence_for": "24h",
     "notes": [
       {
@@ -574,6 +584,10 @@
       {
         "ts": "2026-07-30T18:33:00Z",
         "note": "2026-07-30 ~18:33Z triage (degraded cycle, no Slack MCP): monitor 299551644 fired 17:35:25Z, hash 8dd19f417223171d, occ 27->28. DD metric sum:trace.aspnet.request.errors{service:methodportal.com,env:prod}.as_count() 17:25:25-17:35:25Z: 1 error point (17:24:00Z, value 1.0). sum:trace.aspnet.request.hits same window: 69 hits (4+65) -- sparse but non-trivial traffic, same low-traffic-ratio-artifact mechanism as prior 27 occurrences. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-07-30-8dd19f417223171d.md."
+      },
+      {
+        "ts": "2026-07-31T11:24:00Z",
+        "note": "2026-07-31 ~11:08Z triage (degraded cycle, no Slack MCP; DD monitor scan diff vs 2026-07-30T22:03:11Z cutoff after a 13h scheduler gap): monitor 299551644 fired 2026-07-30T22:25:24Z, hash 88dec8fabe5fee9a, occ 28->29. DD metric sum:trace.aspnet.request.errors{service:methodportal.com,env:prod}.as_count() 22:15:24-22:25:24Z: empty series (0 errors). sum:trace.aspnet.request.hits same window: 1 total hit -- extremely sparse traffic, same low-traffic-ratio-artifact mechanism as prior 28 occurrences. No thread-reply path in degraded mode -- kb-update self-DM sent."
       }
     ]
   },
