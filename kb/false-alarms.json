@@ -21,8 +21,8 @@
     "reason": "method-import-subscriber is a low-frequency batch AMQP consumer, not a continuous one. 24h history (2026-07-05 13:05 -> 2026-07-06 10:33) shows only 8 non-zero hit buckets, in bursts of 1-2060 messages separated by gaps of 3-11.5 hours. The monitor's 'sum(last_30m) < 1' threshold trips on every natural idle gap over 30 minutes, which happens multiple times a day by design -- not a service outage. 0 error logs on the service for the full day. This fire (11:05:32Z) came 32 minutes after the last burst ended (10:33:30Z), squarely inside the service's normal idle pattern.",
     "silence_for": "24h",
     "first_seen": "2026-07-06T11:05:32Z",
-    "last_seen": "2026-07-31T14:59:32Z",
-    "occurrences": 92,
+    "last_seen": "2026-07-31T15:18:32Z",
+    "occurrences": 93,
     "recommendation": "monitor threshold mismatch, not a false-alarm-forever situation -- recommend widening the No-Data window (e.g. 6h) or switching to a message-backlog-depth check instead of a hits-in-window check; flagging for Admin team, not silencing indefinitely",
     "notes": [
       {
@@ -228,6 +228,10 @@
       {
         "ts": "2026-07-31T15:07:56Z",
         "note": "2026-07-31 ~15:07Z triage (degraded cycle, no Slack MCP; DD monitor scan diff vs 2026-07-31T14:05:41Z cutoff): monitor 299551472 fired 14:59:32Z, hash 1323ec6eff1438ba, occ 91->92. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} over 14:29:32-14:59:32Z: empty series (no points). 0 status:error DD logs on the service over the same window. Same idle-gap shape as prior 91 occurrences. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only."
+      },
+      {
+        "ts": "2026-07-31T16:15:00Z",
+        "note": "2026-07-31 ~16:07-16:15Z triage (degraded cycle, no Slack MCP surfaced this session): monitor 299551472 state-transition (Alert->OK recovery) 15:18:32Z, hash 483e835230d61b79, occ 92->93. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} 14:48:32-15:18:32Z: 0 points for ~28min then a 638-message burst (1,5,345,293) at 15:16:30-15:17:09Z clearing the idle condition -- same idle-gap-then-burst shape as prior occurrences. 0 error logs. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-07-31-483e835230d61b79.md."
       }
     ]
   },
@@ -647,8 +651,8 @@
     },
     "reason": "Three [QA][Gatling] monitors fired across the backlog window (ms-support-api, eda_orchestrator_api, ms-apps-api P95 latency), all tagged env:warehouse team:qa source:gatling -- these are load-test result monitors against the warehouse (non-prod) environment, not production alerts. Same non-prod-noise class as the already-documented ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata and ki-2026-07-03-warehouse-dashboard-network-test-nodata (both 'confirmed-non-prod-noise').",
     "first_seen": "2026-07-16T15:28:39Z",
-    "last_seen": "2026-07-30T10:33:56Z",
-    "occurrences": 13,
+    "last_seen": "2026-07-31T15:56:48Z",
+    "occurrences": 14,
     "silence_for": "24h",
     "notes": [
       {
@@ -666,6 +670,10 @@
       {
         "ts": "2026-07-30T14:45:00Z",
         "note": "2026-07-30 ~14:45Z triage (degraded cycle, no Slack MCP): monitor 305925415 fired 10:33:56Z, hash d0276e9120a5a22f, occ 12->13. Metric re-query max p95 1.00s vs 2s threshold. Self-DM'd."
+      },
+      {
+        "ts": "2026-07-31T16:15:00Z",
+        "note": "2026-07-31 ~16:07-16:15Z triage (degraded cycle, no Slack MCP): monitor 305932428 ([QA][Gatling] eda_orchestrator_api P95 latency high, warehouse) fired 15:56:48Z, hash e3645b8febf1cab0, occ->bump. DD metric p95:trace.aspnet_core.request{service:eda_orchestrator_api,env:warehouse} 15:26:48-15:56:48Z: two sustained ~59.6-59.9s p95 plateaus (vs 1s threshold) alongside a real traffic surge (14,074 requests, peak 1,004/10s) -- an actively-running Gatling load test, and a notably worse magnitude than any prior occurrence of this monitor (previously 0 data or <=1.00s). 0 error logs. Still non-prod/env:warehouse -- false-alarm classification holds for triage purposes, but flagging the magnitude deviation for QA/Gatling team awareness out-of-band (possible heavier test scenario or a real warehouse-env capacity regression). No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-07-31-e3645b8febf1cab0.md."
       }
     ]
   },
