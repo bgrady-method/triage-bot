@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-31T13:13:11Z",
-    "occurrences": 607,
+    "last_seen": "2026-07-31T14:54:11Z",
+    "occurrences": 608,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -157,7 +157,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.88,
-    "last_notified_at": "2026-07-30T14:28:11Z",
+    "last_notified_at": "2026-07-31T15:07:56Z",
     "prior_fix_status": "needs-ops-decision",
     "notes": [
       {
@@ -531,6 +531,10 @@
       {
         "ts": "2026-07-31T13:13:11Z",
         "note": "2026-07-31 ~14:00-14:20Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed 'slack conversations history mcp' and 'slack', no matching deferred tool found). monitor 77419271 (channel alert-frontend-errors per established routing, not alert-system) fired 13:13:11Z, occ 606->607. Confirmed via DD logs: XHR errors against /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync across 3 distinct accounts (thejpcookecompany, cornhuskerirrgation/tradecorpventures, pma13) in a 30-min sample -- diffuse, matches the established chronic signature. last_notified_at (2026-07-30T14:28:11Z) only ~23h45m old -> SUPPRESSED, gate_reason=known-issue-window."
+      },
+      {
+        "ts": "2026-07-31T15:07:56Z",
+        "note": "2026-07-31 ~15:07Z triage (degraded cycle, no Slack MCP; DD monitor scan diff vs 2026-07-31T14:05:41Z cutoff): monitor 77419271 fired 14:54:11Z, hash cd6f91fe82e527ca, occ 607->608. DD logs service:method-ui status:error *xhr* 14:24:11-14:54:11Z: 100 hits (limit reached), diffuse across accounts (top EnglandLogistics 9%, crslaboratories 4%), dominant path GetSyncWidgetInfoAsync -- canonical chronic shape, no co-fire with ki-24 or the DNS-quota entry. last_notified_at (2026-07-30T14:28:11Z) ~24h40m ago -- PAST 24h suppression window -> POSTED to #triage-results, gate_reason=null, last_notified_at bumped to now."
       }
     ],
     "prior_last_notified_at": "2026-07-26T14:01:11Z"
@@ -2656,8 +2660,8 @@
     "id": "ki-2026-07-06-rainforest-merchant-details-503-serviceunavailable",
     "title": "runtime-core-api Rainforest GetMerchantAsync (merchant-details lookup) fails with ServiceUnavailable when Rainforest's own API returns a 503 -- third-party payment-processor degradation, not a Method-side defect",
     "first_seen": "2026-07-06T13:02:25Z",
-    "last_seen": "2026-07-30T20:59:52Z",
-    "occurrences": 21,
+    "last_seen": "2026-07-31T14:56:52Z",
+    "occurrences": 22,
     "match": {
       "channels": [
         "alert-system"
@@ -2776,6 +2780,10 @@
       {
         "ts": "2026-07-30T21:08:00Z",
         "note": "2026-07-30 ~21:08Z triage (degraded cycle, no Slack MCP): occ 20->21. Monitor 295882732 fired 20:59:52Z, hash baee2a613c2d1b74. ES fields.dd_service.keyword:\"runtime-core-api\" AND message:*rainforest* 20:44:52-20:59:52Z: 0 hits; widened 20:29:52-21:09:00Z: 1 hit, full record read -- same sierrashredllc/mid_3CiWKRBsVy01nkQmRpMuyXjzc11/amount:0/CreatePayinConfigAsync sub-signature absorbed since 2026-07-10 (11th+ instance), this time via real logged-in user William Woods (OPOC/Billing) on Portal Guest - Payment* screen. last_notified_at (2026-07-30T17:54:52Z) ~3h05m ago, WITHIN 24h suppression window; occ 21 not %10 -> SUPPRESS, gate_reason=known-issue-window, appended to docs/actionable/2026-07-30.md. Standing KB-split recommendation (503 third-party vs 400 sierrashredllc/amount:0) reiterated again, not yet actioned. See docs/investigations/2026-07-30-baee2a613c2d1b74.md."
+      },
+      {
+        "ts": "2026-07-31T15:07:56Z",
+        "note": "2026-07-31 ~15:07Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-31T14:05:41Z cutoff): monitor 295882732 fired 14:56:52Z, hash beb97db10b1ce09d, occ 21->22. ES fields.dd_service.keyword:\"runtime-core-api\" AND message:*rainforest* 14:26:52-14:56:52Z: 1 hit, full record read -- same sierrashredllc/mid_3CiWKRBsVy01nkQmRpMuyXjzc11/amount:0/CreatePayinConfigAsync sub-signature absorbed since 2026-07-10 (12th+ instance), this time via real logged-in user Grace Wafford on the Portal 'Guest - Payment*' screen (App: Payments). last_notified_at (2026-07-30T17:54:52Z) ~21h13m ago, WITHIN 24h suppression window; occ 22 not %10 -> SUPPRESSED, gate_reason=known-issue-window, appended to docs/actionable/2026-07-31.md. Standing KB-split recommendation (503 third-party vs 400 sierrashredllc/amount:0) reiterated again, not yet actioned."
       }
     ]
   },
