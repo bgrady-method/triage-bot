@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-07-30T23:40:12Z",
-    "occurrences": 606,
+    "last_seen": "2026-07-31T13:13:11Z",
+    "occurrences": 607,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -527,6 +527,10 @@
       {
         "ts": "2026-07-31T11:24:00Z",
         "note": "2026-07-31 ~11:08Z triage (degraded cycle, no Slack MCP; DD monitor scan diff vs 2026-07-30T22:03:11Z cutoff): monitor 77419271 fired 2026-07-30T23:40:12Z, hash 6849137dfdad50a8, occ 605->606, OK at scan time (self-recovered). DD logs service:method-ui status:error *xhr* 23:30:12-23:40:12Z: 100 hits (limit reached), diffuse across accounts (top AvantSleep 15%, haydenfire1 10%, usafleetsolutions 7%), canonical chronic shape. last_notified_at (2026-07-30T14:28:11Z) ~20h42m ago -- within 24h suppression window, occ 606 not %10 -> SUPPRESSED, gate_reason=known-issue-window, appended to docs/actionable/2026-07-31.md."
+      },
+      {
+        "ts": "2026-07-31T13:13:11Z",
+        "note": "2026-07-31 ~14:00-14:20Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed 'slack conversations history mcp' and 'slack', no matching deferred tool found). monitor 77419271 (channel alert-frontend-errors per established routing, not alert-system) fired 13:13:11Z, occ 606->607. Confirmed via DD logs: XHR errors against /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync across 3 distinct accounts (thejpcookecompany, cornhuskerirrgation/tradecorpventures, pma13) in a 30-min sample -- diffuse, matches the established chronic signature. last_notified_at (2026-07-30T14:28:11Z) only ~23h45m old -> SUPPRESSED, gate_reason=known-issue-window."
       }
     ],
     "prior_last_notified_at": "2026-07-26T14:01:11Z"
@@ -535,8 +539,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-07-30T16:19:20Z",
-    "occurrences": 252,
+    "last_seen": "2026-07-31T13:25:20Z",
+    "occurrences": 253,
     "match": {
       "channels": [
         "alert-system",
@@ -751,6 +755,10 @@
       {
         "ts": "2026-07-30T17:16:37Z",
         "note": "2026-07-30 17:16Z triage (degraded cycle, no Slack MCP; DD monitor scan-diff vs prior cutoff 2026-07-30T16:06:52Z). Monitor 115456700 (RTC Screen Load) last_triggered_ts 2026-07-30T16:19:20Z (OK at scan time, self-recovered), hash 77361e907f3ae378, occ 251->252. p95:trace.aspnet_core.request{env:prod,service:runtime-core-api,resource_name:post_/api/v1/runtime/load/_screenid*} over 15:59:20-16:24:20Z: 8/150 points >=3.0s, peak 11.23s @16:12:20Z (cluster 16:11:40-16:12:40Z, 7 consecutive points), plus one isolated 5.86s point at 16:19:10Z (the fire that tripped the monitor) -- within normal historical range for this entry (not the 594s magnitude outlier from 2026-07-29T17:17Z). Confirmed latency-only: service:runtime-core-api status:error env:prod DD Logs, same window = 0 hits. No co-fire this cycle: ki-21 (monitor 77419271) fired separately at 16:17:11Z (own group, own hash, suppressed independently); RTC Action Execution (117279738) last fired the prior day (quiet); Redis (227940275) last fired 15:57:35Z, 22min before this window, not concurrent; 5XX (70171778) and ms-account latency (65493111) both quiet -- standalone occurrence, no shared-upstream co-fire per precedence_note this time. runtime-core deploy check blocked: git fetch on methodcrm/runtime-core 403 (known GH_TOKEN scope gap on methodcrm-org repos, non-blocking per Hard rule) -- consistent with historical finding of no deploy correlation across 251 prior occurrences. last_notified_at was 2026-07-29T15:16:35Z (~25h ago) -- PAST 24h suppression window -> POST, gate_reason=null, last_notified_at bumped to now. fix_status (investigating) unchanged. Posted to #triage-results. See docs/investigations/2026-07-30-77361e907f3ae378.md."
+      },
+      {
+        "ts": "2026-07-31T13:25:20Z",
+        "note": "2026-07-31 ~14:00-14:20Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed 'slack conversations history mcp' and 'slack', no matching deferred tool found). monitor 115456700 fired 13:25:20Z, occ 252->253. DD metric p95:trace.aspnet_core.request{env:prod,service:runtime-core-api,resource_name:post_/api/v1/runtime/load/_screenid*} over 12:55:20-13:30:20Z: 18/210 points >3.0s, peak 8.63s, 0 status:error DD logs -- latency-only confirmed. No co-fire from miurl/ms-search-api this cycle (ki-2026-07-14 cross-service entry does not apply). last_notified_at (2026-07-30T17:16:37Z) only ~21h old -> SUPPRESSED, gate_reason=known-issue-window."
       }
     ],
     "owning_team": "Vertical App Experience"
@@ -920,6 +928,10 @@
       {
         "ts": "2026-07-28T17:08:38Z",
         "note": "2026-07-28 17:08Z triage (degraded cycle, no Slack MCP): monitor 236570583 ('New issue to review' Watchdog) fired again 14:40:33Z (now OK, 30m-rollup recovered). Attempted the required same-window ES corroboration (message:'JWT Retrieval Failed' OR message:'GetAccountBySubdomain', 14:25:33-14:55:33Z) per the 2026-07-28 13:15Z precedent -- 0 hits, REFUTED. Broader ES sweep (level.keyword:Error, same window) shows 348 total errors, top buckets runtime-core-api 162 / nonprod-apps 53 / email-subscriber-agent 39 / rest-api 18 / email-publisher-agent 16 -- no standout anomaly identifiable without a 24h-ago baseline, and DD logs status:error env:prod returned 0 (generic Watchdog catch-all gives no service tag to scope further). Not counted toward this entry's occurrences -- logged as a fresh needs-human finding (hash 5040cd743eae967d), score -1 (novel +2, monitor-maturity -2 [fire_count 13/30d, dm_rate 0.0], recency-decay -1 [2nd same-monitor fire today]) -> actionable low-impact, not posted. See docs/investigations/2026-07-28-5040cd743eae967d.md."
+      },
+      {
+        "ts": "2026-07-31T13:40:33Z",
+        "note": "2026-07-31 ~14:00-14:20Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed 'slack conversations history mcp' and 'slack', no matching deferred tool found). monitor 236570583 ('New issue to review' Watchdog) fired 13:40:33Z. Bare KB match REFUTED for at least the 4th consecutive time: ES query for message:'JWT Retrieval Failed' returned 0 hits, and Exception.keyword:*GetAccountBySubdomain* returned 0 hits over 13:10:33-13:45:33Z. Broad ES sweep (level.keyword:Error) in the same window showed 315 diffuse errors spread across 8 unrelated services (runtime-core-api, approutine-subscriber, email-subscriber-agent, nonprod/apps, classic/MethodWebService, email-publisher-agent, oauth2.identity.server, ms-email-api) with no single dominant story -- consistent with this monitor's generic 'any new Watchdog story' trigger shape, not this specific NRE. No occurrence bump. Standing recommendation renewed: narrow this entry's match.any_of to drop the bare monitors/236570583 clause, which keeps mismatching to whatever Watchdog story happens to be diffuse-background noise that cycle."
       }
     ]
   },
@@ -1497,8 +1509,8 @@
     "id": "ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata",
     "title": "\"Method UI Grid and Dropdown Performance Test\" synthetics (team:qa, non-prod, 5 monitor-ID variants: Day run / Day run 2 / Evening run / Midnight run / Release Run) chronically go No Data; never correlates to a real incident",
     "first_seen": "2026-05-02T13:46:00Z",
-    "last_seen": "2026-07-31T12:31:30Z",
-    "occurrences": 144,
+    "last_seen": "2026-07-31T13:50:50Z",
+    "occurrences": 147,
     "match": {
       "channels": [
         "alert-system"
@@ -1534,7 +1546,7 @@
     "fix_template": null,
     "confidence": 0.85,
     "owning_team": "unmapped",
-    "last_notified_at": "2026-07-30T13:46:00Z",
+    "last_notified_at": "2026-07-31T13:46:00Z",
     "notes": [
       {
         "ts": "2026-07-03T13:09:00Z",
@@ -1775,6 +1787,10 @@
       {
         "ts": "2026-07-30T14:45:00Z",
         "note": "2026-07-30 ~14:29Z triage (degraded cycle, no Slack MCP): 5 fires this cycle across the family's 5 monitor-ID variants. 123495492 Evening run (04:00:12Z, occ 137->138): last_notified_at 2026-07-28T17:08:38Z past 24h -> POSTED, gate_reason=null. 123495390 Midnight run (12:30:00Z, occ 138->139): within window (last_notified_at just set to 04:00:12Z) -> SUPPRESSED. 142200330 Release Run (13:46:00Z, occ 139->140): within window BUT crosses a 10th-occurrence multiple -> POSTED, gate_reason=known-issue-occurrence-resurface. 121308660 Day run (13:46:01Z, occ 140->141): within window (last_notified_at just set to 13:46:00Z) -> SUPPRESSED. 133625690 Day run 2 (13:52:20Z, occ 141->142): within window -> SUPPRESSED. All confirmed via monitor overall_state=='No Data'. Same-cycle gate-ordering pattern documented previously for this family. See docs/investigations/2026-07-30-aeaeccab0bc0c526.md, -776a36d2aa6a8180.md, -eadb046eed9b6495.md, -fcbfe17962934d9e.md, -8ceb35c50971ff3d.md."
+      },
+      {
+        "ts": "2026-07-31T13:46:00Z",
+        "note": "2026-07-31 ~14:00-14:20Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed 'slack conversations history mcp' and 'slack', no matching deferred tool found). 3 fires this cycle from the family: 142200330 Release Run (No Data, 13:46:00Z), 121308660 Day run (OK, 13:46:01Z), 133625690 Day run 2 (OK, 13:50:50Z). occ 144->145->146->147. last_notified_at (2026-07-30T13:46:00Z) was ~24h34m old (past the 24h window) -> the earliest (142200330, 13:46:00Z) triggered a fresh POST to #triage-results, gate_reason=null (window-expired); last_notified_at reset to now, which then caused the other two (1s and ~5min later, same KB entry) to fall back inside the freshly-reset window -> SUPPRESSED, gate_reason=known-issue-window (same-cycle gate-ordering artifact, not a bug -- see standing precedent)."
       }
     ]
   },
@@ -2888,8 +2904,8 @@
     "id": "ki-2026-07-06-signup-low-traffic-p90-latency-monitor-noise",
     "title": "[Growth][Signup][P?] 'Service Signup post requests have a high p90 latency' trips on single-request percentile noise on a very low-traffic endpoint",
     "first_seen": "2026-07-05T21:57:46Z",
-    "last_seen": "2026-07-30T14:25:46Z",
-    "occurrences": 12,
+    "last_seen": "2026-07-31T13:19:46Z",
+    "occurrences": 13,
     "match": {
       "channels": [
         "alert-system",
@@ -2951,6 +2967,10 @@
       {
         "ts": "2026-07-30T14:45:00Z",
         "note": "2026-07-30 ~14:45Z triage (degraded cycle, no Slack MCP): occ 11->12. Monitor 154252126, last_notified_at 2026-07-25T07:15:47Z far past 24h window -> POSTED, gate_reason=null. Metric re-query: max p90 12.52s vs 12s threshold (marginal, ratio 0.04). See docs/investigations/2026-07-30-8a00f8eef702d24e.md."
+      },
+      {
+        "ts": "2026-07-31T13:19:46Z",
+        "note": "2026-07-31 ~14:00-14:20Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed 'slack conversations history mcp' and 'slack', no matching deferred tool found). monitor 154252126 fired 13:19:46Z, occ 12->13. DD metric p90:trace.aspnet.request{env:prod,service:signup,resource_name:post_/*} over 12:49:46-13:24:46Z: 49 points, peak 11.33s (just under 12.0s threshold in this coarser window; monitor's own tighter 5m eval window crossed it), 0 status:error DD logs. Same low-traffic single-request-percentile-noise shape. last_notified_at (2026-07-30T14:25:46Z) only ~23h54m old -> SUPPRESSED, gate_reason=known-issue-window."
       }
     ]
   },
@@ -3201,6 +3221,10 @@
       {
         "ts": "2026-07-28T20:13:47Z",
         "note": "2026-07-28 ~20:13Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed slack conversations history mcp, no matching deferred tool found). 10th occurrence, monitor 302103451 last_triggered 2026-07-28T19:15:31Z, hash 6fbb879170242658, OK by scan time (self-recovered). Evidence_query (Redis Cache Circuit Breaker OPENED) re-run 19:05:31-19:15:31Z and widened 18:45:31-19:20:31Z -- 0 hits both windows, mechanism did NOT reproduce (7th of 10 occurrences now without Redis corroboration). App-update-agent App Publish - Started check (19:00:00-19:16:00Z): 0 hits, rules out the mass-push alternate driver. DD metric p95:trace.aspnet_core.request{env:prod,service:tables-fields} on the monitors own trailing-5m window: 58 points, one real excursion to 4.499s at 19:08:30Z (~18x the 0.25s threshold), rest 0.009s-0.5s -- genuine momentary breach confirmed independent of the missing log corroboration. Unfiltered ES Error-level sweep on tables-fields (18:55:31-19:20:31Z) found only 1 hit total: Find View Failed (GetFieldNamesWithRestriction) at 18:56:13Z, 12min before the spike, unrelated action -- not Redis, not the sibling FieldTableNameRef signature. last_notified_at (2026-07-25T19:08:23Z) was ~73h05m old -- EXCEEDS 24h suppression window -> POST to #triage-results, gate_reason=null (window-expiry). See docs/investigations/2026-07-28-6fbb879170242658.md."
+      },
+      {
+        "ts": "2026-07-31T13:29:32Z",
+        "note": "2026-07-31 ~14:00-14:20Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed 'slack conversations history mcp' and 'slack', no matching deferred tool found). monitor 302103451 fired again 13:29:32Z (22min after the 13:07:32Z occurrence already on record as REFUTED this same day). Bare monitor-id match REFUTED again: ES query for 'Redis Cache Circuit Breaker OPENED for 30 seconds' returned 0 hits over 12:59:32-13:34:32Z. DD metric p95:trace.aspnet_core.request{env:prod,service:tables-fields}: 29/210 points >0.25s threshold, peak 1.34s. Volume comparison vs 24h-ago same window: today sum=13150 request-hits vs baseline sum=2880 (~4.6x) -- a real traffic-volume increase, not a Redis blip, consistent with the prior refutation's finding. 0 status:error DD logs. No occurrence bump (per standing causality-ordering precedent -- refuted match, not a confirmed recurrence of this entry's mechanism). Logged as a fresh needs-human finding instead (see docs/investigations/2026-07-31-cde145b7447d3434.md)."
       }
     ]
   },
@@ -3208,8 +3232,8 @@
     "id": "ki-2026-07-07-classicmethod-p95-latency-monitor-recurring",
     "title": "Classic (classic/method) P95 request latency spikes, self-recovering, no correlated errors -- 2 occurrences same day, differing shape",
     "first_seen": "2026-07-07T01:49:42Z",
-    "last_seen": "2026-07-14T18:02:41Z",
-    "occurrences": 4,
+    "last_seen": "2026-07-31T14:05:41Z",
+    "occurrences": 5,
     "match": {
       "channels": [
         "alert-system",
@@ -3237,7 +3261,7 @@
     "fix_template": null,
     "confidence": 0.6,
     "owning_team": "Admin",
-    "last_notified_at": "2026-07-14T18:10:00Z",
+    "last_notified_at": "2026-07-31T14:05:41Z",
     "notes": [
       {
         "ts": "2026-07-07T11:45:41Z",
@@ -3246,6 +3270,10 @@
       {
         "ts": "2026-07-14T18:10:00Z",
         "note": "2026-07-14 18:10Z triage (degraded cycle, DD monitor scan diff, hash c2fc6232dde0f625): occ 3->4 via monitor 299603201 last_triggered 18:02:41Z (OK by scan time, self-recovered). DD metric re-query 17:35:00-18:08:00Z: 51/198 points >20.0s threshold, peak 116.72s@18:01:40Z, span 17:36:50-18:05:00Z (~28.5min) -- closer to occurrence 1's sustained-burst profile (16min/37pts) than occurrence 2's brief spike (5min/3pts), partially answering the KB's open 'one mechanism or two' question. NEW THIS OCCURRENCE: first-ever confirmed simultaneous co-fire with ki-2026-05-24-runtime-core-rtc-p95-recurring (both monitors) plus two newly-flagged monitors (miurl P95 302048329, ms-search-api P95 299551623) -- all 5 breached over the identical ~17:36-18:05Z window per each service's own APM series. See docs/investigations/2026-07-14-f88306325925a47c.md and -77bdf6b53feea7ae.md for the full cross-service evidence. No error-log signal on classic/method (not ES-instrumented; combined status:error DD sweep across all 5 co-firing services = 0 hits). last_notified_at (2026-07-07T11:45:41Z) ~7 days ago -- PAST 24h suppression window -> POST to #triage-results, gate_reason=null (window-expiry), last_notified_at bumped to now. fix_status 'needs-human' unchanged (root cause still not identified for this service specifically). See docs/investigations/2026-07-14-c2fc6232dde0f625.md."
+      },
+      {
+        "ts": "2026-07-31T14:05:41Z",
+        "note": "2026-07-31 ~14:00-14:20Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed 'slack conversations history mcp' and 'slack', no matching deferred tool found). monitor 299603201 fired 14:05:41Z, occ 4->5. DD metric p95:trace.aspnet.request{service:classic/method,env:prod} over 13:35:41-14:10:41Z: 210 points, 6 over the 10.0s threshold spanning 13:42:10-14:07:40Z, PEAK 946.55s @13:53:00Z -- ~8x the prior highest recorded peak (116.72s, 2026-07-14 occurrence) and not concentrated in one tight burst. Volume not sparse (5390 hits in window). 0 status:error DD logs -- latency-only confirmed. Checked for the ki-2026-07-14 cross-service shared-upstream signature: no co-firing miurl/ms-search-api/runtime-core-RTC monitor in this cycle's scan, and this window (13:42-14:07) does not overlap G4's earlier RTC elevation (12:55-13:30) -- standalone occurrence, not the shared-upstream pattern. last_notified_at (2026-07-14T18:10:00Z) far past 24h window -> POSTED, gate_reason=null. Magnitude anomaly flagged for Ben given the ~8x peak escalation vs all prior occurrences."
       }
     ]
   },
@@ -3681,6 +3709,10 @@
       {
         "ts": "2026-07-28T17:08:38Z",
         "note": "2026-07-28 17:08Z triage (degraded cycle, no Slack MCP): monitor 70171778 fired 16:45:38Z, hash c75844fd9d4f91fa. sum:trace.aspnet_core.request.errors{env:prod,http.status_code:5*} by {service} over 16:15:38-16:45:38Z: rest-api total only 5 (all resource_name:get_/api/v_version_/tables/_table, matching this entry's normal chronic baseline) -- NOT elevated, NOT the driver. Dominant contributors this window were service:gateway (~47, incl. an 18-point spike at 16:38:50Z) and service:tables-fields (~41, incl. matching 18-point spike same bucket) -- a genuinely different root cause (see ki-2026-07-09's notes for the full breakdown). REFUTED for this occurrence; not counted toward this entry's occurrences. Reclassified as known-issue-recurrence against ki-2026-07-09 instead."
+      },
+      {
+        "ts": "2026-07-31T14:03:38Z",
+        "note": "2026-07-31 ~14:00-14:20Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed 'slack conversations history mcp' and 'slack', no matching deferred tool found). monitor 70171778 fired 14:03:38Z. Bare KB match REFUTED again (4th+ time on record): sum:trace.aspnet_core.request.errors{env:prod,http.status_code:5*} by {service} over 13:33:38-14:08:38Z showed only 1 error on service:rest-api -- NOT concentrated there at all. Dominant bucket was runtime-core-api (21 errors), specifically resource_name:post_/api/v1/image. ES confirmed: 21x 'An unhandled exception has occurred while executing the request' on runtime-core-api, sample stack = System.NullReferenceException at Runtime.Core.Engine.Security.SecurityContext.ValidateRequestAsync (rawToken null deref, SecurityContext.cs:124) called from Runtime.Core.Api.Controllers.ImageController.UploadAsync (ImageController.cs:40). No occurrence bump for this entry. Genuinely different root cause this time -- logged as a fresh needs-human finding (see docs/investigations/2026-07-31-9fa4a61c802ae586.md). Local runtime-core clone is 16 days stale (methodcrm-org GH_TOKEN 403 gap, chronic) -- diagnosis is from ES stack trace only, not from a fresh repo read, so no diff is proposed off it."
       }
     ]
   },
