@@ -21,8 +21,8 @@
     "reason": "method-import-subscriber is a low-frequency batch AMQP consumer, not a continuous one. 24h history (2026-07-05 13:05 -> 2026-07-06 10:33) shows only 8 non-zero hit buckets, in bursts of 1-2060 messages separated by gaps of 3-11.5 hours. The monitor's 'sum(last_30m) < 1' threshold trips on every natural idle gap over 30 minutes, which happens multiple times a day by design -- not a service outage. 0 error logs on the service for the full day. This fire (11:05:32Z) came 32 minutes after the last burst ended (10:33:30Z), squarely inside the service's normal idle pattern.",
     "silence_for": "24h",
     "first_seen": "2026-07-06T11:05:32Z",
-    "last_seen": "2026-07-31T17:13:32Z",
-    "occurrences": 95,
+    "last_seen": "2026-07-31T20:01:32Z",
+    "occurrences": 96,
     "recommendation": "monitor threshold mismatch, not a false-alarm-forever situation -- recommend widening the No-Data window (e.g. 6h) or switching to a message-backlog-depth check instead of a hits-in-window check; flagging for Admin team, not silencing indefinitely",
     "notes": [
       {
@@ -240,6 +240,10 @@
       {
         "ts": "2026-07-31T18:08:00Z",
         "note": "2026-07-31 ~18:08Z triage (degraded cycle, no Slack MCP surfaced this session): monitor 299551472 fired at 17:13:32Z, hash 3ea06a2d7dbd754a, occ 94->95. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} over 16:43:32-17:13:32Z: only 1 point (value 1.0) near the very end of the window (17:12:10Z) -- idle-gap-then-trickle shape. 0 status:error DD logs on the service. Monitor already recovered to OK (overall_state_modified 17:13:32Z). Same idle-gap shape as prior 94 occurrences. No thread-reply path in degraded mode -- kb-update self-DM confirmation only."
+      },
+      {
+        "ts": "2026-07-31T20:01:32Z",
+        "note": "2026-07-31 ~20:xxZ triage (degraded cycle, no Slack MCP): monitor 299551472 fired 2026-07-31T20:01:32Z, hash cafc8e4dcfab0820, occurrences bumped. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over 19:31:32-20:01:32Z: empty series (0 datapoints), 0 status:error DD logs -- consistent with the documented low-frequency-batch-consumer idle-gap pattern. Self-DM kb-update sent (no thread-reply path in degraded mode)."
       }
     ]
   },
@@ -659,8 +663,8 @@
     },
     "reason": "Three [QA][Gatling] monitors fired across the backlog window (ms-support-api, eda_orchestrator_api, ms-apps-api P95 latency), all tagged env:warehouse team:qa source:gatling -- these are load-test result monitors against the warehouse (non-prod) environment, not production alerts. Same non-prod-noise class as the already-documented ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata and ki-2026-07-03-warehouse-dashboard-network-test-nodata (both 'confirmed-non-prod-noise').",
     "first_seen": "2026-07-16T15:28:39Z",
-    "last_seen": "2026-07-31T16:37:55Z",
-    "occurrences": 16,
+    "last_seen": "2026-07-31T19:57:55Z",
+    "occurrences": 17,
     "silence_for": "24h",
     "notes": [
       {
@@ -690,6 +694,10 @@
       {
         "ts": "2026-07-31T17:10:09Z",
         "note": "2026-07-31 ~17:10Z triage (degraded cycle, no Slack MCP): monitor 305925415 [QA][Gatling] ms-apps-api P95 (warehouse) fired 16:37:55Z, hash 59da1b7395f4b5e1, occ 15->16. DD metric p95:trace.aspnet_core.request{service:ms-apps-api,env:warehouse} 16:25-16:55Z: sharp spike to peak 10.55s at 16:34:30Z (vs 2s threshold) coincident with a load-test burst, decaying back to normal warehouse baseline (~0.1-0.9s) within ~15min. No error logs, non-prod env:warehouse -- same load-test-noise shape as the rest of this KB family."
+      },
+      {
+        "ts": "2026-07-31T19:57:55Z",
+        "note": "2026-07-31 ~20:xxZ triage (degraded cycle, no Slack MCP): monitor 305925415 ([QA][Gatling] ms-apps-api P95 latency high (warehouse)) fired 2026-07-31T19:57:55Z, hash 15f6eefc0b05ee7c, occurrences bumped. DD metric p95:trace.aspnet_core.request{service:ms-apps-api,env:warehouse} 19:47:55-19:57:55Z: mostly sub-second, but one real magnitude anomaly -- p95 spiked to 7.98s at 19:52:30Z (and 2.50s at 19:47:xx), both well above the 2s threshold. Flagged for QA awareness (a genuine Gatling-run latency spike, not measurement noise), but classification held as false-alarm per this entry's established non-prod (env:warehouse) scope -- same treatment as the 2026-07-29 10.55s spike. Self-DM kb-update sent (no thread-reply path in degraded mode)."
       }
     ]
   },
@@ -913,5 +921,27 @@
         "note": "2026-07-30 ~14:29Z triage (degraded cycle, no Slack MCP; DD monitor scan-diff vs prior cutoff 2026-07-29T18:01:24Z). First-ever fire of monitor 309602252 in kb/incident-log.jsonl (0 prior mentions). See docs/investigations/2026-07-29-450a3fc60a73ab61.md."
       }
     ]
+  },
+  {
+    "id": "fa-2026-07-31-rainforest-outbound-api-error-rate-low-traffic-noise",
+    "target": "false-alarms",
+    "match": {
+      "channels": [
+        "alert-system"
+      ],
+      "any_of": [
+        {
+          "contains": "Rainforest] Outbound API Error Rate"
+        },
+        {
+          "contains": "monitors/295882732"
+        }
+      ]
+    },
+    "reason": "DD monitor 295882732 ([Rainforest] Outbound API Error Rate (4xx+5xx) > 5%) fired 2026-07-31T19:34:52Z (overall_state OK by scan time -- self-recovered). This is a percentage-of-traffic monitor on a very low-volume outbound integration (env:prod, peer.hostname:api.rainforestpay.com): total request volume in the pre-fire 10-min window was ~10 requests, of which exactly 1 was a 4xx (0 were 5xx) -- 1/10 = 10% > the 5% threshold. DD logs query (service:runtime-core-api peer.hostname:api.rainforestpay.com status:error / @http.status_code:4*) returned 0 corroborating hits (outbound Rainforest calls are traced but not logged to this pipeline), so the metric API count (verified via sum:trace.http.request.hits{...,http.status_code:4*}.as_count()) is the evidence of record. A single 4xx among ~10 requests is consistent with an ordinary payment-processing rejection (e.g. a declined card), not a Method-side or Rainforest-side outage -- same low-traffic-denominator noise mechanism as the other bursty/low-volume integration monitors already documented (fa-2026-07-06 import-subscriber, fa-2026-07-11 sync-api-queue-consumer, fa-2026-07-23 rainforest-webhook-traffic-outage). Distinct monitor from the already-documented ki-2026-07-05 (P95 latency) and ki-2026-07-06 (merchant-details 503) Rainforest entries -- this is the first fire of the error-rate-specific monitor 295882732.",
+    "first_seen": "2026-07-31T19:34:52Z",
+    "last_seen": "2026-07-31T19:34:52Z",
+    "occurrences": 1,
+    "silence_for": "24h"
   }
 ]
