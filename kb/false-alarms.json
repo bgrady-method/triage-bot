@@ -695,8 +695,8 @@
     },
     "reason": "Three [QA][Gatling] monitors fired across the backlog window (ms-support-api, eda_orchestrator_api, ms-apps-api P95 latency), all tagged env:warehouse team:qa source:gatling -- these are load-test result monitors against the warehouse (non-prod) environment, not production alerts. Same non-prod-noise class as the already-documented ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata and ki-2026-07-03-warehouse-dashboard-network-test-nodata (both 'confirmed-non-prod-noise').",
     "first_seen": "2026-07-16T15:28:39Z",
-    "last_seen": "2026-08-01T21:08:55Z",
-    "occurrences": 18,
+    "last_seen": "2026-08-01T21:44:48Z",
+    "occurrences": 19,
     "silence_for": "24h",
     "notes": [
       {
@@ -734,6 +734,10 @@
       {
         "ts": "2026-08-01T22:09:00Z",
         "note": "2026-08-01 ~22:09Z triage (degraded cycle, no Slack MCP surfaced this session, DD monitor scan diff vs 2026-08-01T21:04:19Z cutoff): monitor 305925415 ([QA][Gatling] ms-apps-api P95 latency high, warehouse) fired 2026-08-01T21:08:55Z, hash f6ee3ad321c35973, occ 17->18. DD metric p95:trace.aspnet_core.request{service:ms-apps-api,env:warehouse} 20:58:55-21:08:55Z: empty series (0 datapoints) -- no active Gatling run at scan time, same no-active-run shape as the 2026-07-25 occurrence. Monitor tags confirm env:warehouse team:qa source:gatling. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-08-01-f6ee3ad321c35973.md."
+      },
+      {
+        "ts": "2026-08-01T22:14:00Z",
+        "note": "2026-08-01 ~22:14Z triage (degraded cycle, no Slack MCP surfaced this session, DD monitor scan diff vs 2026-08-01T21:04:19Z cutoff): monitor 305932428 ([QA][Gatling] eda_orchestrator_api P95 latency high, warehouse) fired 2026-08-01T21:44:48Z, hash 4a34315777f99ad9, occ 18->19. DD metric p95:trace.aspnet_core.request{service:eda_orchestrator_api,env:warehouse} 21:14:48-21:44:48Z: empty series (0 datapoints) -- no active Gatling run at scan time, same shape as the 2026-07-25 occurrence of this same monitor. Monitor tags confirm env:warehouse team:qa source:gatling. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-08-01-4a34315777f99ad9.md."
       }
     ]
   },
