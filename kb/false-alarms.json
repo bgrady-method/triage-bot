@@ -691,8 +691,8 @@
     },
     "reason": "Three [QA][Gatling] monitors fired across the backlog window (ms-support-api, eda_orchestrator_api, ms-apps-api P95 latency), all tagged env:warehouse team:qa source:gatling -- these are load-test result monitors against the warehouse (non-prod) environment, not production alerts. Same non-prod-noise class as the already-documented ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata and ki-2026-07-03-warehouse-dashboard-network-test-nodata (both 'confirmed-non-prod-noise').",
     "first_seen": "2026-07-16T15:28:39Z",
-    "last_seen": "2026-07-31T19:57:55Z",
-    "occurrences": 17,
+    "last_seen": "2026-08-01T21:08:55Z",
+    "occurrences": 18,
     "silence_for": "24h",
     "notes": [
       {
@@ -726,6 +726,10 @@
       {
         "ts": "2026-07-31T19:57:55Z",
         "note": "2026-07-31 ~20:xxZ triage (degraded cycle, no Slack MCP): monitor 305925415 ([QA][Gatling] ms-apps-api P95 latency high (warehouse)) fired 2026-07-31T19:57:55Z, hash 15f6eefc0b05ee7c, occurrences bumped. DD metric p95:trace.aspnet_core.request{service:ms-apps-api,env:warehouse} 19:47:55-19:57:55Z: mostly sub-second, but one real magnitude anomaly -- p95 spiked to 7.98s at 19:52:30Z (and 2.50s at 19:47:xx), both well above the 2s threshold. Flagged for QA awareness (a genuine Gatling-run latency spike, not measurement noise), but classification held as false-alarm per this entry's established non-prod (env:warehouse) scope -- same treatment as the 2026-07-29 10.55s spike. Self-DM kb-update sent (no thread-reply path in degraded mode)."
+      },
+      {
+        "ts": "2026-08-01T22:09:00Z",
+        "note": "2026-08-01 ~22:09Z triage (degraded cycle, no Slack MCP surfaced this session, DD monitor scan diff vs 2026-08-01T21:04:19Z cutoff): monitor 305925415 ([QA][Gatling] ms-apps-api P95 latency high, warehouse) fired 2026-08-01T21:08:55Z, hash f6ee3ad321c35973, occ 17->18. DD metric p95:trace.aspnet_core.request{service:ms-apps-api,env:warehouse} 20:58:55-21:08:55Z: empty series (0 datapoints) -- no active Gatling run at scan time, same no-active-run shape as the 2026-07-25 occurrence. Monitor tags confirm env:warehouse team:qa source:gatling. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-08-01-f6ee3ad321c35973.md."
       }
     ]
   },
