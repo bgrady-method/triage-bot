@@ -2039,8 +2039,8 @@
     "id": "ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap",
     "title": "New team:crm AMQP-consumer heartbeat/throughput-stall monitors (5 sibling IDs, created 2026-07-02) intermittently trip on quiet-period low-traffic dips, then self-recover within minutes — no corroborating errors",
     "first_seen": "2026-07-04T13:07:31Z",
-    "last_seen": "2026-07-31T10:14:32Z",
-    "occurrences": 101,
+    "last_seen": "2026-08-01T16:39:31Z",
+    "occurrences": 102,
     "match": {
       "channels": [
         "alert-system",
@@ -2086,7 +2086,7 @@
     "fix_template": null,
     "confidence": 0.82,
     "owning_team": "CRM Experience (runtime-core-subscriber-api, per ownership.md:454) / Admin (mobile-notifications-stack, per ownership.md:416) — split by service; DD monitor tags say team:crm for both, ownership.md disagrees for the mobile-notifications component",
-    "last_notified_at": "2026-07-31T11:24:00Z",
+    "last_notified_at": "2026-08-01T17:08:11Z",
     "notes": [
       {
         "ts": "2026-07-04T16:10:00Z",
@@ -2315,6 +2315,10 @@
       {
         "ts": "2026-07-31T11:24:00Z",
         "note": "2026-07-31 ~11:08Z triage (degraded cycle, no Slack MCP; DD monitor scan diff vs 2026-07-30T22:03:11Z cutoff): 2 sibling monitors in this family fired within a 10-min window, grouped as one incident group (primary 302055141): (a) 302055141 [CRM] method-mobile-notifications-subscriber heartbeat, fired 10:04:21Z, hash 356b137e9ab82327 -- avg(60m):trace.amqp.command.hits{service:method-mobile-notifications-subscriber,env:prod}.as_rate() over 09:04:21-10:04:21Z: 0.15/s at window tail, above the 0.005 floor by scan time (traffic resumed). (b) 302057011 [CRM] runtime-core-subscriber throughput dropped, fired 10:14:32Z, hash 0d7c19ff58939202 -- avg(15m):trace.amqp.command.hits{service:runtime-core-subscriber,env:prod}.as_rate() over 09:59:32-10:14:32Z: values ranged 0.1-8.8/s, mostly above the <2 floor with only brief dips -- consistent with a genuine but brief quiet-period dip, not a real stall. occ 99->101 (both monitors counted). 0 status:error DD logs on either service in-window. last_notified_at (2026-07-30T03:50:31Z) was >24h ago (~31h18m) -- suppression window elapsed, NOTIFY. Posted to #triage-results (grouped with the notifications-P95 sibling fire, see ki-2026-07-07-notifications-p95-latency-monitor-noise note same timestamp), gate_reason=null."
+      },
+      {
+        "ts": "2026-08-01T17:08:11Z",
+        "note": "2026-08-01 17:08Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed 'slack conversations history MCP' and 'slack chat postMessage users.info conversations.open', neither matched; DD monitor scan diff vs 2026-08-01T15:50:08Z cutoff, hash 2c38294997259cd0): monitor 302057011 ('[CRM] runtime-core-subscriber throughput dropped (possible stall)') fired 2026-08-01T16:39:31Z, occurrences -> 102. DD metric sum:trace.amqp.command.hits{service:runtime-core-subscriber,env:prod}.as_rate() over 16:09:31-16:39:31Z: 179 points, 100 below the 2msg/s threshold (min 0.2), scattered clearing bursts up to 11.0/s, ending near-threshold (last 5 points: 3.8/1.5/1.9/7.1/5.0) -- canonical quiet-period-flap shape matching all 101 prior occurrences. 0 service:runtime-core-subscriber status:error DD logs in-window. No sibling monitor in the 5-monitor family co-fired this cycle (full 186-monitor scan, only this monitor had last_triggered_ts past cutoff). last_notified_at (2026-07-31T11:24:00Z) ~1d5h44m ago, EXCEEDED 24h suppression window -> POST, gate_reason=null (window-expiry), last_notified_at bumped to 2026-08-01T17:08:11Z. See docs/investigations/2026-08-01-2c38294997259cd0.md."
       }
     ]
   },
