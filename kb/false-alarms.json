@@ -430,8 +430,8 @@
     "reason": "DD RUM Error Tracking for service:method-nativemobile-ui over the trailing 4h (2026-07-14T19:00-23:30Z): 181 @type:error events vs 1464 @type:view events = 12.4% error rate (monitor threshold >5%). Message breakdown of all 181 sampled errors: 83 'A server with the specified hostname could not be found.' (DNS resolution failure, 45.9%), 74 'cancelled' (request cancelled mid-flight, typically app backgrounding/navigation-away, 40.9%), 12 'A TLS error caused the secure connection to fail.' (6.6%), plus small counts of 'Network Error'/'offline'/Expo-token-fetch failures. Every message is a client-side network-connectivity signature (DNS/TLS/cancellation on mobile devices with flaky connectivity) -- none are application-level 4xx/5xx or server-side exceptions. No correlated backend service alert fired in the same window. This is inherent RUM noise from real-world mobile network conditions, not a backend incident.",
     "silence_for": "24h",
     "first_seen": "2026-07-14T23:01:19Z",
-    "last_seen": "2026-08-01T12:06:19Z",
-    "occurrences": 5,
+    "last_seen": "2026-08-01T13:03:19Z",
+    "occurrences": 6,
     "recommendation": "monitor threshold (>5% over trailing 4h) is too sensitive for a mobile RUM error-rate check that includes DNS/TLS/cancellation noise; recommend excluding 'cancelled' and DNS-resolution-failure messages from the numerator, or raising the threshold, before this becomes a recurring low-value fire; flag to Admin (owns method-nativemobile-ui per ownership.md, despite the monitor's team:crm tag). 3 occurrences in ~2.5 weeks now (2026-07-14, 2026-07-30, 2026-07-31) -- worth acting on rather than continuing to re-verify.",
     "notes": [
       {
@@ -449,6 +449,10 @@
       {
         "ts": "2026-08-01T12:12:00Z",
         "note": "2026-08-01 ~12:12Z triage (degraded cycle, no Slack MCP): monitor 305454649 fired 2026-08-01T12:06:19Z, hash 5dabfe3709020e13, occ 4->5, Warn at scan time. DD RUM Error Tracking over the monitor's own trailing 4h window (08:06:19-12:06:19Z): 10 @type:error vs 193 @type:view = 5.18% error rate -- just over the >5% threshold, consistent with Warn (not Alert). Sampled errors: 'cancelado' (Spanish-locale variant, new this occurrence) and 'cancelled' -- same client-side/device network-cancellation signature as all 4 prior occurrences. No correlated backend alert. No thread-reply path in degraded mode -- kb-update self-DM sent."
+      },
+      {
+        "ts": "2026-08-01T13:16:00Z",
+        "note": "2026-08-01 ~13:16Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-08-01T12:06:19Z cutoff): monitor 305454649 fired 2026-08-01T13:03:19Z, hash 75566ef848a03b3f, occ 5->6, Warn at scan time. DD RUM Error Tracking over the monitor's own trailing 4h window (09:03:19-13:03:19Z): 16 @type:error vs 328 @type:view = 4.88% error rate -- just under the >5% alert threshold, consistent with Warn (not Alert). All 5 sampled errors are 'cancelled' -- same client-side/device network-cancellation signature as all 5 prior occurrences. No correlated backend alert. No thread-reply path in degraded mode -- kb-update self-DM sent."
       }
     ]
   },

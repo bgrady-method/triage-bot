@@ -1529,8 +1529,8 @@
     "id": "ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata",
     "title": "\"Method UI Grid and Dropdown Performance Test\" synthetics (team:qa, non-prod, 5 monitor-ID variants: Day run / Day run 2 / Evening run / Midnight run / Release Run) chronically go No Data; never correlates to a real incident",
     "first_seen": "2026-05-02T13:46:00Z",
-    "last_seen": "2026-08-01T04:00:12Z",
-    "occurrences": 149,
+    "last_seen": "2026-08-01T12:30:00Z",
+    "occurrences": 150,
     "match": {
       "channels": [
         "alert-system"
@@ -1566,7 +1566,7 @@
     "fix_template": null,
     "confidence": 0.85,
     "owning_team": "unmapped",
-    "last_notified_at": "2026-07-31T13:46:00Z",
+    "last_notified_at": "2026-08-01T12:30:00Z",
     "notes": [
       {
         "ts": "2026-07-03T13:09:00Z",
@@ -1819,6 +1819,10 @@
       {
         "ts": "2026-08-01T04:15:00Z",
         "note": "2026-08-01 ~04:15Z triage (degraded cycle, no Slack MCP): Evening run variant (123495492) No Data 04:00:12Z, hash 3ef0bcbe6888a9ff, occ 148->149. Same confirmed non-prod QA-synthetics noise, no co-firing signal with any prod service this cycle. last_notified_at (2026-07-31T13:46:00Z) ~14h14m ago, WITHIN 24h suppression window; occurrence 149 not a 10th-multiple -> SUPPRESSED, gate_reason=known-issue-window, appended to docs/actionable/2026-08-01.md. See docs/investigations/2026-08-01-3ef0bcbe6888a9ff.md."
+      },
+      {
+        "ts": "2026-08-01T13:15:00Z",
+        "note": "2026-08-01 ~13:15Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-08-01T12:06:19Z cutoff): Midnight run variant (123495390) No Data 12:30:00Z, hash 65159fae690219c7, occ 149->150. Confirmed shape via full monitor detail fetch: name 'Method UI Grid and Dropdown Performance Test Midnight run', tag team:qa, created 2023-06-28 (long-established, not a monitor-creation-blindspot artifact), overall_state_modified matches last_triggered_ts exactly. Only Grid/Dropdown-family monitor past cutoff this cycle (no other of the 5 variants fired); no co-firing signal with any prod service (full 186-monitor scan: only 4 monitors total past cutoff, the other 3 unrelated to this family). occurrence 150 lands exactly on a 10th-occurrence multiple -> RESURFACE POST (gate_reason=known-issue-occurrence-resurface), last_notified_at bumped to 2026-08-01T12:30:00Z (was 2026-07-31T13:46:00Z, ~23h29m ago -- still within the 24h window on its own, resurface rule is what triggered the post). See docs/investigations/2026-08-01-65159fae690219c7.md."
       }
     ]
   },
@@ -1826,8 +1830,8 @@
     "id": "ki-2026-07-03-ms-scheduler-api-seriesid-negative-recordid",
     "title": "ms-scheduler-api GetSeriesAsync throws InvalidOperationException when called with recordId=-1 (chronic, code-level missing-guard bug, now confirmed across multiple accounts, ~10-21+/day for 7+ days)",
     "first_seen": "2026-06-26T00:00:00Z",
-    "last_seen": "2026-07-30T02:16:33Z",
-    "occurrences": 144,
+    "last_seen": "2026-08-01T13:05:33Z",
+    "occurrences": 145,
     "match": {
       "channels": [
         "alert-system"
@@ -1863,7 +1867,7 @@
     "fix_template": null,
     "confidence": 0.8,
     "owning_team": "CRM Experience",
-    "last_notified_at": "2026-07-30T02:16:33Z",
+    "last_notified_at": "2026-08-01T13:05:33Z",
     "notes": [
       {
         "ts": "2026-07-03T13:09:00Z",
@@ -1928,6 +1932,10 @@
       {
         "ts": "2026-07-30T14:45:00Z",
         "note": "2026-07-30 ~14:29Z triage (degraded cycle, no Slack MCP): occ 143->144. Monitor 303750093, last_notified_at 2026-07-23T20:12:31Z far past 24h window -> POSTED, gate_reason=null. ES confirmed 4 hits of the canonical recordId=-1 exception signature. See docs/investigations/2026-07-30-6e16bba60d84d73b.md."
+      },
+      {
+        "ts": "2026-08-01T13:18:00Z",
+        "note": "2026-08-01 ~13:18Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-08-01T12:06:19Z cutoff): occ 144->145. Monitor 303750093 fired 2026-08-01T13:05:33Z, hash 320a38556878930c, self-recovered (OK) by scan time -- first fire since 2026-07-30T02:16:33Z (~2d11h quiet gap, longest since the 2026-07-11/07-12 32.5h gap). ES query (evidence_query field, fields.dd_service.keyword:\"ms-scheduler-api\" AND exceptions.Message.keyword:\"Failed to Get Series Id for record -1 in table Activity\", 12:55:33-13:05:33Z monitor eval window) = 2 hits, both account lafittesseafood -- the original account, recurring after being absent from several intervening occurrences (completeelectricalsolutions/foamtechinc/refexpertsandhvacllc/cooksmart2/farmxs/baymonservalllp). Same canonical GetSeriesIdAsync(recordId=-1)/SeriesDataProvider.cs:143/123 signature. last_notified_at (2026-07-30T02:16:33Z) ~35h ago -- EXCEEDS the 24h suppression window -> POST to #triage-results (gate_reason=null, window-expiry), last_notified_at bumped to 2026-08-01T13:05:33Z. See docs/investigations/2026-08-01-320a38556878930c.md."
       }
     ]
   },
