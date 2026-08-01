@@ -2385,8 +2385,8 @@
     "id": "ki-2026-07-04-ms-account-api-4xx-spike-monitor-noise",
     "title": "[Admin][AccountAPI][P3] 4xx-spike monitor transitions state without a real 4xx breach (monitor-sensitivity/config artifact, not a service issue)",
     "first_seen": "2026-07-03T12:08:59Z",
-    "last_seen": "2026-07-31T07:37:18Z",
-    "occurrences": 45,
+    "last_seen": "2026-08-01T19:34:18Z",
+    "occurrences": 46,
     "match": {
       "channels": [
         "alert-system",
@@ -2411,7 +2411,7 @@
     "fix_template": null,
     "confidence": 0.8,
     "owning_team": "Admin",
-    "last_notified_at": "2026-07-31T11:24:00Z",
+    "last_notified_at": "2026-08-01T19:34:18Z",
     "notes": [
       {
         "ts": "2026-07-03T12:08:59Z",
@@ -2548,6 +2548,10 @@
       {
         "ts": "2026-07-31T11:24:00Z",
         "note": "2026-07-31 ~11:08Z triage (degraded cycle, no Slack MCP; DD monitor scan diff vs 2026-07-30T22:03:11Z cutoff after a 13h scheduler gap): monitor 299551518 fired 2026-07-31T07:37:18Z, hash fbc2edc0db31a925, occ 44->45, OK at scan time. Evidence query sum:trace.aspnet_core.request.hits.by_http_status{service:ms-account-api,env:prod,http.status_class:4xx}.as_count() over the exact 15-min eval window (07:22:18-07:37:18Z): 1 total hit, far under the >300 threshold -- classic monitor-noise shape, same as prior 44 occurrences. last_notified_at (2026-07-30T07:15:18Z) was >24h ago (~24h22m) -- suppression window elapsed, NOTIFY. Posted to #triage-results, gate_reason=null."
+      },
+      {
+        "ts": "2026-08-01T20:10:00Z",
+        "note": "2026-08-01 ~20:10Z triage (degraded cycle, no Slack MCP; DD monitor scan diff vs 2026-08-01T18:42:34Z cutoff, hash 6297b74bfd847597): monitor 299551518 fired 2026-08-01T19:34:18Z, occ 45->46 (46th consecutive disproof). sum:trace.aspnet_core.request.hits.by_http_status{service:ms-account-api,env:prod,http.status_class:4xx}.as_count() over 19:19:18-19:34:18Z: 2 total hits, far below the >300/15min threshold. service:ms-account-api status:error DD Logs same window: 0 hits. last_notified_at (2026-07-31T11:24:00Z) ~32h46m ago, EXCEEDED 24h suppression window -> POSTED to #triage-results, gate_reason=null (window-expiry), last_notified_at bumped to 2026-08-01T19:34:18Z. See docs/investigations/2026-08-01-6297b74bfd847597.md."
       }
     ]
   },
@@ -3419,8 +3423,8 @@
     "id": "ki-2026-07-07-notifications-p95-latency-monitor-noise",
     "title": "[CRM][P2] notifications P95 latency high monitor fires but re-query of the same evaluation window shows the metric never approaches the threshold -- monitor/data artifact, not real latency",
     "first_seen": "2026-07-06T10:01:07Z",
-    "last_seen": "2026-08-01T17:54:07Z",
-    "occurrences": 23,
+    "last_seen": "2026-08-01T19:57:08Z",
+    "occurrences": 24,
     "match": {
       "channels": [
         "alert-system",
@@ -3514,6 +3518,10 @@
       {
         "ts": "2026-08-01T16:09:00Z",
         "note": "2026-08-01 ~16:09Z triage (degraded cycle, no Slack MCP surfaced this session; DD monitor scan diff vs 2026-08-01T14:48:33Z cutoff): monitor 302056327 recovered Alert->OK at 2026-08-01T15:50:08Z, hash c317ec779f6e063b, occ 21->22. p95:trace.aspnet.request{service:notifications,env:prod} over the exact 10-min eval window (15:40:08-15:50:08Z): 60 points, range 0.00073-0.0296s, no anomalous outlier -- same clean non-reproduction shape as the immediately-prior occurrence. 0 status:error DD logs on service:notifications in-window. last_notified_at (2026-08-01T12:12:00Z) ~3h38m ago, WITHIN 24h suppression window; occurrence 22 not a 10th-multiple; fix_status unchanged -> SUPPRESSED, gate_reason=known-issue-window, appended to docs/actionable/2026-08-01.md. See docs/investigations/2026-08-01-c317ec779f6e063b.md."
+      },
+      {
+        "ts": "2026-08-01T20:10:00Z",
+        "note": "2026-08-01 ~20:10Z triage (degraded cycle, no Slack MCP; DD monitor scan diff vs 2026-08-01T18:42:34Z cutoff, hash 91262cc61c93f83a): monitor 302056327 fired 2026-08-01T19:57:08Z, occ 23->24. p95:trace.aspnet.request{service:notifications,env:prod} over the exact 10-min eval window (19:47:08-19:57:08Z): 60 points, range 0.00076-0.027s, no anomalous outlier this cycle -- cleanest non-reproduction shape, nowhere near the 1s threshold. 0 status:error DD logs on service:notifications in-window. last_notified_at (2026-08-01T12:12:00Z) ~7h58m ago, WITHIN 24h suppression window; occurrence 24 not a 10th-multiple; fix_status unchanged -> SUPPRESSED, gate_reason=known-issue-window, appended to docs/actionable/2026-08-01.md. See docs/investigations/2026-08-01-91262cc61c93f83a.md."
       }
     ]
   },
