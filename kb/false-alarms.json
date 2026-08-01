@@ -21,8 +21,8 @@
     "reason": "method-import-subscriber is a low-frequency batch AMQP consumer, not a continuous one. 24h history (2026-07-05 13:05 -> 2026-07-06 10:33) shows only 8 non-zero hit buckets, in bursts of 1-2060 messages separated by gaps of 3-11.5 hours. The monitor's 'sum(last_30m) < 1' threshold trips on every natural idle gap over 30 minutes, which happens multiple times a day by design -- not a service outage. 0 error logs on the service for the full day. This fire (11:05:32Z) came 32 minutes after the last burst ended (10:33:30Z), squarely inside the service's normal idle pattern.",
     "silence_for": "24h",
     "first_seen": "2026-07-06T11:05:32Z",
-    "last_seen": "2026-08-01T01:36:32Z",
-    "occurrences": 98,
+    "last_seen": "2026-08-01T14:48:33Z",
+    "occurrences": 99,
     "recommendation": "monitor threshold mismatch, not a false-alarm-forever situation -- recommend widening the No-Data window (e.g. 6h) or switching to a message-backlog-depth check instead of a hits-in-window check; flagging for Admin team, not silencing indefinitely",
     "notes": [
       {
@@ -248,6 +248,10 @@
       {
         "ts": "2026-08-01T01:51:00Z",
         "note": "2026-08-01 ~01:51Z triage (degraded cycle, no Slack MCP): monitor 299551472 fired 2026-08-01T01:36:32Z, hash 7dfb556c7a36c74d, occurrences bumped. sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over 01:06:32-01:36:32Z: empty series (0 datapoints), 0 status:error DD logs -- matches the documented low-frequency-batch-consumer idle-gap pattern. No thread-reply path in degraded mode -- kb-update self-DM sent."
+      },
+      {
+        "ts": "2026-08-01T15:11:35Z",
+        "note": "2026-08-01 ~15:11Z triage (degraded cycle, no Slack MCP surfaced this session): monitor 299551472 No Data 2026-08-01T14:48:33Z, hash 787c5f9d6510ebef, occ 98->99. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over 14:18:33-14:48:33Z: empty series (0 datapoints), 0 status:error DD logs on the service over the same window -- same natural-idle-gap shape as prior 98 occurrences. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only."
       }
     ]
   },
