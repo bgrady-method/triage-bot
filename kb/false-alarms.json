@@ -434,8 +434,8 @@
     "reason": "DD RUM Error Tracking for service:method-nativemobile-ui over the trailing 4h (2026-07-14T19:00-23:30Z): 181 @type:error events vs 1464 @type:view events = 12.4% error rate (monitor threshold >5%). Message breakdown of all 181 sampled errors: 83 'A server with the specified hostname could not be found.' (DNS resolution failure, 45.9%), 74 'cancelled' (request cancelled mid-flight, typically app backgrounding/navigation-away, 40.9%), 12 'A TLS error caused the secure connection to fail.' (6.6%), plus small counts of 'Network Error'/'offline'/Expo-token-fetch failures. Every message is a client-side network-connectivity signature (DNS/TLS/cancellation on mobile devices with flaky connectivity) -- none are application-level 4xx/5xx or server-side exceptions. No correlated backend service alert fired in the same window. This is inherent RUM noise from real-world mobile network conditions, not a backend incident.",
     "silence_for": "24h",
     "first_seen": "2026-07-14T23:01:19Z",
-    "last_seen": "2026-08-01T21:04:19Z",
-    "occurrences": 8,
+    "last_seen": "2026-08-01T21:09:20Z",
+    "occurrences": 9,
     "recommendation": "monitor threshold (>5% over trailing 4h) is too sensitive for a mobile RUM error-rate check that includes DNS/TLS/cancellation noise; recommend excluding 'cancelled' and DNS-resolution-failure messages from the numerator, or raising the threshold, before this becomes a recurring low-value fire; flag to Admin (owns method-nativemobile-ui per ownership.md, despite the monitor's team:crm tag). 3 occurrences in ~2.5 weeks now (2026-07-14, 2026-07-30, 2026-07-31) -- worth acting on rather than continuing to re-verify.",
     "notes": [
       {
@@ -465,6 +465,10 @@
       {
         "ts": "2026-08-01T21:09:00Z",
         "note": "2026-08-01 ~21:09Z triage (degraded cycle, no Slack MCP surfaced this session, DD monitor scan diff vs 2026-08-01T19:57:08Z cutoff): monitor 305454649 fired 2026-08-01T21:04:19Z, hash 3e0e3e7f7eb37fe3, occ 7->8. DD RUM Error Tracking for service:method-nativemobile-ui over the monitor's own trailing 4h window (17:04:19-21:04:19Z): 50 @type:error vs 470 @type:view = 10.6% error rate -- above the >5% threshold, consistent with Alert (the highest error-rate of the 8 documented occurrences). Of 30 sampled errors: 27 'cancelled' (90%), 3 'The network connection was lost.' (10%) -- same client-side/device network-connectivity signature as all 7 prior occurrences, just a higher-volume excursion, not a new failure mode. No correlated backend service alert fired in this cycle's scan (only other monitor past cutoff was the already-suppressed notifications-P95 KIR). Still classified as client-side RUM noise, not a backend incident -- flagging the elevated rate for stability-review trend-watch. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-08-01-3e0e3e7f7eb37fe3.md."
+      },
+      {
+        "ts": "2026-08-01T22:12:00Z",
+        "note": "2026-08-01 ~22:12Z triage (degraded cycle, no Slack MCP surfaced this session, DD monitor scan diff vs 2026-08-01T21:04:19Z cutoff): monitor 305454649 fired 2026-08-01T21:09:20Z, hash 396b0e524828f637, occ 8->9, Warn at scan time (5m after the prior occurrence, still inside the same elevated-rate episode). DD RUM Error Tracking for service:method-nativemobile-ui over the monitor's own trailing 4h window (17:09:20-21:09:20Z): 53 @type:error vs 480 @type:view = 11.0% error rate -- consistent with the prior occurrence's elevated rate 5 minutes earlier. Of 30 sampled errors: 27 'cancelled' (90%), 3 'The network connection was lost.' (10%) -- identical composition to the immediately-prior occurrence, same client-side/device network-connectivity signature as all 8 prior occurrences. No correlated backend service alert co-fired this cycle. Still classified as client-side RUM noise, not a backend incident. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-08-01-396b0e524828f637.md."
       }
     ]
   },
