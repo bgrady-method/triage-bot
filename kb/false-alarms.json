@@ -21,8 +21,8 @@
     "reason": "method-import-subscriber is a low-frequency batch AMQP consumer, not a continuous one. 24h history (2026-07-05 13:05 -> 2026-07-06 10:33) shows only 8 non-zero hit buckets, in bursts of 1-2060 messages separated by gaps of 3-11.5 hours. The monitor's 'sum(last_30m) < 1' threshold trips on every natural idle gap over 30 minutes, which happens multiple times a day by design -- not a service outage. 0 error logs on the service for the full day. This fire (11:05:32Z) came 32 minutes after the last burst ended (10:33:30Z), squarely inside the service's normal idle pattern.",
     "silence_for": "24h",
     "first_seen": "2026-07-06T11:05:32Z",
-    "last_seen": "2026-07-31T20:15:33Z",
-    "occurrences": 97,
+    "last_seen": "2026-08-01T01:36:32Z",
+    "occurrences": 98,
     "recommendation": "monitor threshold mismatch, not a false-alarm-forever situation -- recommend widening the No-Data window (e.g. 6h) or switching to a message-backlog-depth check instead of a hits-in-window check; flagging for Admin team, not silencing indefinitely",
     "notes": [
       {
@@ -244,6 +244,10 @@
       {
         "ts": "2026-07-31T20:01:32Z",
         "note": "2026-07-31 ~20:xxZ triage (degraded cycle, no Slack MCP): monitor 299551472 fired 2026-07-31T20:01:32Z, hash cafc8e4dcfab0820, occurrences bumped. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over 19:31:32-20:01:32Z: empty series (0 datapoints), 0 status:error DD logs -- consistent with the documented low-frequency-batch-consumer idle-gap pattern. Self-DM kb-update sent (no thread-reply path in degraded mode)."
+      },
+      {
+        "ts": "2026-08-01T01:51:00Z",
+        "note": "2026-08-01 ~01:51Z triage (degraded cycle, no Slack MCP): monitor 299551472 fired 2026-08-01T01:36:32Z, hash 7dfb556c7a36c74d, occurrences bumped. sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over 01:06:32-01:36:32Z: empty series (0 datapoints), 0 status:error DD logs -- matches the documented low-frequency-batch-consumer idle-gap pattern. No thread-reply path in degraded mode -- kb-update self-DM sent."
       }
     ]
   },
@@ -426,8 +430,8 @@
     "reason": "DD RUM Error Tracking for service:method-nativemobile-ui over the trailing 4h (2026-07-14T19:00-23:30Z): 181 @type:error events vs 1464 @type:view events = 12.4% error rate (monitor threshold >5%). Message breakdown of all 181 sampled errors: 83 'A server with the specified hostname could not be found.' (DNS resolution failure, 45.9%), 74 'cancelled' (request cancelled mid-flight, typically app backgrounding/navigation-away, 40.9%), 12 'A TLS error caused the secure connection to fail.' (6.6%), plus small counts of 'Network Error'/'offline'/Expo-token-fetch failures. Every message is a client-side network-connectivity signature (DNS/TLS/cancellation on mobile devices with flaky connectivity) -- none are application-level 4xx/5xx or server-side exceptions. No correlated backend service alert fired in the same window. This is inherent RUM noise from real-world mobile network conditions, not a backend incident.",
     "silence_for": "24h",
     "first_seen": "2026-07-14T23:01:19Z",
-    "last_seen": "2026-07-31T11:25:20Z",
-    "occurrences": 3,
+    "last_seen": "2026-08-01T10:18:19Z",
+    "occurrences": 4,
     "recommendation": "monitor threshold (>5% over trailing 4h) is too sensitive for a mobile RUM error-rate check that includes DNS/TLS/cancellation noise; recommend excluding 'cancelled' and DNS-resolution-failure messages from the numerator, or raising the threshold, before this becomes a recurring low-value fire; flag to Admin (owns method-nativemobile-ui per ownership.md, despite the monitor's team:crm tag). 3 occurrences in ~2.5 weeks now (2026-07-14, 2026-07-30, 2026-07-31) -- worth acting on rather than continuing to re-verify.",
     "notes": [
       {
@@ -437,6 +441,10 @@
       {
         "ts": "2026-07-31T11:40:00Z",
         "note": "2026-07-31 ~11:25Z triage (degraded cycle, no Slack MCP; DD monitor scan diff vs 2026-07-31T10:44:26Z cutoff): monitor 305454649 fired 2026-07-31T11:25:20Z, hash 36a44116269641f5, occ 2->3, Warn at scan time. DD RUM Error Tracking over the monitor's own trailing 4h window (07:25:20-11:25:20Z): 46 @type:error vs 479 @type:view = 9.6% error rate. Sampled 30/46 errors: dominant 'cancelled' (~17), plus iOS push-entitlement config errors ('no valid aps-environment entitlement string'), Expo-token-fetch 503s (Expo's own infra), TLS errors, Memory Warning, Network Error -- all client-side/device/third-party-infra signatures, same mechanism family as both prior occurrences. No correlated backend alert. Still client-side RUM noise, not a backend incident. See docs/investigations/2026-07-31-36a44116269641f5.md. No thread-reply path in degraded mode -- kb-update self-DM sent."
+      },
+      {
+        "ts": "2026-08-01T10:33:00Z",
+        "note": "2026-08-01 ~10:33Z triage (degraded cycle, no Slack MCP): monitor 305454649 fired 2026-08-01T10:18:19Z, hash 4610044b45cf71ae, occ 3->4, Warn at scan time. DD RUM Error Tracking over the monitor's own trailing 4h window (06:18:19-10:18:19Z): 2 @type:error vs 59 @type:view = 3.4% error rate -- below the >5% alert threshold, consistent with the Warn (not Alert) state. Both sampled errors are 'cancelled' -- same client-side/device network-cancellation signature as all 3 prior occurrences. No correlated backend alert. No thread-reply path in degraded mode -- kb-update self-DM sent."
       }
     ]
   },
