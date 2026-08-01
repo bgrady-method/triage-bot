@@ -3423,8 +3423,8 @@
     "id": "ki-2026-07-07-notifications-p95-latency-monitor-noise",
     "title": "[CRM][P2] notifications P95 latency high monitor fires but re-query of the same evaluation window shows the metric never approaches the threshold -- monitor/data artifact, not real latency",
     "first_seen": "2026-07-06T10:01:07Z",
-    "last_seen": "2026-08-01T19:57:08Z",
-    "occurrences": 24,
+    "last_seen": "2026-08-01T20:59:08Z",
+    "occurrences": 25,
     "match": {
       "channels": [
         "alert-system",
@@ -3522,6 +3522,10 @@
       {
         "ts": "2026-08-01T20:10:00Z",
         "note": "2026-08-01 ~20:10Z triage (degraded cycle, no Slack MCP; DD monitor scan diff vs 2026-08-01T18:42:34Z cutoff, hash 91262cc61c93f83a): monitor 302056327 fired 2026-08-01T19:57:08Z, occ 23->24. p95:trace.aspnet.request{service:notifications,env:prod} over the exact 10-min eval window (19:47:08-19:57:08Z): 60 points, range 0.00076-0.027s, no anomalous outlier this cycle -- cleanest non-reproduction shape, nowhere near the 1s threshold. 0 status:error DD logs on service:notifications in-window. last_notified_at (2026-08-01T12:12:00Z) ~7h58m ago, WITHIN 24h suppression window; occurrence 24 not a 10th-multiple; fix_status unchanged -> SUPPRESSED, gate_reason=known-issue-window, appended to docs/actionable/2026-08-01.md. See docs/investigations/2026-08-01-91262cc61c93f83a.md."
+      },
+      {
+        "ts": "2026-08-01T21:08:00Z",
+        "note": "2026-08-01 ~21:08Z triage (degraded cycle, no Slack MCP surfaced this session, DD monitor scan diff vs 2026-08-01T19:57:08Z cutoff): monitor 302056327 fired 2026-08-01T20:59:08Z, hash b761403a510bc0e0, occ 24->25. p95:trace.aspnet.request{service:notifications,env:prod} over the monitor's own 10-min eval window (20:49:08-20:59:08Z): 60 points, range 0.0008-0.029s, no anomalous outlier -- cleanest non-reproduction pattern, nowhere near the 1s threshold. 0 status:error DD logs on service:notifications in-window. last_notified_at (2026-08-01T12:12:00Z) ~8h47m ago, WITHIN 24h suppression window; occurrence 25 not a 10th-multiple; fix_status unchanged -> SUPPRESSED, gate_reason=known-issue-window, appended to docs/actionable/2026-08-01.md. See docs/investigations/2026-08-01-b761403a510bc0e0.md."
       }
     ]
   },
