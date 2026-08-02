@@ -2385,8 +2385,8 @@
     "id": "ki-2026-07-04-ms-account-api-4xx-spike-monitor-noise",
     "title": "[Admin][AccountAPI][P3] 4xx-spike monitor transitions state without a real 4xx breach (monitor-sensitivity/config artifact, not a service issue)",
     "first_seen": "2026-07-03T12:08:59Z",
-    "last_seen": "2026-08-01T19:34:18Z",
-    "occurrences": 46,
+    "last_seen": "2026-08-02T10:24:18Z",
+    "occurrences": 47,
     "match": {
       "channels": [
         "alert-system",
