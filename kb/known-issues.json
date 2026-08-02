@@ -2960,8 +2960,8 @@
     "id": "ki-2026-07-06-signup-low-traffic-p90-latency-monitor-noise",
     "title": "[Growth][Signup][P?] 'Service Signup post requests have a high p90 latency' trips on single-request percentile noise on a very low-traffic endpoint",
     "first_seen": "2026-07-05T21:57:46Z",
-    "last_seen": "2026-07-31T13:19:46Z",
-    "occurrences": 13,
+    "last_seen": "2026-08-02T06:00:46Z",
+    "occurrences": 14,
     "match": {
       "channels": [
         "alert-system",
@@ -2986,7 +2986,7 @@
     "evidence_source": "datadog_apm",
     "evidence_query": "p90:trace.aspnet.request{env:prod,service:signup,resource_name:post_/*}",
     "evidence_threshold_s": 12.0,
-    "last_notified_at": "2026-07-30T14:25:46Z",
+    "last_notified_at": "2026-08-02T12:35:00Z",
     "notes": [
       {
         "ts": "2026-07-06T15:09:00Z",
@@ -3027,6 +3027,10 @@
       {
         "ts": "2026-07-31T13:19:46Z",
         "note": "2026-07-31 ~14:00-14:20Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed 'slack conversations history mcp' and 'slack', no matching deferred tool found). monitor 154252126 fired 13:19:46Z, occ 12->13. DD metric p90:trace.aspnet.request{env:prod,service:signup,resource_name:post_/*} over 12:49:46-13:24:46Z: 49 points, peak 11.33s (just under 12.0s threshold in this coarser window; monitor's own tighter 5m eval window crossed it), 0 status:error DD logs. Same low-traffic single-request-percentile-noise shape. last_notified_at (2026-07-30T14:25:46Z) only ~23h54m old -> SUPPRESSED, gate_reason=known-issue-window."
+      },
+      {
+        "ts": "2026-08-02T12:35:00Z",
+        "note": "2026-08-02 ~11:22-12:35Z triage (degraded cycle, no Slack MCP surfaced this session). Monitor 154252126 fired 06:00:46Z, hash 196fd9810e56184b, occ 13->14. p90:trace.aspnet.request{env:prod,service:signup,resource_name:post_/*} over 05:30:46-06:00:46Z: 5 points, peak 98.25s @05:33:50Z (ratio 8.19 vs 12s threshold) -- MAGNITUDE ANOMALY, new record high (prior max 34.73s on 2026-07-13). Re-queried at fine interval (05:32:50-05:34:50Z) and the spike persisted -- confirmed NOT a coarse-rollup artifact, a genuinely very slow single request. 0 status:error logs in the full window -- still latency-only, no error correlation. Same single-request-dominates-p90 shape as all 13 priors, just a larger individual outlier. last_notified_at (2026-07-30T14:25:46Z) ~68.94h ago, well PAST 24h suppression window -> POSTED to #triage-results, gate_reason=null (window-expiry). Flagging the magnitude escalation (34.73s -> 98.25s) for Growth in case it's an early signal of the underlying slow-request cause worsening, though 0-error + self-recovery still matches the noise diagnosis for now. See docs/investigations/2026-08-02-196fd9810e56184b.md."
       }
     ]
   },
