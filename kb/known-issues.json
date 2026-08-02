@@ -3341,8 +3341,8 @@
     "id": "ki-2026-07-07-gateway-4xx-spike-monitor-noise",
     "title": "[Admin][Gateway][P3] 4xx spike (gateway) monitor trips on a brief isolated single-bucket burst, self-recovers -- same shape as ms-account-api-4xx-spike-monitor-noise but a different monitor ID",
     "first_seen": "2026-07-06T10:16:00Z",
-    "last_seen": "2026-07-31T10:32:57Z",
-    "occurrences": 19,
+    "last_seen": "2026-08-02T10:32:57Z",
+    "occurrences": 20,
     "match": {
       "channels": [
         "alert-system",
@@ -3367,7 +3367,7 @@
     "fix_template": null,
     "confidence": 0.75,
     "owning_team": "Admin",
-    "last_notified_at": "2026-07-31T11:24:00Z",
+    "last_notified_at": "2026-08-02T12:55:00Z",
     "notes": [
       {
         "ts": "2026-07-06T11:35:00Z",
