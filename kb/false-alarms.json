@@ -1032,5 +1032,28 @@
     "last_seen": "2026-08-01T23:56:27Z",
     "occurrences": 1,
     "recommendation": "Recommend to Growth/First-Strike team: verify the SLO error_budget definition (id f543e0152a9b5118a647770c1a1e3a2d) isn't double-counting or including non-representative datapoints; consider a minimum-sample-count gate given signup is a low-traffic endpoint (same low-traffic-noise family as fa-2026-07-12-signup-avg-latency-low-traffic-noise, ki-2026-07-06-signup-low-traffic-p90-latency-monitor-noise, and this cycle's new fa-2026-08-02-signup-high-error-rate-low-traffic-noise)."
+  },
+  {
+    "target": "false-alarms",
+    "id": "fa-2026-08-02-signup-high-error-rate-low-traffic-noise",
+    "match": {
+      "channels": [
+        "alert-system"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/154230536"
+        },
+        {
+          "contains": "Service Signup has a high error rate"
+        }
+      ]
+    },
+    "reason": "Monitor 154230536 (sum(last_10m):(sum:trace.aspnet.request.errors{env:prod,service:signup}.as_count() / sum:trace.aspnet.request.hits{env:prod,service:signup}.as_count()) > 0.1, team:first-strike) fired 2026-08-02T05:44:56Z, self-recovered by scan time. 2 prior undocumented occurrences in kb/incident-log.jsonl (never KB'd -- gap filled by this entry). Re-query over the monitor's own 10-min window (05:34:56-05:44:56Z): sum:trace.aspnet.request.errors{env:prod,service:signup}.as_count() = empty series (0), sum:trace.aspnet.request.hits{env:prod,service:signup}.as_count() = 7 total hits across the window (1-2 per bucket). DD Logs service:signup env:prod status:error over the same window = 0 hits. Classic low-traffic-ratio artifact: signup is a low-volume pre-account endpoint, so a denominator of single-digit hits makes the error-rate percentage extremely noisy -- same mechanism as the other signup low-traffic-noise KB entries (fa-2026-07-12-signup-avg-latency-low-traffic-noise, ki-2026-07-06-signup-low-traffic-p90-latency-monitor-noise, fa-2026-07-11-signup-tracehandler-scanner-probe).",
+    "silence_for": "24h",
+    "first_seen": "2026-08-02T11:22:21Z",
+    "last_seen": "2026-08-02T05:44:56Z",
+    "occurrences": 1,
+    "recommendation": "Recommend to Growth/First-Strike team: gate this monitor on a minimum request-count denominator (e.g. require hits > 20 in the eval window) before evaluating the error-rate percentage, same recommendation as the sibling signup low-traffic monitors."
   }
 ]
