@@ -300,8 +300,8 @@
     "reason": "ES fields.dd_service.keyword:signup AND level.keyword:Error, 04:49:40-05:24:40Z: 1 hit. Full sample: System.Web.HttpException thrown from System.Web.Handlers.TraceHandler.ProcessRequest (classic ASP.NET trace.axd diagnostic handler, disabled in prod). fields.Account.AccountId=0 (no real tenant attached) -- consistent with an external request probing /trace.axd rather than a real user action. Self-recovered, single occurrence, DD Logs 0 corroborating hits (client-request-level noise, not app-logic).",
     "silence_for": "24h",
     "first_seen": "2026-07-11T05:19:40Z",
-    "last_seen": "2026-07-29T16:48:40Z",
-    "occurrences": 8,
+    "last_seen": "2026-08-02T05:40:40Z",
+    "occurrences": 9,
     "notes": [
       {
         "ts": "2026-07-23T22:08:16Z",
