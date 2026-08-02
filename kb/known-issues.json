@@ -555,8 +555,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-07-31T13:25:20Z",
-    "occurrences": 253,
+    "last_seen": "2026-08-02T08:11:20Z",
+    "occurrences": 254,
     "match": {
       "channels": [
         "alert-system",
@@ -597,7 +597,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.85,
-    "last_notified_at": "2026-07-30T17:16:37Z",
+    "last_notified_at": "2026-08-02T12:45:00Z",
     "prior_last_notified_at": "2026-07-29T15:16:35Z",
     "notes": [
       {
