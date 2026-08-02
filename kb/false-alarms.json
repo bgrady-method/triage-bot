@@ -983,5 +983,28 @@
     "last_seen": "2026-07-31T19:34:52Z",
     "occurrences": 1,
     "silence_for": "24h"
+  },
+  {
+    "target": "false-alarms",
+    "id": "fa-2026-08-02-signup-availability-slo-monitor-noise",
+    "match": {
+      "channels": [
+        "alert-system"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/154229727"
+        },
+        {
+          "contains": "Service Signup Availability SLO"
+        }
+      ]
+    },
+    "reason": "Monitor 154229727 (error_budget('f543e0152a9b5118a647770c1a1e3a2d').over('7d') > 30, service:signup, team:first-strike) fired 2026-08-01T23:56:27Z, self-recovered to OK by scan time. 21 prior undocumented occurrences in kb/incident-log.jsonl (none ever KB'd -- gap filled by this entry). Fresh evidence this cycle: ES aggregate fields.dd_service.keyword:signup AND level.keyword:Error over the preceding 24h (2026-08-01T11:56-23:56Z) = 1 hit total; DD Logs service:signup env:prod status:error over the same window = 0 hits. Negligible real-error signal for a service that supposedly burned >30% of its 7-day error budget. Consistent with an SLO-monitor evaluation/rollup artifact rather than a genuine availability degradation -- error-budget SLO monitors are especially prone to this because a single stale/duplicated bad datapoint can still sit inside the 7d rolling window.",
+    "silence_for": "24h",
+    "first_seen": "2026-08-02T11:22:21Z",
+    "last_seen": "2026-08-01T23:56:27Z",
+    "occurrences": 1,
+    "recommendation": "Recommend to Growth/First-Strike team: verify the SLO error_budget definition (id f543e0152a9b5118a647770c1a1e3a2d) isn't double-counting or including non-representative datapoints; consider a minimum-sample-count gate given signup is a low-traffic endpoint (same low-traffic-noise family as fa-2026-07-12-signup-avg-latency-low-traffic-noise, ki-2026-07-06-signup-low-traffic-p90-latency-monitor-noise, and this cycle's new fa-2026-08-02-signup-high-error-rate-low-traffic-noise)."
   }
 ]
