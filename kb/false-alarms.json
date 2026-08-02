@@ -943,7 +943,7 @@
           "contains": "monitors/309602252"
         },
         {
-          "contains": "High CPU Usage \u2014 Warehouse Hosts"
+          "contains": "High CPU Usage — Warehouse Hosts"
         },
         {
           "contains": "High CPU Usage - Warehouse Hosts"
@@ -983,6 +983,32 @@
     "last_seen": "2026-07-31T19:34:52Z",
     "occurrences": 1,
     "silence_for": "24h"
+  },
+  {
+    "target": "false-alarms",
+    "id": "fa-2026-08-02-qa-warehouse-hosts-cpu-nodata",
+    "match": {
+      "channels": [
+        "alert-system"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/309602252"
+        },
+        {
+          "contains": "High CPU Usage"
+        },
+        {
+          "contains": "Warehouse Hosts"
+        }
+      ]
+    },
+    "reason": "Monitor 309602252 (avg(last_5m):avg:system.cpu.user{host:dev-warehouse-linux OR host:dev-warehouse-windows} by {host} > 95, env:warehouse, team:qa) fired 2026-08-02T04:08:32Z as No Data (not an actual CPU breach -- the hosts stopped reporting the metric entirely). 0 prior documented occurrences of this monitor in kb/incident-log.jsonl (first-ever fire). DD metric re-query (avg:system.cpu.user{host:dev-warehouse-linux OR host:dev-warehouse-windows} by {host}, 2026-08-02T03:38:32-04:38:32Z, a widened 1h window) returned an empty series -- consistent with the hosts being offline/idle rather than under real CPU load. env:warehouse is a non-prod QA/Gatling load-test environment (same family as fa-2026-07-23-qa-gatling-warehouse-load-test-noise); these hosts are commonly powered down or idle between test runs. No prod impact, no user impact.",
+    "silence_for": "24h",
+    "first_seen": "2026-08-02T11:22:21Z",
+    "last_seen": "2026-08-02T04:08:32Z",
+    "occurrences": 1,
+    "recommendation": "If this monitor is meant to catch genuine CPU exhaustion on the warehouse QA hosts, consider adding a separate host-liveness/No-Data-specific notification instead of treating 'no metric reported' the same as 'CPU > 95%' -- the two failure modes need different responses. Low priority given non-prod scope."
   },
   {
     "target": "false-alarms",
