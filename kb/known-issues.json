@@ -2039,8 +2039,8 @@
     "id": "ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap",
     "title": "New team:crm AMQP-consumer heartbeat/throughput-stall monitors (5 sibling IDs, created 2026-07-02) intermittently trip on quiet-period low-traffic dips, then self-recover within minutes — no corroborating errors",
     "first_seen": "2026-07-04T13:07:31Z",
-    "last_seen": "2026-08-02T13:05:31Z",
-    "occurrences": 105,
+    "last_seen": "2026-08-02T16:52:31Z",
+    "occurrences": 106,
     "match": {
       "channels": [
         "alert-system",
@@ -2086,7 +2086,7 @@
     "fix_template": null,
     "confidence": 0.82,
     "owning_team": "CRM Experience (runtime-core-subscriber-api, per ownership.md:454) / Admin (mobile-notifications-stack, per ownership.md:416) — split by service; DD monitor tags say team:crm for both, ownership.md disagrees for the mobile-notifications component",
-    "last_notified_at": "2026-08-01T17:08:11Z",
+    "last_notified_at": "2026-08-02T17:12:00Z",
     "notes": [
       {
         "ts": "2026-07-04T16:10:00Z",
@@ -2319,6 +2319,10 @@
       {
         "ts": "2026-08-01T17:08:11Z",
         "note": "2026-08-01 17:08Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed 'slack conversations history MCP' and 'slack chat postMessage users.info conversations.open', neither matched; DD monitor scan diff vs 2026-08-01T15:50:08Z cutoff, hash 2c38294997259cd0): monitor 302057011 ('[CRM] runtime-core-subscriber throughput dropped (possible stall)') fired 2026-08-01T16:39:31Z, occurrences -> 102. DD metric sum:trace.amqp.command.hits{service:runtime-core-subscriber,env:prod}.as_rate() over 16:09:31-16:39:31Z: 179 points, 100 below the 2msg/s threshold (min 0.2), scattered clearing bursts up to 11.0/s, ending near-threshold (last 5 points: 3.8/1.5/1.9/7.1/5.0) -- canonical quiet-period-flap shape matching all 101 prior occurrences. 0 service:runtime-core-subscriber status:error DD logs in-window. No sibling monitor in the 5-monitor family co-fired this cycle (full 186-monitor scan, only this monitor had last_triggered_ts past cutoff). last_notified_at (2026-07-31T11:24:00Z) ~1d5h44m ago, EXCEEDED 24h suppression window -> POST, gate_reason=null (window-expiry), last_notified_at bumped to 2026-08-01T17:08:11Z. See docs/investigations/2026-08-01-2c38294997259cd0.md."
+      },
+      {
+        "ts": "2026-08-02T17:12:00Z",
+        "note": "2026-08-02 17:12Z triage (degraded cycle, no Slack MCP; DD monitor scan-diff vs cutoff 2026-08-02T15:36:19Z; hash 2a9b4350ae71cbb3): occ#106 via sibling monitor 302057011 last_triggered 16:52:31Z (still Alert at scan time 17:11:59Z -- 19+min without recovering, longer than most documented flaps). Re-ran sum:trace.amqp.command.hits{service:runtime-core-subscriber,env:prod}.as_rate() over 15:52:31-17:11:59Z: sustained low throughput (0.1-8 msg/s, mostly <2) for most of the window, with one ~10min burst to 135-140 msg/s mid-window (~16:24-16:35Z, likely a batch catch-up unrelated to the quiet-period mechanism) then back to the same low baseline through the fire (16:52:31Z, value ~0.9-1.3 msg/s) and still low 20min later at scan time (17:08-17:12Z, 0.1-2.7 msg/s) -- consistent with the documented naturally-bursty low-traffic shape, not a genuine processing stall. service:runtime-core-subscriber status:error env:prod over the same window: 0 hits. NOTE on gate timing: last_notified_at was 2026-08-01T17:08:11Z; using cycle-eval-time 'now' (~2026-08-02T17:12:00Z) the gap is ~24h4m, EXCEEDED the 24h suppression window by only a few minutes -- flagged per the standing KIR-gate-now-anchor-ambiguity precedent (using the alert's own last_triggered_ts of 16:52:31Z instead would read ~23h44m, WITHIN window). Per the established cycle-eval-time convention -> POSTED to #triage-results, gate_reason=null (window-expiry, razor-edge). See docs/investigations/2026-08-02-2a9b4350ae71cbb3.md."
       }
     ]
   },
@@ -3168,8 +3172,8 @@
     "id": "ki-2026-07-06-tables-fields-alter-column-ddl-syntax-error",
     "title": "ms-tables-fields-api AlterTableToDropColumn raises SqlException 'Incorrect syntax near COLUMN' when deleting a field (distinct from the FieldTableNameRef null-ref KB)",
     "first_seen": "2026-07-06T14:27:40Z",
-    "last_seen": "2026-07-06T14:27:53Z",
-    "occurrences": 1,
+    "last_seen": "2026-08-02T17:03:24Z",
+    "occurrences": 2,
     "match": {
       "channels": [
         "alert-system",
@@ -3197,11 +3201,15 @@
     "owning_team": "Admin",
     "evidence_source": "elasticsearch",
     "evidence_query": "fields.dd_service.keyword:\"tables-fields\" AND level.keyword:\"Error\"",
-    "last_notified_at": null,
+    "last_notified_at": "2026-08-02T17:12:00Z",
     "notes": [
       {
         "ts": "2026-07-06T15:09:00Z",
         "note": "First occurrence. DD monitor 299251404 last_triggered 14:30:24Z (rolling-window lag vs the 14:27:40-53Z burst, same lag pattern documented on ki-2026-07-02). ES aggregate 14:00-14:31Z: 18 error-level hits across 9 distinct dd_trace_id (3 traces x 4 lines, 6 traces x 1 line), buckets: Message Deletion Failed (5), AlterTableToDropColumn Failed (3), Incorrect syntax near 'COLUMN'. (3), Mode:Delete Failed (3), SaveFieldLegacyExtended Failed (3), FillViewBasicInfo Failed (1) -- zero overlap with the FieldTableNameRef signature, confirming this is a distinct bug from ki-2026-07-02 despite sharing the same triggering monitor. Full stack trace read (2 sample records): Microsoft.Data.SqlClient.SqlException at TdsParser.ThrowExceptionAndWarning, originating in Services.Providers.TableProvider.AlterTableToDropColumn (TableProvider.cs:405 per stale local clone) via TableService.AlterTableToDropColumn -> ColumnService.DeleteColumn -> FieldService.DeleteFieldByTableAndFieldName/TryDeleteField -> ViewService.DeleteFields/EditView -> FieldController.SaveFieldLegacyExtended. Re-aggregated 5-min error rate (3 errors / 767 hits = 0.39%) is below the monitor's 1% threshold on reaggregation -- same rolling-window-lag artifact as ki-2026-07-02's July 2 occurrence. Score computed: critical_path_service (+3, ms-tables-fields-api), truly_novel (+2, no prior fire of this exact signature), monitor_history dm_rate 3/15=0.2 (-1) = 4 -- at escalation_score_threshold(4); needs-human daily cap already at 5/5 for today (5 posted earlier this cycle window per docs/messages/2026-07-06/triage-results.jsonl) -> actionable-append, gate_reason=daily-cap. See docs/investigations/2026-07-06-678faf4460a4a81a.md."
+      },
+      {
+        "ts": "2026-08-02T17:12:00Z",
+        "note": "2026-08-02 17:12Z triage (degraded cycle, no Slack MCP; DD monitor scan-diff vs cutoff 2026-08-02T15:36:19Z; hash 72444edd9b263352, same monitor fire as ki-2026-07-28's occ#2 -- both cascades co-occurred in one alert): occ#2 via monitor 299251404 last_triggered 17:03:24Z. ES sample confirmed this entry's exact signature: 2 distinct dd_trace_ids, each with Microsoft.Data.SqlClient.SqlException 'Incorrect syntax near COLUMN.' at Services.Providers.TableProvider.AlterTableToDropColumn (TableProvider.cs:405), full call chain ColumnService.DeleteColumn->TableService.AlterTableToDropColumn->TableProvider.AlterTableToDropColumn, re-logged at the controller as 'SaveFieldLegacyExtended Failed'. Message buckets for these 2 traces: AlterTableToDropColumn Failed(2), FillViewBasicInfo Failed(2), Incorrect syntax near 'COLUMN'(2), Mode:Delete Failed(2), Message Deletion Failed(1), SaveFieldLegacyExtended Failed w/SqlException(2) -- matches the first occurrence's documented shape exactly. last_notified_at was null (never notified) -> POSTED to #triage-results (same post as the ki-2026-07-28 finding above, both KIR matches disclosed in one message per group), gate_reason=null (first notification). See docs/investigations/2026-08-02-72444edd9b263352.md."
       }
     ]
   },
@@ -3719,8 +3727,8 @@
     "id": "ki-2026-07-12-designer-core-api-throughput-anomaly-monitor-noise",
     "title": "designer-core-api abnormal-throughput-change anomaly monitor (115452625, team:poiesis) fires on normal low-volume traffic -- no error signal, no confirmed spike/drop at either documented occurrence",
     "first_seen": "2026-07-10T09:53:25Z",
-    "last_seen": "2026-07-26T02:28:25Z",
-    "occurrences": 4,
+    "last_seen": "2026-08-02T17:07:26Z",
+    "occurrences": 5,
     "match": {
       "channels": [
         "alert-system",
@@ -3746,7 +3754,7 @@
     "fix_template": null,
     "confidence": 0.7,
     "owning_team": "No Code Next Gen",
-    "last_notified_at": "2026-07-26T02:28:25Z",
+    "last_notified_at": "2026-08-02T17:12:00Z",
     "notes": [
       {
         "ts": "2026-07-10T09:53:25Z",
@@ -3755,6 +3763,10 @@
       {
         "ts": "2026-07-12T14:11:26Z",
         "note": "2026-07-12 triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-12T14:09:07Z cutoff; hash 6c159a4f919c7bb1): 2nd occurrence, ~2 days after the 1st, identical shape (steady 1-10 hits/20s bucket, no visible spike/drop near the 14:11:26Z fire, 0 DD error logs, 0 ES hits). Still in `Alert` state at scan time (not yet self-recovered, unlike the 1st occurrence). Created this KB entry now (confidence 0.7, 2 consistent occurrences) following the same 2nd-occurrence-creates-the-entry precedent used for ki-2026-07-04-ms-account-api-4xx-spike-monitor-noise / ki-2026-07-07-gateway-4xx-spike-monitor-noise / ki-2026-07-07-notifications-p95-latency-monitor-noise. This specific fire pre-dates the KB entry (match_kb.py ran before this write) so it stays classified needs-human, scored 2 (novel_no_kb) -> actionable-append, gate_reason=low-impact. See docs/investigations/2026-07-12-6c159a4f919c7bb1.md."
+      },
+      {
+        "ts": "2026-08-02T17:12:00Z",
+        "note": "2026-08-02 17:12Z triage (degraded cycle, no Slack MCP surfaced this session; DD monitor scan-diff vs prior cutoff 2026-08-02T15:36:19Z, hash d885c2b44bbd30e0): occ#5 via monitor 115452625 last_triggered 17:07:26Z (still Alert at scan time 17:11:59Z). Re-ran sum:trace.aspnet_core.request.hits{env:prod,service:designer-core-api}.as_count() over 16:07:26-17:11:59Z: steady 1-6 hits/20s bucket throughout, no visible spike or drop near the 17:07:26Z fire -- identical shape to both documented occurrences. service:designer-core-api status:error env:prod over the same window: 0 hits. last_notified_at (2026-07-26T02:28:25Z) was ~7d15h ago, EXCEEDED the 24h suppression window -> POSTED to #triage-results, gate_reason=null (window-expiry). See docs/investigations/2026-08-02-d885c2b44bbd30e0.md."
       }
     ]
   },
@@ -3916,8 +3928,8 @@
     "id": "ki-2026-07-28-tables-fields-editview-viewgen-failed-after-retry",
     "title": "ms-tables-fields-api EditView view-regeneration fails after retry (System.Exception 'Failed to generate view {X} after retry') -- 4th distinct bug class on monitor 299251404",
     "first_seen": "2026-07-28T17:48:24Z",
-    "last_seen": "2026-07-28T17:48:24Z",
-    "occurrences": 1,
+    "last_seen": "2026-08-02T17:03:24Z",
+    "occurrences": 2,
     "match": {
       "channels": [
         "alert-system",
@@ -3943,7 +3955,14 @@
     "fix_template": null,
     "confidence": 0.7,
     "evidence_source": "elasticsearch",
-    "evidence_query": "fields.dd_service.keyword:tables-fields AND level.keyword:Error AND message.keyword:\"SaveFieldLegacyExtended Failed\""
+    "evidence_query": "fields.dd_service.keyword:tables-fields AND level.keyword:Error AND message.keyword:\"SaveFieldLegacyExtended Failed\"",
+    "last_notified_at": "2026-08-02T17:12:00Z",
+    "notes": [
+      {
+        "ts": "2026-08-02T17:12:00Z",
+        "note": "2026-08-02 17:12Z triage (degraded cycle, no Slack MCP; DD monitor scan-diff vs cutoff 2026-08-02T15:36:19Z; hash 72444edd9b263352): occ#2 via monitor 299251404 last_triggered 17:03:24Z (still Warn at scan time). ES message.keyword aggregate 16:03:24-17:08:53Z over the whole tables-fields Error stream returned 41 hits across multiple concurrent signatures on this monitor -- disaggregated by exceptions[0].ClassName + dd_trace_id: 7 distinct traces carry this entry's exact cascade (Table View Creation Failed x14, EditView ViewGen failed after retry x7, SaveFieldLegacyExtended Failed w/ System.Exception 'Failed to generate view {X} after retry' x7), matching the documented ViewService.EditView(ViewService.cs:394)/TryGenerateView retry-then-fail signature. Sample view names: 'Activity' among others. Same trace-count jump (1->7) as the KB's first single-occurrence baseline -- a real increase in volume, not just a re-fire. Two OTHER concurrent, distinct signatures also present in the same aggregate window but NOT part of this entry: 2 traces matching ki-2026-07-06-tables-fields-alter-column-ddl-syntax-error (AlterTableToDropColumn Failed/FillViewBasicInfo Failed/Incorrect syntax near COLUMN/Mode:Delete Failed, SaveFieldLegacyExtended w/ SqlException) -- logged separately below -- and 1 new undocumented trace (GetDropDownField Failed, System.NullReferenceException at FieldService.cs:538, NOT ki-2026-07-11's HelperConverter.GetFields NRE) -- first occurrence, not folded into any KB entry, flagged as follow-up pending a 2nd occurrence. last_notified_at was null (never notified) -> POSTED to #triage-results, gate_reason=null (first notification). See docs/investigations/2026-08-02-72444edd9b263352.md."
+      }
+    ]
   },
   {
     "id": "ki-2026-07-31-tables-fields-findviewfailed-getfieldnameswithrestriction",
