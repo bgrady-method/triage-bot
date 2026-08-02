@@ -2039,8 +2039,8 @@
     "id": "ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap",
     "title": "New team:crm AMQP-consumer heartbeat/throughput-stall monitors (5 sibling IDs, created 2026-07-02) intermittently trip on quiet-period low-traffic dips, then self-recover within minutes — no corroborating errors",
     "first_seen": "2026-07-04T13:07:31Z",
-    "last_seen": "2026-08-01T16:39:31Z",
-    "occurrences": 102,
+    "last_seen": "2026-08-02T05:19:31Z",
+    "occurrences": 103,
     "match": {
       "channels": [
         "alert-system",
