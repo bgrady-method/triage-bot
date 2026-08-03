@@ -1566,7 +1566,7 @@
     "fix_template": null,
     "confidence": 0.85,
     "owning_team": "unmapped",
-    "last_notified_at": "2026-08-03T11:35:00Z",
+    "last_notified_at": "2026-08-03T00:01:20Z",
     "notes": [
       {
         "ts": "2026-07-03T13:09:00Z",
@@ -1826,7 +1826,7 @@
       },
       {
         "ts": "2026-08-03T11:35:00Z",
-        "note": "2026-08-03 ~11:25-11:35Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed for slack/mcp conversation tools, none found, consistent with the standing intermittent read-path gap). Full 186-monitor DD scan diffed vs prior cutoff 2026-08-02T21:41:08Z: Day run (121308660) and Day run 2 (133625690) variants both No Data, last_triggered_ts 2026-08-03T00:01:00Z / 00:01:20Z (20s apart -- same Centreon/synthetics cron tick, grouped as primary+satellite). Confirmed shape via monitor detail: both tag team:qa, names contain 'Method UI Grid and Dropdown Performance Test', overall_state_modified matches last_triggered_ts. No co-firing signal with any prod service this cycle for this pair (processed independently from the Evening-run/Watchdog/Warehouse-Dashboard fires later in the same scan). occ 152->153. last_notified_at (2026-08-01T12:30:00Z) ~35h31m ago, PAST the 24h suppression window -> POST to #triage-results, gate_reason=null (window-expiry), last_notified_at bumped to now. fix_status confirmed-non-prod-noise unchanged. See docs/investigations/2026-08-03-d543414d02f1916b.md."
+        "note": "2026-08-03 ~11:25-11:35Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed for slack/mcp conversation tools, none found, consistent with the standing intermittent read-path gap). Full 186-monitor DD scan diffed vs prior cutoff 2026-08-02T21:41:08Z: Day run (121308660) and Day run 2 (133625690) variants both No Data, last_triggered_ts 2026-08-03T00:01:00Z / 00:01:20Z (20s apart -- same Centreon/synthetics cron tick, grouped as primary+satellite). Confirmed shape via monitor detail: both tag team:qa, names contain 'Method UI Grid and Dropdown Performance Test', overall_state_modified matches last_triggered_ts. No co-firing signal with any prod service this cycle for this pair (processed independently from the Evening-run/Watchdog/Warehouse-Dashboard fires later in the same scan). occ 152->153. last_notified_at (2026-08-01T12:30:00Z) ~35h31m ago, PAST the 24h suppression window -> POST to #triage-results, gate_reason=null (window-expiry), last_notified_at bumped to 2026-08-03T00:01:20Z (the fire ts, not wall-clock triage time -- corrected from an initial mis-set to processing-time in this same cycle). fix_status confirmed-non-prod-noise unchanged. See docs/investigations/2026-08-03-d543414d02f1916b.md."
       }
     ]
   },
