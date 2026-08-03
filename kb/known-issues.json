@@ -1955,8 +1955,8 @@
     "id": "ki-2026-07-03-warehouse-dashboard-network-test-nodata",
     "title": "\"Warehouse Dashboard Network Test\" synthetics (team:qa, non-prod) go No Data daily ~09:31-10:01Z UTC; never correlates to a real incident",
     "first_seen": "2026-05-07T09:31:00Z",
-    "last_seen": "2026-07-30T10:01:07Z",
-    "occurrences": 39,
+    "last_seen": "2026-08-03T10:01:07Z",
+    "occurrences": 40,
     "match": {
       "channels": [
         "alert-system"
@@ -1983,7 +1983,7 @@
     "fix_template": null,
     "confidence": 0.88,
     "owning_team": "unmapped",
-    "last_notified_at": "2026-07-30T09:31:00Z",
+    "last_notified_at": "2026-08-03T09:31:00Z",
     "notes": [
       {
         "ts": "2026-05-07T00:00:00Z",
@@ -2044,6 +2044,10 @@
       {
         "ts": "2026-07-30T14:45:00Z",
         "note": "2026-07-30 ~14:29Z triage (degraded cycle, no Slack MCP): 3 fires this cycle (daily family). 175074570 (09:31:00Z, occ 36->37): last_notified_at 2026-07-28T11:20:00Z past 24h -> POSTED, gate_reason=null. 176337981 (09:41:21Z, occ 37->38): within window -> SUPPRESSED. 176338057 (10:01:07Z, occ 38->39): within window -> SUPPRESSED. All confirmed via monitor overall_state=='No Data'. See docs/investigations/2026-07-30-e9a11f43c4e31580.md, -dee97b5c55a6b927.md, -aae7d438568efa74.md."
+      },
+      {
+        "ts": "2026-08-03T12:05:00Z",
+        "note": "2026-08-03 ~12:00-12:05Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed for slack/mcp conversation tools, none found, consistent with the standing intermittent read-path gap). Full 186-monitor DD scan diffed vs prior cutoff 2026-08-02T21:41:08Z: all 3 family monitors (175074570 09:31:00Z, 176337981 09:41:21Z, 176338057 10:01:07Z) in No Data state -- same daily ~09:31-10:01Z UTC clustering documented for 39 prior occurrences, grouped as primary+2 satellites (same channel/text-fingerprint, all within the 30-min group window). Confirmed via this cycle's own scan (entry's evidence is monitor-state-based, evidence_source/evidence_query fields both null on this entry -- same standing gap noted on other entries; confirmed directly via monitor detail instead: tag team:qa, names 'Warehouse Dashboard Network Test', overall_state 'No Data' matching last_triggered_ts for all 3). No co-firing prod signal this cycle. occ 39->40. last_notified_at (2026-07-30T09:31:00Z) exactly 4 days ago, PAST the 24h suppression window -> POST to #triage-results, gate_reason=null (window-expiry), last_notified_at bumped to 2026-08-03T09:31:00Z (primary alert fire ts, not wall-clock triage time). fix_status confirmed-non-prod-noise unchanged. See docs/investigations/2026-08-03-b2235c185192b117.md."
       }
     ]
   },
