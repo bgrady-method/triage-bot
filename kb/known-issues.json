@@ -3070,8 +3070,8 @@
     "id": "ki-2026-07-06-synthetics-signin-transient-step-duration-spike",
     "title": "[Synthetics] Sign in to Method step-duration monitor (127198928) intermittently spikes >20s for a single test run then self-recovers, with no corroborating error signal on any critical-path service",
     "first_seen": "2026-05-27T19:02:08Z",
-    "last_seen": "2026-07-30T23:21:08Z",
-    "occurrences": 33,
+    "last_seen": "2026-08-03T20:03:09Z",
+    "occurrences": 34,
     "match": {
       "channels": [
         "alert-system"
@@ -3096,7 +3096,7 @@
     "fix_template": null,
     "confidence": 0.7,
     "owning_team": "Admin",
-    "last_notified_at": "2026-07-31T11:24:00Z",
+    "last_notified_at": "2026-08-03T20:03:09Z",
     "notes": [
       {
         "ts": "2026-07-13T18:12:00Z",
@@ -3802,8 +3802,8 @@
     "id": "ki-2026-07-12-rest-api-tables-endpoint-5xx-recurring-burst",
     "title": "rest-api POST /api/{version}/tables/{table} recurring 5xx burst (APM-only, self-recovering, no error-log trace)",
     "first_seen": "2026-07-12T02:40:38Z",
-    "last_seen": "2026-07-27T00:31:38Z",
-    "occurrences": 3,
+    "last_seen": "2026-08-03T19:41:38Z",
+    "occurrences": 4,
     "match": {
       "channels": [
         "alert-system"
@@ -3828,7 +3828,7 @@
     "fix_template": null,
     "confidence": 0.7,
     "owning_team": "unmapped",
-    "last_notified_at": "2026-07-27T00:31:38Z",
+    "last_notified_at": "2026-08-03T19:41:38Z",
     "notes": [
       {
         "ts": "2026-07-12T02:40:38Z",
@@ -3845,6 +3845,10 @@
       {
         "ts": "2026-07-31T14:03:38Z",
         "note": "2026-07-31 ~14:00-14:20Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed 'slack conversations history mcp' and 'slack', no matching deferred tool found). monitor 70171778 fired 14:03:38Z. Bare KB match REFUTED again (4th+ time on record): sum:trace.aspnet_core.request.errors{env:prod,http.status_code:5*} by {service} over 13:33:38-14:08:38Z showed only 1 error on service:rest-api -- NOT concentrated there at all. Dominant bucket was runtime-core-api (21 errors), specifically resource_name:post_/api/v1/image. ES confirmed: 21x 'An unhandled exception has occurred while executing the request' on runtime-core-api, sample stack = System.NullReferenceException at Runtime.Core.Engine.Security.SecurityContext.ValidateRequestAsync (rawToken null deref, SecurityContext.cs:124) called from Runtime.Core.Api.Controllers.ImageController.UploadAsync (ImageController.cs:40). No occurrence bump for this entry. Genuinely different root cause this time -- logged as a fresh needs-human finding (see docs/investigations/2026-07-31-9fa4a61c802ae586.md). Local runtime-core clone is 16 days stale (methodcrm-org GH_TOKEN 403 gap, chronic) -- diagnosis is from ES stack trace only, not from a fresh repo read, so no diff is proposed off it."
+      },
+      {
+        "ts": "2026-08-03T19:41:38Z",
+        "note": "2026-08-03 ~20:08Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed \"slack conversations history mcp\" and \"+slack\": no matching deferred tool found, standing gap). monitor 70171778 fired 19:41:38Z, hash 546e6b3d4c12cbe4. FIRST CONFIRMED MATCH since entry creation (previous 4 occurrences on 2026-07-28/07-29/07-31 all REFUTED bare matches with a different real driver each time). sum:trace.aspnet_core.request.errors{env:prod,http.status_code:5*} by {service} over the widened 30-min window (19:11:38-19:41:38Z): rest-api 25, ms-scheduler-api 2, oauth2.identity.server 2, gateway 2, ms-identity-api 1 (grand total 32, just over the >30 threshold) -- rest-api dominant, burst clustered tightly 19:34:30-19:36:00Z (self-recovered by the tight 19:36:38-19:41:38Z eval-window query, which returned 0 across all services -- consistent with this entry's documented self-recovering-within-eval-window shape). By {resource_name} on rest-api: 100% (25/25) on get_/api/v_version_/tables/_table -- matches this entry's documented GET-tables-endpoint concentration exactly. service:rest-api status:error env:prod DD Logs 19:30-19:40Z: 0 hits, confirming the APM-only signature. last_notified_at (2026-07-27T00:31:38Z) ~7.8 days ago, past the 24h suppression window -> POSTED to #triage-results, gate_reason=null (window-expiry)."
       }
     ]
   },
