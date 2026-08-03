@@ -2992,8 +2992,8 @@
     "id": "ki-2026-07-06-signup-low-traffic-p90-latency-monitor-noise",
     "title": "[Growth][Signup][P?] 'Service Signup post requests have a high p90 latency' trips on single-request percentile noise on a very low-traffic endpoint",
     "first_seen": "2026-07-05T21:57:46Z",
-    "last_seen": "2026-08-02T06:00:46Z",
-    "occurrences": 14,
+    "last_seen": "2026-08-03T20:16:46Z",
+    "occurrences": 15,
     "match": {
       "channels": [
         "alert-system",
@@ -3018,7 +3018,7 @@
     "evidence_source": "datadog_apm",
     "evidence_query": "p90:trace.aspnet.request{env:prod,service:signup,resource_name:post_/*}",
     "evidence_threshold_s": 12.0,
-    "last_notified_at": "2026-08-02T12:35:00Z",
+    "last_notified_at": "2026-08-03T20:16:46Z",
     "notes": [
       {
         "ts": "2026-07-06T15:09:00Z",
