@@ -1529,8 +1529,8 @@
     "id": "ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata",
     "title": "\"Method UI Grid and Dropdown Performance Test\" synthetics (team:qa, non-prod, 5 monitor-ID variants: Day run / Day run 2 / Evening run / Midnight run / Release Run) chronically go No Data; never correlates to a real incident",
     "first_seen": "2026-05-02T13:46:00Z",
-    "last_seen": "2026-08-03T00:01:20Z",
-    "occurrences": 153,
+    "last_seen": "2026-08-03T04:00:12Z",
+    "occurrences": 154,
     "match": {
       "channels": [
         "alert-system"
@@ -1827,6 +1827,10 @@
       {
         "ts": "2026-08-03T11:35:00Z",
         "note": "2026-08-03 ~11:25-11:35Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed for slack/mcp conversation tools, none found, consistent with the standing intermittent read-path gap). Full 186-monitor DD scan diffed vs prior cutoff 2026-08-02T21:41:08Z: Day run (121308660) and Day run 2 (133625690) variants both No Data, last_triggered_ts 2026-08-03T00:01:00Z / 00:01:20Z (20s apart -- same Centreon/synthetics cron tick, grouped as primary+satellite). Confirmed shape via monitor detail: both tag team:qa, names contain 'Method UI Grid and Dropdown Performance Test', overall_state_modified matches last_triggered_ts. No co-firing signal with any prod service this cycle for this pair (processed independently from the Evening-run/Watchdog/Warehouse-Dashboard fires later in the same scan). occ 152->153. last_notified_at (2026-08-01T12:30:00Z) ~35h31m ago, PAST the 24h suppression window -> POST to #triage-results, gate_reason=null (window-expiry), last_notified_at bumped to 2026-08-03T00:01:20Z (the fire ts, not wall-clock triage time -- corrected from an initial mis-set to processing-time in this same cycle). fix_status confirmed-non-prod-noise unchanged. See docs/investigations/2026-08-03-d543414d02f1916b.md."
+      },
+      {
+        "ts": "2026-08-03T11:45:00Z",
+        "note": "2026-08-03 ~11:40-11:45Z triage (degraded cycle, no Slack MCP surfaced this session): Evening run variant (123495492) No Data 04:00:12Z, hash 72b0602fe2c644ae, occ 153->154. Confirmed shape via monitor detail: tag team:qa, name contains 'Method UI Grid and Dropdown Performance Test Evening run', overall_state 'No Data' matches this KB's evidence_source (datadog_apm monitor-state check). No co-firing prod signal this cycle. last_notified_at (2026-08-03T00:01:20Z, from the Day-run pair earlier in this same scan) = ~3h59m ago, WITHIN the 24h suppression window; occ 154 not a 10th-multiple -> SUPPRESS, gate_reason=known-issue-window, appended to docs/actionable/2026-08-03.md. fix_status confirmed-non-prod-noise unchanged. See docs/investigations/2026-08-03-72b0602fe2c644ae.md."
       }
     ]
   },
