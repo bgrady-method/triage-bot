@@ -1537,8 +1537,8 @@
     "id": "ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata",
     "title": "\"Method UI Grid and Dropdown Performance Test\" synthetics (team:qa, non-prod, 5 monitor-ID variants: Day run / Day run 2 / Evening run / Midnight run / Release Run) chronically go No Data; never correlates to a real incident",
     "first_seen": "2026-05-02T13:46:00Z",
-    "last_seen": "2026-08-04T00:01:21Z",
-    "occurrences": 158,
+    "last_seen": "2026-08-04T04:00:12Z",
+    "occurrences": 159,
     "match": {
       "channels": [
         "alert-system"
@@ -1847,6 +1847,10 @@
       {
         "ts": "2026-08-04T11:12:04Z",
         "note": "2026-08-04 11:12Z triage (degraded cycle, no Slack MCP surfaced this session; DD monitor scan-diff vs 2026-08-03T21:57:32Z cutoff). G1: Day run (121308660) No Data 00:01:00Z + Day run 2 (133625690) No Data 00:01:21Z, hashes 1fb7b5ecdaf59dcd (primary) / 398552ae234271a7 (satellite), occ 156->158. Confirmed shape via full monitor scan (both No Data, team:qa, non-prod), no co-firing prod signal in window. last_notified_at (2026-08-03T00:01:20Z) ~35h11m ago, PAST 24h suppression window -> POSTED to #triage-results, gate_reason=null (window-expiry), last_notified_at bumped to 2026-08-04T00:01:00Z. See docs/investigations/2026-08-04-1fb7b5ecdaf59dcd.md."
+      },
+      {
+        "ts": "2026-08-04T11:12:04Z",
+        "note": "2026-08-04 11:12Z triage (degraded cycle, no Slack MCP surfaced this session): G2: Evening run (123495492) No Data 04:00:12Z, hash d75978315ca81b86, occ 158->159, ~4h after the Day-run pair fire earlier this same cycle. Same confirmed non-prod QA-synthetics noise, no co-firing signal. SAME-CYCLE GATE-ORDERING ARTIFACT: last_notified_at was just reset to 2026-08-04T00:01:00Z by the Day-run group moments earlier in this cycle, so this independent fire (~3h59m later) falls inside the just-reopened window -> SUPPRESSED, gate_reason=known-issue-window, appended to docs/actionable/2026-08-04.md. See docs/investigations/2026-08-04-d75978315ca81b86.md."
       }
     ]
   },
