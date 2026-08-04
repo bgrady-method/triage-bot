@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-08-04T17:56:11Z",
-    "occurrences": 623,
+    "last_seen": "2026-08-04T20:08:11Z",
+    "occurrences": 624,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -567,6 +567,10 @@
       {
         "ts": "2026-08-04T17:56:11Z",
         "note": "2026-08-04 ~18:07Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed 'slack conversations history', 'mcp__slack conversations.history', 'slack': no matching deferred tool found, consistent with the standing intermittent read-path gap). DD-scan-diff vs prior cutoff 2026-08-04T17:08:12Z. Full 186-monitor scan (--summary): no monitor-count regression (still 186), rules out monitor-creation blind spot. Monitor 77419271 fired 17:56:11Z, routed to alert-frontend-errors per its KB match scope (not the alert-system proxy channel it also surfaces through). ES canonical query (kb_to_es_query.py returned the naive text query, dropping the regex clause per the standing kb_to_es_query.py regex-drop bug -- widened with GetSyncWidgetInfoAsync per the documented workaround) 17:36:11-17:56:11Z: 355 hits, 100% gateway, vs 285 hits same window 24h-ago (+24.6%) -- 5th elevated-delta reading today (following +54.7%, +16.8%, +37.3%, +30.5%), flagged for stability-review trend-watch, not itself escalated -- absolute volume still same order of magnitude as prior diffuse occurrences. last_notified_at 2026-08-04T15:05:11Z, ~2h51m ago -- WITHIN 24h suppression window, occ 623 not %10, fix_status unchanged (chronic-residual-post-rollback-2026-06-05) -> SUPPRESS, gate_reason=known-issue-window, appended to docs/actionable/2026-08-04.md. See docs/investigations/2026-08-04-d9976f8800b78576.md."
+      },
+      {
+        "ts": "2026-08-04T20:08:11Z",
+        "note": "2026-08-04 ~20:08Z triage (degraded cycle, no Slack MCP surfaced this session). DD-scan-diff vs prior cutoff 2026-08-04T18:36:34Z. Monitor 77419271 fired 20:08:11Z, hash b3c8ed0bbf28cfb7, routed to alert-frontend-errors per its KB match scope. Canonical ES query (kb_to_es_query.py dropped the regex clause per the standing bug, widened with GetSyncWidgetInfoAsync per the documented workaround) 19:53:00-20:13:00Z: 368 hits, 100% gateway, vs 253 hits same window 24h-ago (+45.5%) -- 6th elevated-delta reading today, flagged for stability-review trend-watch, not itself escalated. last_notified_at 2026-08-04T15:05:11Z, ~5h03m ago -- WITHIN 24h suppression window, occ 624 not %10, fix_status unchanged (chronic-residual-post-rollback-2026-06-05) -> SUPPRESS, gate_reason=known-issue-window, appended to docs/actionable/2026-08-04.md. See docs/investigations/2026-08-04-b3c8ed0bbf28cfb7.md."
       }
     ],
     "prior_last_notified_at": "2026-07-31T15:07:56Z"
@@ -3293,8 +3297,8 @@
     "id": "ki-2026-07-06-tables-fields-redis-circuitbreaker-p95-latency",
     "title": "ms-tables-fields-api p95 request latency spike driven by a transient Redis connectivity blip (circuit breaker OPENED); first confirmed cross-service correlation with runtime-core-api RTC p95 (ki-24)",
     "first_seen": "2026-07-06T13:36:39Z",
-    "last_seen": "2026-08-04T14:43:31Z",
-    "occurrences": 12,
+    "last_seen": "2026-08-04T19:24:31Z",
+    "occurrences": 13,
     "match": {
       "channels": [
         "alert-system",
@@ -3373,6 +3377,10 @@
       {
         "ts": "2026-08-04T14:50:00Z",
         "note": "2026-08-04 14:50Z triage (degraded cycle, no Slack MCP surfaced this session; DD monitor scan-diff vs prior cutoff 2026-08-04T13:20:00Z): monitor 302103451 fired 2026-08-04T14:00:31Z, hash 818d82e0aea9e976, occ 10->11. p95:trace.aspnet_core.request{env:prod,service:tables-fields} confirms the LATENCY SYMPTOM: peak 1.19s at 13:57:10Z (vs 0.25s threshold). HOWEVER the documented Redis-circuit-breaker MECHANISM did NOT reproduce this occurrence: entrys own evidence_query (fields.dd_service.keyword:tables-fields AND level.keyword:Error AND message.keyword:Redis Cache Circuit Breaker OPENED...) = 0 ES hits over the eval window and a widened 13:30-14:00Z window. Broader Error.keyword sweep over the same widened window found exactly 1 unrelated error (InvalidViewName/FillViewBasicInfo Failed for view JCO_WorkOrderType, unrelated code path) -- not the Redis signature, not the FieldTableNameRef sibling entrys signature either (per playbook step 6, not bumping that entry). Per playbook step 3, cross-checked ki-2026-05-24-runtime-core-rtc-p95-recurring (this cycles G2, monitor 115456700): its latency spike was 13:26:50-13:27:40Z, ~30min before this tables-fields spike -- NOT a co-fire, no shared-upstream correlation this time. last_notified_at (2026-07-28T20:13:47Z) ~6d18h ago, PAST 24h suppression window -- POSTED to #triage-results with explicit disclosure that the root-cause mechanism is unconfirmed this occurrence (latency-only, cause unclear). See docs/investigations/2026-08-04-818d82e0aea9e976.md."
+      },
+      {
+        "ts": "2026-08-04T19:24:31Z",
+        "note": "2026-08-04 ~20:08Z triage (degraded cycle, no Slack MCP surfaced this session). DD-scan-diff vs prior cutoff 2026-08-04T18:36:34Z. Monitor 302103451 fired 19:24:31Z, hash 02073b50675d90f4, occ 12->13 (this is the 3rd fire of this monitor today, following occ 11 POSTED at 14:50:00Z and occ 12 SUPPRESSED at 15:22:00Z). Redis-circuitbreaker evidence_query re-run in the exact eval window (19:09:00-19:39:00Z): 0 ES hits -- mechanism NOT confirmed (13th consecutive refutation streak for the Redis-specific story). Latency symptom independently re-confirmed: DD metric p95:trace.aspnet_core.request{env:prod,service:tables-fields} in the monitor's own 5-min eval window (19:19:31-19:24:31Z) peaked 0.78s vs 0.25s threshold (ratio ~3.1x); request volume in that window totaled 241 vs 106 in the same 5-min window 24h-ago (~2.3x traffic increase) -- consistent with the established traffic-volume-driven latency pattern documented for this monitor, not Redis. Classified known-issue-recurrence with partial-reproduction confidence downgrade (per the ki-2026-08-04 precedent set twice already today). last_notified_at 2026-08-04T14:50:00Z, ~4h34m ago -- WITHIN 24h suppression window, occ 13 not %10, fix_status unchanged -> SUPPRESS, gate_reason=known-issue-window, appended to docs/actionable/2026-08-04.md. See docs/investigations/2026-08-04-02073b50675d90f4.md."
       }
     ]
   },
