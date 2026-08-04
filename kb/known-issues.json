@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-08-04T15:05:11Z",
-    "occurrences": 620,
+    "last_seen": "2026-08-04T16:06:11Z",
+    "occurrences": 621,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -559,6 +559,10 @@
       {
         "ts": "2026-08-04T15:00:00Z",
         "note": "2026-08-04 15:00Z triage (degraded cycle, no Slack MCP surfaced this session; DD monitor scan-diff vs prior cutoff 2026-08-04T13:20:00Z): monitor 77419271 (Unusual number of XHR errors) fired 2026-08-04T14:08:12Z, Warn state, hash 6624cfd761b5fcbc, occ 618->619. Per Hard rule/memory: this monitor is scoped to alert-frontend-errors, not the alert-system proxy channel it surfaced through -- routed accordingly. ES chronic-baseline check (playbook step 1): current 30min window (13:38-14:08Z) 523 hits on gateway vs 24h-ago same window 338 hits -- +54.7pct, above the 20pct chronic-pattern threshold, but fields.Account.keyword/Account.keyword aggregation returned 0 buckets (gateway-level Ocelot timeout logs are not per-account tagged, so account-concentration cannot be checked this way) -- cannot distinguish diffuse-fanout vs concentrated-surge shape via this field for this occurrence. Absolute volume (523/30min) remains within the same order of magnitude as prior diffuse occurrences (e.g. 468/2h12m on 2026-08-04 11:00-13:12Z window per f0237f79f0b8d6ac), not a >10x outage-surge shape. last_notified_at (2026-08-03T15:07:11Z) ~23h01m ago -- STILL WITHIN 24h suppression window (by ~59min), occ 619 not a 10th-multiple, fix_status unchanged (chronic-residual-post-rollback-2026-06-05) -- SUPPRESSED, gate_reason=known-issue-window, appended to docs/actionable/2026-08-04.md. Flagging the +54.7pct delta for stability-review trend-watch even though it does not override suppression this cycle. See docs/investigations/2026-08-04-6624cfd761b5fcbc.md."
+      },
+      {
+        "ts": "2026-08-04T16:06:11Z",
+        "note": "2026-08-04 ~16:08Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed 'slack conversations history' and 'mcp slack': no matching deferred tool found, consistent with the standing intermittent read-path gap). DD-scan-diff vs prior cutoff 2026-08-04T15:11:08Z. Monitor 77419271 fired 16:06:11Z, routed to alert-frontend-errors per its KB match scope. ES canonical query (kb_to_es_query.py, widened with GetSyncWidgetInfoAsync per standing regex-drop workaround) 15:46:11-16:06:11Z: 545 hits, 100% gateway, vs 397 hits same window 24h-ago (+37.3%) -- third elevated-delta reading today (following +54.7% at 13:00Z and a separate flag at 15:05Z), flagged for stability-review trend-watch, not itself escalated. Sample record confirms standing mechanism (RequestTimedOutError/TaskCanceledException/Ocelot ResponderMiddleware). last_notified_at 2026-08-04T15:05:11Z, ~1h01m ago -- WITHIN 24h suppression window, occ 621 not %10 -> SUPPRESS, gate_reason=known-issue-window, appended to docs/actionable/2026-08-04.md. See docs/investigations/2026-08-04-7f66f62b8b4c26c4.md."
       }
     ],
     "prior_last_notified_at": "2026-07-31T15:07:56Z"
