@@ -1971,8 +1971,8 @@
     "id": "ki-2026-07-03-warehouse-dashboard-network-test-nodata",
     "title": "\"Warehouse Dashboard Network Test\" synthetics (team:qa, non-prod) go No Data daily ~09:31-10:01Z UTC; never correlates to a real incident",
     "first_seen": "2026-05-07T09:31:00Z",
-    "last_seen": "2026-08-03T10:01:07Z",
-    "occurrences": 40,
+    "last_seen": "2026-08-04T10:01:07Z",
+    "occurrences": 43,
     "match": {
       "channels": [
         "alert-system"
@@ -1999,7 +1999,7 @@
     "fix_template": null,
     "confidence": 0.88,
     "owning_team": "unmapped",
-    "last_notified_at": "2026-08-03T09:31:00Z",
+    "last_notified_at": "2026-08-04T09:31:00Z",
     "notes": [
       {
         "ts": "2026-05-07T00:00:00Z",
@@ -2064,6 +2064,10 @@
       {
         "ts": "2026-08-03T12:05:00Z",
         "note": "2026-08-03 ~12:00-12:05Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed for slack/mcp conversation tools, none found, consistent with the standing intermittent read-path gap). Full 186-monitor DD scan diffed vs prior cutoff 2026-08-02T21:41:08Z: all 3 family monitors (175074570 09:31:00Z, 176337981 09:41:21Z, 176338057 10:01:07Z) in No Data state -- same daily ~09:31-10:01Z UTC clustering documented for 39 prior occurrences, grouped as primary+2 satellites (same channel/text-fingerprint, all within the 30-min group window). Confirmed via this cycle's own scan (entry's evidence is monitor-state-based, evidence_source/evidence_query fields both null on this entry -- same standing gap noted on other entries; confirmed directly via monitor detail instead: tag team:qa, names 'Warehouse Dashboard Network Test', overall_state 'No Data' matching last_triggered_ts for all 3). No co-firing prod signal this cycle. occ 39->40. last_notified_at (2026-07-30T09:31:00Z) exactly 4 days ago, PAST the 24h suppression window -> POST to #triage-results, gate_reason=null (window-expiry), last_notified_at bumped to 2026-08-03T09:31:00Z (primary alert fire ts, not wall-clock triage time). fix_status confirmed-non-prod-noise unchanged. See docs/investigations/2026-08-03-b2235c185192b117.md."
+      },
+      {
+        "ts": "2026-08-04T11:12:04Z",
+        "note": "2026-08-04 11:12Z triage (degraded cycle, no Slack MCP surfaced this session; DD monitor scan-diff vs 2026-08-03T21:57:32Z cutoff): 3 fires chained within 30min gaps -> one group, primary 175074570 No Data 09:31:00Z + satellites 176337981 No Data 09:41:21Z + 176338057 No Data 10:01:07Z, hashes 3ea217609d59fe02 (primary) / 0580238bbcf04e42 / ab60d048dd799523 (satellites), occ 40->43. Confirmed shape via full monitor scan (all 3 No Data, team:qa, non-prod, clustered in the entry's documented ~09:31-10:01Z window); no other channel/monitor co-fired in this window. last_notified_at (2026-08-03T09:31:00Z) ~25h41m ago, PAST 24h suppression window -> POSTED to #triage-results, gate_reason=null (window-expiry), last_notified_at bumped to 2026-08-04T09:31:00Z. See docs/investigations/2026-08-04-3ea217609d59fe02.md."
       }
     ]
   },
