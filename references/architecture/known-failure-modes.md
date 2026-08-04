@@ -132,6 +132,26 @@ The list is **seed**. The routine should append entries as new patterns surface.
 - **Course modules:** `level-10/observability.json` (alert design — relative/anomaly thresholds vs fixed floors), `level-5/message-queues.json` (consumer throughput is inherently bursty/quiet, not constant).
 - **Source:** `stability-reviews/2026-07/2026-07-07-report.md` F3; `kb/known-issues.json#ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap`.
 
+### F12. Liveness-only monitoring on consumer/agent services leaves error rate unmonitored (silent burners)
+
+- **Symptom:** A service can have a well-instrumented liveness/throughput monitor that fires correctly and consistently says "healthy," while a structurally separate error-rate signal on the same service grows unboundedly with zero alert coverage. Confirmed on `method-import-subscriber` (104,125 ERROR-level log lines/30d, 2nd-largest error volume of any prod service) and 13 other services (~141,566 combined error lines/30d), including one critical-path service (`ms-authentication-api`, 2,371/30d).
+- **Service(s):** `method-import-subscriber`, `ms-tags-api`, `app-update-agent`, `sync-xero-subscriber`, `sync-queue-consumer`, `ms-apps-api`, `ms-authentication-api`, `ms-support-agent`, `ms-documents-api`, `microservices/sync`, `ms-email-api`, `events-subscribers-sync`, `ms-support-api`, `mailchimp.method.me` — pattern is monitor-design, not service-specific.
+- **Mechanism:** Monitor rollout for consumer/agent services has historically instrumented one RED-framework dimension (typically Rate/liveness — "is it processing at all") without pairing it with Errors ("are the things it processes succeeding"). The two are orthogonal; a consumer can be reliably alive while silently failing every message it processes.
+- **Detection today:** None automatic for the 14 listed services. Discovered via an unscoped Elasticsearch cross-service sweep during the 2026-08 stability review — not by any standing monitor.
+- **Proposed SLO target:** Error-rate monitor parity with existing liveness monitors for all 14 listed services within one quarter, prioritized by (a) critical-path status, (b) volume. `ms-authentication-api` first given critical-path status per `CLAUDE.md`.
+- **Course modules:** `level-10/observability.json` (RED framework — Rate, Errors, Duration all three required per service).
+- **Source:** `stability-reviews/2026-08/2026-08-04-report.md` F2.
+
+### F13. `runtime-core-api` error volume grew independently of its known latency pattern, undetected
+
+- **Symptom:** `runtime-core-api`'s aggregate Elasticsearch error volume grew from 7,692/30d to 29,771/30d (+287%) in the 2026-08 review window, dominated by `SqlException`/`TaskCanceledException`/`ActionExecutionException`. This is a distinct signal from the already-tracked RTC p95 latency pattern (F9/`ki-2026-05-24-runtime-core-rtc-p95-recurring`), which remains latency-only per every window-scoped DD-Logs check. Whether the two are mechanistically related is undetermined — no prior investigation cross-checked general ES error volume against a specific p95 spike window.
+- **Service(s):** runtime-core-api.
+- **Mechanism:** Same structural gap as F12 — runtime-core-api's only alerting is latency-shaped (the p95 monitor pair); no error-rate monitor exists independently, so a 4x error-volume increase produced zero alert on its own.
+- **Detection today:** None automatic. Surfaced via the same unscoped ES sweep that found F12.
+- **Proposed SLO target:** Dedicated runtime-core-api error-rate monitor, independent of the p95-latency pair. As a one-time diagnostic, cross-check ES error volume within the next 3 RTC p95 spike windows to settle the relatedness question.
+- **Course modules:** `level-1/availability-and-slas.json` (SLI/SLO gap — same root cause as F9), `level-10/observability.json` (RED framework, Errors dimension).
+- **Source:** `stability-reviews/2026-08/2026-08-04-report.md` F7.
+
 ---
 
 ## Maintenance
