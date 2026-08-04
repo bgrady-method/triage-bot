@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-08-03T16:07:11Z",
-    "occurrences": 616,
+    "last_seen": "2026-08-04T11:36:11Z",
+    "occurrences": 617,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -551,6 +551,10 @@
       {
         "ts": "2026-08-03T16:08:00Z",
         "note": "2026-08-03 16:08Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed \"slack\"/\"mcp connector\": no matching deferred tool found, consistent with the standing intermittent read-path gap). Ran DD-scan-diff fallback vs prior cycle committed cutoff 2026-08-03T15:07:11Z (commit c4044c7 'poll-cycle: 1 groups (1 new, 0 deduped)').Full 186-monitor scan (--summary): only monitor 77419271 had last_triggered_ts past cutoff (2026-08-03T16:07:11Z, Warn at scan time, ~90s before scan) -- no other candidates, no monitor-creation false positives. occ#615->616 via monitor 77419271 (\"Unusual number of XHR errors for account\"). ES aggregate via kb_to_es_query.py alone again returned 0 hits (drops the regex clause, documented tooling gap); re-adding GetSyncWidgetInfoAsync manually: 381 hits in the 15:50-16:08Z window, all service=gateway -- ES reachable and matching this cycle (contrary to some earlier-documented 401/field-mismatch cycles). DD Logs (monitor's own native query, service:method-ui status:error *xhr*, same window, limit 60): 60/60 events status_code:0, all on GET .../gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync, diffuse account fan-out (top EnglandLogistics 5/60 ~8%, no concentration) -- canonical chronic ki-21 shape, not the 2026-06-04 100x OUTAGE surge. last_notified_at (2026-08-03T15:07:11Z) exactly 1h00m before this alert's own fire ts (2026-08-03T16:07:11Z) -- WITHIN 24h suppression window; occ 616 not a 10th-multiple; fix_status (chronic-residual-post-rollback-2026-06-05) unchanged since last notify -> SUPPRESS, gate_reason=known-issue-window, appended to docs/actionable/2026-08-03.md. Hash db75088ce31aede6 (channel CPHHABKAA alert-system proxy per established convention, reproduced against prior cycle's 6fbaefa8b1ab5d4c hash formula using the same --ts-then-known '2026-08-03T15:07:11+00:00' input to confirm the convention holds). See docs/investigations/2026-08-03-db75088ce31aede6.md."
+      },
+      {
+        "ts": "2026-08-04T12:10:00Z",
+        "note": "2026-08-04 ~12:10Z triage (degraded cycle, no Slack MCP surfaced this session): monitor 77419271 fired 2026-08-04T11:36:11Z, hash b8cb71bbb42776cf, occ 616->617, OK at scan time. kb_to_es_query.py bare output (2 contains clauses) returned 0 hits (known regex-drop gap); re-adding the regex clause (GetSyncWidgetInfoAsync) returned 26 hits, all service:gateway, over the 11:16:11-11:36:11Z window. DD Logs native-query sample (60/60 status_code:0, dominant path GetSyncWidgetInfoAsync): top accounts perfuze (10) and crslaboratories (10), rest diffuse 1-4 each -- moderately concentrated but not the documented >10x single-account outage-surge shape. last_notified_at (2026-08-03T15:07:11Z) ~20h29m ago, WITHIN 24h suppression window; occ 617 not %10; fix_status unchanged (chronic-residual-post-rollback-2026-06-05) -> SUPPRESSED, gate_reason=known-issue-window, appended to docs/actionable/2026-08-04.md. See docs/investigations/2026-08-04-b8cb71bbb42776cf.md."
       }
     ],
     "prior_last_notified_at": "2026-07-31T15:07:56Z"
@@ -1396,8 +1400,8 @@
     "id": "ki-2026-07-03-eda-consumer-amqp-stopped-publishing",
     "title": "[EDA][Consumer][P3] eda_consumer AMQP publish-hits monitor intermittently goes No Data (team:devops, self-recovering, no correlated pipeline impact)",
     "first_seen": "2026-06-20T10:21:00Z",
-    "last_seen": "2026-08-04T11:09:26Z",
-    "occurrences": 41,
+    "last_seen": "2026-08-04T11:15:26Z",
+    "occurrences": 42,
     "match": {
       "channels": [
         "alert-system",
@@ -1534,6 +1538,10 @@
       {
         "ts": "2026-08-04T11:12:04Z",
         "note": "2026-08-04 11:12Z triage (degraded cycle, no Slack MCP surfaced this session; DD monitor scan-diff vs 2026-08-03T21:57:32Z cutoff): monitor 296641466 fired 2026-08-04T11:09:26Z (No Data at scan time), hash 278e8ed06c57e4f5, occ 40->41. Per playbook: sibling P1 monitors 296632224 (Event ingest stopped) and 296636101 (Kafka events stopped) both OK, last_triggered 2026-07-23T06:20-06:21Z (>11 days stale) -- core EDA pipeline healthy, isolated to this one P3 consumer. sum:trace.amqp.command.hits{service:eda_consumer,env:prod}.as_count() over the exact 30-min eval window (10:39:26-11:09:26Z): 0 datapoints (genuine gap), matching the documented benign quiet-period shape. service:eda_consumer status:error DD Logs = 0 hits same window. last_notified_at (2026-08-02T12:58:00Z) ~46h14m ago, PAST 24h suppression window -> POSTED to #triage-results, gate_reason=null (window-expiry), last_notified_at bumped to 2026-08-04T11:09:26Z. See docs/investigations/2026-08-04-278e8ed06c57e4f5.md."
+      },
+      {
+        "ts": "2026-08-04T12:10:00Z",
+        "note": "2026-08-04 ~12:10Z triage (degraded cycle, no Slack MCP surfaced this session): monitor 296641466 fired again 2026-08-04T11:15:26Z, hash 3bba3436d45cd573, occ 41->42, OK at scan time (self-recovered). sum:trace.amqp.command.hits{service:eda_consumer,env:prod}.as_count() over 10:45:26-11:15:26Z: only 1 nonzero datapoint (2.0) at the very end, rest empty -- same benign near-zero-traffic shape. Sibling P1 monitors 296632224/296636101 both OK, last_triggered 2026-07-23 (>11 days stale, uncorrelated). service:eda_consumer status:error DD Logs = 0 hits. last_notified_at (2026-08-04T11:09:26Z) only ~6min old -- well within 24h suppression window; occ 42 not %10; fix_status unchanged (escalated-for-review) -> SUPPRESSED, gate_reason=known-issue-window, appended to docs/actionable/2026-08-04.md. See docs/investigations/2026-08-04-3bba3436d45cd573.md."
       }
     ]
   },
