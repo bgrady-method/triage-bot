@@ -1537,8 +1537,8 @@
     "id": "ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata",
     "title": "\"Method UI Grid and Dropdown Performance Test\" synthetics (team:qa, non-prod, 5 monitor-ID variants: Day run / Day run 2 / Evening run / Midnight run / Release Run) chronically go No Data; never correlates to a real incident",
     "first_seen": "2026-05-02T13:46:00Z",
-    "last_seen": "2026-08-03T13:46:00Z",
-    "occurrences": 156,
+    "last_seen": "2026-08-04T00:01:21Z",
+    "occurrences": 158,
     "match": {
       "channels": [
         "alert-system"
@@ -1574,7 +1574,7 @@
     "fix_template": null,
     "confidence": 0.85,
     "owning_team": "unmapped",
-    "last_notified_at": "2026-08-03T00:01:20Z",
+    "last_notified_at": "2026-08-04T00:01:00Z",
     "notes": [
       {
         "ts": "2026-07-03T13:09:00Z",
@@ -1843,6 +1843,10 @@
       {
         "ts": "2026-08-03T14:20:00Z",
         "note": "2026-08-03 ~14:20Z triage (degraded cycle, no Slack MCP surfaced this session): DD monitor scan diff vs prior cutoff 2026-08-03T13:07:32Z. Release Run variant (142200330) No Data 13:46:00Z, one of the 5 documented monitor-ID variants. Sibling Day-run monitors (121308660, 133625690) and the XHR-errors monitor (77419271) also had last_triggered_ts past cutoff this cycle but had already recovered to OK by scan time -- per established practice, recoveries-by-scan-time are not treated as pending alerts and were not separately logged. Occ 155->156, direct monitor-id KB match (not bare-word). No co-firing signal. last_notified_at (2026-08-03T00:01:20Z) only ~13h44m stale (<24h window), occ 156 not a 10th-multiple -> SUPPRESSED, gate_reason=known-issue-window, appended to docs/actionable/2026-08-03.md."
+      },
+      {
+        "ts": "2026-08-04T11:12:04Z",
+        "note": "2026-08-04 11:12Z triage (degraded cycle, no Slack MCP surfaced this session; DD monitor scan-diff vs 2026-08-03T21:57:32Z cutoff). G1: Day run (121308660) No Data 00:01:00Z + Day run 2 (133625690) No Data 00:01:21Z, hashes 1fb7b5ecdaf59dcd (primary) / 398552ae234271a7 (satellite), occ 156->158. Confirmed shape via full monitor scan (both No Data, team:qa, non-prod), no co-firing prod signal in window. last_notified_at (2026-08-03T00:01:20Z) ~35h11m ago, PAST 24h suppression window -> POSTED to #triage-results, gate_reason=null (window-expiry), last_notified_at bumped to 2026-08-04T00:01:00Z. See docs/investigations/2026-08-04-1fb7b5ecdaf59dcd.md."
       }
     ]
   },
