@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-08-04T11:36:11Z",
-    "occurrences": 617,
+    "last_seen": "2026-08-04T13:00:11Z",
+    "occurrences": 618,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -563,8 +563,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-08-02T10:17:18Z",
-    "occurrences": 255,
+    "last_seen": "2026-08-04T13:07:21Z",
+    "occurrences": 256,
     "match": {
       "channels": [
         "alert-system",
@@ -605,7 +605,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.85,
-    "last_notified_at": "2026-08-02T12:45:00Z",
+    "last_notified_at": "2026-08-04T13:07:21Z",
     "prior_last_notified_at": "2026-07-29T15:16:35Z",
     "notes": [
       {
@@ -1549,8 +1549,8 @@
     "id": "ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata",
     "title": "\"Method UI Grid and Dropdown Performance Test\" synthetics (team:qa, non-prod, 5 monitor-ID variants: Day run / Day run 2 / Evening run / Midnight run / Release Run) chronically go No Data; never correlates to a real incident",
     "first_seen": "2026-05-02T13:46:00Z",
-    "last_seen": "2026-08-04T04:00:12Z",
-    "occurrences": 159,
+    "last_seen": "2026-08-04T12:31:01Z",
+    "occurrences": 160,
     "match": {
       "channels": [
         "alert-system"
@@ -1586,7 +1586,7 @@
     "fix_template": null,
     "confidence": 0.85,
     "owning_team": "unmapped",
-    "last_notified_at": "2026-08-04T00:01:00Z",
+    "last_notified_at": "2026-08-04T12:30:00Z",
     "notes": [
       {
         "ts": "2026-07-03T13:09:00Z",
@@ -1870,8 +1870,8 @@
     "id": "ki-2026-07-03-ms-scheduler-api-seriesid-negative-recordid",
     "title": "ms-scheduler-api GetSeriesAsync throws InvalidOperationException when called with recordId=-1 (chronic, code-level missing-guard bug, now confirmed across multiple accounts, ~10-21+/day for 7+ days)",
     "first_seen": "2026-06-26T00:00:00Z",
-    "last_seen": "2026-08-01T13:05:33Z",
-    "occurrences": 145,
+    "last_seen": "2026-08-04T12:28:33Z",
+    "occurrences": 146,
     "match": {
       "channels": [
         "alert-system"
@@ -1907,7 +1907,7 @@
     "fix_template": null,
     "confidence": 0.8,
     "owning_team": "CRM Experience",
-    "last_notified_at": "2026-08-01T13:05:33Z",
+    "last_notified_at": "2026-08-04T12:28:33Z",
     "notes": [
       {
         "ts": "2026-07-03T13:09:00Z",
