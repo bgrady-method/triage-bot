@@ -1045,8 +1045,8 @@
     },
     "reason": "DD monitor 295882732 ([Rainforest] Outbound API Error Rate (4xx+5xx) > 5%) fired 2026-07-31T19:34:52Z (overall_state OK by scan time -- self-recovered). This is a percentage-of-traffic monitor on a very low-volume outbound integration (env:prod, peer.hostname:api.rainforestpay.com): total request volume in the pre-fire 10-min window was ~10 requests, of which exactly 1 was a 4xx (0 were 5xx) -- 1/10 = 10% > the 5% threshold. DD logs query (service:runtime-core-api peer.hostname:api.rainforestpay.com status:error / @http.status_code:4*) returned 0 corroborating hits (outbound Rainforest calls are traced but not logged to this pipeline), so the metric API count (verified via sum:trace.http.request.hits{...,http.status_code:4*}.as_count()) is the evidence of record. A single 4xx among ~10 requests is consistent with an ordinary payment-processing rejection (e.g. a declined card), not a Method-side or Rainforest-side outage -- same low-traffic-denominator noise mechanism as the other bursty/low-volume integration monitors already documented (fa-2026-07-06 import-subscriber, fa-2026-07-11 sync-api-queue-consumer, fa-2026-07-23 rainforest-webhook-traffic-outage). Distinct monitor from the already-documented ki-2026-07-05 (P95 latency) and ki-2026-07-06 (merchant-details 503) Rainforest entries -- this is the first fire of the error-rate-specific monitor 295882732.",
     "first_seen": "2026-07-31T19:34:52Z",
-    "last_seen": "2026-08-04T20:04:52Z",
-    "occurrences": 5,
+    "last_seen": "2026-08-04T21:27:53Z",
+    "occurrences": 6,
     "silence_for": "24h",
     "notes": [
       {
@@ -1064,6 +1064,10 @@
       {
         "ts": "2026-08-04T20:04:52Z",
         "note": "2026-08-04 ~20:08Z triage (degraded cycle, no Slack MCP surfaced this session). DD-scan-diff vs prior cutoff 2026-08-04T18:36:34Z. Monitor 295882732 fired 20:04:52Z, hash b5ceda65ba8088ab, occ 4->5. Pre-fire 10-min window (19:54:52-20:04:52Z): 13 total outbound requests to api.rainforestpay.com, of which 1 was a 4xx (0 were 5xx) -- 1/13 = ~7.7% > the 5% threshold, same low-traffic-denominator noise mechanism as the 07-31 occurrence (1/10=10%) and the sibling bursty/low-volume integration monitors. DD logs (service:runtime-core-api peer.hostname:api.rainforestpay.com status:error) returned 0 corroborating hits. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only. See docs/investigations/2026-08-04-b5ceda65ba8088ab.md."
+      },
+      {
+        "ts": "2026-08-04T22:10:00Z",
+        "note": "2026-08-04 ~22:10Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch confirmed no slack/conversations tool surfaced). DD-scan-diff vs prior cutoff 2026-08-04T21:04:11Z (from the 21:08:00Z poll-cycle summary). Full 186-monitor scan (--summary): monitor count unchanged (still 186). 2 monitors past cutoff this cycle. Monitor 295882732 fired 2026-08-04T21:27:53Z (OK by scan time -- self-recovered), hash b3a072b99d4a6283, occ 5->6. Disambiguated against ki-2026-07-06-rainforest-merchant-details-503-serviceunavailable (also matches this monitor id): DD metric sum:trace.http.request.hits{env:prod,peer.hostname:api.rainforestpay.com} by {http.status_code} over the pre-fire 10-min window (21:17:53-21:27:53Z): ~67 x 200, 2 x 400, 0 x 5xx (~2.9% error rate on the sampled buckets -- sparse/rollup-interpolated series, consistent with this entry's low-traffic-denominator noise, not the KI's 503/ServiceUnavailable mechanism). ES fields.dd_service.keyword:\"runtime-core-api\" AND message:*rainforest* same window: 0 hits -- no 503/ServiceUnavailable signature, ruling out the sibling KI. Same low-traffic-denominator-noise mechanism as all 5 prior occurrences. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only. See docs/investigations/2026-08-04-b3a072b99d4a6283.md."
       }
     ]
   },
