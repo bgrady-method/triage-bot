@@ -844,8 +844,8 @@
     },
     "reason": "DD metric sum:trace.amqp.command.hits{service:sync-queue-consumer,env:prod} over 2026-07-22T15:44:01-16:24:01Z: continuous non-zero throughput throughout (54-638 messages per 30s bucket, no gap approaching the monitor's stall threshold). The 'stalled' condition does not match observed reality -- same monitoring-artifact class as the already-documented fa-2026-07-11-sync-api-queue-consumer-bursty-idle-gap, but for the sibling QBO-specific consumer service (sync-queue-consumer, not sync-api-queue-consumer). NOT the same incident as ki-qbo-sync-datadog-mass-transit-blockage (a mitigated, historical MassTransit blockage from a different date) -- a bare 'QBO Sync' text match to that entry is unverified without checking the metric, which is why this got its own entry instead of a blind occurrence bump.",
     "first_seen": "2026-07-22T16:14:01Z",
-    "last_seen": "2026-08-03T20:20:01Z",
-    "occurrences": 8,
+    "last_seen": "2026-08-05T17:05:01Z",
+    "occurrences": 9,
     "silence_for": "24h",
     "notes": [
       {
@@ -867,6 +867,10 @@
       {
         "ts": "2026-08-03T21:21:00Z",
         "note": "2026-08-03 ~21:09Z triage (degraded cycle, no Slack MCP; DD-scan-diff vs prior cutoff 2026-08-03T20:03:09Z): monitor 301037701 fired 20:20:01Z (OK at scan time, self-recovered), hash 4fd6e028128777bf, occ 7->8. DD metric sum:trace.amqp.command.hits{service:sync-queue-consumer,env:prod}.as_count() over 19:55:00-20:25:00Z: genuine ~12min zero-throughput gap 20:06:10-20:18:10Z (not just a low-sum artifact -- literally no data points in that stretch), immediately preceded/followed by normal bursty throughput (13-478 msgs/10s). 0 errors on service:sync-queue-consumer or service:qbo-sync-api. This gap's exact timing (20:06-20:18Z) closely matches the 2026-07-28 occurrence's documented gap (20:06:20-20:18:00Z) -- looks like a recurring daily quiet-period around this time-of-day, not a random artifact. Confirmed same monitoring-artifact class as prior 7 occurrences. No thread-reply possible in degraded mode (no primary.ts); self-DM kb-update confirmation sent instead."
+      },
+      {
+        "ts": "2026-08-05T17:15:00Z",
+        "note": "2026-08-05 17:15Z triage (degraded cycle, no Slack MCP; DD-scan-diff vs prior cutoff 2026-08-05T15:44:11Z, hash 71f5e643a7bf4963): monitor 301037701 fired 17:05:01Z (OK at scan time, self-recovered), occ 8->9. DD metric sum:trace.amqp.command.hits{service:sync-queue-consumer,env:prod}.as_count() over 16:35:01-17:05:01Z: genuine ~10min zero-throughput gap ~16:52:50-17:03:00Z (no data points at all, not just a low-sum artifact), immediately preceded/followed by normal bursty throughput (1-129 msgs/10s). 0 error logs on service:sync-queue-consumer or service:qbo-sync-api in the full window. Same monitoring-artifact class as the 8 documented priors -- classified false-alarm, confidence 0.9. No thread-reply possible in degraded mode (no source permalink) -- kb-update self-DM confirmation sent instead. See docs/investigations/2026-08-05-71f5e643a7bf4963.md."
       }
     ]
   },
