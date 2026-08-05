@@ -21,8 +21,8 @@
     "reason": "method-import-subscriber is a low-frequency batch AMQP consumer, not a continuous one. 24h history (2026-07-05 13:05 -> 2026-07-06 10:33) shows only 8 non-zero hit buckets, in bursts of 1-2060 messages separated by gaps of 3-11.5 hours. The monitor's 'sum(last_30m) < 1' threshold trips on every natural idle gap over 30 minutes, which happens multiple times a day by design -- not a service outage. 0 error logs on the service for the full day. This fire (11:05:32Z) came 32 minutes after the last burst ended (10:33:30Z), squarely inside the service's normal idle pattern.",
     "silence_for": "24h",
     "first_seen": "2026-07-06T11:05:32Z",
-    "last_seen": "2026-08-04T20:49:32Z",
-    "occurrences": 113,
+    "last_seen": "2026-08-05T09:44:32Z",
+    "occurrences": 114,
     "recommendation": "monitor threshold mismatch, not a false-alarm-forever situation -- recommend widening the No-Data window (e.g. 6h) or switching to a message-backlog-depth check instead of a hits-in-window check; flagging for Admin team, not silencing indefinitely",
     "notes": [
       {
@@ -296,6 +296,10 @@
       {
         "ts": "2026-08-04T21:08:00Z",
         "note": "2026-08-04 21:08Z triage (degraded cycle, no Slack MCP surfaced this session): monitor 299551472 No Data 20:49:32Z, hash 67d2856c0e94d197, occ 112->113. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} 20:00-20:50Z: last burst before the gap was 20:16:40Z (501 msgs), then genuinely idle until 20:48:20Z (79 msgs) -- ~31.7min gap, just past the monitor's 30-min threshold, textbook idle-gap shape. 0 status:error DD logs on the service in the window. Classified false-alarm, kb-update self-DM sent."
+      },
+      {
+        "ts": "2026-08-05T11:32:14Z",
+        "note": "2026-08-05 ~11:32Z triage (degraded cycle): monitor 299551472 fired 2026-08-05T09:44:32Z, hash 017bd988e7f69870, occ 113->114. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} 08:44:32-09:44:32Z: last burst ended ~09:13:00Z, then idle until the 09:44:32Z fire (~31.5min gap), comfortably past the 30-min threshold -- textbook bursty idle-gap shape, unchanged. Occurrence count now 114, well past the 100+ range with the underlying threshold-widening recommendation still unaddressed."
       }
     ]
   },
@@ -478,8 +482,8 @@
     "reason": "DD RUM Error Tracking for service:method-nativemobile-ui over the trailing 4h (2026-07-14T19:00-23:30Z): 181 @type:error events vs 1464 @type:view events = 12.4% error rate (monitor threshold >5%). Message breakdown of all 181 sampled errors: 83 'A server with the specified hostname could not be found.' (DNS resolution failure, 45.9%), 74 'cancelled' (request cancelled mid-flight, typically app backgrounding/navigation-away, 40.9%), 12 'A TLS error caused the secure connection to fail.' (6.6%), plus small counts of 'Network Error'/'offline'/Expo-token-fetch failures. Every message is a client-side network-connectivity signature (DNS/TLS/cancellation on mobile devices with flaky connectivity) -- none are application-level 4xx/5xx or server-side exceptions. No correlated backend service alert fired in the same window. This is inherent RUM noise from real-world mobile network conditions, not a backend incident.",
     "silence_for": "24h",
     "first_seen": "2026-07-14T23:01:19Z",
-    "last_seen": "2026-08-04T11:25:20Z",
-    "occurrences": 14,
+    "last_seen": "2026-08-05T07:53:20Z",
+    "occurrences": 15,
     "recommendation": "monitor threshold (>5% over trailing 4h) is too sensitive for a mobile RUM error-rate check that includes DNS/TLS/cancellation noise; recommend excluding 'cancelled' and DNS-resolution-failure messages from the numerator, or raising the threshold, before this becomes a recurring low-value fire; flag to Admin (owns method-nativemobile-ui per ownership.md, despite the monitor's team:crm tag). 3 occurrences in ~2.5 weeks now (2026-07-14, 2026-07-30, 2026-07-31) -- worth acting on rather than continuing to re-verify.",
     "notes": [
       {
@@ -525,6 +529,10 @@
       {
         "ts": "2026-08-03T14:13:01Z",
         "note": "2026-08-03 ~14:13Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed for slack/conversations tools, none found, consistent with the standing intermittent read-path gap). DD monitor scan diff vs prior cycle cutoff 2026-08-03T13:07:32Z (commit 7fdff39): full 186-monitor scan, 155 OK / 29 No Data / 1 Alert / 1 Warn at scan time. Monitor 305454649 fired 2026-08-03T13:34:19Z, hash d261215129c7dbe4, occ 12->13, Warn at scan time. DD RUM Error Tracking for service:method-nativemobile-ui over the monitor own trailing 4h window (09:34:19-13:34:19Z): 236 @type:error vs 2304 @type:view = 10.24% error rate (above the >5% threshold, consistent with Warn). Sampled 30/236 errors: 28 cancelled (93%), 1 The request timed out. (3%), 1 Expo-token-fetch java.io.IOException: SERVICE_NOT_AVAILABLE (3%) -- same client-side/device network-connectivity + Expo-infra noise family as all 12 prior documented occurrences, no new failure mode. No correlated backend service alert co-fired this cycle (only other pending item was monitor 142200330, an unrelated QA synthetics No Data fire). Classified false-alarm, no thread-reply path in degraded mode -- kb-update self-DM sent instead. Investigation report: docs/investigations/2026-08-03-d261215129c7dbe4.md."
+      },
+      {
+        "ts": "2026-08-05T11:32:14Z",
+        "note": "2026-08-05 ~11:32Z triage (degraded cycle): monitor 305454649 fired 2026-08-05T07:53:20Z, hash cf48330e74c11928, occ 14->15. DD RUM errortracking service:method-nativemobile-ui @type:error over trailing 4h (03:53:20-07:53:20Z): 4 events / 80 @type:view events = 5.0% error rate (monitor threshold >5%, right at the line). Message breakdown: 2x \"cancelled\" (client-side request cancellation, matches documented noise signature), 2x \"Memory Warning\" (new message not previously catalogued in this entry's notes -- also purely client/device-level, no server correlation). No corroborated backend service alert in the same window. Consistent with documented RUM client/device noise mechanism; occurrence bumped."
       }
     ],
     "note": "2026-08-04 ~12:10Z triage (degraded cycle, no Slack MCP surfaced this session, DD monitor scan diff vs prior cutoff 2026-08-04T11:09:26Z): monitor 305454649 fired 2026-08-04T11:25:20Z, hash e487adb84d33e216, occ 13->14, Alert state at scan time (elevated vs the usual Warn). DD RUM Error Tracking for service:method-nativemobile-ui over the monitor's own trailing 4h window (07:25:20-11:25:20Z): 36 @type:error vs 237 @type:view = 15.2% error rate -- above the >5% threshold, consistent with the escalated Alert state (highest rate of the 14 documented occurrences, above the prior peak of 11.0% on 2026-08-01T21:04Z). Sampled errors: dominant 'cancelled', plus Expo-token-fetch 503s, iOS aps-environment entitlement config errors, Network Error, 'The network connection was lost.', Memory Warning, offline/IP-lookup failures -- all client-side/device/third-party-infra signatures, same mechanism family as all 13 prior occurrences, just a higher-volume excursion. No correlated backend alert co-fired this cycle. Still classified as client-side RUM noise, not a backend incident -- flagging the new peak rate for stability-review trend-watch. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-08-04-e487adb84d33e216.md."
@@ -1045,8 +1053,8 @@
     },
     "reason": "DD monitor 295882732 ([Rainforest] Outbound API Error Rate (4xx+5xx) > 5%) fired 2026-07-31T19:34:52Z (overall_state OK by scan time -- self-recovered). This is a percentage-of-traffic monitor on a very low-volume outbound integration (env:prod, peer.hostname:api.rainforestpay.com): total request volume in the pre-fire 10-min window was ~10 requests, of which exactly 1 was a 4xx (0 were 5xx) -- 1/10 = 10% > the 5% threshold. DD logs query (service:runtime-core-api peer.hostname:api.rainforestpay.com status:error / @http.status_code:4*) returned 0 corroborating hits (outbound Rainforest calls are traced but not logged to this pipeline), so the metric API count (verified via sum:trace.http.request.hits{...,http.status_code:4*}.as_count()) is the evidence of record. A single 4xx among ~10 requests is consistent with an ordinary payment-processing rejection (e.g. a declined card), not a Method-side or Rainforest-side outage -- same low-traffic-denominator noise mechanism as the other bursty/low-volume integration monitors already documented (fa-2026-07-06 import-subscriber, fa-2026-07-11 sync-api-queue-consumer, fa-2026-07-23 rainforest-webhook-traffic-outage). Distinct monitor from the already-documented ki-2026-07-05 (P95 latency) and ki-2026-07-06 (merchant-details 503) Rainforest entries -- this is the first fire of the error-rate-specific monitor 295882732.",
     "first_seen": "2026-07-31T19:34:52Z",
-    "last_seen": "2026-08-04T21:27:53Z",
-    "occurrences": 6,
+    "last_seen": "2026-08-05T08:11:52Z",
+    "occurrences": 7,
     "silence_for": "24h",
     "notes": [
       {
@@ -1068,6 +1076,10 @@
       {
         "ts": "2026-08-04T22:10:00Z",
         "note": "2026-08-04 ~22:10Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch confirmed no slack/conversations tool surfaced). DD-scan-diff vs prior cutoff 2026-08-04T21:04:11Z (from the 21:08:00Z poll-cycle summary). Full 186-monitor scan (--summary): monitor count unchanged (still 186). 2 monitors past cutoff this cycle. Monitor 295882732 fired 2026-08-04T21:27:53Z (OK by scan time -- self-recovered), hash b3a072b99d4a6283, occ 5->6. Disambiguated against ki-2026-07-06-rainforest-merchant-details-503-serviceunavailable (also matches this monitor id): DD metric sum:trace.http.request.hits{env:prod,peer.hostname:api.rainforestpay.com} by {http.status_code} over the pre-fire 10-min window (21:17:53-21:27:53Z): ~67 x 200, 2 x 400, 0 x 5xx (~2.9% error rate on the sampled buckets -- sparse/rollup-interpolated series, consistent with this entry's low-traffic-denominator noise, not the KI's 503/ServiceUnavailable mechanism). ES fields.dd_service.keyword:\"runtime-core-api\" AND message:*rainforest* same window: 0 hits -- no 503/ServiceUnavailable signature, ruling out the sibling KI. Same low-traffic-denominator-noise mechanism as all 5 prior occurrences. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only. See docs/investigations/2026-08-04-b3a072b99d4a6283.md."
+      },
+      {
+        "ts": "2026-08-05T11:32:14Z",
+        "note": "2026-08-05 ~11:32Z triage (degraded cycle): monitor 295882732 fired 2026-08-05T08:11:52Z, hash 7edc8a73451213f0, occ 6->7. DD metric sum:trace.http.request.hits{env:prod,peer.hostname:api.rainforestpay.com} by {http.status_code} over 07:58:32-08:18:32Z: ~109 x 200, 4 x 400 (peak), 0 x 5xx -- ~3.5% error rate on a low-traffic outbound integration. ES sample confirms the 400s are ordinary application-level 'Rainforest API create payment method payin request failed with status: BadRequest' rejections (account alocetsystem / internal system tenant, not a customer) -- consistent with the documented low-traffic-denominator noise mechanism. Same shape as 6 prior occurrences."
       }
     ]
   },
