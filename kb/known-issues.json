@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-08-05T19:02:11Z",
-    "occurrences": 632,
+    "last_seen": "2026-08-05T19:56:12Z",
+    "occurrences": 633,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -595,6 +595,10 @@
       {
         "ts": "2026-08-05T19:10:00Z",
         "note": "2026-08-05 ~19:10Z triage (degraded cycle, no Slack MCP; DD-scan-diff vs prior cutoff 2026-08-05T18:04:32Z, hash 016c1e99cd7a5688): monitor 77419271 fired 2026-08-05T19:02:11Z (OK at scan time). Monitor's own native DD Logs 5-min-window query reproduced 50 hits (limit reached) across 34 diffuse accounts, all status_code:0 client-network 'Failed to load' failures against the shared gateway sync-widget endpoint (GetSyncWidgetInfoAsync) -- genuine recurrence, distinct episode from the 17:26:11Z fire already logged this cycle-day. last_notified_at (2026-08-05T16:52:11Z) ~2h10m old -- WITHIN 24h suppression window, occ 632 not a 10th-multiple -- SUPPRESSED, gate_reason=known-issue-window, appended to docs/actionable/2026-08-05.md. See docs/investigations/2026-08-05-016c1e99cd7a5688.md."
+      },
+      {
+        "ts": "2026-08-05T20:09:00Z",
+        "note": "2026-08-05 ~20:09Z triage (degraded cycle). Monitor 77419271 fired 19:56:12Z, hash 6fb7aec632c74e5d, occ 632->633. Monitor's own native DD Logs query (service:method-ui -*ResizeObserver* -*segment* -*signalr* -*mixpanel* -*hotjar* -\"Minified Redux error\" status:error *xhr*) over 19:51:12-19:56:12Z: 50 hits (limit reached), diffuse accounts, status_code:0 client-network failures against the shared gateway sync-widget endpoint -- genuine recurrence, distinct episode from the 19:02:11Z fire already logged today. last_notified_at (2026-08-05T16:52:11Z) ~3h4m old -- WITHIN 24h window, occ 633 not a 10th-multiple -- SUPPRESSED, gate_reason=known-issue-window, appended to docs/actionable/2026-08-05.md."
       }
     ],
     "prior_last_notified_at": "2026-07-31T15:07:56Z"
@@ -2747,8 +2751,8 @@
     "id": "ki-2026-07-05-rainforest-outbound-api-p95-latency",
     "title": "[Rainforest] Outbound API P95 Latency > 3s -- runtime-core-api outbound calls to api.rainforestpay.com intermittently breach 3s p95, self-recovering, zero corroborating errors (third-party latency, not a Method-side defect)",
     "first_seen": "2026-07-05T08:31:25Z",
-    "last_seen": "2026-08-05T19:00:25Z",
-    "occurrences": 19,
+    "last_seen": "2026-08-05T19:53:25Z",
+    "occurrences": 20,
     "match": {
       "channels": [
         "alert-system",
@@ -2776,7 +2780,7 @@
     "fix_template": null,
     "confidence": 0.7,
     "owning_team": "Transactions (per ownership.md:119, Payment processing component; monitor tag team:transactions agrees)",
-    "last_notified_at": "2026-08-05T11:32:14Z",
+    "last_notified_at": "2026-08-05T19:53:25Z",
     "notes": [
       {
         "ts": "2026-07-05T15:20:44Z",
@@ -2829,6 +2833,10 @@
       {
         "ts": "2026-08-05T19:10:00Z",
         "note": "2026-08-05 ~19:10Z triage (degraded cycle, no Slack MCP; DD-scan-diff vs prior cutoff 2026-08-05T18:04:32Z, hash 6b76b0241538effb): monitor 295928665 fired 2026-08-05T19:00:25Z (OK at scan time). p95:trace.http.request{env:prod,peer.hostname:api.rainforestpay.com} over widened 18:00:25-19:15:25Z: 24 sparse points, 0.275-1.031s -- well under the 3s threshold, canonical low-volume third-party-latency shape. service:runtime-core-api status:error env:prod same window: 0 hits, confirming latency-only. last_notified_at (2026-08-05T11:32:14Z) ~7h28m ago -- WITHIN 24h suppression window, occ 19 not a 10th-multiple -- SUPPRESSED, gate_reason=known-issue-window, appended to docs/actionable/2026-08-05.md. See docs/investigations/2026-08-05-6b76b0241538effb.md."
+      },
+      {
+        "ts": "2026-08-05T20:09:00Z",
+        "note": "2026-08-05 ~20:09Z triage (degraded cycle). Monitor 295928665 fired 19:53:25Z, hash 49551dd3bdf9e11d, occ 19->20 -- 10th-occurrence resurface (20%10==0), posted to #triage-results despite last_notified_at (11:32:14Z) being only ~8h21m old. p95:trace.http.request{env:prod,peer.hostname:api.rainforestpay.com} over 18:38:25-20:08:25Z: 48 sparse points, max 1.03s, well under 3s threshold. DD logs service:runtime-core-api peer.hostname:api.rainforestpay.com status:error over the window: 0 hits -- latency-only confirmed."
       }
     ]
   },

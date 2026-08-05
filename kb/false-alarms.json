@@ -776,8 +776,8 @@
     },
     "reason": "Three [QA][Gatling] monitors fired across the backlog window (ms-support-api, eda_orchestrator_api, ms-apps-api P95 latency), all tagged env:warehouse team:qa source:gatling -- these are load-test result monitors against the warehouse (non-prod) environment, not production alerts. Same non-prod-noise class as the already-documented ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata and ki-2026-07-03-warehouse-dashboard-network-test-nodata (both 'confirmed-non-prod-noise').",
     "first_seen": "2026-07-16T15:28:39Z",
-    "last_seen": "2026-08-05T18:48:55Z",
-    "occurrences": 22,
+    "last_seen": "2026-08-05T19:36:55Z",
+    "occurrences": 23,
     "silence_for": "24h",
     "notes": [
       {
@@ -827,6 +827,10 @@
       {
         "ts": "2026-08-05T19:10:00Z",
         "note": "2026-08-05 ~19:10Z triage (degraded cycle, no Slack MCP; DD-scan-diff vs prior cutoff 2026-08-05T18:04:32Z, hash c30884db86707811): monitor 305925415 fired 2026-08-05T18:48:55Z, occ 21->22. DD metric p95:trace.aspnet_core.request{service:ms-apps-api,env:warehouse} over 18:18:55-19:09:59Z: 55 real datapoints, peak 2.31s at ~18:42:00Z (vs 2s threshold, ~1.16x) then decayed to sub-second baseline -- genuine transient Gatling load-test spike, non-prod env:warehouse, same class as prior 21 occurrences. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-08-05-c30884db86707811.md."
+      },
+      {
+        "ts": "2026-08-05T20:09:00Z",
+        "note": "2026-08-05 ~20:09Z triage (degraded cycle, no Slack MCP; DD-scan-diff vs prior cutoff 2026-08-05T19:05:01Z). Monitor 305925415 fired 19:36:55Z, hash a7f496a0f3e153b9, occ 22->23. p95:trace.aspnet_core.request{service:ms-apps-api,env:warehouse} over 18:53:35-21:23:35Z: 86 points, 2 breaches >2s, peak 8.91s at 19:24:00Z, non-prod env:warehouse -- same load-test-noise class as 22 priors. No thread-reply path in degraded mode (no primary.ts) -- kb-update self-DM sent."
       }
     ]
   },
@@ -1081,8 +1085,8 @@
     },
     "reason": "DD monitor 295882732 ([Rainforest] Outbound API Error Rate (4xx+5xx) > 5%) fired 2026-07-31T19:34:52Z (overall_state OK by scan time -- self-recovered). This is a percentage-of-traffic monitor on a very low-volume outbound integration (env:prod, peer.hostname:api.rainforestpay.com): total request volume in the pre-fire 10-min window was ~10 requests, of which exactly 1 was a 4xx (0 were 5xx) -- 1/10 = 10% > the 5% threshold. DD logs query (service:runtime-core-api peer.hostname:api.rainforestpay.com status:error / @http.status_code:4*) returned 0 corroborating hits (outbound Rainforest calls are traced but not logged to this pipeline), so the metric API count (verified via sum:trace.http.request.hits{...,http.status_code:4*}.as_count()) is the evidence of record. A single 4xx among ~10 requests is consistent with an ordinary payment-processing rejection (e.g. a declined card), not a Method-side or Rainforest-side outage -- same low-traffic-denominator noise mechanism as the other bursty/low-volume integration monitors already documented (fa-2026-07-06 import-subscriber, fa-2026-07-11 sync-api-queue-consumer, fa-2026-07-23 rainforest-webhook-traffic-outage). Distinct monitor from the already-documented ki-2026-07-05 (P95 latency) and ki-2026-07-06 (merchant-details 503) Rainforest entries -- this is the first fire of the error-rate-specific monitor 295882732.",
     "first_seen": "2026-07-31T19:34:52Z",
-    "last_seen": "2026-08-05T08:11:52Z",
-    "occurrences": 7,
+    "last_seen": "2026-08-05T20:04:52Z",
+    "occurrences": 8,
     "silence_for": "24h",
     "notes": [
       {
@@ -1108,6 +1112,10 @@
       {
         "ts": "2026-08-05T11:32:14Z",
         "note": "2026-08-05 ~11:32Z triage (degraded cycle): monitor 295882732 fired 2026-08-05T08:11:52Z, hash 7edc8a73451213f0, occ 6->7. DD metric sum:trace.http.request.hits{env:prod,peer.hostname:api.rainforestpay.com} by {http.status_code} over 07:58:32-08:18:32Z: ~109 x 200, 4 x 400 (peak), 0 x 5xx -- ~3.5% error rate on a low-traffic outbound integration. ES sample confirms the 400s are ordinary application-level 'Rainforest API create payment method payin request failed with status: BadRequest' rejections (account alocetsystem / internal system tenant, not a customer) -- consistent with the documented low-traffic-denominator noise mechanism. Same shape as 6 prior occurrences."
+      },
+      {
+        "ts": "2026-08-05T20:09:00Z",
+        "note": "2026-08-05 ~20:09Z triage (degraded cycle): monitor 295882732 fired 2026-08-05T20:04:52Z (Warn, not yet recovered to OK at scan time), hash 6e8933e7860ba766, occ 7->8. Disambiguated against ki-2026-07-06-rainforest-merchant-details-503-serviceunavailable (also matches this monitor id) via DD metric sum:trace.http.request.hits{env:prod,peer.hostname:api.rainforestpay.com} by {http.status_code} over the monitor's own last_10m eval window (19:54:52-20:04:52Z): 33 x 200, 1 x 400, 0 x 5xx -> ~2.9% error rate on a low-traffic outbound integration. ES fields.dd_service.keyword:\"runtime-core-api\" AND message:*rainforest* same window: 1 hit -- 'Rainforest API create payment method payin request failed with status: BadRequest' (account sierrashredllc, ordinary application-level rejection), NOT a 503/ServiceUnavailable signature -- rules out the sibling KI's third-party-outage mechanism. Same low-traffic-denominator-noise mechanism as the 7 prior occurrences. No thread-reply path in degraded mode -- kb-update self-DM sent."
       }
     ]
   },
