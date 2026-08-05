@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-08-05T07:53:11Z",
-    "occurrences": 627,
+    "last_seen": "2026-08-05T14:07:11Z",
+    "occurrences": 628,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -583,6 +583,10 @@
       {
         "ts": "2026-08-05T11:32:14Z",
         "note": "2026-08-05 ~11:32Z triage (degraded cycle): monitor 77419271 fired 2026-08-05T07:53:11Z, hash 9de7d26022d3e23f, occ 626->627. Canonical widened ES query (\"Unusual number of XHR errors for account\" OR \"GetSyncWidgetInfoAsync\" OR \"monitors/77419271\") over 07:33:11-07:53:11Z: 5 hits, 100% gateway, vs 8 hits 24h-ago baseline (-37.5%). last_notified_at (2026-08-04T15:05:11Z) ~16h48m ago, WITHIN 24h suppression window, occ 627 not a 10th-multiple -> SUPPRESSED, gate_reason=known-issue-window, appended to docs/actionable/2026-08-05.md."
+      },
+      {
+        "ts": "2026-08-05T14:09:06Z",
+        "note": "2026-08-05 ~14:09Z triage (degraded cycle, no Slack MCP surfaced this session). DD monitor scan-diff vs prior cutoff 2026-08-05T13:05:56Z. Monitor 77419271 fired 14:07:11Z, hash 96c17cffc9566ae8, occ 627->628. Routed to alert-frontend-errors (not the default alert-system DD-scan-diff proxy channel) per established convention for this monitor. Generic kb_to_es_query.py-derived ES query ('Unusual number of XHR errors for account' OR 'monitors/77419271') returned 0 hits in the eval window -- ES is not this signal's datasource. Corroborated instead via the monitor's own native DD Logs query (service:method-ui status:error *xhr*, excluding known noise) in its exact 5-min eval window (14:02:11-14:07:11Z): 5+ XHR 'Failed to load' (status_code 0, client-network-layer) errors across diffuse accounts (hisigns, commair, gpsbuild, equipmentguys, davishoseinc) and diffuse consumer ISPs/geographies (Telus/Alberta, Rogers/Ontario, AT&T/Texas, Charter/Ohio, Knoxville Utilities/Tennessee) hitting the gateway syncwidget endpoint -- consistent with the entry's established diffuse-account signature. last_notified_at 2026-08-04T15:05:11Z (~23h2m ago) -- WITHIN 24h suppression window (~58min margin) -> SUPPRESS, gate_reason=known-issue-window, appended to docs/actionable/2026-08-05.md. See docs/investigations/2026-08-05-96c17cffc9566ae8.md."
       }
     ],
     "prior_last_notified_at": "2026-07-31T15:07:56Z"
@@ -3337,8 +3341,8 @@
     "id": "ki-2026-07-06-tables-fields-redis-circuitbreaker-p95-latency",
     "title": "ms-tables-fields-api p95 request latency spike driven by a transient Redis connectivity blip (circuit breaker OPENED); first confirmed cross-service correlation with runtime-core-api RTC p95 (ki-24)",
     "first_seen": "2026-07-06T13:36:39Z",
-    "last_seen": "2026-08-04T19:24:31Z",
-    "occurrences": 13,
+    "last_seen": "2026-08-05T13:33:31Z",
+    "occurrences": 14,
     "match": {
       "channels": [
         "alert-system",
@@ -3421,6 +3425,10 @@
       {
         "ts": "2026-08-04T19:24:31Z",
         "note": "2026-08-04 ~20:08Z triage (degraded cycle, no Slack MCP surfaced this session). DD-scan-diff vs prior cutoff 2026-08-04T18:36:34Z. Monitor 302103451 fired 19:24:31Z, hash 02073b50675d90f4, occ 12->13 (this is the 3rd fire of this monitor today, following occ 11 POSTED at 14:50:00Z and occ 12 SUPPRESSED at 15:22:00Z). Redis-circuitbreaker evidence_query re-run in the exact eval window (19:09:00-19:39:00Z): 0 ES hits -- mechanism NOT confirmed (13th consecutive refutation streak for the Redis-specific story). Latency symptom independently re-confirmed: DD metric p95:trace.aspnet_core.request{env:prod,service:tables-fields} in the monitor's own 5-min eval window (19:19:31-19:24:31Z) peaked 0.78s vs 0.25s threshold (ratio ~3.1x); request volume in that window totaled 241 vs 106 in the same 5-min window 24h-ago (~2.3x traffic increase) -- consistent with the established traffic-volume-driven latency pattern documented for this monitor, not Redis. Classified known-issue-recurrence with partial-reproduction confidence downgrade (per the ki-2026-08-04 precedent set twice already today). last_notified_at 2026-08-04T14:50:00Z, ~4h34m ago -- WITHIN 24h suppression window, occ 13 not %10, fix_status unchanged -> SUPPRESS, gate_reason=known-issue-window, appended to docs/actionable/2026-08-04.md. See docs/investigations/2026-08-04-02073b50675d90f4.md."
+      },
+      {
+        "ts": "2026-08-05T14:09:06Z",
+        "note": "2026-08-05 ~14:09Z triage (degraded cycle, no Slack MCP surfaced this session). DD monitor scan-diff vs prior cutoff 2026-08-05T13:05:56Z. Monitor 302103451 fired 13:33:31Z, hash ae4c3ef088878282, occ 13->14. Redis-circuitbreaker evidence_query re-run in the monitor's own eval window (13:03:31-13:33:31Z): 0 ES hits -- mechanism NOT confirmed (15th consecutive refutation streak for the Redis-specific story). Latency symptom independently re-confirmed: DD metric p95:trace.aspnet_core.request{env:prod,service:tables-fields} in the eval window peaked 0.4465s at 13:29:20Z (vs 0.25s threshold, ratio ~0.79x additional -- several points above threshold early in the window before dropping). Traffic-volume check: sum:trace.aspnet_core.request.hits{env:prod,service:tables-fields}.as_count() over the same 5min window = 3231 today vs 131 24h-ago (~24.7x) -- consistent with the established traffic-volume-driven latency pattern (2026-07-31, 2026-08-04 notes), not Redis. 0 status:error DD logs in the window. Classified known-issue-recurrence with partial-reproduction confidence downgrade per the standing precedent. last_notified_at 2026-08-04T14:50:00Z (~22h43m ago) -- WITHIN 24h suppression window -> SUPPRESS, gate_reason=known-issue-window, appended to docs/actionable/2026-08-05.md. See docs/investigations/2026-08-05-ae4c3ef088878282.md."
       }
     ]
   },
