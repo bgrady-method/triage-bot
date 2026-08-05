@@ -776,8 +776,8 @@
     },
     "reason": "Three [QA][Gatling] monitors fired across the backlog window (ms-support-api, eda_orchestrator_api, ms-apps-api P95 latency), all tagged env:warehouse team:qa source:gatling -- these are load-test result monitors against the warehouse (non-prod) environment, not production alerts. Same non-prod-noise class as the already-documented ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata and ki-2026-07-03-warehouse-dashboard-network-test-nodata (both 'confirmed-non-prod-noise').",
     "first_seen": "2026-07-16T15:28:39Z",
-    "last_seen": "2026-08-05T17:50:56Z",
-    "occurrences": 21,
+    "last_seen": "2026-08-05T18:48:55Z",
+    "occurrences": 22,
     "silence_for": "24h",
     "notes": [
       {
@@ -823,6 +823,10 @@
       {
         "ts": "2026-08-04T19:08:00Z",
         "note": "Degraded cycle (no Slack MCP), DD-scan-diff vs cutoff 2026-08-04T17:57:33Z. Monitor 305925415 fired 18:33:55Z. DD metric p95:trace.aspnet_core.request{service:ms-apps-api,env:warehouse} 18:03:55-18:33:55Z: brief spike to 2.54s (vs 2s threshold, ~1.27x) then dropped to 0.056s/0.012s within 30s -- transient Gatling load-test burst, non-prod (env:warehouse team:qa source:gatling). occ 19->20."
+      },
+      {
+        "ts": "2026-08-05T19:10:00Z",
+        "note": "2026-08-05 ~19:10Z triage (degraded cycle, no Slack MCP; DD-scan-diff vs prior cutoff 2026-08-05T18:04:32Z, hash c30884db86707811): monitor 305925415 fired 2026-08-05T18:48:55Z, occ 21->22. DD metric p95:trace.aspnet_core.request{service:ms-apps-api,env:warehouse} over 18:18:55-19:09:59Z: 55 real datapoints, peak 2.31s at ~18:42:00Z (vs 2s threshold, ~1.16x) then decayed to sub-second baseline -- genuine transient Gatling load-test spike, non-prod env:warehouse, same class as prior 21 occurrences. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-08-05-c30884db86707811.md."
       }
     ]
   },
@@ -844,8 +848,8 @@
     },
     "reason": "DD metric sum:trace.amqp.command.hits{service:sync-queue-consumer,env:prod} over 2026-07-22T15:44:01-16:24:01Z: continuous non-zero throughput throughout (54-638 messages per 30s bucket, no gap approaching the monitor's stall threshold). The 'stalled' condition does not match observed reality -- same monitoring-artifact class as the already-documented fa-2026-07-11-sync-api-queue-consumer-bursty-idle-gap, but for the sibling QBO-specific consumer service (sync-queue-consumer, not sync-api-queue-consumer). NOT the same incident as ki-qbo-sync-datadog-mass-transit-blockage (a mitigated, historical MassTransit blockage from a different date) -- a bare 'QBO Sync' text match to that entry is unverified without checking the metric, which is why this got its own entry instead of a blind occurrence bump.",
     "first_seen": "2026-07-22T16:14:01Z",
-    "last_seen": "2026-08-05T17:05:01Z",
-    "occurrences": 9,
+    "last_seen": "2026-08-05T19:05:01Z",
+    "occurrences": 10,
     "silence_for": "24h",
     "notes": [
       {
@@ -871,6 +875,10 @@
       {
         "ts": "2026-08-05T17:15:00Z",
         "note": "2026-08-05 17:15Z triage (degraded cycle, no Slack MCP; DD-scan-diff vs prior cutoff 2026-08-05T15:44:11Z, hash 71f5e643a7bf4963): monitor 301037701 fired 17:05:01Z (OK at scan time, self-recovered), occ 8->9. DD metric sum:trace.amqp.command.hits{service:sync-queue-consumer,env:prod}.as_count() over 16:35:01-17:05:01Z: genuine ~10min zero-throughput gap ~16:52:50-17:03:00Z (no data points at all, not just a low-sum artifact), immediately preceded/followed by normal bursty throughput (1-129 msgs/10s). 0 error logs on service:sync-queue-consumer or service:qbo-sync-api in the full window. Same monitoring-artifact class as the 8 documented priors -- classified false-alarm, confidence 0.9. No thread-reply possible in degraded mode (no source permalink) -- kb-update self-DM confirmation sent instead. See docs/investigations/2026-08-05-71f5e643a7bf4963.md."
+      },
+      {
+        "ts": "2026-08-05T19:10:00Z",
+        "note": "2026-08-05 ~19:10Z triage (degraded cycle, no Slack MCP; DD-scan-diff vs prior cutoff 2026-08-05T18:04:32Z, hash c01b3fa1bdf4ea6a): monitor 301037701 fired 2026-08-05T19:05:01Z (OK at scan time, self-recovered), occ 9->10. DD metric sum:trace.amqp.command.hits{service:sync-queue-consumer,env:prod}.as_count() over 18:35:01-19:09:59Z: genuine ~10m40s zero-throughput gap 18:52:20-19:03:00Z, immediately preceded/followed by normal bursty throughput (1-355 msgs/10s). 0 error logs on sync-queue-consumer or qbo-sync-api. Same monitoring-artifact class as the 9 documented priors. No thread-reply possible in degraded mode -- kb-update self-DM confirmation sent instead. See docs/investigations/2026-08-05-c01b3fa1bdf4ea6a.md."
       }
     ]
   },
