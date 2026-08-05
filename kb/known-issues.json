@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-08-05T19:56:12Z",
-    "occurrences": 633,
+    "last_seen": "2026-08-05T22:03:11Z",
+    "occurrences": 634,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -599,6 +599,10 @@
       {
         "ts": "2026-08-05T20:09:00Z",
         "note": "2026-08-05 ~20:09Z triage (degraded cycle). Monitor 77419271 fired 19:56:12Z, hash 6fb7aec632c74e5d, occ 632->633. Monitor's own native DD Logs query (service:method-ui -*ResizeObserver* -*segment* -*signalr* -*mixpanel* -*hotjar* -\"Minified Redux error\" status:error *xhr*) over 19:51:12-19:56:12Z: 50 hits (limit reached), diffuse accounts, status_code:0 client-network failures against the shared gateway sync-widget endpoint -- genuine recurrence, distinct episode from the 19:02:11Z fire already logged today. last_notified_at (2026-08-05T16:52:11Z) ~3h4m old -- WITHIN 24h window, occ 633 not a 10th-multiple -- SUPPRESSED, gate_reason=known-issue-window, appended to docs/actionable/2026-08-05.md."
+      },
+      {
+        "ts": "2026-08-05T22:09:00Z",
+        "note": "2026-08-05 ~22:09Z triage (degraded cycle, no Slack MCP surfaced this session): occ#634 via DD monitor 77419271 last_triggered 22:03:11Z (OK by scan time, self-recovered, multi=true grouped monitor). This entry's evidence lives in DD Logs, not ES -- kb_to_es_query.py-derived query (\"Unusual number of XHR errors for account\" OR \"monitors/77419271\") returned 0 ES hits again, consistent with every prior cycle (real signal is DD Logs, per the standing lesson). Ran the monitor's own native DD Logs query (service:method-ui ... status:error *xhr*) 21:00-22:10Z: capped at the 1000-record tool limit both this window and the 24h-ago baseline window (24:00-22:10Z-1d), so no precise delta this cycle; per-account/per-5min concentration check (200-sample) found no account above 16 hits/5min, well under the monitor's 40 threshold -- diffuse across ~30+ distinct accounts, consistent with the chronic shared-upstream (ms-gateway-api Ocelot / microservices.methodlocal.int) shape, not a new concentrated incident. last_notified_at (2026-08-05T16:52:11Z) is ~5h11m old, WITHIN the 24h suppression window; occ 634 is not a 10th-multiple -> SUPPRESS, gate_reason=known-issue-window. See docs/investigations/2026-08-05-7b18f08052145bf9.md."
       }
     ],
     "prior_last_notified_at": "2026-07-31T15:07:56Z"
@@ -1372,8 +1376,8 @@
     "id": "ki-2026-07-02-tables-fields-fieldtablenameref-null-linked-fields",
     "title": "ms-tables-fields-api ArgumentNullException on account-specific linked fields with null FieldTableNameRef -- App Update SaveViewBundleInternal fails 400 (chronic, account-specific)",
     "first_seen": "2026-05-28T17:27:49Z",
-    "last_seen": "2026-07-27T17:07:25Z",
-    "occurrences": 11,
+    "last_seen": "2026-08-05T22:06:24Z",
+    "occurrences": 12,
     "match": {
       "channels": [
         "alert-system",
@@ -1404,7 +1408,7 @@
     "fix_template": null,
     "confidence": 0.75,
     "owning_team": "Admin",
-    "last_notified_at": "2026-07-27T17:11:00Z",
+    "last_notified_at": "2026-08-05T22:09:00Z",
     "notes": [
       {
         "ts": "2026-07-13T18:23:31Z",
@@ -1441,6 +1445,10 @@
       {
         "ts": "2026-07-27T17:11:00Z",
         "note": "2026-07-27 17:11Z triage (degraded cycle, no Slack MCP surfaced this session): occ#11 via monitor 299251404 last_triggered 17:07:25Z (OK by scan time, self-recovered). Re-verified against the standing bare-monitor-id false-match risk (this monitor now backs 3 distinct KB entries): ES message.keyword aggregation over 16:27:25-17:07:25Z confirmed top-3 buckets FieldTableNameRef Is Null / GetAllFields Failed / GetColumnForAllFields failed (18 each, 80 total hits), matching THIS entry's documented signature. 80 hits across 3 distinct traces (42/29/9); sample record confirms account stellarair, app af798a20-e6de-4fee-b4df-a5f000b17a47, view ActivityJobItems -- identical to all 10 prior occurrences. DD APM error-rate peaked 5.08% @17:01:00Z vs 1% threshold (ratio ~4.08). last_notified_at 2026-07-23T20:12:31Z was ~3d21h ago, EXCEEDED the 24h suppression window -> POSTED to #triage-results, gate_reason=null (window-expiry). See docs/investigations/2026-07-27-1cb0a9ee38b2b5cc.md."
+      },
+      {
+        "ts": "2026-08-05T22:09:00Z",
+        "note": "2026-08-05 ~22:09Z triage (degraded cycle, no Slack MCP surfaced this session): occ#12 via DD monitor 299251404 last_triggered 22:06:24Z (OK by scan time, self-recovered). DD APM sum:trace.aspnet_core.request.errors{env:prod,service:tables-fields}.as_count()/sum:trace.aspnet_core.request.hits{...}.as_count() over the 5-min alert window (~21:59:24-22:04:24Z): 3 request-errors / ~164 hits (~1.8%, ratio ~0.83 vs 1% warning threshold, below the 5% critical bracket -- small-denominator per-minute-bucket shape consistent with prior occurrences). Re-verified against the standing bare-monitor-id false-match risk (this monitor backs 5 distinct KB entries): ES fields.dd_service.keyword:tables-fields AND level.keyword:Error, 21:55:00-22:10:00Z (80 hits total) -> message.keyword aggregation top buckets FieldTableNameRef Is Null (18+9 variants), GetAllFields Failed (18), GetColumnForAllFields failed (18), GetFieldList Failed (6), Failed to SaveViewBundleInternal (4), GetFieldListInternal Failed (3) -- matches THIS entry's documented signature exactly, ruling out the other four tables-fields KB entries. 4 distinct dd_trace_id (42/23/9/6 hits); sample record confirms ActionName API.Controllers.FieldController.SaveViewBundleInternal, RequestPath /v1/field/SaveViewBundleInternal. Full trace read for the dominant trace (42 hits, dd_trace_id 6a732f2c00000000cea7337c26f37a42) confirms account stellarair, App Work Orders (af798a20-e6de-4fee-b4df-a5f000b17a47), view Activity/ActivityJobItems -- identical account/app/view to occurrences #2-11, confirming this is the same recurring per-account data-integrity condition, not a new incident. last_notified_at (2026-07-27T17:11:00Z) was ~9d5h ago, EXCEEDED the 24h suppression window -> POSTED to #triage-results, gate_reason=null (window-expiry). See docs/investigations/2026-08-05-24f75f844bd0bd0f.md."
       }
     ]
   },
