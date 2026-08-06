@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-08-06T21:09:11Z",
-    "occurrences": 636,
+    "last_seen": "2026-08-06T22:06:12Z",
+    "occurrences": 637,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -160,6 +160,10 @@
     "last_notified_at": "2026-08-06T19:49:11Z",
     "prior_fix_status": "needs-ops-decision",
     "notes": [
+      {
+        "ts": "2026-08-06T22:11:12Z",
+        "note": "2026-08-06 22:11Z triage (degraded cycle, no Slack MCP): occ#637 via monitor 77419271 last_triggered 22:06:12Z (OK now, self-recovered). Synthetic hash 1efca8d7f76d22ea (channel C03TYHGRS23 + DD monitor ts 22:06:12Z). DD method-ui XHR error logs 21:46:12-22:06:12Z: 200-sample-cap saturated, 77 distinct accounts (top AvantSleep 20 ~10% chronic repeat-offender, rlhindustriesinc2 15, commercialfilterservicesinc 10, nationcor 9, carterprocesscontrolusa2 8), 100% status_code:0 origin:network 'Failed to load', dominant path GET /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync -- canonical chronic ki-21 shape (77 distinct within recent 68-107 baseline range, diffuse no concentration, NOT the 100x 2026-06-04 OUTAGE surge). ES aggregate (query manually restored with GetSyncWidgetInfoAsync regex clause per the known kb_to_es_query.py drop bug) same window: 114 hits, 100% attributed to service:gateway -- confirms Ocelot ResponderMiddleware mechanism. No ki-24 co-fire this cycle: RTC monitors 115456700 (last 17:58:20Z) / 117279738 (last 2026-08-02) OK/quiet; ms-account-api latency 65493111 OK (last 2026-08-02); Redis 227940275 OK (last 2026-08-05); 5XX monitor 70171778 OK (last 2026-08-05) -- no shared-upstream backpressure, no cascade. last_notified_at (2026-08-06T19:49:11Z) ~2h22m ago, WITHIN 24h suppression window; occ 636->637 (not %10); fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window, appended to docs/actionable/2026-08-06.md. See docs/investigations/2026-08-06-1efca8d7f76d22ea.md."
+      },
       {
         "ts": "2026-07-30T16:25:00Z",
         "note": "2026-07-30 16:25Z triage (degraded cycle, no Slack MCP): occ#601 via monitor 77419271 last_triggered 16:05:12Z (Warn at scan time). ES aggregate (service:gateway, level:Warning) 15:45:12-16:05:12Z: 647 hits -- chronic magnitude, consistent with the documented pattern. last_notified_at (2026-07-30T14:28:11Z) ~1h37m ago, WITHIN 24h suppression window; occ 601 not %10 -> SUPPRESS, gate_reason=known-issue-window, appended to docs/actionable/2026-07-30.md. See docs/investigations/2026-07-30-7d61d5d6015d9c81.md."
