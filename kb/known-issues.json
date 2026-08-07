@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-08-07T16:39:12Z",
-    "occurrences": 643,
+    "last_seen": "2026-08-07T17:53:11Z",
+    "occurrences": 644,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -1401,8 +1401,8 @@
     "id": "ki-2026-07-02-tables-fields-fieldtablenameref-null-linked-fields",
     "title": "ms-tables-fields-api ArgumentNullException on account-specific linked fields with null FieldTableNameRef -- App Update SaveViewBundleInternal fails 400 (chronic, account-specific)",
     "first_seen": "2026-05-28T17:27:49Z",
-    "last_seen": "2026-08-06T18:37:25Z",
-    "occurrences": 13,
+    "last_seen": "2026-08-07T18:04:24Z",
+    "occurrences": 14,
     "match": {
       "channels": [
         "alert-system",
@@ -1433,7 +1433,7 @@
     "fix_template": null,
     "confidence": 0.75,
     "owning_team": "Admin",
-    "last_notified_at": "2026-08-05T22:09:00Z",
+    "last_notified_at": "2026-08-07T18:04:24Z",
     "notes": [
       {
         "ts": "2026-07-13T18:23:31Z",
@@ -1474,6 +1474,10 @@
       {
         "ts": "2026-08-05T22:09:00Z",
         "note": "2026-08-05 ~22:09Z triage (degraded cycle, no Slack MCP surfaced this session): occ#12 via DD monitor 299251404 last_triggered 22:06:24Z (OK by scan time, self-recovered). DD APM sum:trace.aspnet_core.request.errors{env:prod,service:tables-fields}.as_count()/sum:trace.aspnet_core.request.hits{...}.as_count() over the 5-min alert window (~21:59:24-22:04:24Z): 3 request-errors / ~164 hits (~1.8%, ratio ~0.83 vs 1% warning threshold, below the 5% critical bracket -- small-denominator per-minute-bucket shape consistent with prior occurrences). Re-verified against the standing bare-monitor-id false-match risk (this monitor backs 5 distinct KB entries): ES fields.dd_service.keyword:tables-fields AND level.keyword:Error, 21:55:00-22:10:00Z (80 hits total) -> message.keyword aggregation top buckets FieldTableNameRef Is Null (18+9 variants), GetAllFields Failed (18), GetColumnForAllFields failed (18), GetFieldList Failed (6), Failed to SaveViewBundleInternal (4), GetFieldListInternal Failed (3) -- matches THIS entry's documented signature exactly, ruling out the other four tables-fields KB entries. 4 distinct dd_trace_id (42/23/9/6 hits); sample record confirms ActionName API.Controllers.FieldController.SaveViewBundleInternal, RequestPath /v1/field/SaveViewBundleInternal. Full trace read for the dominant trace (42 hits, dd_trace_id 6a732f2c00000000cea7337c26f37a42) confirms account stellarair, App Work Orders (af798a20-e6de-4fee-b4df-a5f000b17a47), view Activity/ActivityJobItems -- identical account/app/view to occurrences #2-11, confirming this is the same recurring per-account data-integrity condition, not a new incident. last_notified_at (2026-07-27T17:11:00Z) was ~9d5h ago, EXCEEDED the 24h suppression window -> POSTED to #triage-results, gate_reason=null (window-expiry). See docs/investigations/2026-08-05-24f75f844bd0bd0f.md."
+      },
+      {
+        "ts": "2026-08-07T18:04:24Z",
+        "note": "2026-08-07 ~18:04Z triage (degraded cycle, no Slack MCP surfaced this session): occ#14 via DD monitor 299251404 last_triggered 18:04:24Z (OK by scan time, self-recovered). Re-verified against the standing bare-monitor-id false-match risk (this monitor backs 5+ distinct KB entries, and match_kb.py's bare-match also surfaced the unrelated resolved 2023 ki-windows-patching entry via a bare \"tables-fields\" word clause -- rejected): ES fields.dd_service.keyword:tables-fields AND level.keyword:Error, 17:49:24-18:19:24Z (80 hits) -> message.keyword aggregation top buckets FieldTableNameRef Is Null (18+9 variant), GetAllFields Failed (18), GetColumnForAllFields failed (18), GetFieldList Failed (6), Failed to SaveViewBundleInternal (4) -- matches THIS entry's documented signature exactly. Cross-checked ki-2026-07-09's declared duplicate-key-ShippingAddress signature in the same window: 0 hits, refuted as a candidate. 4 distinct dd_trace_id (42/23/9/6 hits); full-record read of \"App Update - Failed\"/fields.Account confirms account stellarair, apps Work Orders/Send Email/Field Crew/Time Tracking, error body UpdateBundleView Failed for view Activity ... FieldTableNameRef Is Null -- identical account/app/view family to all 13 prior occurrences. last_notified_at (2026-08-05T22:09:00Z) was ~1d20h ago, EXCEEDED the 24h suppression window -> POSTED to #triage-results, gate_reason=null (window-expiry). See docs/investigations/2026-08-07-8fd0306220110666.md."
       }
     ]
   },
