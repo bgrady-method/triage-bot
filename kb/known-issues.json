@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-08-07T12:36:11Z",
-    "occurrences": 639,
+    "last_seen": "2026-08-07T14:02:11Z",
+    "occurrences": 640,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -157,7 +157,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.88,
-    "last_notified_at": "2026-08-06T19:49:11Z",
+    "last_notified_at": "2026-08-07T14:02:11Z",
     "prior_fix_status": "needs-ops-decision",
     "notes": [
       {
@@ -615,6 +615,10 @@
       {
         "ts": "2026-08-07T13:12:48Z",
         "note": "2026-08-07 13:12Z triage (degraded cycle, no Slack MCP surfaced this session; DD-scan-diff vs prior cutoff 2026-08-07T11:33:11Z, commit 278a0d0): monitor 77419271 last_triggered 12:36:11Z (OK, self-recovered), hash 43ffe164ddca1e0a, occ 638->639. DD Logs native query (service:method-ui ... status:error *xhr*) 12:16:11-12:36:11Z: 50 events (limit reached), dominant path /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync (38/50, 76%), diffuse across accounts (top HCCI 5/50=10%) -- confirms canonical chronic shared-gateway-timeout mechanism, no new concentrated incident. last_notified_at (2026-08-06T19:49:11Z) ~17h24m before this fire -- WITHIN 24h suppression_window_hours; occ 639 not a 10th-multiple; fix_status unchanged -> SUPPRESS gate_reason=known-issue-window. Owning team re-derived from ownership.md's Project table this cycle: method-ui/method-portal-ui -> Admin (not Vertical App Experience as an earlier session's report stated for a sibling monitor -- Project-table match is authoritative per prompt.md step 4.1a). See docs/investigations/2026-08-07-43ffe164ddca1e0a.md."
+      },
+      {
+        "ts": "2026-08-07T14:08:30Z",
+        "note": "2026-08-07 ~14:08Z triage (degraded cycle, no Slack MCP surfaced this session; DD-scan-diff vs prior cutoff 2026-08-07T12:51:10Z, commit 4638111). Monitor 77419271 fired 2026-08-07T14:02:11Z, hash 3219597ab6a7f734, occ 639->640. DD logs (service:method-ui status:error *xhr* GetSyncWidgetInfoAsync, 13:32:11-14:02:11Z) 5/5 sampled hits canonical: status_code:0 client-network failures against /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync, diffuse across 5 distinct accounts (maconstructiongroup, wellmanexteriorsinc, biggameusaCo2, majesticturboofdallas2, kgmenterprises) -- same chronic shared-upstream signature as all prior occurrences. last_notified_at (2026-08-06T19:49:11Z) was only ~18h19m ago (still within the 24h suppression window), but occurrence crossed 640 (a multiple of 10) -> every-10th-occurrence resurface rule fires -> POST, gate_reason=known-issue-occurrence-resurface, last_notified_at bumped to now. See docs/investigations/2026-08-07-3219597ab6a7f734.md."
       }
     ],
     "prior_last_notified_at": "2026-07-31T15:07:56Z"
