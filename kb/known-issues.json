@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-08-07T14:56:11Z",
-    "occurrences": 641,
+    "last_seen": "2026-08-07T15:58:11Z",
+    "occurrences": 642,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -3860,8 +3860,8 @@
     "id": "ki-2026-07-09-tables-fields-getfieldnames-duplicate-key-shippingaddress",
     "title": "ms-tables-fields-api System.ArgumentException 'An item with the same key has already been added: ShippingAddress' in FieldController.GetFieldNamesWithRestriction (distinct from ki-2026-07-02's FieldTableNameRef signature)",
     "first_seen": "2026-07-09T04:07:36Z",
-    "last_seen": "2026-08-07T15:04:24Z",
-    "occurrences": 6,
+    "last_seen": "2026-08-07T15:27:25Z",
+    "occurrences": 7,
     "match": {
       "channels": [
         "alert-system",
