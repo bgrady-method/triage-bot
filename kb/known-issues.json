@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-08-07T14:02:11Z",
-    "occurrences": 640,
+    "last_seen": "2026-08-07T14:56:11Z",
+    "occurrences": 641,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -3860,8 +3860,8 @@
     "id": "ki-2026-07-09-tables-fields-getfieldnames-duplicate-key-shippingaddress",
     "title": "ms-tables-fields-api System.ArgumentException 'An item with the same key has already been added: ShippingAddress' in FieldController.GetFieldNamesWithRestriction (distinct from ki-2026-07-02's FieldTableNameRef signature)",
     "first_seen": "2026-07-09T04:07:36Z",
-    "last_seen": "2026-07-31T19:59:56Z",
-    "occurrences": 5,
+    "last_seen": "2026-08-07T15:04:24Z",
+    "occurrences": 6,
     "match": {
       "channels": [
         "alert-system",
@@ -3896,7 +3896,7 @@
     "fix_template": null,
     "confidence": 0.75,
     "owning_team": "Admin",
-    "last_notified_at": "2026-07-28T17:08:38Z",
+    "last_notified_at": "2026-08-07T15:09:14Z",
     "notes": [
       {
         "ts": "2026-07-09T11:29:32Z",
@@ -3909,6 +3909,10 @@
       {
         "ts": "2026-07-31T19:59:56Z",
         "note": "2026-07-31 ~20:06Z triage (degraded cycle, no Slack MCP; part of monitor 299251404 fire, group hash 4916c8927cc2a9b4): ES sweep of tables-fields Error docs 19:36:24-20:06:24Z included 3 hits message.keyword 'GetFieldNamesAndTypesFriendly Failed', all System.ArgumentException 'An item with the same key has already been added. Key: MultiEntityName' at FieldController.cs:767 (API.Controllers.FieldController.GetFieldNamesAndTypesFriendly) -- same duplicate-key-Dictionary-Add failure class as this entry's ShippingAddress signature, confirming this entry's own playbook note that the colliding key 'may differ per account'. The rest of this fire's error volume (11 hits) was a DISTINCT, previously-undocumented 'Find View Failed' signature -- see new entry ki-2026-07-31-tables-fields-findviewfailed-getfieldnameswithrestriction. Not independently notified (co-occurring within a needs-human group; group's own escalation score determined the notify decision, not this KB entry's suppression gate)."
+      },
+      {
+        "ts": "2026-08-07T15:09:14Z",
+        "note": "2026-08-07 15:09Z triage (degraded cycle, no Slack MCP surfaced this session): occ#6 via DD monitor 299251404 last_triggered 15:04:24Z (OK by scan time, self-recovered). Re-verified against the standing bare-monitor-id false-match risk (this monitor now backs 5 distinct KB entries): ES fields.dd_service.keyword:tables-fields AND level.keyword:Error, 14:34:24-15:04:24Z (3 hits total) -> message.keyword aggregation: GetFieldNamesAndTypesFriendly Failed (2), Failed to SaveViewBundleInternal (1, no exception attached, not folded in). Full stack trace on both matching hits: System.ArgumentException 'An item with the same key has already been added. Key: MultiEntityName' at System.Linq.Enumerable.ToDictionary -> API.Controllers.FieldController.GetFieldNamesAndTypesFriendly (FieldController.cs:767) -- same Dictionary-duplicate-key defect class as this entry's documented ShippingAddress signature, different call site (.ToDictionary() not Dictionary.Add) and different colliding key (MultiEntityName). Matches this entry's own any_of clause (GetFieldNamesAndTypesFriendly Failed / FieldController.GetFieldNamesAndTypesFriendly), added from an earlier sibling occurrence -- confirmed via match_kb.py --all (single unambiguous match, no other tables-fields entry hit). kb_to_es_query.py's generated query only covers 3/5 any_of clauses and returned 0 hits; manual query using the observed message text returned the 2 hits used as evidence (Kibana link verified non-empty this cycle). Account not recoverable from these log lines (request-scoped ActionId, not account-scoped at this call site). git fetch on ms-tables-fields-api failed (HTTP 403, methodcrm-org GH_TOKEN gap) -- deploy correlation not checked, logged repo-fetch-failed non-blocking. last_notified_at (2026-07-28T17:08:38Z) was ~10d ago, EXCEEDED the 24h suppression window -> POSTED to #triage-results, gate_reason=null (window-expiry). See docs/investigations/2026-08-07-9b76aed64cce1a5b.md."
       }
     ]
   },
