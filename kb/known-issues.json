@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-08-07T21:06:11Z",
-    "occurrences": 646,
+    "last_seen": "2026-08-07T22:08:11Z",
+    "occurrences": 647,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -623,6 +623,10 @@
       {
         "ts": "2026-08-07T17:27:00Z",
         "note": "2026-08-07 ~17:22Z triage (degraded cycle, no Slack MCP surfaced this session; DD-scan-diff vs prior cutoff 2026-08-07T15:58:11Z, commit e2d582b). Monitor 77419271 last_triggered 16:39:12Z, self-recovered to OK by scan time, hash ae83c7d4cde19154, occ 642->643. ES aggregate (message:*GetSyncWidgetInfoAsync*, manual regex correction per the standing kb_to_es_query.py dropped-regex-clause gap -- kb_to_es_query.py only emitted the two literal contains clauses) over 16:24:12-16:54:12Z: 414 hits, 100% service:gateway, vs 519 hits in the same window 24h prior -- comparable/slightly lower, confirms chronic baseline (not a spike). Sampled raw hit confirms canonical signature: TaskCanceledException/SocketException timeout proxying /syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync through the gateway. RequestPath aggregate shows diffuse account spread (progressivewestman3 14, AvantSleep 12, boswellwindows3 11, foxmark 11, ridethewindebikes 11) -- no single-account concentration, consistent with the chronic shared-upstream shape. last_notified_at (2026-08-07T14:02:11Z) ~3h20m ago, WITHIN 24h suppression window; occ 643 not a 10th-multiple; fix_status unchanged -> SUPPRESSED, gate_reason=known-issue-window, appended to docs/actionable/2026-08-07.md. See docs/investigations/2026-08-07-ae83c7d4cde19154.md."
+      },
+      {
+        "ts": "2026-08-07T22:12:22Z",
+        "note": "2026-08-07 22:12Z triage (degraded cycle, no Slack MCP -- ToolSearch 'slack conversations history mcp', 'mcp__slack', 'conversations.history' probes all empty, consistent with the standing intermittent read-path gap). Ran DD-scan-diff fallback vs prior cutoff 2026-08-07T21:09:25Z (commit 29e2a5b, ~1h03m to now). Full 186-monitor scan (--summary): still 186 total, no monitor-count regression, rules out the monitor-creation blind spot. 4 monitors had last_triggered_ts past the cutoff. Resolved each monitor's true Slack notify target from its full-detail message field: 127198928 (Synthetics sign-in, @slack-team-qa-performance-tests, unpolled -- out of scope) | 299551472 (ImportSubscriber No-Data, @slack-alert-admin-monitoring, unpolled, OK/recovered -- out of scope). 2 route to polled channels, processed as 2 singleton groups: this ki-21 occurrence (77419271, alert-frontend-errors, last_triggered 22:08:11Z) -- DD logs 21:48-22:08Z = 200-sample-cap, 66 distinct accounts, top sierrashredllc 32 (16%) + AvantSleep 26 (13%), 198/200 status_code:0, dominant path GetSyncWidgetInfoAsync -- canonical chronic shape, no ki-24 co-fire (all RTC/Redis/5XX monitors quiet). last_notified_at 2026-08-07T14:02:11Z = ~8h10m ago, WITHIN 24h suppression window; occ 646->647 (not %10); fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window, appended to docs/actionable/2026-08-07.md. See docs/investigations/2026-08-07-ba961ea9f83217a3.md. | 305454326 (method-nativemobile-ui RUM crash-free-rate P2, alert-runtime-monitoring, fired 22:05:57Z) -- separate group, see docs/investigations/2026-08-07-99ee2aedf113665b.md (not this KB entry; unrelated service)."
       }
     ],
     "prior_last_notified_at": "2026-07-31T15:07:56Z"
