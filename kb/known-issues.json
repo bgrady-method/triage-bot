@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-08-07T00:51:11Z",
-    "occurrences": 638,
+    "last_seen": "2026-08-07T12:36:11Z",
+    "occurrences": 639,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -611,6 +611,10 @@
       {
         "ts": "2026-08-07T00:56:11Z",
         "note": "2026-08-07 triage (degraded cycle, no Slack MCP surfaced this session; DD-scan-diff vs prior cutoff 2026-08-06T22:06:12Z, commit 7728c3d): monitor 77419271 last_triggered 00:51:11Z (OK, self-recovered), hash ca1cb53f41503d7b, occ 637->638. ES aggregate (kb_to_es_query.py regex-drop worked around, manually re-added GetSyncWidgetInfoAsync clause) 00:31:11-00:51:11Z: 8 hits, 100% service:gateway -- confirms canonical mechanism. DD method-ui XHR logs same window: 177 events, 100% http.status_code:0 on GET /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync, dominant account primroseventuresllc 85/177 (48%) -- more concentrated than the usual diffuse chronic baseline (top account typically 5-10%), but 100% mechanism match and low absolute magnitude (8 ES hits, well below outage-surge shape) -- treated as within-mechanism variance, not a new incident; flagged for stability-review trend-watch. last_notified_at 2026-08-06T19:49:11Z, ~5h02m before this fire -- WITHIN 24h suppression_window_hours; occ 638 not a 10th-multiple; fix_status unchanged -> SUPPRESS gate_reason=known-issue-window."
+      },
+      {
+        "ts": "2026-08-07T13:12:48Z",
+        "note": "2026-08-07 13:12Z triage (degraded cycle, no Slack MCP surfaced this session; DD-scan-diff vs prior cutoff 2026-08-07T11:33:11Z, commit 278a0d0): monitor 77419271 last_triggered 12:36:11Z (OK, self-recovered), hash 43ffe164ddca1e0a, occ 638->639. DD Logs native query (service:method-ui ... status:error *xhr*) 12:16:11-12:36:11Z: 50 events (limit reached), dominant path /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync (38/50, 76%), diffuse across accounts (top HCCI 5/50=10%) -- confirms canonical chronic shared-gateway-timeout mechanism, no new concentrated incident. last_notified_at (2026-08-06T19:49:11Z) ~17h24m before this fire -- WITHIN 24h suppression_window_hours; occ 639 not a 10th-multiple; fix_status unchanged -> SUPPRESS gate_reason=known-issue-window. Owning team re-derived from ownership.md's Project table this cycle: method-ui/method-portal-ui -> Admin (not Vertical App Experience as an earlier session's report stated for a sibling monitor -- Project-table match is authoritative per prompt.md step 4.1a). See docs/investigations/2026-08-07-43ffe164ddca1e0a.md."
       }
     ],
     "prior_last_notified_at": "2026-07-31T15:07:56Z"
@@ -921,8 +925,8 @@
     "id": "ki-2026-05-29-methodsession-getaccountbysubdomain-nre",
     "title": "method-platform-ui apps backend NRE in MethodSessionService.GetAccountBySubdomain() -> 'JWT Retrieval Failed' on subdomain-less synthetic monitor probes (Centreon + Datadog Watchdog noise)",
     "first_seen": "2026-05-29T12:49:31Z",
-    "last_seen": "2026-07-28T13:15:00Z",
-    "occurrences": 29,
+    "last_seen": "2026-08-07T12:48:32Z",
+    "occurrences": 30,
     "match": {
       "channels": [
         "alert-system"
@@ -955,7 +959,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.85,
-    "last_notified_at": "2026-07-27T13:15:00Z",
+    "last_notified_at": "2026-08-07T13:12:48Z",
     "notes": [
       {
         "ts": "2026-07-05T20:28:02Z",
@@ -1020,8 +1024,13 @@
       {
         "ts": "2026-08-03T11:55:00Z",
         "note": "2026-08-03 ~11:48-11:55Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed for slack/mcp conversation tools, none found, consistent with the standing intermittent read-path gap). Full 186-monitor DD scan (vs prior cutoff 2026-08-02T21:41:08Z): monitor 236570583 ('New issue to review' Watchdog) fired 09:18:34Z, hash f9fe5abd08ee87f0. Bare match REFUTED (Nth consecutive, per the standing precedence_note): ES message.keyword:'JWT Retrieval Failed' = 0 hits, messageTemplate.keyword:*GetAccountBySubdomain* = 0 hits over 08:48:34-09:18:34Z. No occurrence bump. Broad ES sweep (level.keyword:Error) same window: 161 hits across 10 services, top bucket tables-fields 43 (100% of that bucket) -- all 'HealthCheck Failed' (Microsoft.Data.SqlClient.SqlException, 'error occurred during the login process... TCP Provider, error: 35', chained System.IO.IOException/SocketException 'Connection reset by peer'), 100% single host ip-172-31-165-3 talking to METHODDBCLUS1. 0 hits for the same query in the same window 24h prior (genuine spike, not steady-state) and 0 hits in the 2h since (08-03 09:18-11:20Z) -- self-recovered transient network blip, health-check path only (not user-facing request traffic), no account impact. Logged as a fresh needs-human finding (hash f9fe5abd08ee87f0, score 0: novel/refuted +2, monitor_history -2 [fire_count 20/30d, dm_rate 0.0]) -> actionable low-impact, not posted. Flagging the tables-fields/METHODDBCLUS1 transient connection-reset blip for awareness even though automated score is low and it self-recovered -- single-host, single-window, no recurrence since."
+      },
+      {
+        "ts": "2026-08-07T13:12:48Z",
+        "note": "2026-08-07 13:12Z triage (degraded cycle, no Slack MCP surfaced this session; DD-scan-diff vs prior cutoff 2026-08-07T11:33:11Z, commit 278a0d0): monitor 299551647 last_triggered 12:48:32Z (OK, self-recovered), hash 93e2edf5c1c94e9f, occ 29->30. ES aggregate (both kb_to_es_query.py-derived broad query AND exact message.keyword form) 12:18:32-12:48:32Z: 0 hits. DD metric errors=0 (both 30min and tight 10min monitor-eval windows), hits non-empty (sparse steady 1-15/10s-bucket traffic) -- canonical NRE signature did NOT reproduce; consistent with 3 prior non-reproducing occurrences (2026-07-12, 2026-07-25, 2026-07-26). Confidence downgraded 0.85->0.7 and disclosed per standing KIR-partial-reproduction practice. last_notified_at (2026-07-27T13:15:00Z) ~11 days ago -- PAST 24h suppression window -> POST, gate_reason=null, last_notified_at bumped to now. Owning team re-derived from ownership.md's Project table this cycle: method-portal-ui/method-ui -> Admin. See docs/investigations/2026-08-07-93e2edf5c1c94e9f.md."
       }
-    ]
+    ],
+    "prior_last_notified_at": "2026-07-27T13:15:00Z"
   },
   {
     "id": "ki-2026-06-02-purchase-history-unique-index-duplicate",
