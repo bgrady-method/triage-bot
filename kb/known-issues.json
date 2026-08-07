@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-08-07T15:58:11Z",
-    "occurrences": 642,
+    "last_seen": "2026-08-07T16:39:12Z",
+    "occurrences": 643,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -619,6 +619,10 @@
       {
         "ts": "2026-08-07T14:08:30Z",
         "note": "2026-08-07 ~14:08Z triage (degraded cycle, no Slack MCP surfaced this session; DD-scan-diff vs prior cutoff 2026-08-07T12:51:10Z, commit 4638111). Monitor 77419271 fired 2026-08-07T14:02:11Z, hash 3219597ab6a7f734, occ 639->640. DD logs (service:method-ui status:error *xhr* GetSyncWidgetInfoAsync, 13:32:11-14:02:11Z) 5/5 sampled hits canonical: status_code:0 client-network failures against /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync, diffuse across 5 distinct accounts (maconstructiongroup, wellmanexteriorsinc, biggameusaCo2, majesticturboofdallas2, kgmenterprises) -- same chronic shared-upstream signature as all prior occurrences. last_notified_at (2026-08-06T19:49:11Z) was only ~18h19m ago (still within the 24h suppression window), but occurrence crossed 640 (a multiple of 10) -> every-10th-occurrence resurface rule fires -> POST, gate_reason=known-issue-occurrence-resurface, last_notified_at bumped to now. See docs/investigations/2026-08-07-3219597ab6a7f734.md."
+      },
+      {
+        "ts": "2026-08-07T17:27:00Z",
+        "note": "2026-08-07 ~17:22Z triage (degraded cycle, no Slack MCP surfaced this session; DD-scan-diff vs prior cutoff 2026-08-07T15:58:11Z, commit e2d582b). Monitor 77419271 last_triggered 16:39:12Z, self-recovered to OK by scan time, hash ae83c7d4cde19154, occ 642->643. ES aggregate (message:*GetSyncWidgetInfoAsync*, manual regex correction per the standing kb_to_es_query.py dropped-regex-clause gap -- kb_to_es_query.py only emitted the two literal contains clauses) over 16:24:12-16:54:12Z: 414 hits, 100% service:gateway, vs 519 hits in the same window 24h prior -- comparable/slightly lower, confirms chronic baseline (not a spike). Sampled raw hit confirms canonical signature: TaskCanceledException/SocketException timeout proxying /syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync through the gateway. RequestPath aggregate shows diffuse account spread (progressivewestman3 14, AvantSleep 12, boswellwindows3 11, foxmark 11, ridethewindebikes 11) -- no single-account concentration, consistent with the chronic shared-upstream shape. last_notified_at (2026-08-07T14:02:11Z) ~3h20m ago, WITHIN 24h suppression window; occ 643 not a 10th-multiple; fix_status unchanged -> SUPPRESSED, gate_reason=known-issue-window, appended to docs/actionable/2026-08-07.md. See docs/investigations/2026-08-07-ae83c7d4cde19154.md."
       }
     ],
     "prior_last_notified_at": "2026-07-31T15:07:56Z"
