@@ -21,10 +21,14 @@
     "reason": "method-import-subscriber is a low-frequency batch AMQP consumer, not a continuous one. 24h history (2026-07-05 13:05 -> 2026-07-06 10:33) shows only 8 non-zero hit buckets, in bursts of 1-2060 messages separated by gaps of 3-11.5 hours. The monitor's 'sum(last_30m) < 1' threshold trips on every natural idle gap over 30 minutes, which happens multiple times a day by design -- not a service outage. 0 error logs on the service for the full day. This fire (11:05:32Z) came 32 minutes after the last burst ended (10:33:30Z), squarely inside the service's normal idle pattern.",
     "silence_for": "24h",
     "first_seen": "2026-07-06T11:05:32Z",
-    "last_seen": "2026-08-06T15:11:32Z",
-    "occurrences": 122,
+    "last_seen": "2026-08-08T16:02:32Z",
+    "occurrences": 123,
     "recommendation": "monitor threshold mismatch, not a false-alarm-forever situation -- recommend widening the No-Data window (e.g. 6h) or switching to a message-backlog-depth check instead of a hits-in-window check; flagging for Admin team, not silencing indefinitely",
     "notes": [
+      {
+        "ts": "2026-08-08T16:09:00Z",
+        "note": "2026-08-08 ~16:09Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch \"slack conversations history mcp\", \"mcp__slack\", \"conversations.history\" all empty). monitor 299551472 No Data 16:02:32Z, hash cd8973e144eafe9d, occ 122->123. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} over 15:02:32-16:09:00Z: last burst 15:31:00-15:31:20Z (1, 6 hits), then null/absent for the remaining ~31min to the fire -- comfortably past the monitor's 30-min threshold. 0 status:error DD logs on the service over the same window. Textbook bursty idle-gap shape, unchanged. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only."
+      },
       {
         "ts": "2026-08-03T22:08:38Z",
         "note": "2026-08-03 ~22:08Z triage (degraded cycle, no Slack MCP surfaced this session): monitor 299551472 No Data 21:57:32Z, hash 39b0a01af1364c1a, occ 103->104. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} over 21:00-22:09Z: last burst 21:25:20Z (61 msgs immediately following a 447/648-msg spike at 21:22:00-21:22:20Z), then null/absent until a single straggler hit at 22:08:40Z -- a ~43min idle gap, comfortably past the monitor's 30-min threshold. 0 status:error DD logs on the service 21:00-22:09Z. Textbook bursty idle-gap shape, unchanged. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only."
