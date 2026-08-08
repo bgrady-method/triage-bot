@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-08-07T22:08:11Z",
-    "occurrences": 647,
+    "last_seen": "2026-08-08T00:46:11Z",
+    "occurrences": 648,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -635,8 +635,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-08-06T17:58:20Z",
-    "occurrences": 259,
+    "last_seen": "2026-08-08T10:37:20Z",
+    "occurrences": 260,
     "match": {
       "channels": [
         "alert-system",
@@ -677,7 +677,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.85,
-    "last_notified_at": "2026-08-06T17:58:20Z",
+    "last_notified_at": "2026-08-08T11:33:00Z",
     "prior_last_notified_at": "2026-07-29T15:16:35Z",
     "notes": [
       {
@@ -1489,8 +1489,8 @@
     "id": "ki-2026-07-03-eda-consumer-amqp-stopped-publishing",
     "title": "[EDA][Consumer][P3] eda_consumer AMQP publish-hits monitor intermittently goes No Data (team:devops, self-recovering, no correlated pipeline impact)",
     "first_seen": "2026-06-20T10:21:00Z",
-    "last_seen": "2026-08-07T11:09:26Z",
-    "occurrences": 45,
+    "last_seen": "2026-08-08T10:23:26Z",
+    "occurrences": 46,
     "match": {
       "channels": [
         "alert-system",
@@ -1530,7 +1530,7 @@
     "fix_template": null,
     "confidence": 0.8,
     "owning_team": "Integrations",
-    "last_notified_at": "2026-08-06T11:13:26Z",
+    "last_notified_at": "2026-08-08T11:33:00Z",
     "notes": [
       {
         "ts": "2026-06-20T10:13:00Z",
@@ -2188,8 +2188,8 @@
     "id": "ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap",
     "title": "New team:crm AMQP-consumer heartbeat/throughput-stall monitors (5 sibling IDs, created 2026-07-02) intermittently trip on quiet-period low-traffic dips, then self-recover within minutes — no corroborating errors",
     "first_seen": "2026-07-04T13:07:31Z",
-    "last_seen": "2026-08-07T07:04:21Z",
-    "occurrences": 112,
+    "last_seen": "2026-08-08T10:14:31Z",
+    "occurrences": 114,
     "match": {
       "channels": [
         "alert-system",
@@ -2235,7 +2235,7 @@
     "fix_template": null,
     "confidence": 0.82,
     "owning_team": "CRM Experience (runtime-core-subscriber-api, per ownership.md:454) / Admin (mobile-notifications-stack, per ownership.md:416) — split by service; DD monitor tags say team:crm for both, ownership.md disagrees for the mobile-notifications component",
-    "last_notified_at": "2026-08-07T07:04:21Z",
+    "last_notified_at": "2026-08-08T11:33:00Z",
     "notes": [
       {
         "ts": "2026-07-04T16:10:00Z",
@@ -3150,6 +3150,10 @@
       {
         "ts": "2026-08-05T11:32:14Z",
         "note": "2026-08-05 ~11:32Z triage (degraded cycle): monitor 227940275 (Redis Errors is High) fired 2026-08-05T09:42:35Z, hash d33881c4c34d2188. REFUTED MATCH for this entry: exact evidence_query (level.keyword:Error AND fields.dd_service.keyword:runtime-core-api AND messageTemplate.keyword:\"Redis operation timed out after 5 seconds\") = 0 hits over 09:27:35-09:42:35Z. Also checked the ki-2026-07-07-runtime-core-expiresessiontoken-accountnotfound signature (message.keyword:\"Session Token Expiry Failed\") = also 0 hits -- neither candidate KB entry's precise signature reproduced. Raw ES sample of all runtime-core-api docs in a widened 09:12:35-09:42:35Z window: 13 docs, all level=Warning (3x \"Unauthorized! SessionToken has expired\", several \"[MSD-METADATA]/[MSD-READ] Bridge metadata not found for field 'SendTo' in entity 'Activity'\", 1x \"Request Processing Warning\") -- none at Error level. DD metric sum:trace.redis.command.errors{env:prod} over the same window: real but small (sum=5, max=2/10s-bucket), self-recovered. Classified needs-human (matched_kb left null this occurrence -- not bumping this entry's occurrence count per feedback_check_causality_ordering_before_kb_match); logged as a low-score actionable item, not a confirmed recurrence of either entry."
+      },
+      {
+        "ts": "2026-08-08T11:33:00Z",
+        "note": "2026-08-08 11:08Z triage (degraded cycle, no Slack MCP): monitor 227940275 fired 2026-08-08T09:39:35Z (value>10, OK now, self-recovered), hash 249d987138a2fcb0. 4th REFUTED MATCH. Scoped trace.redis.command.errors by {service} to the monitor's own exact 5-min eval window (09:34:35-09:39:35Z per its query sum(last_5m):...>10) -- EMPTY series, 0 errors on ANY service. Widened +/-10min (09:24:35-09:49:35Z): only 6 total errors, all on approutine-subscriber, nowhere near the >10 threshold on any single service. No co-firing RTC p95 (115456700 fired later, 10:37:20Z, >30min away), tables-fields circuit-breaker (302103451 quiet), or gateway XHR (77419271 fired 00:46:11Z, ~9h earlier) -- none of the documented disqualifying signals present, consistent with a standalone fire, but this entry's own mechanism (runtime-core-api Runtime.Caching.CacheContext Redis timeouts) is simply not corroborated by any Redis-error volume this occurrence. Checked the established reclassification target (ES 'Session Token Expiry Failed' in the same window): 186 hits, but dominant service oauth2.identity.server (120) / approutine-subscriber (20), NOT runtime-core-api -- does not match ki-2026-07-07-runtime-core-expiresessiontoken-accountnotfound's specific SecurityController.ExpireSessionTokenAsync/AccountNotFoundException signature either; treated as unrelated baseline noise, not a reclassification target this time. Consistent with the now-4x-observed pattern (2026-07-15, 2026-07-29, 2026-07-30, this occurrence) where the DD Metrics API re-query shows 0-or-near-0 errors for the monitor's own exact eval window despite the monitor itself tripping >10 -- most likely a DD monitor-evaluator/Metrics-API resampling gap rather than a real Redis-error burst. No occurrence bump on this entry. Classified as its own low-score needs-human finding (score 0, below both the actionable and escalation thresholds) -- appended to docs/actionable/2026-08-08.md as a low-impact line, see docs/investigations/2026-08-08-249d987138a2fcb0.md. SUGGESTION for Ben: with 4 consecutive refutations now sharing this exact shape (monitor fires, DD Metrics API shows ~0 on re-query), consider whether this warrants its own 'monitor 227940275 fires but re-query shows near-zero errors' KB entry (mirroring ki-2026-07-07-notifications-p95-latency-monitor-noise's pattern) rather than continuing to test each occurrence against this entry's genuine-impact mechanism -- not written this cycle since the causal mechanism (resampling gap vs. something else) is still a hypothesis, not confirmed."
       }
     ]
   },
@@ -3656,8 +3660,8 @@
     "id": "ki-2026-07-07-notifications-p95-latency-monitor-noise",
     "title": "[CRM][P2] notifications P95 latency high monitor fires but re-query of the same evaluation window shows the metric never approaches the threshold -- monitor/data artifact, not real latency",
     "first_seen": "2026-07-06T10:01:07Z",
-    "last_seen": "2026-08-07T08:43:07Z",
-    "occurrences": 30,
+    "last_seen": "2026-08-08T08:43:07Z",
+    "occurrences": 31,
     "match": {
       "channels": [
         "alert-system",
@@ -3682,7 +3686,7 @@
     "fix_template": null,
     "confidence": 0.72,
     "owning_team": "CRM Experience",
-    "last_notified_at": "2026-08-07T08:43:07Z",
+    "last_notified_at": "2026-08-08T11:33:00Z",
     "notes": [
       {
         "ts": "2026-07-06T11:40:00Z",
