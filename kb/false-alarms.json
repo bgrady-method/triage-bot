@@ -21,10 +21,14 @@
     "reason": "method-import-subscriber is a low-frequency batch AMQP consumer, not a continuous one. 24h history (2026-07-05 13:05 -> 2026-07-06 10:33) shows only 8 non-zero hit buckets, in bursts of 1-2060 messages separated by gaps of 3-11.5 hours. The monitor's 'sum(last_30m) < 1' threshold trips on every natural idle gap over 30 minutes, which happens multiple times a day by design -- not a service outage. 0 error logs on the service for the full day. This fire (11:05:32Z) came 32 minutes after the last burst ended (10:33:30Z), squarely inside the service's normal idle pattern.",
     "silence_for": "24h",
     "first_seen": "2026-07-06T11:05:32Z",
-    "last_seen": "2026-08-08T21:13:32Z",
-    "occurrences": 125,
+    "last_seen": "2026-08-09T01:57:32Z",
+    "occurrences": 126,
     "recommendation": "monitor threshold mismatch, not a false-alarm-forever situation -- recommend widening the No-Data window (e.g. 6h) or switching to a message-backlog-depth check instead of a hits-in-window check; flagging for Admin team, not silencing indefinitely",
     "notes": [
+      {
+        "ts": "2026-08-09T11:20:00Z",
+        "note": "2026-08-09 ~11:20Z triage (degraded cycle, no Slack MCP surfaced this session; DD monitor scan-diff vs prior cutoff 2026-08-08T21:44:48Z, commit 976dee5, spanning a ~13.3h overnight gap per the business-hours-only scheduler). monitor 299551472 No Data 01:57:32Z, hash 01b636ec19e0784d, occ 125->126. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} over 2026-08-08T23:00:00Z-2026-08-09T02:20:00Z: large burst 2060 hits @23:00:00Z, then two small blips (1 hit @01:20:00Z, 5 hits @01:25:00Z), then null/absent for ~32.5min to the fire -- past the monitor's 30-min threshold. 0 status:error DD logs on the service over the same window. Textbook bursty idle-gap shape, unchanged. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only. See docs/investigations/2026-08-09-01b636ec19e0784d.md."
+      },
       {
         "ts": "2026-08-08T16:09:00Z",
         "note": "2026-08-08 ~16:09Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch \"slack conversations history mcp\", \"mcp__slack\", \"conversations.history\" all empty). monitor 299551472 No Data 16:02:32Z, hash cd8973e144eafe9d, occ 122->123. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} over 15:02:32-16:09:00Z: last burst 15:31:00-15:31:20Z (1, 6 hits), then null/absent for the remaining ~31min to the fire -- comfortably past the monitor's 30-min threshold. 0 status:error DD logs on the service over the same window. Textbook bursty idle-gap shape, unchanged. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only."
@@ -1181,9 +1185,15 @@
     "reason": "Monitor 309602252 (avg(last_5m):avg:system.cpu.user{host:dev-warehouse-linux OR host:dev-warehouse-windows} by {host} > 95, env:warehouse, team:qa) fired 2026-08-02T04:08:32Z as No Data (not an actual CPU breach -- the hosts stopped reporting the metric entirely). 0 prior documented occurrences of this monitor in kb/incident-log.jsonl (first-ever fire). DD metric re-query (avg:system.cpu.user{host:dev-warehouse-linux OR host:dev-warehouse-windows} by {host}, 2026-08-02T03:38:32-04:38:32Z, a widened 1h window) returned an empty series -- consistent with the hosts being offline/idle rather than under real CPU load. env:warehouse is a non-prod QA/Gatling load-test environment (same family as fa-2026-07-23-qa-gatling-warehouse-load-test-noise); these hosts are commonly powered down or idle between test runs. No prod impact, no user impact.",
     "silence_for": "24h",
     "first_seen": "2026-08-02T11:22:21Z",
-    "last_seen": "2026-08-02T04:08:32Z",
-    "occurrences": 1,
-    "recommendation": "If this monitor is meant to catch genuine CPU exhaustion on the warehouse QA hosts, consider adding a separate host-liveness/No-Data-specific notification instead of treating 'no metric reported' the same as 'CPU > 95%' -- the two failure modes need different responses. Low priority given non-prod scope."
+    "last_seen": "2026-08-08T23:08:33Z",
+    "occurrences": 2,
+    "recommendation": "If this monitor is meant to catch genuine CPU exhaustion on the warehouse QA hosts, consider adding a separate host-liveness/No-Data-specific notification instead of treating 'no metric reported' the same as 'CPU > 95%' -- the two failure modes need different responses. Low priority given non-prod scope.",
+    "notes": [
+      {
+        "ts": "2026-08-09T11:15:00Z",
+        "note": "2026-08-09 ~11:15Z triage (degraded cycle, no Slack MCP; DD monitor scan-diff vs prior cutoff 2026-08-08T21:44:48Z, commit 976dee5, spanning a ~13.3h overnight gap per the business-hours-only scheduler). Monitor 309602252 fired 2026-08-08T23:08:33Z as No Data again, occ 1->2. DD metric re-query (avg:system.cpu.user{host:dev-warehouse-linux OR host:dev-warehouse-windows} by {host}, 2h window 22:28:33-00:28:33Z) returned an empty series -- same hosts-not-reporting shape as the first occurrence. See docs/investigations/2026-08-08-a49f10896c3893f7.md."
+      }
+    ]
   },
   {
     "target": "false-alarms",

@@ -2554,8 +2554,8 @@
     "id": "ki-2026-07-04-ms-account-api-4xx-spike-monitor-noise",
     "title": "[Admin][AccountAPI][P3] 4xx-spike monitor transitions state without a real 4xx breach (monitor-sensitivity/config artifact, not a service issue)",
     "first_seen": "2026-07-03T12:08:59Z",
-    "last_seen": "2026-08-06T07:28:18Z",
-    "occurrences": 49,
+    "last_seen": "2026-08-09T10:46:19Z",
+    "occurrences": 50,
     "match": {
       "channels": [
         "alert-system",
@@ -2580,8 +2580,12 @@
     "fix_template": null,
     "confidence": 0.8,
     "owning_team": "Admin",
-    "last_notified_at": "2026-08-05T11:32:14Z",
+    "last_notified_at": "2026-08-09T10:46:19Z",
     "notes": [
+      {
+        "ts": "2026-08-09T11:30:00Z",
+        "note": "2026-08-09 ~11:30Z triage (degraded cycle, no Slack MCP surfaced this session; DD monitor scan-diff vs prior cutoff 2026-08-08T21:44:48Z, commit 976dee5, spanning a ~13.3h overnight gap per the business-hours-only scheduler). Monitor 299551518 fired 2026-08-09T10:46:19Z, hash 44d96ad549625e96, occ 49->50 (50th consecutive disproof). sum:trace.aspnet_core.request.hits.by_http_status{service:ms-account-api,env:prod,http.status_class:4xx}.as_count() over the trailing 1h (09:46:19-10:46:19Z): 2 total hits (1@10:15:00Z, 1@10:30:00Z), far below the >300/15min threshold. service:ms-account-api status:error DD Logs 10:16:19-11:00:00Z: 0 hits. Rejected the bare-word matches to ki-ms-account-nginx-soft-limit-1024-deploy and ki-ms-account-redis-cache-timeout-on-cold-start (both resolved, unrelated one-offs) per the causality-check precedent -- correct entry is monitor-id-specific. last_notified_at (2026-08-05T11:32:14Z) ~3d23h14m ago, EXCEEDED 24h suppression window -> POSTED to #triage-results, gate_reason=null (window-expiry). last_notified_at bumped to 2026-08-09T10:46:19Z. See docs/investigations/2026-08-09-44d96ad549625e96.md."
+      },
       {
         "ts": "2026-07-03T12:08:59Z",
         "note": "First documented occurrence (not yet a KB entry): logged inline in the 2026-07-03T12:08:59Z poll-cycle summary note in kb/incident-log.jsonl. Monitor showed a state change but its metric returned 1-4 hits/30s bucket, well under the >300/15min threshold. Treated as monitor-metadata noise, not escalated, no KB entry written at the time."
