@@ -1489,8 +1489,8 @@
     "id": "ki-2026-07-03-eda-consumer-amqp-stopped-publishing",
     "title": "[EDA][Consumer][P3] eda_consumer AMQP publish-hits monitor intermittently goes No Data (team:devops, self-recovering, no correlated pipeline impact)",
     "first_seen": "2026-06-20T10:21:00Z",
-    "last_seen": "2026-08-08T10:23:26Z",
-    "occurrences": 46,
+    "last_seen": "2026-08-09T21:00:26Z",
+    "occurrences": 47,
     "match": {
       "channels": [
         "alert-system",
@@ -1530,7 +1530,7 @@
     "fix_template": null,
     "confidence": 0.8,
     "owning_team": "Integrations",
-    "last_notified_at": "2026-08-08T11:33:00Z",
+    "last_notified_at": "2026-08-09T21:00:26Z",
     "notes": [
       {
         "ts": "2026-06-20T10:13:00Z",
@@ -1639,6 +1639,10 @@
       {
         "ts": "2026-08-07T11:14:26Z",
         "note": "2026-08-07 triage (degraded cycle, no Slack MCP surfaced this session; DD-scan-diff vs prior cutoff 2026-08-06T22:06:12Z, commit 7728c3d): monitor 296641466 last_triggered 11:09:26Z (OK, self-recovered), hash 2af206be66d9e0a7, occ 44->45. Sibling P1 monitors checked per playbook: 296632224 (Event ingest stopped) OK, 296636101 (Kafka events stopped) OK -- core EDA pipeline healthy. sum:trace.amqp.command.hits{service:eda_consumer,env:prod}.as_count() 10:39:26-11:09:26Z (monitor's own 30-min eval window): sparse/near-zero, consistent with the documented intermittent self-recovering No-Data flap. service:eda_consumer status:error DD Logs = 0 hits. Same benign mechanism as all prior occurrences. last_notified_at 2026-08-06T11:13:26Z, ~23h56m before this fire -- WITHIN 24h suppression_window_hours by a 4-min margin (close to the line, flagging per standing gate-ambiguity convention); occ 45 not a 10th-multiple; fix_status unchanged -> SUPPRESS gate_reason=known-issue-window."
+      },
+      {
+        "ts": "2026-08-09T21:16:00Z",
+        "note": "2026-08-09 21:16Z triage (degraded cycle, no Slack MCP surfaced this session; DD monitor scan-diff vs prior cutoff 2026-08-09T19:55:32Z, commit 9abd1e8): monitor 296641466 fired 2026-08-09T21:00:26Z (OK at scan time, self-recovered), hash 1c8030c1b7aad233, occ 46->47. Sibling P1 monitors checked per playbook: 296632224 (Event ingest stopped) and 296636101 (Kafka events stopped) both OK, last_triggered 2026-07-23T06:20-06:21Z (>2 weeks stale) -- core EDA pipeline healthy. sum:trace.amqp.command.hits{service:eda_consumer,env:prod}.as_count() over the exact 30-min eval window (20:30:26-21:00:26Z): 1 nonzero datapoint (2.0 hits ~20:58:50Z), rest empty -- same benign near-zero-traffic shape as the majority of prior occurrences. service:eda_consumer status:error DD Logs = 0 hits same window. last_notified_at (2026-08-08T11:33:00Z) ~33h35m ago, EXCEEDED 24h suppression window -> POSTED to #triage-results, gate_reason=null (window-expiry), last_notified_at bumped to 2026-08-09T21:00:26Z. See docs/investigations/2026-08-09-1c8030c1b7aad233.md."
       }
     ]
   },
@@ -2188,8 +2192,8 @@
     "id": "ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap",
     "title": "New team:crm AMQP-consumer heartbeat/throughput-stall monitors (5 sibling IDs, created 2026-07-02) intermittently trip on quiet-period low-traffic dips, then self-recover within minutes — no corroborating errors",
     "first_seen": "2026-07-04T13:07:31Z",
-    "last_seen": "2026-08-09T15:04:32Z",
-    "occurrences": 116,
+    "last_seen": "2026-08-09T20:48:31Z",
+    "occurrences": 117,
     "match": {
       "channels": [
         "alert-system",
@@ -2492,6 +2496,10 @@
       {
         "ts": "2026-08-09T15:04:32Z",
         "note": "2026-08-09 ~15:04Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch \"slack conversations history mcp\", \"slack\" both empty, consistent with the standing intermittent read-path gap). Ran DD-scan-diff fallback vs prior cycle cutoff 2026-08-09T14:08:31Z (commit e8e45e6). monitor 302057011 (runtime-core-subscriber throughput dropped) Alert 15:04:32Z, hash b7bd22f327669826, occ 115->116. DD metric avg(last_15m):sum:trace.amqp.command.hits{service:runtime-core-subscriber,env:prod}.as_rate() over 14:30:00-15:14:00Z: sustained sub-2-msg/s values immediately pre-fire (14:47:00-15:04:00Z mostly 0.05-2.2 msg/s, well under the 2 msg/s 15m-avg threshold) with one unrelated brief burst to ~105 msg/s at 14:40:00-14:46:40Z that had already decayed back to baseline before the fire. 0 status:error DD logs on the service for the window. Same benign quiet-period-flap mechanism as all 115 prior family occurrences. last_notified_at was 2026-08-08T11:33:00Z, ~27h31m before this fire -- EXCEEDS the 24h suppression_window_hours -> POST gate_reason=null (not swat-bypass, not the every-10th-occurrence rule). Posted to #triage-results. See docs/investigations/2026-08-09-b7bd22f327669826.md."
+      },
+      {
+        "ts": "2026-08-09T21:16:00Z",
+        "note": "2026-08-09 21:16Z triage (degraded cycle, no Slack MCP surfaced this session; DD monitor scan-diff vs prior cutoff 2026-08-09T19:55:32Z, commit 9abd1e8): monitor 302057011 ('[CRM] runtime-core-subscriber throughput dropped') fired 2026-08-09T20:48:31Z, hash 7c1d757b0d873137, occ 116->117, still in Alert state at scan time (~20min old). DD metric sum:trace.amqp.command.hits{service:runtime-core-subscriber,env:prod}.as_rate() over 20:00:00-21:08:42Z: sustained sub-2msg/s stretch through and past the fire time, brief noise spikes decaying back to low rate, no full recovery burst yet -- canonical benign quiet-period shape, well under the ~1h escalation threshold. 0 service:runtime-core-subscriber status:error DD Logs in-window. last_notified_at (2026-08-09T15:04:32Z) ~5h44m ago, WITHIN 24h suppression window; occ 117 not %10; fix_status unchanged -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-08-09-7c1d757b0d873137.md."
       }
     ]
   },
@@ -2558,8 +2566,8 @@
     "id": "ki-2026-07-04-ms-account-api-4xx-spike-monitor-noise",
     "title": "[Admin][AccountAPI][P3] 4xx-spike monitor transitions state without a real 4xx breach (monitor-sensitivity/config artifact, not a service issue)",
     "first_seen": "2026-07-03T12:08:59Z",
-    "last_seen": "2026-08-09T10:46:19Z",
-    "occurrences": 50,
+    "last_seen": "2026-08-09T21:05:18Z",
+    "occurrences": 51,
     "match": {
       "channels": [
         "alert-system",
@@ -2733,6 +2741,10 @@
       {
         "ts": "2026-08-05T11:32:14Z",
         "note": "2026-08-05 ~11:32Z triage (degraded cycle): monitor 299551518 ([Admin][AccountAPI][P3] 4xx spike) fired 2026-08-05T07:48:19Z, hash af8777442de7d9de, occ 47->48. DD metric sum:trace.aspnet_core.request.hits.by_http_status{service:ms-account-api,env:prod,http.status_class:4xx}.as_count() over the monitor's own 15m eval window: only 4 sparse datapoints of value 1 visible at this query resolution -- well under the 300 threshold at this granularity (classic rollup-artifact -- ad-hoc pull under-samples the monitor's own finer aggregation). 0 hits on service:ms-account-api status:error in DD Logs and 0 hits on @http.status_code:[400 TO 499] for the window; 0 ES Error-level hits. last_notified_at (2026-08-01T19:34:18Z) ~3d12h14m ago, PAST 24h suppression window -> POSTED to #triage-results, gate_reason=null (window-expiry). Note: this monitor's match.channels is [\"alert-system\",\"swat\"] -- alert-runtime-monitoring is NOT a valid match channel for this entry; confirm channel=alert-system before matching (corrected a routing slip mid-cycle)."
+      },
+      {
+        "ts": "2026-08-09T21:16:00Z",
+        "note": "2026-08-09 21:16Z triage (degraded cycle, no Slack MCP surfaced this session; DD monitor scan-diff vs prior cutoff 2026-08-09T19:55:32Z, commit 9abd1e8): monitor 299551518 fired 2026-08-09T21:05:18Z (OK at scan time, self-recovered), hash a0c3e5819e77612f, occ 50->51 (51st consecutive disproof). Rejected the two bare-word candidates (ki-ms-account-nginx-soft-limit-1024-deploy, ki-ms-account-redis-cache-timeout-on-cold-start, both resolved unrelated one-offs) per the causality-check precedent. sum:trace.aspnet_core.request.hits.by_http_status{service:ms-account-api,env:prod,http.status_class:4xx}.as_count() over the exact 15-min eval window (20:50:18-21:05:18Z): 2 total hits, far below the >300/15min threshold. service:ms-account-api status:error DD Logs = 0 hits same window. last_notified_at (2026-08-09T10:46:19Z) ~10h22m ago, WITHIN 24h suppression window; occ 51 not %10; fix_status unchanged -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-08-09-a0c3e5819e77612f.md."
       }
     ]
   },
