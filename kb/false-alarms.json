@@ -392,9 +392,13 @@
     "reason": "ES fields.dd_service.keyword:signup AND level.keyword:Error, 04:49:40-05:24:40Z: 1 hit. Full sample: System.Web.HttpException thrown from System.Web.Handlers.TraceHandler.ProcessRequest (classic ASP.NET trace.axd diagnostic handler, disabled in prod). fields.Account.AccountId=0 (no real tenant attached) -- consistent with an external request probing /trace.axd rather than a real user action. Self-recovered, single occurrence, DD Logs 0 corroborating hits (client-request-level noise, not app-logic).",
     "silence_for": "24h",
     "first_seen": "2026-07-11T05:19:40Z",
-    "last_seen": "2026-08-02T05:40:40Z",
-    "occurrences": 9,
+    "last_seen": "2026-08-09T19:07:40Z",
+    "occurrences": 10,
     "notes": [
+      {
+        "ts": "2026-08-09T19:12:47Z",
+        "note": "2026-08-09 19:12Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch confirmed no slack/conversations tool; DD monitor scan-diff vs prior cutoff 2026-08-09T18:07:18Z). Monitor 154163500 fired 2026-08-09T19:07:40Z, hash 2654ee27b0455bee, occ 9->10. ES fields.dd_service.keyword:signup AND level.keyword:Error, 18:57:40-19:07:40Z: 1 hit, same signature -- System.Web.HttpException from System.Web.Handlers.TraceHandler.ProcessRequest, Request.Path=/trace.axd, StatusCode 403, Account.AccountId=0, this time Client.UserAgent='Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko); compatible; MistralAI-User/1.0' (a new bot UA for this entry -- an AI-crawler this time, same probe class). DD Logs service:signup status:error env:prod over the same window: 0 hits. Self-recovered by scan time. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only. See docs/investigations/2026-08-09-2654ee27b0455bee.md."
+      },
       {
         "ts": "2026-07-23T22:08:16Z",
         "note": "2026-07-23 22:08Z triage (degraded cycle, no Slack MCP -- ToolSearch confirmed no slack/conversations tool surfaced this session; DD monitor scan diff vs 2026-07-23T20:59:12Z cutoff): monitor 154163500 fired 21:25:41Z, hash d7d6e5b972ef4017, occ 2->3. ES fields.dd_service.keyword:signup AND level.keyword:Error, 21:15-21:31Z: 1 hit. Full sample re-read: same signature as prior occurrences -- System.Web.HttpException from System.Web.Handlers.TraceHandler.ProcessRequest, Request.Path=/trace.axd, StatusCode 403, Account.AccountId=0, this time Client.UserAgent='CCBot/2.0 (https://commoncrawl.org/faq/)' (a different bot than before, same probe class). DD Logs service:signup status:error env:prod over the same window: 0 hits. Self-recovered by scan time. No thread-reply path in degraded mode (no Slack read access to the original alert ts) -- kb-update + self-DM confirmation only."
