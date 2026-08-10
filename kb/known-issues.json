@@ -3442,8 +3442,8 @@
     "id": "ki-2026-07-06-tables-fields-redis-circuitbreaker-p95-latency",
     "title": "ms-tables-fields-api p95 request latency spike driven by a transient Redis connectivity blip (circuit breaker OPENED); first confirmed cross-service correlation with runtime-core-api RTC p95 (ki-24)",
     "first_seen": "2026-07-06T13:36:39Z",
-    "last_seen": "2026-08-06T13:47:31Z",
-    "occurrences": 15,
+    "last_seen": "2026-08-10T00:42:32Z",
+    "occurrences": 16,
     "match": {
       "channels": [
         "alert-system",
@@ -3481,7 +3481,7 @@
     "fix_template": null,
     "confidence": 0.8,
     "owning_team": "Admin (ms-tables-fields-api); Vertical App Experience (runtime-core-api, cross-service corroboration)",
-    "last_notified_at": "2026-08-06T13:47:31Z",
+    "last_notified_at": "2026-08-10T11:15:00Z",
     "notes": [
       {
         "ts": "2026-07-06T14:16:00Z",
@@ -3530,6 +3530,10 @@
       {
         "ts": "2026-08-05T14:09:06Z",
         "note": "2026-08-05 ~14:09Z triage (degraded cycle, no Slack MCP surfaced this session). DD monitor scan-diff vs prior cutoff 2026-08-05T13:05:56Z. Monitor 302103451 fired 13:33:31Z, hash ae4c3ef088878282, occ 13->14. Redis-circuitbreaker evidence_query re-run in the monitor's own eval window (13:03:31-13:33:31Z): 0 ES hits -- mechanism NOT confirmed (15th consecutive refutation streak for the Redis-specific story). Latency symptom independently re-confirmed: DD metric p95:trace.aspnet_core.request{env:prod,service:tables-fields} in the eval window peaked 0.4465s at 13:29:20Z (vs 0.25s threshold, ratio ~0.79x additional -- several points above threshold early in the window before dropping). Traffic-volume check: sum:trace.aspnet_core.request.hits{env:prod,service:tables-fields}.as_count() over the same 5min window = 3231 today vs 131 24h-ago (~24.7x) -- consistent with the established traffic-volume-driven latency pattern (2026-07-31, 2026-08-04 notes), not Redis. 0 status:error DD logs in the window. Classified known-issue-recurrence with partial-reproduction confidence downgrade per the standing precedent. last_notified_at 2026-08-04T14:50:00Z (~22h43m ago) -- WITHIN 24h suppression window -> SUPPRESS, gate_reason=known-issue-window, appended to docs/actionable/2026-08-05.md. See docs/investigations/2026-08-05-ae4c3ef088878282.md."
+      },
+      {
+        "ts": "2026-08-10T11:15:00Z",
+        "note": "2026-08-10 ~11:15Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch confirmed no slack/mcp tool). DD monitor scan-diff vs prior cutoff 2026-08-09T21:55:31Z (from the 2026-08-09T22:11:00Z poll-cycle entry). Monitor 302103451 fired 2026-08-10T00:42:32Z, hash 4ff37c3aa92545dc, occ 15->16. Redis-circuitbreaker evidence_query re-run in the monitor's own eval window (00:37:32-00:42:32Z) and widened (23:42:32-01:12:32Z): 0 ES hits both windows -- mechanism NOT confirmed (streak continues). Latency symptom independently re-confirmed: DD metric p95:trace.aspnet_core.request{env:prod,service:tables-fields} over 00:12:32-00:52:32Z peaked 4.79s at 00:34:40Z (3 of 191 points >0.25s threshold) -- a genuine, sharp excursion. Traffic-volume check (the usual alternate explanation per the 2026-07-31/08-04/08-05 notes): sum:trace.aspnet_core.request.hits in the monitor's own 5min eval window = 60 today vs 51 24h-ago (~1.2x) -- NOT a volume spike this time, ruling out the traffic-driven explanation that covered several recent occurrences. Broader Error.keyword sweep on tables-fields in the fire window found 3 hits, all 'Failed to SaveViewBundleInternal' (API.Controllers.FieldController.SaveViewBundleInternal) -- a distinct, not-previously-implicated error signature; not the Redis circuit-breaker message, not the sibling FieldTableNameRef entry's signature either (per playbook step 6, not bumping that entry). 0 status:error DD logs found via a separate service:tables-fields status:error sweep (logs pipeline reports 0 while the ES Error-level index shows 3 -- treat the ES aggregate as authoritative per established practice). No co-firing on ki-2026-05-24-runtime-core-rtc-p95-recurring this cycle (that monitor's own fire this cycle was 06:16:20Z, ~5.5h later -- not a co-fire). Classified known-issue-recurrence with partial-reproduction confidence downgrade (0.8 -> 0.6 for this post) per the standing 2026-08-04 precedent -- neither the documented Redis mechanism nor the traffic-volume alternate explains this occurrence; cause is latency-only-confirmed, unclear. last_notified_at (2026-08-06T13:47:31Z) ~3d21h ago -- EXCEEDS 24h suppression window -> POST to #triage-results, gate_reason=null (window-expiry), with explicit mechanism-unconfirmed disclosure. See docs/investigations/2026-08-10-4ff37c3aa92545dc.md."
       }
     ]
   },
