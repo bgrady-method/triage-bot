@@ -1493,8 +1493,8 @@
     "id": "ki-2026-07-03-eda-consumer-amqp-stopped-publishing",
     "title": "[EDA][Consumer][P3] eda_consumer AMQP publish-hits monitor intermittently goes No Data (team:devops, self-recovering, no correlated pipeline impact)",
     "first_seen": "2026-06-20T10:21:00Z",
-    "last_seen": "2026-08-09T21:00:26Z",
-    "occurrences": 47,
+    "last_seen": "2026-08-10T10:53:27Z",
+    "occurrences": 48,
     "match": {
       "channels": [
         "alert-system",
@@ -1647,6 +1647,10 @@
       {
         "ts": "2026-08-09T21:16:00Z",
         "note": "2026-08-09 21:16Z triage (degraded cycle, no Slack MCP surfaced this session; DD monitor scan-diff vs prior cutoff 2026-08-09T19:55:32Z, commit 9abd1e8): monitor 296641466 fired 2026-08-09T21:00:26Z (OK at scan time, self-recovered), hash 1c8030c1b7aad233, occ 46->47. Sibling P1 monitors checked per playbook: 296632224 (Event ingest stopped) and 296636101 (Kafka events stopped) both OK, last_triggered 2026-07-23T06:20-06:21Z (>2 weeks stale) -- core EDA pipeline healthy. sum:trace.amqp.command.hits{service:eda_consumer,env:prod}.as_count() over the exact 30-min eval window (20:30:26-21:00:26Z): 1 nonzero datapoint (2.0 hits ~20:58:50Z), rest empty -- same benign near-zero-traffic shape as the majority of prior occurrences. service:eda_consumer status:error DD Logs = 0 hits same window. last_notified_at (2026-08-08T11:33:00Z) ~33h35m ago, EXCEEDED 24h suppression window -> POSTED to #triage-results, gate_reason=null (window-expiry), last_notified_at bumped to 2026-08-09T21:00:26Z. See docs/investigations/2026-08-09-1c8030c1b7aad233.md."
+      },
+      {
+        "ts": "2026-08-10T12:05:00Z",
+        "note": "2026-08-10 ~12:05Z triage (degraded cycle, no Slack MCP). DD-scan-diff vs prior cutoff 2026-08-09T21:55:31Z. Monitor 296641466 fired 2026-08-10T10:53:27Z, hash 50fe2bd60c505cba, occ 47->48, OK by scan time (self-recovered). DD metric sum:trace.amqp.command.hits{service:eda_consumer,env:prod}.as_count() over the eval window (10:23:27-10:53:27Z) shows only 1 non-zero point (1 hit at 10:52:00Z) in the entire 30-min window -- near-zero traffic, matching the documented shape. 0 status:error DD logs. last_notified_at (2026-08-09T21:00:26Z) ~13h53m ago -- WITHIN 24h suppression window; occ 48 not %10; fix_status unchanged (escalated-for-review) -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-08-10-50fe2bd60c505cba.md."
       }
     ]
   },
