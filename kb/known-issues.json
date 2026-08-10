@@ -2192,8 +2192,8 @@
     "id": "ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap",
     "title": "New team:crm AMQP-consumer heartbeat/throughput-stall monitors (5 sibling IDs, created 2026-07-02) intermittently trip on quiet-period low-traffic dips, then self-recover within minutes — no corroborating errors",
     "first_seen": "2026-07-04T13:07:31Z",
-    "last_seen": "2026-08-09T20:48:31Z",
-    "occurrences": 117,
+    "last_seen": "2026-08-10T03:35:31Z",
+    "occurrences": 118,
     "match": {
       "channels": [
         "alert-system",
@@ -2500,6 +2500,10 @@
       {
         "ts": "2026-08-09T21:16:00Z",
         "note": "2026-08-09 21:16Z triage (degraded cycle, no Slack MCP surfaced this session; DD monitor scan-diff vs prior cutoff 2026-08-09T19:55:32Z, commit 9abd1e8): monitor 302057011 ('[CRM] runtime-core-subscriber throughput dropped') fired 2026-08-09T20:48:31Z, hash 7c1d757b0d873137, occ 116->117, still in Alert state at scan time (~20min old). DD metric sum:trace.amqp.command.hits{service:runtime-core-subscriber,env:prod}.as_rate() over 20:00:00-21:08:42Z: sustained sub-2msg/s stretch through and past the fire time, brief noise spikes decaying back to low rate, no full recovery burst yet -- canonical benign quiet-period shape, well under the ~1h escalation threshold. 0 service:runtime-core-subscriber status:error DD Logs in-window. last_notified_at (2026-08-09T15:04:32Z) ~5h44m ago, WITHIN 24h suppression window; occ 117 not %10; fix_status unchanged -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-08-09-7c1d757b0d873137.md."
+      },
+      {
+        "ts": "2026-08-10T11:20:00Z",
+        "note": "2026-08-10 ~11:20Z triage (degraded cycle, no Slack MCP). DD-scan-diff vs prior cutoff 2026-08-09T21:55:31Z. Monitor 302057011 fired 2026-08-10T03:35:31Z, hash 6e9538b5d59277b3, occ 117->118, OK by scan time (self-recovered). DD metric sum:trace.amqp.command.hits{service:runtime-core-subscriber,env:prod}.as_rate() over 03:15:31-03:35:31Z shows a sustained sub-2msg/s stretch from ~03:17:40Z to ~03:33:00Z (15+ min quiet period, matching the entry's documented absolute-floor threshold-trip shape), followed by a sharp burst back to ~100-120msg/s at 03:33:10Z continuing through fire time -- clean recovery. 0 error logs on service:runtime-core-subscriber in the window. last_notified_at (2026-08-09T15:04:32Z) ~12h31m ago -- WITHIN 24h suppression window; occ 118 not %10 -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-08-10-6e9538b5d59277b3.md."
       }
     ]
   },
