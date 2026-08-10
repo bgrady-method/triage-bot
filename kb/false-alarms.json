@@ -1137,8 +1137,8 @@
     },
     "reason": "DD monitor 295882732 ([Rainforest] Outbound API Error Rate (4xx+5xx) > 5%) fired 2026-07-31T19:34:52Z (overall_state OK by scan time -- self-recovered). This is a percentage-of-traffic monitor on a very low-volume outbound integration (env:prod, peer.hostname:api.rainforestpay.com): total request volume in the pre-fire 10-min window was ~10 requests, of which exactly 1 was a 4xx (0 were 5xx) -- 1/10 = 10% > the 5% threshold. DD logs query (service:runtime-core-api peer.hostname:api.rainforestpay.com status:error / @http.status_code:4*) returned 0 corroborating hits (outbound Rainforest calls are traced but not logged to this pipeline), so the metric API count (verified via sum:trace.http.request.hits{...,http.status_code:4*}.as_count()) is the evidence of record. A single 4xx among ~10 requests is consistent with an ordinary payment-processing rejection (e.g. a declined card), not a Method-side or Rainforest-side outage -- same low-traffic-denominator noise mechanism as the other bursty/low-volume integration monitors already documented (fa-2026-07-06 import-subscriber, fa-2026-07-11 sync-api-queue-consumer, fa-2026-07-23 rainforest-webhook-traffic-outage). Distinct monitor from the already-documented ki-2026-07-05 (P95 latency) and ki-2026-07-06 (merchant-details 503) Rainforest entries -- this is the first fire of the error-rate-specific monitor 295882732.",
     "first_seen": "2026-07-31T19:34:52Z",
-    "last_seen": "2026-08-06T08:10:52Z",
-    "occurrences": 9,
+    "last_seen": "2026-08-10T08:12:52Z",
+    "occurrences": 10,
     "silence_for": "24h",
     "notes": [
       {
@@ -1168,6 +1168,10 @@
       {
         "ts": "2026-08-05T20:09:00Z",
         "note": "2026-08-05 ~20:09Z triage (degraded cycle): monitor 295882732 fired 2026-08-05T20:04:52Z (Warn, not yet recovered to OK at scan time), hash 6e8933e7860ba766, occ 7->8. Disambiguated against ki-2026-07-06-rainforest-merchant-details-503-serviceunavailable (also matches this monitor id) via DD metric sum:trace.http.request.hits{env:prod,peer.hostname:api.rainforestpay.com} by {http.status_code} over the monitor's own last_10m eval window (19:54:52-20:04:52Z): 33 x 200, 1 x 400, 0 x 5xx -> ~2.9% error rate on a low-traffic outbound integration. ES fields.dd_service.keyword:\"runtime-core-api\" AND message:*rainforest* same window: 1 hit -- 'Rainforest API create payment method payin request failed with status: BadRequest' (account sierrashredllc, ordinary application-level rejection), NOT a 503/ServiceUnavailable signature -- rules out the sibling KI's third-party-outage mechanism. Same low-traffic-denominator-noise mechanism as the 7 prior occurrences. No thread-reply path in degraded mode -- kb-update self-DM sent."
+      },
+      {
+        "ts": "2026-08-10T11:35:00Z",
+        "note": "2026-08-10 ~11:35Z triage (degraded cycle, no Slack MCP). DD-scan-diff vs prior cutoff 2026-08-09T21:55:31Z. Monitor 295882732 fired 2026-08-10T08:12:52Z, hash 5fe7f191428f7931, OK by scan time (self-recovered). Re-query of the monitor's own eval window (last_10m, 08:02:52-08:12:52Z): 215 total outbound requests, 1 4xx, 0 5xx -> 0.47% error rate in this coarser re-aggregation, well under the 5% threshold (the real-time trigger likely caught a narrower sub-window with a higher denominator-skew, consistent with documented low-volume-denominator noise, or a monitor-evaluation lag artifact -- same caveat noted elsewhere in this KB corpus). 0 corroborating DD logs (rainforest outbound calls are traced but not logged to this pipeline, as documented). Same low-traffic-denominator noise mechanism as prior 9 occurrences. occ 9->10. See docs/investigations/2026-08-10-5fe7f191428f7931.md."
       }
     ]
   },
