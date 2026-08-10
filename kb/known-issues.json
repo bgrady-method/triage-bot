@@ -3606,8 +3606,8 @@
     "id": "ki-2026-07-07-gateway-4xx-spike-monitor-noise",
     "title": "[Admin][Gateway][P3] 4xx spike (gateway) monitor trips on a brief isolated single-bucket burst, self-recovers -- same shape as ms-account-api-4xx-spike-monitor-noise but a different monitor ID",
     "first_seen": "2026-07-06T10:16:00Z",
-    "last_seen": "2026-08-06T10:32:57Z",
-    "occurrences": 23,
+    "last_seen": "2026-08-10T10:32:56Z",
+    "occurrences": 24,
     "match": {
       "channels": [
         "alert-system",
@@ -3632,7 +3632,7 @@
     "fix_template": null,
     "confidence": 0.75,
     "owning_team": "Admin",
-    "last_notified_at": "2026-08-06T10:32:57Z",
+    "last_notified_at": "2026-08-10T11:55:00Z",
     "notes": [
       {
         "ts": "2026-07-06T11:35:00Z",
@@ -3693,6 +3693,10 @@
       {
         "ts": "2026-08-05T11:32:14Z",
         "note": "2026-08-05 ~11:32Z triage (degraded cycle): monitor 299544656 ([Admin][Gateway][P3] 4xx spike) fired 2026-08-05T10:32:56Z, hash 0b45b4ccdbaa4f06, occ 21->22. DD metric sum:trace.aspnet_core.request.hits.by_http_status{service:gateway,env:prod,http.status_class:4xx}.as_count() over 10:17:56-10:32:56Z: 22 points, sum 27 -- far under the 2000 threshold at this query resolution, rollup-artifact non-reproduction. 0 status:error DD logs. last_notified_at (2026-08-04T14:30:00Z) ~20h03m ago, WITHIN 24h suppression window, occ 22 not a 10th-multiple -> SUPPRESSED, gate_reason=known-issue-window, appended to docs/actionable/2026-08-05.md."
+      },
+      {
+        "ts": "2026-08-10T11:55:00Z",
+        "note": "2026-08-10 ~11:55Z triage (degraded cycle, no Slack MCP). DD-scan-diff vs prior cutoff 2026-08-09T21:55:31Z. Monitor 299544656 fired 2026-08-10T10:32:56Z, hash 0611ca6b37febe78, occ 23->24, OK by scan time (self-recovered). DD metric sum:trace.aspnet_core.request.hits.by_http_status{service:gateway,env:prod,http.status_class:4xx}.as_count() over the eval window (10:17:56-10:32:56Z) totals 24 vs the >2000/15min threshold. 0 status:error DD logs. last_notified_at (2026-08-06T10:32:57Z) ~4d ago -- EXCEEDS 24h suppression window -> POST to #triage-results, gate_reason=null (window-expiry). See docs/investigations/2026-08-10-0611ca6b37febe78.md."
       }
     ]
   },
