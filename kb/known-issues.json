@@ -2196,8 +2196,8 @@
     "id": "ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap",
     "title": "New team:crm AMQP-consumer heartbeat/throughput-stall monitors (5 sibling IDs, created 2026-07-02) intermittently trip on quiet-period low-traffic dips, then self-recover within minutes — no corroborating errors",
     "first_seen": "2026-07-04T13:07:31Z",
-    "last_seen": "2026-08-10T03:35:31Z",
-    "occurrences": 118,
+    "last_seen": "2026-08-10T09:51:21Z",
+    "occurrences": 119,
     "match": {
       "channels": [
         "alert-system",
@@ -2508,6 +2508,10 @@
       {
         "ts": "2026-08-10T11:20:00Z",
         "note": "2026-08-10 ~11:20Z triage (degraded cycle, no Slack MCP). DD-scan-diff vs prior cutoff 2026-08-09T21:55:31Z. Monitor 302057011 fired 2026-08-10T03:35:31Z, hash 6e9538b5d59277b3, occ 117->118, OK by scan time (self-recovered). DD metric sum:trace.amqp.command.hits{service:runtime-core-subscriber,env:prod}.as_rate() over 03:15:31-03:35:31Z shows a sustained sub-2msg/s stretch from ~03:17:40Z to ~03:33:00Z (15+ min quiet period, matching the entry's documented absolute-floor threshold-trip shape), followed by a sharp burst back to ~100-120msg/s at 03:33:10Z continuing through fire time -- clean recovery. 0 error logs on service:runtime-core-subscriber in the window. last_notified_at (2026-08-09T15:04:32Z) ~12h31m ago -- WITHIN 24h suppression window; occ 118 not %10 -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-08-10-6e9538b5d59277b3.md."
+      },
+      {
+        "ts": "2026-08-10T11:50:00Z",
+        "note": "2026-08-10 ~11:50Z triage (degraded cycle, no Slack MCP). DD-scan-diff vs prior cutoff 2026-08-09T21:55:31Z. Monitor 302055141 (sibling of 302057011, same family) fired 2026-08-10T09:51:21Z, hash 9ff57d0520a378e5, occ 118->119, OK by scan time (self-recovered). DD metric sum:trace.amqp.command.hits{service:method-mobile-notifications-subscriber,env:prod}.as_rate() over the monitor's own last_60m eval window (08:51:21-09:51:21Z) returned only 1 data point in the entire 60-min window (0.1 msg/s at 09:49:20Z) -- the near-total absence of reported rate is itself strong confirmation of the near-silent-consumer heartbeat-floor trip (threshold ~0.005 msg/s), consistent with the documented family shape. 0 status:error DD logs. last_notified_at (2026-08-09T15:04:32Z) ~18h47m ago -- WITHIN 24h suppression window; occ 119 not %10 -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-08-10-9ff57d0520a378e5.md."
       }
     ]
   },
