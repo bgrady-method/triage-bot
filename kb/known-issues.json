@@ -2574,8 +2574,8 @@
     "id": "ki-2026-07-04-ms-account-api-4xx-spike-monitor-noise",
     "title": "[Admin][AccountAPI][P3] 4xx-spike monitor transitions state without a real 4xx breach (monitor-sensitivity/config artifact, not a service issue)",
     "first_seen": "2026-07-03T12:08:59Z",
-    "last_seen": "2026-08-09T21:05:18Z",
-    "occurrences": 51,
+    "last_seen": "2026-08-10T07:08:18Z",
+    "occurrences": 52,
     "match": {
       "channels": [
         "alert-system",
@@ -2753,6 +2753,10 @@
       {
         "ts": "2026-08-09T21:16:00Z",
         "note": "2026-08-09 21:16Z triage (degraded cycle, no Slack MCP surfaced this session; DD monitor scan-diff vs prior cutoff 2026-08-09T19:55:32Z, commit 9abd1e8): monitor 299551518 fired 2026-08-09T21:05:18Z (OK at scan time, self-recovered), hash a0c3e5819e77612f, occ 50->51 (51st consecutive disproof). Rejected the two bare-word candidates (ki-ms-account-nginx-soft-limit-1024-deploy, ki-ms-account-redis-cache-timeout-on-cold-start, both resolved unrelated one-offs) per the causality-check precedent. sum:trace.aspnet_core.request.hits.by_http_status{service:ms-account-api,env:prod,http.status_class:4xx}.as_count() over the exact 15-min eval window (20:50:18-21:05:18Z): 2 total hits, far below the >300/15min threshold. service:ms-account-api status:error DD Logs = 0 hits same window. last_notified_at (2026-08-09T10:46:19Z) ~10h22m ago, WITHIN 24h suppression window; occ 51 not %10; fix_status unchanged -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-08-09-a0c3e5819e77612f.md."
+      },
+      {
+        "ts": "2026-08-10T11:30:00Z",
+        "note": "2026-08-10 ~11:30Z triage (degraded cycle, no Slack MCP). DD-scan-diff vs prior cutoff 2026-08-09T21:55:31Z. Monitor 299551518 fired 2026-08-10T07:08:18Z, hash c4f96ba3c6ea2efc, occ 51->52 (52nd consecutive disproof), OK by scan time (self-recovered). DD metric sum:trace.aspnet_core.request.hits.by_http_status{service:ms-account-api,env:prod,http.status_class:4xx}.as_count() over the eval window (06:53:18-07:08:18Z) totals 2 vs the >300/15min threshold. 0 status:error DD logs. last_notified_at (2026-08-09T10:46:19Z) ~20h22m ago -- WITHIN 24h suppression window; occ 52 not %10 -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-08-10-c4f96ba3c6ea2efc.md."
       }
     ]
   },
