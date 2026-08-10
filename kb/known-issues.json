@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-08-08T11:47:11Z",
-    "occurrences": 649,
+    "last_seen": "2026-08-10T17:59:11Z",
+    "occurrences": 650,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -157,7 +157,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.88,
-    "last_notified_at": "2026-08-07T14:02:11Z",
+    "last_notified_at": "2026-08-10T17:59:11Z",
     "prior_fix_status": "needs-ops-decision",
     "notes": [
       {
@@ -627,6 +627,10 @@
       {
         "ts": "2026-08-07T22:12:22Z",
         "note": "2026-08-07 22:12Z triage (degraded cycle, no Slack MCP -- ToolSearch 'slack conversations history mcp', 'mcp__slack', 'conversations.history' probes all empty, consistent with the standing intermittent read-path gap). Ran DD-scan-diff fallback vs prior cutoff 2026-08-07T21:09:25Z (commit 29e2a5b, ~1h03m to now). Full 186-monitor scan (--summary): still 186 total, no monitor-count regression, rules out the monitor-creation blind spot. 4 monitors had last_triggered_ts past the cutoff. Resolved each monitor's true Slack notify target from its full-detail message field: 127198928 (Synthetics sign-in, @slack-team-qa-performance-tests, unpolled -- out of scope) | 299551472 (ImportSubscriber No-Data, @slack-alert-admin-monitoring, unpolled, OK/recovered -- out of scope). 2 route to polled channels, processed as 2 singleton groups: this ki-21 occurrence (77419271, alert-frontend-errors, last_triggered 22:08:11Z) -- DD logs 21:48-22:08Z = 200-sample-cap, 66 distinct accounts, top sierrashredllc 32 (16%) + AvantSleep 26 (13%), 198/200 status_code:0, dominant path GetSyncWidgetInfoAsync -- canonical chronic shape, no ki-24 co-fire (all RTC/Redis/5XX monitors quiet). last_notified_at 2026-08-07T14:02:11Z = ~8h10m ago, WITHIN 24h suppression window; occ 646->647 (not %10); fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window, appended to docs/actionable/2026-08-07.md. See docs/investigations/2026-08-07-ba961ea9f83217a3.md. | 305454326 (method-nativemobile-ui RUM crash-free-rate P2, alert-runtime-monitoring, fired 22:05:57Z) -- separate group, see docs/investigations/2026-08-07-99ee2aedf113665b.md (not this KB entry; unrelated service)."
+      },
+      {
+        "ts": "2026-08-10T17:59:11Z",
+        "note": "2026-08-10 ~17:59Z triage (degraded cycle, no Slack MCP surfaced this session; DD-scan-diff vs prior cutoff 2026-08-10T17:09:11Z, hash 9375b17cb1a6e67d): monitor 77419271 (Unusual XHR errors) last_triggered_ts moved 17:09:11Z->17:59:11Z, OK at scan time (self-recovered), occ 649->650 -- also a 10th-occurrence resurface (650%10==0). ES aggregate (\"Unusual number of XHR errors for account\" OR \"monitors/77419271\") 17:44:11-17:59:11Z: 0 hits -- standing documented ES field-mismatch for this signal (not disconfirming; ki-21 lives in DD method-ui logs, not Serilog/ES). Widened DD log sample (service:method-ui status:error *xhr*, 100 records, 17:44:11-17:59:11Z): 64 distinct accounts, top EnglandLogistics 9%, universitypipette2 8% -- diffuse, no concentration; 91/100 GetSyncWidgetInfoAsync -- canonical chronic gateway-timeout shape, consistent with the 91-107-distinct-account baseline. last_notified_at (2026-08-07T14:02:11Z) ~3d3h57m ago, PAST the 24h suppression window (also independently qualifies via the every-10th-occurrence rule) -> POSTED to #triage-results, gate_reason=null (window-expiry), last_notified_at bumped to fire ts. Correction note: the three immediately-prior poll cycles today (15:15/16:12/17:11Z) each observed this exact monitor's OK-before/OK-after last_triggered_ts advance and classified it as a non-actionable 'point-in-time DD-scan-diff blind spot' without bumping occurrences, checking ES/DD evidence, or re-evaluating last_notified_at staleness -- per prompt.md step 7 hard requirement ('Always update the KB entry, even if DM suppressed'), that was a deviation: each of those transitions represented a genuinely new, previously-unlogged flap (never observed in Alert state directly, but distinct from any already-counted episode), and by the third of those cycles the 24h suppression window had already lapsed (since ~2026-08-08T14:02Z), meaning a POST was owed but withheld for roughly 3 cycles / ~2h49m. This cycle resumes full verification and clears the backlog with one occurrence bump + post covering the cumulative gap (not one bump per skipped cycle, since only one genuinely new last_triggered_ts value -- 17:59:11Z -- was observed this cycle; the intermediate skipped transitions at 15:01:11Z/15:34:11Z were each themselves un-logged and are not separately recoverable/countable after the fact). Flagging for Ben: recommend the standing 'point-in-time blind spot' shortcut for 77419271 be reserved for OK-before/OK-after transitions where last_notified_at is still within its window (nothing lost by skipping), not applied blindly once window-expiry is possible. See docs/investigations/2026-08-10-9375b17cb1a6e67d.md."
       }
     ],
     "prior_last_notified_at": "2026-07-31T15:07:56Z"
@@ -2848,8 +2852,8 @@
     "id": "ki-2026-07-05-rainforest-outbound-api-p95-latency",
     "title": "[Rainforest] Outbound API P95 Latency > 3s -- runtime-core-api outbound calls to api.rainforestpay.com intermittently breach 3s p95, self-recovering, zero corroborating errors (third-party latency, not a Method-side defect)",
     "first_seen": "2026-07-05T08:31:25Z",
-    "last_seen": "2026-08-06T13:45:25Z",
-    "occurrences": 21,
+    "last_seen": "2026-08-10T17:20:26Z",
+    "occurrences": 22,
     "match": {
       "channels": [
         "alert-system",
@@ -2877,7 +2881,7 @@
     "fix_template": null,
     "confidence": 0.7,
     "owning_team": "Transactions (per ownership.md:119, Payment processing component; monitor tag team:transactions agrees)",
-    "last_notified_at": "2026-08-05T19:53:25Z",
+    "last_notified_at": "2026-08-10T17:20:26Z",
     "notes": [
       {
         "ts": "2026-07-05T15:20:44Z",
@@ -2934,6 +2938,10 @@
       {
         "ts": "2026-08-05T20:09:00Z",
         "note": "2026-08-05 ~20:09Z triage (degraded cycle). Monitor 295928665 fired 19:53:25Z, hash 49551dd3bdf9e11d, occ 19->20 -- 10th-occurrence resurface (20%10==0), posted to #triage-results despite last_notified_at (11:32:14Z) being only ~8h21m old. p95:trace.http.request{env:prod,peer.hostname:api.rainforestpay.com} over 18:38:25-20:08:25Z: 48 sparse points, max 1.03s, well under 3s threshold. DD logs service:runtime-core-api peer.hostname:api.rainforestpay.com status:error over the window: 0 hits -- latency-only confirmed."
+      },
+      {
+        "ts": "2026-08-10T17:20:26Z",
+        "note": "2026-08-10 ~17:20Z triage (degraded cycle, no Slack MCP surfaced this session; DD-scan-diff vs prior cutoff 2026-08-10T17:09:11Z, hash 6956c0bb3ebfeaef): monitor 295928665 fired 2026-08-10T17:20:26Z (OK by scan time -- self-recovered), occ 21->22. p95:trace.http.request{env:prod,peer.hostname:api.rainforestpay.com} over the monitor's own last_10m eval window (17:10:26-17:20:26Z): 5 sparse points, 0.199-0.365s -- well under the 3s threshold, canonical low-volume third-party-latency shape matching all 21 prior occurrences. service:runtime-core-api status:error env:prod DD Logs same window: 0 hits, confirming latency-only. last_notified_at (2026-08-05T19:53:25Z) ~4d21h27m ago, PAST the 24h suppression window -> POSTED to #triage-results, gate_reason=null (window-expiry), last_notified_at bumped to fire ts. Note: the three immediately-prior poll cycles today (15:15/16:12/17:11Z) treated repeated OK-before/OK-after transitions of the OTHER chronic monitor (77419271, ki-21) as a non-actionable point-in-time blind spot without bumping occurrences or checking last_notified_at staleness -- on inspection that pattern had let ki-21's own notification window sit expired unaddressed since 2026-08-07T14:02:11Z; this cycle resumes full per-occurrence verification for both monitors (see companion ki-21 note this same cycle) rather than continuing that shortcut. See docs/investigations/2026-08-10-6956c0bb3ebfeaef.md."
       }
     ]
   },
