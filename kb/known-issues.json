@@ -3696,8 +3696,8 @@
     "id": "ki-2026-07-07-notifications-p95-latency-monitor-noise",
     "title": "[CRM][P2] notifications P95 latency high monitor fires but re-query of the same evaluation window shows the metric never approaches the threshold -- monitor/data artifact, not real latency",
     "first_seen": "2026-07-06T10:01:07Z",
-    "last_seen": "2026-08-08T08:43:07Z",
-    "occurrences": 31,
+    "last_seen": "2026-08-10T08:43:07Z",
+    "occurrences": 32,
     "match": {
       "channels": [
         "alert-system",
@@ -3722,7 +3722,7 @@
     "fix_template": null,
     "confidence": 0.72,
     "owning_team": "CRM Experience",
-    "last_notified_at": "2026-08-08T11:33:00Z",
+    "last_notified_at": "2026-08-10T11:40:00Z",
     "notes": [
       {
         "ts": "2026-07-06T11:40:00Z",
@@ -3811,6 +3811,10 @@
       {
         "ts": "2026-08-07T08:48:07Z",
         "note": "2026-08-07 triage (degraded cycle, no Slack MCP surfaced this session; DD-scan-diff vs prior cutoff 2026-08-06T22:06:12Z, commit 7728c3d): monitor 302056327 last_triggered 08:43:07Z (OK), hash 5dc0ad028be14f41, occ 29->30. p95:trace.aspnet.request{service:notifications,env:prod} 08:23:07-08:53:07Z: single-point rollup artifact at 08:30:00 (11849s, a DD-metric-API resampling spike, same documented mechanism as prior occurrences) -- the monitor's own literal pre-fire eval window (08:33:00-08:43:07Z) shows p95 consistently ~0.001-0.03s, nowhere near the >1s threshold. service:notifications status:error DD Logs 08:23:07-08:53:07Z = 0 hits. Monitor/data artifact, not real latency -- same mechanism as all prior occurrences. last_notified_at 2026-08-05T11:32:14Z, ~45h11m before this fire -- EXCEEDS 24h suppression window -> POST gate_reason=null. last_notified_at -> 2026-08-07T08:43:07Z."
+      },
+      {
+        "ts": "2026-08-10T11:40:00Z",
+        "note": "2026-08-10 ~11:40Z triage (degraded cycle, no Slack MCP). DD-scan-diff vs prior cutoff 2026-08-09T21:55:31Z. Monitor 302056327 fired 2026-08-10T08:43:07Z, hash 60096deed3b299ad, occ 31->32, OK by scan time (self-recovered). Re-query p95:trace.aspnet.request{service:notifications,env:prod} at both fine (2s interval, the monitor's own last_10m eval window 08:33:07-08:43:07Z) and coarse (20s interval, wider 65min window) granularity found NO breach at all -- fine-grained peak 0.032s, coarse peak 0.317s, both well under the 1s threshold -- reinforcing the documented monitor-noise diagnosis rather than a rollup-artifact (the real value never approached threshold at any resolution checked). 0 status:error DD logs. last_notified_at (2026-08-08T11:33:00Z) ~1d21h10m ago -- EXCEEDS 24h suppression window -> POST to #triage-results, gate_reason=null (window-expiry). See docs/investigations/2026-08-10-60096deed3b299ad.md."
       }
     ]
   },
