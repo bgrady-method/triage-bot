@@ -941,8 +941,8 @@
     "id": "ki-2026-05-29-methodsession-getaccountbysubdomain-nre",
     "title": "method-platform-ui apps backend NRE in MethodSessionService.GetAccountBySubdomain() -> 'JWT Retrieval Failed' on subdomain-less synthetic monitor probes (Centreon + Datadog Watchdog noise)",
     "first_seen": "2026-05-29T12:49:31Z",
-    "last_seen": "2026-08-07T12:48:32Z",
-    "occurrences": 30,
+    "last_seen": "2026-08-10T13:17:33Z",
+    "occurrences": 31,
     "match": {
       "channels": [
         "alert-system"
@@ -975,7 +975,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.85,
-    "last_notified_at": "2026-08-07T13:12:48Z",
+    "last_notified_at": "2026-08-10T13:17:33Z",
     "notes": [
       {
         "ts": "2026-07-05T20:28:02Z",
@@ -1044,9 +1044,13 @@
       {
         "ts": "2026-08-07T13:12:48Z",
         "note": "2026-08-07 13:12Z triage (degraded cycle, no Slack MCP surfaced this session; DD-scan-diff vs prior cutoff 2026-08-07T11:33:11Z, commit 278a0d0): monitor 299551647 last_triggered 12:48:32Z (OK, self-recovered), hash 93e2edf5c1c94e9f, occ 29->30. ES aggregate (both kb_to_es_query.py-derived broad query AND exact message.keyword form) 12:18:32-12:48:32Z: 0 hits. DD metric errors=0 (both 30min and tight 10min monitor-eval windows), hits non-empty (sparse steady 1-15/10s-bucket traffic) -- canonical NRE signature did NOT reproduce; consistent with 3 prior non-reproducing occurrences (2026-07-12, 2026-07-25, 2026-07-26). Confidence downgraded 0.85->0.7 and disclosed per standing KIR-partial-reproduction practice. last_notified_at (2026-07-27T13:15:00Z) ~11 days ago -- PAST 24h suppression window -> POST, gate_reason=null, last_notified_at bumped to now. Owning team re-derived from ownership.md's Project table this cycle: method-portal-ui/method-ui -> Admin. See docs/investigations/2026-08-07-93e2edf5c1c94e9f.md."
+      },
+      {
+        "ts": "2026-08-10T14:17:00Z",
+        "note": "2026-08-10 14:17Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed \"slack conversations history\" and \"mcp slack\", neither matched, consistent with the standing intermittent read-path gap). DD-scan-diff vs prior cutoff 2026-08-10T13:07:11Z (commit fca288482a38cfa1's 13:21:00Z poll-cycle entry). Monitor 236570583 ('New issue to review' Watchdog) fired 13:17:33Z, hash 551584c8b21aa9b0, occ 30->31. ES aggregate message.keyword:\"JWT Retrieval Failed\" by fields.UserAgent.keyword over 13:02:33-13:32:33Z: 28 hits, 100% WindowsPowerShell/5.1.20348.1850 UA -- canonical synthetic-probe NRE signature CONFIRMED this cycle. last_notified_at (2026-08-07T13:12:48Z) ~3 days ago, PAST 24h suppression window -> POST, gate_reason=null (window-expiry, independently warranted regardless of confirmed signature), last_notified_at bumped to fire ts 2026-08-10T13:17:33Z. owning_team Admin (method-platform-ui/method-portal-ui/method-ui per ownership.md:379-384). Deploy correlation blocked (methodcrm-org GH_TOKEN 403 gap, standing, non-blocking). See docs/investigations/2026-08-10-551584c8b21aa9b0.md."
       }
     ],
-    "prior_last_notified_at": "2026-07-27T13:15:00Z"
+    "prior_last_notified_at": "2026-08-07T13:12:48Z"
   },
   {
     "id": "ki-2026-06-02-purchase-history-unique-index-duplicate",
