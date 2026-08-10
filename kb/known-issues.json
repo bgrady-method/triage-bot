@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-08-10T18:59:12Z",
-    "occurrences": 651,
+    "last_seen": "2026-08-10T20:01:11Z",
+    "occurrences": 652,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -635,6 +635,10 @@
       {
         "ts": "2026-08-10T19:20:00Z",
         "note": "2026-08-10 ~19:09-19:20Z triage (degraded cycle, no Slack MCP): 651st occurrence, monitor 77419271 last_triggered_ts moved 17:59:11Z->18:59:12Z (OK before/after -- recovery-transition artifact), hash ba51addba5697423. Light-touch check only (last_notified_at 2026-08-10T17:59:11Z is ~1h old, confirmed still within the 24h suppression window per the standing process-correction convention): sum:trace.aspnet_core.request.errors{service:method-ui,env:prod} 18:29:12-18:59:12Z returned an empty series, no elevated error volume. Occurrence/last_seen bumped per prompt.md step 7 ('always update the KB entry'); last_notified_at left unchanged -> SUPPRESS, gate_reason=known-issue-window, appended to docs/actionable/2026-08-10.md. See docs/investigations/2026-08-10-ba51addba5697423.md."
+      },
+      {
+        "ts": "2026-08-10T20:01:11Z",
+        "note": "2026-08-10 ~19:53-20:08Z triage (degraded cycle, no Slack MCP surfaced this session). DD monitor scan-diff vs prior cycle cutoff 2026-08-10T18:59:33Z. monitor 77419271 fired 20:01:11Z, hash 5f6b59958b4f1cc4, occ 651->652. last_notified_at (2026-08-10T17:59:11Z) only ~2h02m old -- still inside the 24h suppression_window_hours, and 652 % 10 != 0 (no resurface), fix_status unchanged (chronic-residual-post-rollback-2026-06-05) -- SUPPRESSED per known-issue-window gate. Light-touch check per the 2026-08-10 process-correction convention (full verification reserved for window-expiry/resurface occurrences): sum:trace.aspnet_core.request.errors{service:method-ui,env:prod} over 19:31:11-20:01:11Z returned an empty series -- no elevated error volume. No new regression signal. See docs/investigations/2026-08-10-5f6b59958b4f1cc4.md."
       }
     ],
     "prior_last_notified_at": "2026-07-31T15:07:56Z"
