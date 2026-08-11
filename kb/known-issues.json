@@ -2884,8 +2884,8 @@
     "id": "ki-2026-07-05-rainforest-outbound-api-p95-latency",
     "title": "[Rainforest] Outbound API P95 Latency > 3s -- runtime-core-api outbound calls to api.rainforestpay.com intermittently breach 3s p95, self-recovering, zero corroborating errors (third-party latency, not a Method-side defect)",
     "first_seen": "2026-07-05T08:31:25Z",
-    "last_seen": "2026-08-10T20:21:26Z",
-    "occurrences": 23,
+    "last_seen": "2026-08-11T15:07:25Z",
+    "occurrences": 24,
     "match": {
       "channels": [
         "alert-system",
@@ -2978,6 +2978,10 @@
       {
         "ts": "2026-08-10T21:08:00Z",
         "note": "2026-08-10 ~21:08Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch \"slack conversations history mcp\" returned no matching deferred tool). Working branch alerting-system-grafana confirmed. Ran DD-scan-diff fallback vs prior cycle committed cutoff 2026-08-10T20:01:11Z. monitor 295928665 last_triggered_ts moved 20:01:11Z->20:21:26Z, hash db62306cdb54eea0, occ 22->23. DD metric p95:trace.http.request{env:prod,peer.hostname:api.rainforestpay.com} widened to 19:51:26-21:11:26Z: 19 sparse sub-second points (0.205-0.427s), no datapoint near the 3s threshold at this granularity -- canonical sparse-blip shape. 0 status:error DD logs on service:runtime-core-api over 19:51:26-20:51:26Z. last_notified_at (2026-08-10T17:20:26Z) ~3h old, within 24h suppression window; 23%10!=0; fix_status unchanged -> SUPPRESS, gate_reason=known-issue-window, appended docs/actionable/2026-08-10.md. See docs/investigations/2026-08-10-db62306cdb54eea0.md."
+      },
+      {
+        "ts": "2026-08-11T15:08:00Z",
+        "note": "2026-08-11 ~15:08Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch \"slack conversations history\" / \"mcp conversations\" returned no matching deferred tool). Working branch alerting-system-grafana confirmed, in sync with origin at cycle start. Ran DD-scan-diff fallback vs prior cycle's committed cutoff 2026-08-11T14:11:12Z (full 186-monitor scan, identical id set vs prior scan -- 0 added/0 removed, rules out delete+recreate blind spot). Monitor 295928665 last_triggered_ts moved 14:06:25Z->15:07:25Z (OK->Warn, a genuine new state transition, not a recovery artifact), hash 1228dd03b04e23d7, occ 23->24. DD metric p95:trace.http.request{env:prod,peer.hostname:api.rainforestpay.com} over widened 14:27:25-15:17:25Z: 32 sparse points, 0.20-0.49s -- well under the 3s threshold, canonical low-volume third-party-latency shape matching all 23 prior occurrences. service:runtime-core-api status:error env:prod DD Logs same window: 0 hits, confirming latency-only. last_notified_at (2026-08-10T17:20:26Z) ~21h47m ago, WITHIN the 24h suppression window; occ 24 not a 10th-multiple; fix_status unchanged (monitoring-noise-suspected-unconfirmed) -- SUPPRESSED, gate_reason=known-issue-window, appended docs/actionable/2026-08-11.md. Same scan also surfaced 2 recovery-transition artifacts on already-logged episodes from the prior cycle (monitor 77419271 Warn->OK 14:11:12Z->14:49:12Z, and monitor 236570583 Alert->OK 13:27:33Z->14:28:33Z) -- both last_triggered_ts bumps are Datadog's overall_state_modified firing on recovery of an episode already recorded last cycle (occ already bumped, notified/suppressed as appropriate); per the standing recovery-transition-artifact convention these are skipped, not double-counted as new occurrences. See docs/investigations/2026-08-11-1228dd03b04e23d7.md."
       }
     ]
   },
