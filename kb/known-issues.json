@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-08-11T13:06:11Z",
-    "occurrences": 656,
+    "last_seen": "2026-08-11T14:11:12Z",
+    "occurrences": 657,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -965,8 +965,8 @@
     "id": "ki-2026-05-29-methodsession-getaccountbysubdomain-nre",
     "title": "method-platform-ui apps backend NRE in MethodSessionService.GetAccountBySubdomain() -> 'JWT Retrieval Failed' on subdomain-less synthetic monitor probes (Centreon + Datadog Watchdog noise)",
     "first_seen": "2026-05-29T12:49:31Z",
-    "last_seen": "2026-08-10T13:17:33Z",
-    "occurrences": 31,
+    "last_seen": "2026-08-11T13:27:33Z",
+    "occurrences": 32,
     "match": {
       "channels": [
         "alert-system"
@@ -999,7 +999,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.85,
-    "last_notified_at": "2026-08-10T13:17:33Z",
+    "last_notified_at": "2026-08-11T13:27:33Z",
     "notes": [
       {
         "ts": "2026-07-05T20:28:02Z",
@@ -1072,6 +1072,10 @@
       {
         "ts": "2026-08-10T14:17:00Z",
         "note": "2026-08-10 14:17Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed \"slack conversations history\" and \"mcp slack\", neither matched, consistent with the standing intermittent read-path gap). DD-scan-diff vs prior cutoff 2026-08-10T13:07:11Z (commit fca288482a38cfa1's 13:21:00Z poll-cycle entry). Monitor 236570583 ('New issue to review' Watchdog) fired 13:17:33Z, hash 551584c8b21aa9b0, occ 30->31. ES aggregate message.keyword:\"JWT Retrieval Failed\" by fields.UserAgent.keyword over 13:02:33-13:32:33Z: 28 hits, 100% WindowsPowerShell/5.1.20348.1850 UA -- canonical synthetic-probe NRE signature CONFIRMED this cycle. last_notified_at (2026-08-07T13:12:48Z) ~3 days ago, PAST 24h suppression window -> POST, gate_reason=null (window-expiry, independently warranted regardless of confirmed signature), last_notified_at bumped to fire ts 2026-08-10T13:17:33Z. owning_team Admin (method-platform-ui/method-portal-ui/method-ui per ownership.md:379-384). Deploy correlation blocked (methodcrm-org GH_TOKEN 403 gap, standing, non-blocking). See docs/investigations/2026-08-10-551584c8b21aa9b0.md."
+      },
+      {
+        "ts": "2026-08-11T13:27:33Z",
+        "note": "2026-08-11 13:27Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed \"slack conversations history messages\", no matching deferred tool found; DD-scan-diff vs prior cutoff 2026-08-11T13:08:00Z, commit f3032ee). Monitor 236570583 ('New issue to review' Watchdog) fired 13:27:33Z, hash 5a4b5e4c3867d188, occ 31->32. ES aggregate message.keyword:\"JWT Retrieval Failed\" OR messageTemplate.keyword:*GetAccountBySubdomain* by fields.UserAgent.keyword over 12:57:33-13:27:33Z: 56 hits, 100% WindowsPowerShell/5.1.20348.1850 UA -- canonical synthetic-probe NRE signature CONFIRMED this cycle. Sampled 2 raw hits: both System.NullReferenceException at Com.Method.ServiceContract.Services.Account.MethodSessionService.GetAccountBySubdomain(), host PROD-NEW6, ClientIpAddress 172.31.105.207 (internal synthetic probe signature). last_notified_at (2026-08-10T13:17:33Z) ~24h10m ago, PAST 24h suppression window -> POST, gate_reason=null (window-expiry), last_notified_at bumped to fire ts 2026-08-11T13:27:33Z. owning_team Admin (method-platform-ui/method-portal-ui/method-ui per ownership.md:379-384). Deploy correlation blocked (methodcrm-org GH_TOKEN 403 gap, standing, non-blocking). See docs/investigations/2026-08-11-5a4b5e4c3867d188.md."
       }
     ],
     "prior_last_notified_at": "2026-08-07T13:12:48Z"
@@ -1686,8 +1690,8 @@
     "id": "ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata",
     "title": "\"Method UI Grid and Dropdown Performance Test\" synthetics (team:qa, non-prod, 5 monitor-ID variants: Day run / Day run 2 / Evening run / Midnight run / Release Run) chronically go No Data; never correlates to a real incident",
     "first_seen": "2026-05-02T13:46:00Z",
-    "last_seen": "2026-08-11T11:22:50Z",
-    "occurrences": 170,
+    "last_seen": "2026-08-11T13:51:20Z",
+    "occurrences": 173,
     "match": {
       "channels": [
         "alert-system"
@@ -2004,6 +2008,10 @@
       {
         "ts": "2026-08-04T14:40:00Z",
         "note": "2026-08-04 14:40Z triage (degraded cycle, no Slack MCP surfaced this session; DD monitor scan-diff vs prior cutoff 2026-08-04T13:20:00Z): 3 fires within the entrys monitored family, grouped as one root-cause cluster (same-KB-match, all team:qa non-prod synthetics, clustered 13:46:00-13:51:20Z): primary 142200330 Release Run (No Data) 13:46:00Z hash 80d72c9012ef1482, satellites 121308660 Test Day run (OK at scan, self-recovered) 13:47:30Z hash 73b0c66689f63dab + 133625690 Test Day run 2 (OK at scan, self-recovered) 13:51:20Z hash 764ba56035811c1d. occ 160->163. Evidence per this entrys own evidence_query (monitor overall_state == No Data among the family) confirmed directly from the DD monitors scan already run this cycle -- no further ES/DD query needed for this non-prod QA-noise pattern. last_notified_at (2026-08-04T12:30:00Z) only ~1h16m old -- WITHIN 24h suppression window, occ 163 not a 10th-multiple, fix_status unchanged (confirmed-non-prod-noise) -- SUPPRESSED, gate_reason=known-issue-window, appended to docs/actionable/2026-08-04.md. See docs/investigations/2026-08-04-80d72c9012ef1482.md."
+      },
+      {
+        "ts": "2026-08-11T13:51:20Z",
+        "note": "2026-08-11 ~14:20-14:30Z triage (degraded cycle, no Slack MCP surfaced this session; DD-scan-diff vs prior cutoff 2026-08-11T13:08:00Z, commit f3032ee): 3 fires this cycle -- Release Run (142200330) No Data 13:46:00Z (hash 3dd6a2f9a5d95fb9, occ 170->171), Day run (121308660) recovered-OK 13:48:00Z (hash a357b5a1a3817edc, occ 171->172), Day run 2 (133625690) recovered-OK 13:51:20Z (hash f9a97a699a4eecf7, occ 172->173). Same confirmed non-prod QA-synthetics noise, no co-firing signal with any prod service this cycle. last_notified_at (2026-08-11T11:22:50Z) only ~2h23-29m ago (set by the same-day 11:26Z resurface), well WITHIN 24h suppression window for all 3 -> SUPPRESS all, gate_reason=known-issue-window. See docs/investigations/2026-08-11-3dd6a2f9a5d95fb9.md, docs/investigations/2026-08-11-a357b5a1a3817edc.md, docs/investigations/2026-08-11-f9a97a699a4eecf7.md."
       }
     ]
   },
