@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-08-11T09:17:11Z",
-    "occurrences": 655,
+    "last_seen": "2026-08-11T13:06:11Z",
+    "occurrences": 656,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -647,6 +647,10 @@
       {
         "ts": "2026-08-10T22:14:00Z",
         "note": "2026-08-10 ~22:09-22:14Z triage (degraded cycle, no Slack MCP): 654th occurrence, monitor 77419271 last_triggered_ts moved 21:03:11Z->21:43:11Z (OK before/after -- recovery-transition artifact), hash f73b6eee27756698. Light-touch check only (last_notified_at 2026-08-10T17:59:11Z is ~3h44m old, confirmed still within the 24h suppression window; 654%10!=0; fix_status unchanged): sum:trace.aspnet_core.request.errors{service:method-ui,env:prod} 21:13:11-21:43:11Z returned an empty series, no elevated error volume. Occurrence/last_seen bumped per prompt.md step 7 ('always update the KB entry'); last_notified_at left unchanged -> SUPPRESS, gate_reason=known-issue-window, appended to docs/actionable/2026-08-10.md. See docs/investigations/2026-08-10-f73b6eee27756698.md."
+      },
+      {
+        "ts": "2026-08-11T13:15:00Z",
+        "note": "2026-08-11 ~13:08-13:15Z triage (degraded cycle, no Slack MCP surfaced this session): 656th occurrence, monitor 77419271 last_triggered_ts moved 09:17:11Z->13:06:11Z (Warn before and after -- sustained, not a recovery-transition artifact), hash f5f0b47d24c26873. Full 186-monitor scan vs prior scratch scan (monitors_full_20260811_1210.json): 0 added/0 removed monitor ids (rules out delete+recreate blind spot); 9 monitors' last_triggered_ts advanced, 8 of the 9 were OK-before/OK-after (recovery-transition artifacts, skipped per standing filter) plus the stale unchanged catch-all 227951254 (Alert since 2025-10-16, unchanged, skipped). last_notified_at (2026-08-10T17:59:11Z) ~19h9m old -- WITHIN 24h suppression window (not near expiry); 656%10!=0 (no resurface); fix_status (chronic-residual-post-rollback-2026-06-05) unchanged. Verification: sum:trace.aspnet_core.request.errors{service:method-ui,env:prod} 12:36:11-13:06:11Z returned an empty series; service:method-ui env:prod status:error DD Logs same window = 0 hits -- mechanism unconfirmed this occurrence (consistent with the entry's own documented multi-occurrence unconfirmed streak). SUPPRESS gate_reason=known-issue-window, appended docs/actionable/2026-08-11.md. See docs/investigations/2026-08-11-f5f0b47d24c26873.md."
       }
     ],
     "prior_last_notified_at": "2026-07-31T15:07:56Z"
