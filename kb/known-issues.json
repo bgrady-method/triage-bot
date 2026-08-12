@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-08-11T14:11:12Z",
-    "occurrences": 657,
+    "last_seen": "2026-08-12T20:07:12Z",
+    "occurrences": 658,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -157,7 +157,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.88,
-    "last_notified_at": "2026-08-10T17:59:11Z",
+    "last_notified_at": "2026-08-12T20:07:12Z",
     "prior_fix_status": "needs-ops-decision",
     "notes": [
       {
@@ -651,6 +651,10 @@
       {
         "ts": "2026-08-11T13:15:00Z",
         "note": "2026-08-11 ~13:08-13:15Z triage (degraded cycle, no Slack MCP surfaced this session): 656th occurrence, monitor 77419271 last_triggered_ts moved 09:17:11Z->13:06:11Z (Warn before and after -- sustained, not a recovery-transition artifact), hash f5f0b47d24c26873. Full 186-monitor scan vs prior scratch scan (monitors_full_20260811_1210.json): 0 added/0 removed monitor ids (rules out delete+recreate blind spot); 9 monitors' last_triggered_ts advanced, 8 of the 9 were OK-before/OK-after (recovery-transition artifacts, skipped per standing filter) plus the stale unchanged catch-all 227951254 (Alert since 2025-10-16, unchanged, skipped). last_notified_at (2026-08-10T17:59:11Z) ~19h9m old -- WITHIN 24h suppression window (not near expiry); 656%10!=0 (no resurface); fix_status (chronic-residual-post-rollback-2026-06-05) unchanged. Verification: sum:trace.aspnet_core.request.errors{service:method-ui,env:prod} 12:36:11-13:06:11Z returned an empty series; service:method-ui env:prod status:error DD Logs same window = 0 hits -- mechanism unconfirmed this occurrence (consistent with the entry's own documented multi-occurrence unconfirmed streak). SUPPRESS gate_reason=known-issue-window, appended docs/actionable/2026-08-11.md. See docs/investigations/2026-08-11-f5f0b47d24c26873.md."
+      },
+      {
+        "ts": "2026-08-12T20:16:00Z",
+        "note": "2026-08-12 20:07-20:16Z triage (degraded cycle, no Slack MCP surfaced this session): 658th occurrence, monitor 77419271 last_triggered_ts advanced 2026-08-11T14:11:12Z (prior genuine Warn) -> 2026-08-12T20:07:12Z (Warn, sustained -- confirmed via monitors/77419271 detail lookup, not an OK-state recovery-transition artifact). Full 186-monitor scan vs prior scratch scan (monitors_full_20260812_1909.json): 0 added/0 removed monitor ids (rules out delete+recreate blind spot); 2 monitors transitioned past the 18:54:33Z cutoff -- this one (genuine) plus 299551472 (Admin ImportSubscriber, OK-state recovery, out-of-scope per standing 2026-08-07 precedent, disposed separately). DD method-ui XHR error logs (monitor's own query) 19:37:12-20:07:12Z = 200-sample-cap saturated, 177/200 (88.5%) GET /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync, 100% status_code:0 origin:network 'Failed to load' -- canonical chronic ki-21 shape, diffuse fan-out (top gopowertrain2 17 ~8.5%, crslaboratories 9, arrowconservation2 7, EnglandLogistics 7, cpffloorsllc 6), NOT the 100x 2026-06-04 OUTAGE surge. ES aggregate (kb_to_es_query.py-generated) same window: 0 hits (documented field-mismatch -- ki-21 lives in DD RUM/method-ui logs, not Serilog). NO ki-24/shared-upstream co-fire: RTC monitors 115456700 (last 2026-08-10T06:16Z)/117279738 (last 2026-08-12T08:15Z), ms-account-api latency 65493111 (last 2026-08-09), Redis 227940275 (last 2026-08-11T13:34Z), 5XX 70171778 (last 2026-08-12T04:43Z) all OK/quiet well before this window -- isolated occurrence, no cascade. last_notified_at (2026-08-10T17:59:11Z) ~50h13m ago, PAST 24h suppression window -> RESURFACE POST, gate_reason=null, last_notified_at bumped to alert fire-ts 2026-08-12T20:07:12Z (not wall-clock send time 20:16:16Z, per last_notified_at-fire-ts convention). occ 657->658 (not %10 -- resurfaced via window-expiry, not the every-10th rule). fix_status chronic-residual-post-rollback-2026-06-05 unchanged. Posted to #triage-results (audit line docs/messages/2026-08-12/triage-results.jsonl, message_type known-issue, sent 20:16:16Z). Synthetic hash 4309e21022c8a281 (channel C03TYHGRS23 + DD monitor ts 2026-08-12T20:07:12+00:00). See docs/investigations/2026-08-12-4309e21022c8a281.md."
       }
     ],
     "prior_last_notified_at": "2026-07-31T15:07:56Z"
