@@ -969,8 +969,8 @@
     "id": "ki-2026-05-29-methodsession-getaccountbysubdomain-nre",
     "title": "method-platform-ui apps backend NRE in MethodSessionService.GetAccountBySubdomain() -> 'JWT Retrieval Failed' on subdomain-less synthetic monitor probes (Centreon + Datadog Watchdog noise)",
     "first_seen": "2026-05-29T12:49:31Z",
-    "last_seen": "2026-08-11T13:27:33Z",
-    "occurrences": 32,
+    "last_seen": "2026-08-13T02:04:27Z",
+    "occurrences": 33,
     "match": {
       "channels": [
         "alert-system"
@@ -995,7 +995,7 @@
           "contains": "methodportal.com/apps"
         }
       ],
-      "precedence_note": "Bare monitor-id match on 236570583 ('New issue to review' Watchdog, generic APM/infrastructure catch-all) is NOT sufficient on its own -- always corroborate with the ES aggregate (message:'JWT Retrieval Failed' OR message:'GetAccountBySubdomain') in the fire window before accepting. 2026-07-28 ~17:08Z REFUTED MATCH: monitor fired 14:40:33Z but the same-window ES aggregate returned 0 hits for the JWT/GetAccountBySubdomain signature -- this Watchdog fire flagged some other story, not this one. No occurrence bump; logged as a fresh needs-human finding instead (hash to be filled by the triage run). 2026-07-29 ~16:38Z REFUTED MATCH (2nd refutation): monitor 236570583 fired 16:38:33Z (still Alert at scan time -- event-count rollup), hash f9e26b28bf1e88db. Same-window ES aggregate on the exact message.keyword fields (not the broader analyzed 'message' field, which produced a misleading 2,888-hit false-positive on unrelated token matches like 'Cold-start restore...' and 'Subdomain Validation Failed' -- a query-scoping trap, not a real signal): message.keyword:\"JWT Retrieval Failed\" = 2 hits total (service method.ws/apps), message.keyword:\"GetAccountBySubdomain\" = 0 hits. Trivial, not a genuine recurrence. No occurrence bump. LESSON reinforced: always use message.keyword (exact) for this entry's corroboration check, never the analyzed message field with quoted-OR syntax -- it silently degrades to token matching and inflates counts. Logged as a fresh, near-zero-score needs-human finding instead. 2026-07-29 18:08Z (3rd refutation): DD monitor 236570583 fired again at 17:40:33Z; exact message.keyword:\"JWT Retrieval Failed\" and messageTemplate.keyword:*GetAccountBySubdomain* both returned 0 hits in the 17:10:33-17:40:33Z window (stronger refutation than the prior cycle's trivial-2-hits result). Monitor 236570583 remains 0-for-15 on DMs over the last 30 days -- flag as a tuning/retirement candidate to Ben."
+      "precedence_note": "Bare monitor-id match on 236570583 ('New issue to review' Watchdog, generic APM/infrastructure catch-all) is NOT sufficient on its own -- always corroborate with the ES aggregate (message:'JWT Retrieval Failed' OR message:'GetAccountBySubdomain') in the fire window before accepting. 2026-07-28 ~17:08Z REFUTED MATCH: monitor fired 14:40:33Z but the same-window ES aggregate returned 0 hits for the JWT/GetAccountBySubdomain signature -- this Watchdog fire flagged some other story, not this one. No occurrence bump; logged as a fresh needs-human finding instead (hash to be filled by the triage run). 2026-07-29 ~16:38Z REFUTED MATCH (2nd refutation): monitor 236570583 fired 16:38:33Z (still Alert at scan time -- event-count rollup), hash f9e26b28bf1e88db. Same-window ES aggregate on the exact message.keyword fields (not the broader analyzed 'message' field, which produced a misleading 2,888-hit false-positive on unrelated token matches like 'Cold-start restore...' and 'Subdomain Validation Failed' -- a query-scoping trap, not a real signal): message.keyword:\"JWT Retrieval Failed\" = 2 hits total (service method.ws/apps), message.keyword:\"GetAccountBySubdomain\" = 0 hits. Trivial, not a genuine recurrence. No occurrence bump. LESSON reinforced: always use message.keyword (exact) for this entry's corroboration check, never the analyzed message field with quoted-OR syntax -- it silently degrades to token matching and inflates counts. Logged as a fresh, near-zero-score needs-human finding instead. 2026-07-29 18:08Z (3rd refutation): DD monitor 236570583 fired again at 17:40:33Z; exact message.keyword:\"JWT Retrieval Failed\" and messageTemplate.keyword:*GetAccountBySubdomain* both returned 0 hits in the 17:10:33-17:40:33Z window (stronger refutation than the prior cycle's trivial-2-hits result). Monitor 236570583 remains 0-for-15 on DMs over the last 30 days -- flag as a tuning/retirement candidate to Ben. 2026-08-13 ~06:39Z (5th refutation): monitor 236570583 fired 06:39:33Z, hash 6f527ac6c5b3d73d. Same-window ES corroboration (06:09:33-06:39:33Z): message.keyword:\"JWT Retrieval Failed\" = 0 hits, messageTemplate.keyword:*GetAccountBySubdomain* = 0 hits. Not this issue. No occurrence bump; logged as a fresh near-zero-score needs-human finding instead (docs/investigations/2026-08-13-6f527ac6c5b3d73d.md). Running tally: 5 refutations (07-28, 07-29 x2, now 08-13) vs 3 confirmations (08-07, 08-10, 08-11) since this precedence_note was first added -- still roughly coin-flip. Recommendation to flag 236570583 for tuning/retirement to Ben remains unactioned."
     },
     "diagnosis": "Datadog Watchdog monitor 236570583 ('New issue to review', APM/infrastructure) and Centreon synthetic service-checks (bot B03GBAMHUTB, #alert-system) fire when the method-platform-ui apps backend (Com.Method.ServiceContract, .NET Framework, hosts PROD-NEW-04/5/6 serving method.ws + methodportal.com) throws System.NullReferenceException in Services.Account.MethodSessionService.GetAccountBySubdomain(), logged as 'JWT Retrieval Failed' (level Error). The NRE only triggers for requests with no resolvable account subdomain -- observed EXCLUSIVELY from synthetic monitor probes: UserAgent WindowsPowerShell/5.1, client IPs 172.31.105.207 (internal) + 52.9.26.127 (external), account id '0', paths /apps/api/system/getsessiondata, /apps/api/dashboard/getdashboardrightpanel/0, /apps/api/outlookgadget/getnavigation/0, /apps/api/search/recents. First investigated 2026-05-29 ~12:51Z (sharp 0->~28/5min onset; 84 hits 12:50-13:10Z vs 0 same-window 24h-ago). NO real-user impact: 0 non-PowerShell occurrences in window; real users always carry a valid subdomain so GetAccountBySubdomain() returns non-null for them. NOT a deploy regression -- method-platform-ui last commit 2026-05-06 (23d), ms-authentication-api healthy (1 error in window), gateway unaffected. Recurring/intermittent: 'JWT Retrieval Failed' = 336 over the prior 7 days but 0 in the same 24h-ago window, so it bursts when the probes run. Most likely trigger is a Centreon synthetic-check addition/change at ~12:51Z that probes these endpoints without a valid Host/subdomain, exposing a pre-existing missing null-guard. | 2026-06-19 ~12:50Z recurrence (occ7): synthetic JWT-NRE storm confirmed AGAIN 100% WindowsPowerShell (84 fails across PROD-NEW-04/5/6, 0 real-browser, 0 real-account-overview 404s) — benign per playbook. IMPORTANT: this time it CO-OCCURRED with a REAL #swat customer incident (multiple humans: blank white screen on login, intermittent/flapping 12:50-13:06Z, status.method.me incident 9ef87f6b). The real incident left ZERO backend fingerprint (gateway/auth/signin/apps all at baseline for real traffic) → root cause client-side/session/transient, undetermined from backend telemetry; tracked as needs-human group 3a30ee0f36c6939c. Lesson: do NOT let this benign synthetic match auto-dismiss a co-timed real incident.",
     "playbook": "1) Confirm synthetic-only: ES aggregate message:'JWT Retrieval Failed' by fields.UserAgent.keyword -- if 100% WindowsPowerShell and 0 real browsers, there is no customer impact; deprioritize. 2) Confirm the NRE: search the same docs for exceptions[].StackTraceString containing GetAccountBySubdomain in Com.Method.ServiceContract/Services/Account/MethodSessionService.cs. 3) Two independent fixes, pick per owner: (a) CODE -- add a null guard in MethodSessionService.GetAccountBySubdomain() so a missing/unknown subdomain returns 400/empty-session instead of dereferencing null (source is TFS-built Com.Method.ServiceContract, NOT in the GitHub clones -- route to the platform-ui/MethodUI backend owner); (b) MONITORING -- fix the Centreon synthetic check to send a valid account subdomain / Host header, or point it at a health endpoint that doesn't require an account, which silences both the false-CRITICAL Centreon alerts and the Datadog Watchdog 236570583 'New issue to review' noise. 4) Establish WHY it started at ~12:51Z (check Centreon check-config change history around that time). 5) Until fixed, #alert-system will keep getting intermittent Centreon CRITICALs + Watchdog 236570583 fires for this pattern -- treat as monitoring noise, not a customer outage.",
@@ -1003,7 +1003,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.85,
-    "last_notified_at": "2026-08-11T13:27:33Z",
+    "last_notified_at": "2026-08-13T02:04:27Z",
     "notes": [
       {
         "ts": "2026-07-05T20:28:02Z",
@@ -1529,8 +1529,8 @@
     "id": "ki-2026-07-03-eda-consumer-amqp-stopped-publishing",
     "title": "[EDA][Consumer][P3] eda_consumer AMQP publish-hits monitor intermittently goes No Data (team:devops, self-recovering, no correlated pipeline impact)",
     "first_seen": "2026-06-20T10:21:00Z",
-    "last_seen": "2026-08-10T10:53:27Z",
-    "occurrences": 48,
+    "last_seen": "2026-08-13T10:53:26Z",
+    "occurrences": 49,
     "match": {
       "channels": [
         "alert-system",
@@ -1570,7 +1570,7 @@
     "fix_template": null,
     "confidence": 0.8,
     "owning_team": "Integrations",
-    "last_notified_at": "2026-08-09T21:00:26Z",
+    "last_notified_at": "2026-08-13T10:53:26Z",
     "notes": [
       {
         "ts": "2026-06-20T10:13:00Z",
@@ -1687,6 +1687,10 @@
       {
         "ts": "2026-08-10T12:05:00Z",
         "note": "2026-08-10 ~12:05Z triage (degraded cycle, no Slack MCP). DD-scan-diff vs prior cutoff 2026-08-09T21:55:31Z. Monitor 296641466 fired 2026-08-10T10:53:27Z, hash 50fe2bd60c505cba, occ 47->48, OK by scan time (self-recovered). DD metric sum:trace.amqp.command.hits{service:eda_consumer,env:prod}.as_count() over the eval window (10:23:27-10:53:27Z) shows only 1 non-zero point (1 hit at 10:52:00Z) in the entire 30-min window -- near-zero traffic, matching the documented shape. 0 status:error DD logs. last_notified_at (2026-08-09T21:00:26Z) ~13h53m ago -- WITHIN 24h suppression window; occ 48 not %10; fix_status unchanged (escalated-for-review) -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-08-10-50fe2bd60c505cba.md."
+      },
+      {
+        "ts": "2026-08-13T11:40:00Z",
+        "note": "2026-08-13 ~11:09Z triage (degraded cycle, no Slack MCP surfaced this session; DD-scan-diff vs prior cutoff 2026-08-12T22:03:56Z, commit ed39de7, after a ~13h overnight gap). Monitor 296641466 fired 2026-08-13T10:53:26Z (OK at scan time, self-recovered), hash f70368a9f0213a60, occ 48->49. Sibling P1 monitors checked per playbook: 296632224 (Event ingest stopped) and 296636101 (Kafka events stopped) both OK, last_triggered 2026-07-23T06:20-06:21Z (>3 weeks stale) -- core EDA pipeline healthy. sum:trace.amqp.command.hits{service:eda_consumer,env:prod}.as_count() over the exact 30-min eval window (10:23:26-10:53:26Z): 1 total datapoint (1.0 hit at 10:53:20Z, right at window end), rest empty -- same benign near-zero-traffic shape as the majority of prior occurrences. service:eda_consumer status:error DD Logs = 0 hits same window. last_notified_at (2026-08-09T21:00:26Z) ~86h ago, EXCEEDED 24h suppression window -> POSTED to #triage-results, gate_reason=null (window-expiry), last_notified_at bumped to 2026-08-13T10:53:26Z. See docs/investigations/2026-08-13-f70368a9f0213a60.md."
       }
     ]
   },
@@ -2244,8 +2248,8 @@
     "id": "ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap",
     "title": "New team:crm AMQP-consumer heartbeat/throughput-stall monitors (5 sibling IDs, created 2026-07-02) intermittently trip on quiet-period low-traffic dips, then self-recover within minutes — no corroborating errors",
     "first_seen": "2026-07-04T13:07:31Z",
-    "last_seen": "2026-08-10T09:51:21Z",
-    "occurrences": 119,
+    "last_seen": "2026-08-13T06:45:22Z",
+    "occurrences": 121,
     "match": {
       "channels": [
         "alert-system",
@@ -2291,7 +2295,7 @@
     "fix_template": null,
     "confidence": 0.82,
     "owning_team": "CRM Experience (runtime-core-subscriber-api, per ownership.md:454) / Admin (mobile-notifications-stack, per ownership.md:416) — split by service; DD monitor tags say team:crm for both, ownership.md disagrees for the mobile-notifications component",
-    "last_notified_at": "2026-08-09T15:04:32Z",
+    "last_notified_at": "2026-08-13T04:06:31Z",
     "notes": [
       {
         "ts": "2026-07-04T16:10:00Z",
@@ -2560,6 +2564,10 @@
       {
         "ts": "2026-08-10T11:50:00Z",
         "note": "2026-08-10 ~11:50Z triage (degraded cycle, no Slack MCP). DD-scan-diff vs prior cutoff 2026-08-09T21:55:31Z. Monitor 302055141 (sibling of 302057011, same family) fired 2026-08-10T09:51:21Z, hash 9ff57d0520a378e5, occ 118->119, OK by scan time (self-recovered). DD metric sum:trace.amqp.command.hits{service:method-mobile-notifications-subscriber,env:prod}.as_rate() over the monitor's own last_60m eval window (08:51:21-09:51:21Z) returned only 1 data point in the entire 60-min window (0.1 msg/s at 09:49:20Z) -- the near-total absence of reported rate is itself strong confirmation of the near-silent-consumer heartbeat-floor trip (threshold ~0.005 msg/s), consistent with the documented family shape. 0 status:error DD logs. last_notified_at (2026-08-09T15:04:32Z) ~18h47m ago -- WITHIN 24h suppression window; occ 119 not %10 -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-08-10-9ff57d0520a378e5.md."
+      },
+      {
+        "ts": "2026-08-13T11:50:00Z",
+        "note": "2026-08-13 ~11:09Z triage (degraded cycle, no Slack MCP surfaced this session; DD-scan-diff vs prior cutoff 2026-08-12T22:03:56Z, commit ed39de7, after a ~13h overnight gap). 2 fires this cycle, occ 119->121. (1) hash 2302170286414dc0, monitor 302057011 (runtime-core-subscriber throughput) fired 2026-08-13T04:06:31Z: sum:trace.amqp.command.hits{service:runtime-core-subscriber,env:prod}.as_rate() over the exact 30-min eval window: 176 datapoints, range 0.1-134.0 -- brief dip below the ~2 msg/s floor, fast recovery. 0 status:error logs. No sibling co-fire. last_notified_at (2026-08-09T15:04:32Z) ~4d13h ago, PAST 24h window -> POSTED to #triage-results, gate_reason=null (window-expiry), last_notified_at bumped to 2026-08-13T04:06:31Z. (2) hash dfaa1ff9b6b5ae1f, monitor 302055141 (method-mobile-notifications-subscriber heartbeat) fired 2026-08-13T06:45:22Z, ~2h39m after (1): sum:trace.amqp.command.hits{service:method-mobile-notifications-subscriber,env:prod}.as_rate() over the exact 30-min eval window: only 1 datapoint (0.3), rest silent -- same benign near-total-quiet shape as the heartbeat check's documented pattern. 0 status:error logs. No sibling co-fire. last_notified_at was JUST reset by fire (1) moments earlier in this same cycle -- SUPPRESSED, gate_reason=known-issue-window (same-cycle gate-ordering artifact, not a genuine 24h-window suppression; independently genuine occurrence). See docs/investigations/2026-08-13-2302170286414dc0-family.md."
       }
     ]
   },
@@ -2888,8 +2896,8 @@
     "id": "ki-2026-07-05-rainforest-outbound-api-p95-latency",
     "title": "[Rainforest] Outbound API P95 Latency > 3s -- runtime-core-api outbound calls to api.rainforestpay.com intermittently breach 3s p95, self-recovering, zero corroborating errors (third-party latency, not a Method-side defect)",
     "first_seen": "2026-07-05T08:31:25Z",
-    "last_seen": "2026-08-11T15:07:25Z",
-    "occurrences": 24,
+    "last_seen": "2026-08-12T23:52:25Z",
+    "occurrences": 25,
     "match": {
       "channels": [
         "alert-system",
@@ -2917,7 +2925,7 @@
     "fix_template": null,
     "confidence": 0.7,
     "owning_team": "Transactions (per ownership.md:119, Payment processing component; monitor tag team:transactions agrees)",
-    "last_notified_at": "2026-08-10T17:20:26Z",
+    "last_notified_at": "2026-08-12T23:52:25Z",
     "notes": [
       {
         "ts": "2026-07-05T15:20:44Z",
@@ -2993,8 +3001,8 @@
     "id": "ki-2026-07-06-rainforest-merchant-details-503-serviceunavailable",
     "title": "runtime-core-api Rainforest GetMerchantAsync (merchant-details lookup) fails with ServiceUnavailable when Rainforest's own API returns a 503 -- third-party payment-processor degradation, not a Method-side defect",
     "first_seen": "2026-07-06T13:02:25Z",
-    "last_seen": "2026-08-12T13:48:52Z",
-    "occurrences": 24,
+    "last_seen": "2026-08-13T08:12:52Z",
+    "occurrences": 25,
     "match": {
       "channels": [
         "alert-system"
@@ -3768,8 +3776,8 @@
     "id": "ki-2026-07-07-notifications-p95-latency-monitor-noise",
     "title": "[CRM][P2] notifications P95 latency high monitor fires but re-query of the same evaluation window shows the metric never approaches the threshold -- monitor/data artifact, not real latency",
     "first_seen": "2026-07-06T10:01:07Z",
-    "last_seen": "2026-08-10T08:43:07Z",
-    "occurrences": 32,
+    "last_seen": "2026-08-13T08:43:08Z",
+    "occurrences": 33,
     "match": {
       "channels": [
         "alert-system",
@@ -3794,7 +3802,7 @@
     "fix_template": null,
     "confidence": 0.72,
     "owning_team": "CRM Experience",
-    "last_notified_at": "2026-08-10T11:40:00Z",
+    "last_notified_at": "2026-08-13T08:43:08Z",
     "notes": [
       {
         "ts": "2026-07-06T11:40:00Z",
