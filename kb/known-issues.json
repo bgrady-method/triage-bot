@@ -4372,6 +4372,39 @@
     "last_notified_at": null
   },
   {
+    "id": "ki-2026-08-13-tables-fields-getfields-nullreference-emailsenders",
+    "title": "ms-tables-fields-api \"GetFields Failed\" NullReferenceException in FieldController.GetFields on the EmailSenders view -- distinct from all prior signatures on monitor 299251404 (8th distinct bug class)",
+    "first_seen": "2026-08-13T19:42:10Z",
+    "last_seen": "2026-08-13T19:42:28Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-system",
+        "alert-no-code-next-gen",
+        "alert-runtime-monitoring"
+      ],
+      "any_of": [
+        {
+          "contains": "GetFields Failed"
+        },
+        {
+          "contains": "NullReferenceException"
+        }
+      ],
+      "precedence_note": "2026-08-13: DD monitor 299251404 ('Service tables-fields has a high error rate') fired again; ES message.keyword aggregate over the burst window returned a single bucket: 'GetFields Failed' (10/10 hits), all carrying a full exceptions[] object: System.NullReferenceException at API.Controllers.FieldController.GetFields (FieldController.cs, inside the fields.Select(_ => {...}) lambda around line 463, thrown when a Field's linked Column resolves null). IMPORTANT DISAMBIGUATION: the bare message text 'GetFields Failed' is NOT unique to this entry -- ki-2026-07-02-tables-fields-fieldtablenameref-null-linked-fields' own 2026-07-13 occurrence note documents a DIRECT GetFields API-call variant that also logs 'GetFields Failed' but throws System.ArgumentNullException ('FieldTableNameRef Is Null'), not NullReferenceException -- both exceptions are caught by the same catch-all logger call in FieldController.GetFields, so the message text alone cannot distinguish them. ALWAYS read exceptions[0].ClassName before accepting a match: System.NullReferenceException with no 'FieldTableNameRef' in the message/stack = this entry; System.ArgumentNullException with 'FieldTableNameRef Is Null' = ki-2026-07-02. Also distinct from ki-2026-07-06 x2, ki-2026-07-09, ki-2026-07-11, and ki-2026-07-28 (different message text entirely). This is now the 8th distinct documented bug class sharing bare monitor 299251404 -- see feedback_kb_bare_monitor_id_false_match precedent."
+    },
+    "diagnosis": "DD monitor 299251404 transitioned OK at 2026-08-13T19:48:24Z (overall_state_modified; scan-observed, self-recovered by the time of this degraded-cycle scan). Metric burst: sum:trace.aspnet_core.request.errors{env:prod,service:tables-fields}.as_count() shows exactly 10 errors, all within 2026-08-13T19:41:00-19:42:29Z, against a concurrent request-hits spike (473+197=670 requests in the first 20s of that window) -- error rate ~1.37% (10/730 over the burst), just above the monitor's 1% warning threshold, well under the 5% critical threshold. ES aggregate fields.dd_service.keyword:tables-fields AND level.keyword:Error, 19:38:00-19:48:00Z: 10/10 hits bucket to message.keyword 'GetFields Failed'. All 10 records share requestId 9677552e-15cb-4693-bfe3-9f829aa9886a (repeated retries/re-renders of one client-side request, not 10 independent user actions), RequestPath /v1/field/GetFields?viewFriendlyName=EmailSenders, exceptions[0]: System.NullReferenceException 'Object reference not set to an instance of an object.' at API.Controllers.FieldController.<>c__DisplayClass22_0.<GetFields>b__4(Field _) (FieldController.cs:463), called from FieldController.GetFields(String viewFriendlyName, Boolean isViewName, String filter) (FieldController.cs:500). Account identified from the request-log companion line: AccountName 'brpmett02' (DbName 'bigrigpower') -- single account, single view (EmailSenders) across the entire burst; account_impact.py returned status 'not_found' for both 'brpmett02' and the 'bigrigpower' DbName variant (retried per convention) -- clusters_unconfigured: prod3/prod4/prod5, so impact could not be resolved to an active-user count; contributes 0 to escalation scoring (user_count_source: named_only, 0 resolved). Extrapolation: not warranted -- error is account-specific (single account, single view, all 10 hits are retries of one failing request), per branch 3 of the step-4.4 rubric. Local ms-tables-fields-api clone is stale (last commit 2026-04-24) and `git fetch origin master` returned HTTP 403 (methodcrm-org GH_TOKEN gap, project_methodcrm_gh_token_403) -- deploy correlation could not be checked, and the stale local FieldController.cs (lines ~449-488) shows a plausible but unverified anchor: a `fields.Select(_ => { var column = (ColumnBase)_.Column; ... if (column.IsLinked ...) })` lambda that would NRE if `_.Column` resolves null for a field on the EmailSenders view. Given the repo can't be fetched to confirm current line numbers/content, this is not proposed as a verified fix -- classified needs-human, not new-with-clear-fix.",
+    "playbook": "1) Confirm via ES: fields.dd_service.keyword:tables-fields AND level.keyword:Error AND message.keyword:\"GetFields Failed\". 2) Check exceptions[0].ClassName == System.NullReferenceException and exceptions[0].StackTraceString contains 'FieldController.<>c__DisplayClass22_0.<GetFields>b__4' to confirm this exact signature (vs the other 7 on this monitor). 3) Pull the companion request-completion log line (message starting '500 (Internal Server Error) status code, request uri: .../v1/field/GetFields?viewFriendlyName=...') for the affected account/view via the shared requestId. 4) Needs-human: once methodcrm GH_TOKEN access is restored, inspect the current FieldController.GetFields lambda (search for the `fields.Select` projection) for a Field/Column pairing that can be null for the reported viewFriendlyName -- add a null-guard or filter out unresolvable Fields before the projection runs.",
+    "fix_status": "needs-human",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.7,
+    "evidence_source": "elasticsearch",
+    "evidence_query": "fields.dd_service.keyword:tables-fields AND level.keyword:Error AND message.keyword:\"GetFields Failed\"",
+    "owning_team": "Admin",
+    "last_notified_at": null
+  },
+  {
     "id": "ki-billingengine-api-key1-removed-in-refactor",
     "title": "billingengine-api subscription pages 500 on Sunday after Friday release removed API key1 used by nightly billing agent",
     "first_seen": "2026-04-26T14:18:00Z",
