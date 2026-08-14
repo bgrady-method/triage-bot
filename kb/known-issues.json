@@ -2043,11 +2043,12 @@
     "id": "ki-2026-07-03-ms-scheduler-api-seriesid-negative-recordid",
     "title": "ms-scheduler-api GetSeriesAsync throws InvalidOperationException when called with recordId=-1 (chronic, code-level missing-guard bug, now confirmed across multiple accounts, ~10-21+/day for 7+ days)",
     "first_seen": "2026-06-26T00:00:00Z",
-    "last_seen": "2026-08-10T18:59:33Z",
-    "occurrences": 147,
+    "last_seen": "2026-08-14T21:50:33Z",
+    "occurrences": 148,
     "match": {
       "channels": [
-        "alert-system"
+        "alert-system",
+        "alert-runtime-monitoring"
       ],
       "any_of": [
         {
@@ -2080,7 +2081,7 @@
     "fix_template": null,
     "confidence": 0.8,
     "owning_team": "CRM Experience",
-    "last_notified_at": "2026-08-10T18:59:33Z",
+    "last_notified_at": "2026-08-14T21:50:33Z",
     "notes": [
       {
         "ts": "2026-07-03T13:09:00Z",
@@ -2153,6 +2154,10 @@
       {
         "ts": "2026-08-10T19:20:00Z",
         "note": "2026-08-10 ~19:09-19:20Z triage (degraded cycle, no Slack MCP): 147th occurrence, monitor 303750093 last_triggered 18:59:33Z, hash fa79f2d350d61f1f, self-recovered (OK) by scan time. Corrected ES search (evidence_query field, exceptions.Message.keyword) over the monitor's own 18:49:33-18:59:33Z eval window: 18 hits, 2 accounts -- icrasolutionsllc:14, mountainelectricllc3:4 -- both additional distinct accounts beyond the prior list, continuing the code-level-defect (not account-specific) framing. Same canonical GetSeriesIdAsync(recordId=-1)/SeriesDataProvider.cs:143/123 signature. last_notified_at (2026-08-04T12:28:33Z) ~6d ago -- EXCEEDS 24h suppression window -> POST to #triage-results (gate_reason=null, window-expiry), last_notified_at bumped to 2026-08-10T18:59:33Z. See docs/investigations/2026-08-10-fa79f2d350d61f1f.md."
+      },
+      {
+        "ts": "2026-08-14T22:10:17Z",
+        "note": "2026-08-14 ~22:10Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch for \"slack conversations history\" and \"slack\" both returned no matching deferred tool). DD-scan-diff vs prior cutoff 2026-08-14T19:25:11Z (commit ad029f3). Full 186-monitor scan (no count regression): 8 monitors transitioned. Screened each by real notify tag via full monitor-detail lookup: 5 out-of-scope (299544677 signin-5xx @slack-alert-admin-monitoring, 299551472 ImportSubscriber @slack-alert-admin-monitoring, 301037701 QBO-sync-stalled @slack-alert-connect-monitoring, 154163500+154229727 Signup errors/SLO @slack-methodme-alert-growth-monitoring). 148th occurrence: monitor 303750093 fired 21:50:33Z, self-recovered (OK) by scan time. CHANNEL-SCOPE BUG FOUND: match_kb.py --channel alert-runtime-monitoring returned no hit (this entry's match.channels was [\"alert-system\"] only) despite the monitor's confirmed real notify target being @slack-alert-runtime-monitoring (verified via full monitor detail, not just --summary) -- same gap class as fa-2026-07-15-method-nativemobile-ui-rum-client-network-noise, fixed 2026-08-13. Added \"alert-runtime-monitoring\" to match.channels (kept alert-system too -- no evidence removing it is safe, just that it was an unverified assumption from entry creation). ES search (evidence_query field, exceptions.Message.keyword) over the monitor's own 21:40:33-21:50:33Z eval window: 8 hits, single account foamtechinc (previously-seen contributor), full raw sample confirmed identical canonical GetSeriesIdAsync(recordId=-1)/SeriesDataProvider.cs:143/123 stack trace, no new failure mode. last_notified_at was 2026-08-10T18:59:33Z, ~4d2h51m ago -- EXCEEDS the 24h suppression_window_hours -> POST to #triage-results per the window-expiry gate (gate_reason=null), last_notified_at bumped to 2026-08-14T21:50:33Z. See docs/investigations/2026-08-14-c55f6328e60893e5.md."
       }
     ]
   },
