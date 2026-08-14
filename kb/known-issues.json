@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-08-14T12:35:11Z",
-    "occurrences": 662,
+    "last_seen": "2026-08-14T15:05:11Z",
+    "occurrences": 663,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -4408,6 +4408,41 @@
     "evidence_query": "fields.dd_service.keyword:tables-fields AND level.keyword:Error AND message.keyword:\"GetFields Failed\"",
     "owning_team": "Admin",
     "last_notified_at": null
+  },
+  {
+    "id": "ki-2026-08-14-microservices-method-int-100s-timeout-cascade",
+    "title": "Brief (~70s) cross-service timeout cascade -- calls through microservices.method.int (preferences, tags, scheduler, authservice) hang and hit the 100s HttpClient ceiling simultaneously across runtime-core-api, ms-tags-api, method-mobile-notifications-api, and gateway",
+    "first_seen": "2026-08-14T14:09:00Z",
+    "last_seen": "2026-08-14T14:10:10Z",
+    "occurrences": 1,
+    "match": {
+      "channels": [
+        "alert-system",
+        "alert-runtime-monitoring",
+        "alert-frontend-errors",
+        "swat",
+        "team-incident-response"
+      ],
+      "any_of": [
+        {
+          "contains": "Request timed out after 100s"
+        },
+        {
+          "regex": "microservices\\.method\\.int.*timed out after 100s"
+        }
+      ],
+      "precedence_note": "Distinct from ki-microservices-method-int-upstream-502-bad-gateway (that one is an immediate nginx 502 HTML response -- upstream IIS pool down/recycling) and from ki-dns-microservices-method-int-pps-quota (DNS NXDOMAIN / negative-cache, 15-min plateaus). THIS signature is a client-side 100s HttpClient timeout with NO response at all -- the call target itself (ms-preferences-api, confirmed via its own p95 metric) stayed healthy throughout, so the stall is in the network/reverse-proxy hop to microservices.method.int, not in any single backend app. If a future fire shows a 502 HTML body or NXDOMAIN/DNS errors, prefer those two entries instead."
+    },
+    "diagnosis": "DD monitor 70171778 ('Unexpected number of 5XX errors', sum(last_5m) by service > 30) fired with last_triggered_ts 2026-08-14T14:16:38Z (several minutes after the actual burst -- consistent with the documented DD metric-evaluator lag on this monitor). DD metric by-{service} breakdown of trace.aspnet_core.request.errors{env:prod,http.status_code:5*} over 14:01:38-14:18:38Z showed the 5xx total (255 across 8 services) overwhelmingly concentrated on service:gateway (223, peak 55 in one 10s bucket at 14:09:40Z) with a secondary concentration on method-mobile-notifications-api (22, peak 5). Cross-referencing DD p95-latency metrics pinned the exact incident window: both ms-tags-api and method-mobile-notifications-api p95 latency jumped from a sub-2s baseline to a flat ~100s (99.954-100.236s) for 7 consecutive 10s buckets, 2026-08-14T14:09:10Z-14:10:10Z, then instantly recovered to baseline -- the flat ~100s ceiling across two independent services is the signature of an HttpClient default timeout being hit, not organic slowness. ms-preferences-api's OWN p95 latency stayed under 2s throughout the same window (confirmed via its own metric), ruling out ms-preferences-api application code as the cause. ES aggregate of all-service Error-level logs in the tight 14:09:00-14:10:20Z window (121 total) showed runtime-core-api as the largest single bucket (54), with all 54 sharing the exact message template 'Request timed out after 100s for URL: http://microservices.method.int/preferences/v3/internal/account/featureflags?accountId=<id>' across >=10 distinct accountIds (diffuse, not account-specific). A raw ES search of gateway's own Warning-level logs in the burst window found the matching symptom on the gateway side too: '500 (Internal Server Error) status code, request uri: http://microservices.method.int/...' spanning multiple unrelated virtual apps (tags/v2/apply, scheduler/v1/series/getseries, authentication/v1/portal/oauth/signin-oidc) -- diffuse across virtual apps, ruling out a single backend service's bug and pointing at the shared microservices.method.int hop (nginx reverse proxy / IIS site layer) itself. Net mechanism: for ~70 seconds, calls from runtime-core-api (and other callers) to arbitrary virtual apps behind microservices.method.int stalled with no response until the caller's 100s HttpClient timeout fired; every downstream consumer of runtime-core-api or of microservices.method.int directly (ms-tags-api, method-mobile-notifications-api, gateway's own proxy path) surfaced the same window as 5xx/high-latency. Deploy correlation not checked -- methodcrm-org GH_TOKEN returned HTTP 403 on ms-gateway-api/ms-preferences-api fetches this session (known, non-blocking gap). Exact trigger (nginx worker stall, IIS site hiccup, transient network partition/packet loss to the microservices.method.int host, or connection-pool exhaustion on the calling side) not independently confirmed from available telemetry -- flagged as needs-human.",
+    "playbook": "1) Confirm via ES: level.keyword:Error AND message:\"Request timed out after 100s\" -- if hits span >=2 distinct target virtual apps (not just one service's endpoint), this is the cross-cutting proxy-layer pattern, not a single service's bug. 2) Cross-check DD p95 latency for any 2+ downstream services (ms-tags-api, method-mobile-notifications-api, runtime-core-api, gateway) for a flat ~100s plateau in the same tight window -- the flat ceiling (not organic climb) is the tell. 3) Rule out the called service's own health by checking ITS OWN p95/error metric in the same window (expect healthy) -- if the target itself is healthy, the stall is in the microservices.method.int hop, not the backend app. 4) Distinguish from ki-microservices-method-int-upstream-502-bad-gateway (immediate 502 HTML, not a 100s hang) and ki-dns-microservices-method-int-pps-quota (DNS NXDOMAIN, 15-min plateau, not 70s). 5) If duration extends well past ~1-2 minutes or co-fires with a swat/team-incident-response post, escalate as a live incident -- this occurrence was brief and fully self-recovered.",
+    "fix_status": "needs-human",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.65,
+    "evidence_source": "elasticsearch",
+    "evidence_query": "level.keyword:Error AND fields.dd_service.keyword:runtime-core-api AND message:\"Request timed out after 100s\"",
+    "owning_team": "Admin, Vertical App Experience, CRM Experience",
+    "last_notified_at": "2026-08-14T15:09:00Z"
   },
   {
     "id": "ki-2026-08-14-nonprod-apps-redis-crossslot-cacheflush",
