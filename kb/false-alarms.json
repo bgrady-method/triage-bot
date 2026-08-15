@@ -1299,5 +1299,25 @@
     "last_seen": "2026-08-02T05:44:56Z",
     "occurrences": 1,
     "recommendation": "Recommend to Growth/First-Strike team: gate this monitor on a minimum request-count denominator (e.g. require hits > 20 in the eval window) before evaluating the error-rate percentage, same recommendation as the sibling signup low-traffic monitors."
+  },
+  {
+    "target": "false-alarms",
+    "id": "fa-2026-08-15-sommselection-bingbot-analytics-beacon-noise",
+    "match": {
+      "channels": [
+        "alert-frontend-errors"
+      ],
+      "any_of": [
+        {
+          "contains": "for account: sommselection"
+        }
+      ]
+    },
+    "reason": "Monitor 77419271 (\"Unusual number of XHR errors for account\", >40 XHR errors in 5min rolled up by @account_name) fired 2026-08-15T16:07:12Z on group @account_name:sommselection (overall_state_modified). Naive text match against the monitor title/id also hits the chronic ki-2026-05-21-gateway-microservices-timeout entry (bare \"Unusual number of XHR errors for account\" / \"monitors/77419271\" clauses) -- but the underlying mechanism here is NOT the gateway/GetSyncWidgetInfoAsync timeout pattern. DD logs re-query (service:method-ui, 2026-08-15T15:47:12-16:07:12Z, 200-cap sample): 57/200 hits are account:sommselection, and 100% of those (57/57) are POST https://sommselection.methodportal.com/api/analytics/user/Event?eventName=GoTo+Screen failures with http.status_code=0 (network-level, error.origin=network, error.stack=\"Failed to load\") -- zero server-side 4xx/5xx. All 57 hits share exactly ONE session_id and ONE client IP (4.246.104.192, Microsoft/Azure hosting ASN AS8075). User-agent breakdown: 48/57 identify as bingbot, 9/57 as HeadlessChrome -- a single automated crawler session, not real users. The remaining 109/200 sampled hits in the same window are the usual diffuse syncwidget/GetSyncWidgetInfoAsync pattern across many other accounts (unrelated, chronic ki-21 baseline, not what tripped this account-scoped group). Zero real customer impact -- one bot crawling sommselection's portal generated enough client-side analytics-beacon network failures to cross the per-account threshold.",
+    "silence_for": "24h",
+    "first_seen": "2026-08-15T16:07:12Z",
+    "last_seen": "2026-08-15T16:07:12Z",
+    "occurrences": 1,
+    "recommendation": "Match is deliberately scoped to this specific account (\"for account: sommselection\") rather than the bare monitor id / generic title, to avoid shadowing genuine future ki-2026-05-21-gateway-microservices-timeout recurrences on other accounts (see feedback_kb_bare_monitor_id_false_match). If this bot-crawler-triggers-analytics-beacon-XHR-errors mechanism recurs on other accounts, consider a broader KB entry keyed on the single-session/single-IP/non-human-useragent signature rather than account name. Longer-term fix candidate for Growth (owns Analytics component): don't let unauthenticated/bot crawler traffic execute the analytics-beacon POST at all (gate on a real user session), or have the monitor exclude http.status_code:0 network-level client failures from the XHR-error count."
   }
 ]
