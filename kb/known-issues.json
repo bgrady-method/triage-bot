@@ -2269,7 +2269,7 @@
     "id": "ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap",
     "title": "New team:crm AMQP-consumer heartbeat/throughput-stall monitors (5 sibling IDs, created 2026-07-02) intermittently trip on quiet-period low-traffic dips, then self-recover within minutes — no corroborating errors",
     "first_seen": "2026-07-04T13:07:31Z",
-    "last_seen": "2026-08-15T21:11:33Z",
+    "last_seen": "2026-08-15T21:20:31Z",
     "occurrences": 127,
     "match": {
       "channels": [
@@ -2594,6 +2594,10 @@
       {
         "ts": "2026-08-15T18:15:00Z",
         "note": "2026-08-15 18:15Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch confirmed no slack/conversations tool; DD monitor scan diff vs 2026-08-15T16:34:08Z cutoff; hash 3d227c23397c5fc1): monitor 302057011 ([CRM] runtime-core-subscriber throughput dropped (possible stall)) triggered 17:43:31Z, resolved 17:51:31Z (overall_state_modified 17:52:31Z) -- full Alert->OK cycle happened between two poll cycles, occ 124->125. DD metric sum:trace.amqp.command.hits{service:runtime-core-subscriber,env:prod}.as_rate() over 17:00:00-17:58:00Z: sustained sub-5msg/s baseline through the trigger window (several sub-2msg/s troughs) then clearing bursts (40.6/70.2msg/s) after 17:50Z -- canonical quiet-period-flap shape, matching all 124 prior occurrences. 0 service:runtime-core-subscriber status:error DD logs in window. No sibling monitor in the 5-monitor family co-fired this cycle (full 186-monitor scan). last_notified_at (2026-08-15T11:21:46Z) ~6h31m old, WITHIN 24h suppression window; occurrence 125 not %10; fix_status unchanged -> SUPPRESS gate_reason=known-issue-window, appended to docs/actionable/2026-08-15.md. See docs/investigations/2026-08-15-3d227c23397c5fc1.md."
+      },
+      {
+        "ts": "2026-08-15T22:13:00Z",
+        "note": "2026-08-15 22:13Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-08-15T20:44:31Z cutoff): monitor 302057011 recovered to OK at 21:20:31Z (overall_state_modified), recovery-transition-artifact of the SAME still-open episode already logged as group 2a2eb8120582e846 (opened 19:48:31Z) and flagged to Ben as a duration deviation at 21:14:37Z (still-Alert re-check at 21:11:33Z, ~83min open). No new group formed -- this is the closing recovery of that episode, not a new fire. Total elapsed 19:48:31Z-21:20:31Z = ~92min, confirming it as the first occurrence across the family's 128 fires to exceed both the documented 5-50min self-recovery range and the playbook step-5 ~1h escalate guideline. DD metric sum:trace.amqp.command.hits{service:runtime-core-subscriber,env:prod}.as_rate() over 20:44:31-21:25:00Z: sustained sub-2msg/s baseline continues through ~21:18:00Z, then the clearing burst (22.5/131.6/56.7 msg/s at 21:18:00-21:18:30Z) matching the 21:20:31Z recovery timestamp, followed by a return to the family's normal low-baseline oscillation (0.1-2.9msg/s) -- canonical quiet-period-flap shape, just slower to clear than every prior occurrence. 0 service:runtime-core-subscriber status:error DD logs for the 20:44:31-21:20:31Z window. No sibling monitor in the 5-monitor family co-fired. Occurrences NOT incremented (same continuous episode as occ 127, not a new fire) -- diagnosis stands as benign quiet-period flap with a now-confirmed longer tail than previously observed; the RabbitMQ-queue-depth / CRM Runtime Workers dashboard follow-up recommended in the prior note was not needed since it self-resolved before any manual intervention. Sent Ben a closing health-status DM since the prior cycle proactively flagged this as open."
       }
     ]
   },
