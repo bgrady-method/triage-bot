@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-08-15T19:08:11Z",
-    "occurrences": 670,
+    "last_seen": "2026-08-16T20:40:12Z",
+    "occurrences": 671,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -157,9 +157,13 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.88,
-    "last_notified_at": "2026-08-15T19:08:11Z",
+    "last_notified_at": "2026-08-16T20:40:12Z",
     "prior_fix_status": "needs-ops-decision",
     "notes": [
+      {
+        "ts": "2026-08-16T21:08:00Z",
+        "note": "2026-08-16 21:08Z triage (degraded cycle, no Slack MCP): occ#671 via monitor 77419271 last_triggered 20:40:12Z (OK now, self-recovered). Synthetic hash e9ce7dab5f1d8d52 (channel C03TYHGRS23 + DD monitor ts 20:40:12Z). ES aggregate (\"Unusual number of XHR errors for account\" OR \"monitors/77419271\" OR GetSyncWidgetInfoAsync, regex clause manually restored per project_kb_to_es_query_drops_regex_clause) 20:20:12-20:40:12Z: 9 hits, 100% service:gateway -- confirms Ocelot ResponderMiddleware mechanism, lower magnitude than typical but non-empty. DD method-ui XHR error logs, widened to 60min (19:40:12-20:40:12Z) for shape check: 200-cap saturated, 46 distinct accounts; top gateway/syncwidget/GetSyncWidgetInfoAsync path accounts diffuse (aandmdiscountfurniture4 31, certusa 7, englandlogistics 2, boschfamilybrewingcompanyllc 2, smstechsolutionsllc 1 = 43 hits) consistent with canonical ki-21 shape. NEW OBSERVATION: same window also shows a concentrated single-account burst on tcg3 (28 hits, all 'Failed to load'/status_code:0/origin:network, within a 2.6s span 20:33:23-20:33:25Z) and capitalcoinco3 (21 hits) hitting /runtime/api/v1/{datatable,grid}/... -- a DIFFERENT endpoint from the documented gateway/syncwidget mechanism. ES check for tcg3 in that exact 2.6s window: 0 server-side hits (accountName:tcg3 OR account:tcg3, all services) -- no backend corroboration, consistent with a single-session client-network-drop burst (many concurrent XHRs aborting together), not a server-side incident; not treated as a new group (same DD monitor transition, no independent alert signal, single-account/sub-3s burst -- extrapolation branch 3, not warranted). Flagged for Ben as a shape deviation worth a second look if it recurs concentrated on the same account. No ki-24 co-fire this cycle (RTC monitors 115456700/117279738 both pre-cutoff/quiet). last_notified_at (2026-08-15T19:08:11Z) ~25h32m ago, PAST 24h suppression window -> POST gate_reason=null (not resurface-modulo, window naturally elapsed). occ 670->671, last_seen/last_notified_at -> 2026-08-16T20:40:12Z. See docs/investigations/2026-08-16-e9ce7dab5f1d8d52.md."
+      },
       {
         "ts": "2026-08-14T19:12:36Z",
         "note": "2026-08-14 19:12Z triage (degraded cycle, no Slack MCP): occ#667 via monitor 77419271 last_triggered 18:30:11Z (OK now, self-recovered). Synthetic hash 6b14310d350bc462 (channel C03TYHGRS23 + DD monitor ts 18:30:11Z). DD method-ui XHR error logs 18:10:11-18:30:11Z: 200-sample-cap saturated, 103 distinct accounts (top maconstructiongroup 13 ~6.5%, crslaboratories 12, mobilitycityofrogersar 11, shedsunlimited 9), dominant path GetSyncWidgetInfoAsync/syncwidget in top-resource sample -- canonical chronic ki-21 shape (diffuse, no concentration). ES aggregate (query manually restored with GetSyncWidgetInfoAsync regex clause per the known kb_to_es_query.py drop bug) same window: 282 hits, 100% attributed to service:gateway -- confirms Ocelot ResponderMiddleware mechanism. No ki-24 co-fire this cycle: RTC monitors 115456700 (last 2026-08-10) / 117279738 (last 2026-08-12) quiet/pre-cutoff; Redis 227940275 (last 2026-08-14T13:19:35Z) and 5XX monitor 70171778 (last 2026-08-14T14:16:38Z) both pre-cutoff/OK -- no shared-upstream backpressure, no cascade. last_notified_at (2026-08-14T11:35:00Z) ~6h55m ago, WITHIN 24h suppression window; occ 666->667 (not %10); fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window, appended to docs/actionable/2026-08-14.md. New notify target observed this scan: monitor 299551472 @slack-alert-admin-monitoring, not a polled channel, out of scope. See docs/investigations/2026-08-14-6b14310d350bc462.md."
