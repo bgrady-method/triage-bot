@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-08-17T04:51:11Z",
-    "occurrences": 673,
+    "last_seen": "2026-08-17T12:39:11Z",
+    "occurrences": 674,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -679,6 +679,10 @@
       {
         "ts": "2026-08-17T04:51:11Z",
         "note": "Occurrence 673 (degraded-mode DD-scan-diff, cycle 2026-08-17). ES 2/2 hits 100% service:gateway. DD log sample (60min) dominated by canonical GetSyncWidgetInfoAsync path; deccanfoods4 113/200 (57%) but same canonical mechanism, not a bot/beacon deviation. No new deviation vs the tcg3 pattern flagged 2026-08-16."
+      },
+      {
+        "ts": "2026-08-17T13:09:00Z",
+        "note": "2026-08-17 13:09Z triage (degraded cycle, no Slack MCP): occ#674 via monitor 77419271 group @account_name:crslaboratories last_triggered 12:39:11Z (monitor-level overall_state OK, resolved 12:43:11Z, self-recovered ~4min). Synthetic hash da2e919b0134e0d4 (channel C03TYHGRS23 + group last_triggered_ts). Full 186-monitor DD-scan-diff vs prior cutoff 2026-08-17T10:39:27Z: 6 monitors past cutoff, only this one in-scope (3 Synthetics @slack-team-qa-performance-tests, 1 Rainforest @slack-alert-transactions-monitoring not a polled channel, 1 ImportSubscriber @slack-alert-admin-monitoring excluded per standing rule -- all out of scope). ES aggregate (query manually restored with GetSyncWidgetInfoAsync regex clause per the known kb_to_es_query.py drop bug) 12:19:11-12:39:11Z: 117 hits, 100% service:gateway -- confirms Ocelot ResponderMiddleware mechanism. DD method-ui XHR error logs same window, 200-sample-cap saturated: top crslaboratories 24 (~12%), then exloc9/truegrainimportsllc/timberwolfforest 12 each, GLW2021 9, bindersincCo1 9 -- diffuse fan-out, canonical chronic shape, NOT the 2026-06-04 100x OUTAGE surge. No ki-24 co-fire: RTC monitors 115456700 (last 2026-08-16T12:05Z) / 117279738 (last 2026-08-16T10:45Z) both quiet/pre-cutoff; Redis 227940275 (last 2026-08-14), 5XX 70171778 (last 2026-08-14), ms-account 65493111 (last 2026-08-16T13:39Z) all pre-cutoff/OK -- no shared-upstream backpressure. last_notified_at (2026-08-16T20:40:12Z) ~15h59m ago, WITHIN 24h suppression window; occ 674 not %10; fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window, appended to docs/actionable/2026-08-17.md. See docs/investigations/2026-08-17-da2e919b0134e0d4.md."
       }
     ],
     "prior_last_notified_at": "2026-07-31T15:07:56Z"
