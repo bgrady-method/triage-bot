@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-08-18T17:43:12Z",
-    "occurrences": 689,
+    "last_seen": "2026-08-18T18:23:12Z",
+    "occurrences": 690,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -157,8 +157,8 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.88,
-    "last_notified_at": "2026-08-17T19:08:51Z",
-    "prior_fix_status": "needs-ops-decision",
+    "last_notified_at": "2026-08-18T19:12:24Z",
+    "prior_fix_status": "chronic-residual-post-rollback-2026-06-05",
     "notes": [
       {
         "ts": "2026-08-16T21:08:00Z",
@@ -703,9 +703,13 @@
       {
         "ts": "2026-08-18T14:08:11Z",
         "text": "Occurrence #686, degraded-cycle DD-scan-diff (no Slack MCP this session; monitor 77419271 state OK->Warn transition, last_triggered_ts 14:08:11Z, past prior cutoff 12:40:12Z). kb_to_es_query.py regex-drop bug confirmed again (dropped GetSyncWidgetInfoAsync clause) -- manually restored. ES aggregate 13:03:11-14:08:11Z (65min window): 955 hits, 100% service:gateway -- confirms chronic Ocelot ResponderMiddleware mechanism, magnitude in the established range. DD method-ui XHR logs same window (service:method-ui status:error xhr, limit 100, widened sample per feedback_widen_dd_log_sample_before_concentration_call): 52 distinct accounts in 100-sample, top account ezfinishsystems only 8% -- diffuse fan-out, canonical chronic shape, no concentration anomaly this occurrence. No ki-24/Redis/5XX/ms-account co-fire (all other candidates this cycle out-of-scope: 302103451 tables-fields zero notify tags, 117424880 routes to unpolled @slack-team-runtime, 154252126/154252601 @slack-alert-growth-monitoring, 295928665 Rainforest @slack-alert-transactions-monitoring, 299551472 ImportSubscriber @slack-alert-admin-monitoring, 3x Synthetics QA @slack-team-qa-performance-tests). last_notified_at (2026-08-17T19:08:51Z) ~18h59m ago, WITHIN 24h suppression window; occ 685->686 not %10; fix_status chronic-residual-post-rollback-2026-06-05 unchanged -- SUPPRESSED, gate_reason=known-issue-window, appended to docs/actionable/2026-08-18.md. See docs/investigations/2026-08-18-7ccec7f405d9d6a9.md."
+      },
+      {
+        "ts": "2026-08-18T19:12:24Z",
+        "note": "2026-08-18 19:12Z triage (degraded cycle, no Slack MCP): occ#690 via monitor 77419271 last_triggered 18:23:12Z (OK now, self-recovered). Synthetic hash a9056ec833ca47f4 (channel C03TYHGRS23 + DD monitor ts 18:23:12Z). ES aggregate (\"Unusual number of XHR errors for account\" OR \"monitors/77419271\" OR GetSyncWidgetInfoAsync, regex clause manually restored per project_kb_to_es_query_drops_regex_clause) 18:03:12-18:23:12Z: 417 hits, 100% service:gateway -- confirms Ocelot ResponderMiddleware mechanism. DD method-ui XHR error logs same window: 200-cap saturated, 108 distinct accounts, diffuse (top EnglandLogistics 8 ~4%, universitypipette2 8, maconstructiongroup 7) -- canonical chronic ki-21 shape, no concentration, NOT the 2026-06-04-style outage surge. No ki-24/Redis/5XX co-fire: RTC 115456700/117279738 last fired 2026-08-16 (quiet), Redis 227940275 last 2026-08-14 (quiet), 5XX 70171778 last 2026-08-14 (quiet) -- no shared-upstream backpressure. last_notified_at (2026-08-17T19:08:51Z) ~24h04m ago, PAST 24h suppression window -> POST gate_reason=null. occ 689->690, last_seen/last_notified_at -> 2026-08-18T18:23:12Z/19:12:24Z respectively. See docs/investigations/2026-08-18-a9056ec833ca47f4.md."
       }
     ],
-    "prior_last_notified_at": "2026-07-31T15:07:56Z"
+    "prior_last_notified_at": "2026-08-17T19:08:51Z"
   },
   {
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
