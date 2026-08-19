@@ -1,0 +1,119 @@
+{
+  "version": 3,
+  "_comment": "Source of truth for the curated SLO alerting system. Consumed by scripts/gen_grafana_alerts.py -> alerting/grafana/*.json, provisioned by scripts/grafana_provision.py. SEPARATE from the triage-bot escalation_score machinery. Design: references/architecture/alerting-system-design.md; status: ...-status.md. NEVER put Slack webhook URLs or passwords here. v3: round 2 — added SLO-1 (ES, light), SLO-8 + F2 (rabbitmq_queue). SLO-6 dormant; SLO-2/3 gateway -> Datadog (no Grafana plugin).",
+  "meta": {
+    "notify_channel": "triage-bot-health",
+    "contact_point": "triage-bot-health",
+    "notification_receiver": "triage-bot-health",
+    "no_at_mentions": true,
+    "paging_target": "slack-only for now. A Grafana 'XMatters' contact point exists; route P1 there ONLY after this system proves value AND the user authorizes it.",
+    "window_days": 30,
+    "window_minutes": 43200,
+    "grafana_parent_folder": "Triage Bot",
+    "slo_folder": "SLO",
+    "sla_folder": "SLA",
+    "routing_note": "Every rule carries notification_settings.receiver=triage-bot-health, delivering DIRECTLY to that contact point and BYPASSING the shared notification-policy tree (default receiver #alert-system). Zero edits to the shared policy.",
+    "es_perf_note": "ES-datasource alerts query the SHARED ES cluster (382 shards) per eval. SLO-1 is deliberately cheap: tight _index: scope, single-window absolute count, 5-min eval in its own rule group.",
+    "burn_ladder": [
+      { "tier": "fast",        "burn": 14.4, "long_window": "1h",  "short_window": "5m",  "severity": "P1", "action": "page",   "for": "2m" },
+      { "tier": "fast_slower", "burn": 6,    "long_window": "6h",  "short_window": "30m", "severity": "P1", "action": "page",   "for": "5m" },
+      { "tier": "slow",        "burn": 3,    "long_window": "24h", "short_window": "2h",  "severity": "P2", "action": "ticket", "for": "15m" },
+      { "tier": "drift",       "burn": 1,    "long_window": "3d",  "short_window": null,  "severity": "P2", "action": "ticket", "for": "1h" }
+    ]
+  },
+
+  "slos": [
+    {
+      "id": "SLO-4", "journey": "Screen runtime load", "kind": "influx_slo",
+      "datasource_metric": "rtcapi_metrics", "measurement": "rtcapi_request",
+      "target": 0.999,
+      "error": { "filter": "\"response_code\" =~ /^5/", "ladder_tiers": ["fast", "slow"] },
+      "latency": { "field": "mean", "agg": "mean", "threshold_ms": 1000, "sustain": "10m", "severity": "P2" },
+      "owner": { "team": "Vertical App Experience", "response": "Vertical App Experience", "upkeep": "Vertical App Experience", "eventual_channel": "shared B063S8NBW0M", "webhook_id": "B063S8NBW0M" },
+      "runbook": "references/architecture/alerting-system-design.md#rb-slo-4", "build_status": "buildable-now"
+    },
+    {
+      "id": "SLO-5", "journey": "Action execution", "kind": "influx_slo",
+      "datasource_metric": "approutine_action_metrics", "measurement": "approutine_actions",
+      "target": 0.999,
+      "latency": { "field": "mean", "agg": "mean", "threshold_ms": 1000, "sustain": "10m", "severity": "P2" },
+      "owner": { "team": "No Code Next Gen", "response": "No Code Next Gen", "upkeep": "No Code Next Gen", "eventual_channel": "#team-no-code-next-gen", "webhook_id": "B08JW7L2ZRU" },
+      "runbook": "references/architecture/alerting-system-design.md#rb-slo-5", "build_status": "buildable-now"
+    },
+    {
+      "id": "SLO-7", "journey": "QBO sync freshness", "kind": "influx_slo",
+      "datasource_metric": "syncservice_metrics", "measurement": "syncservice_request",
+      "target": 0.99,
+      "error": { "filter": "\"haserror\"='true'", "ladder_tiers": ["slow"] },
+      "owner": { "team": "Connect", "response": "Connect", "upkeep": "Connect", "eventual_channel": "#team-connect", "webhook_id": "B08KQ83KNQ0" },
+      "runbook": "references/architecture/alerting-system-design.md#rb-slo-7", "build_status": "buildable-now"
+    },
+
+    {
+      "id": "SLO-1", "journey": "Sign-in / authentication", "kind": "es_absolute",
+      "datasource_es": "Elasticsearch",
+      "es_query": "_index:method-microservices-authentication-* AND level:Error",
+      "absolute": { "count_gte": 5, "window": "30m", "severity": "P2" },
+      "eval_interval_s": 300,
+      "owner": { "team": "Admin", "response": "Admin", "upkeep": "Admin", "eventual_channel": "#team-admin", "webhook_id": "B03U3LD1MS9" },
+      "runbook": "references/architecture/alerting-system-design.md#rb-slo-1",
+      "build_status": "buildable-now",
+      "verified": "Elasticsearch ds(000000003) sees auth index: 3563 docs/3h, 1 Error baseline (2026-06-18). Light: single query, 5m eval, _index-scoped."
+    },
+    {
+      "id": "SLO-8", "journey": "Subscriber / event-consumer health", "kind": "influx_rabbitmq",
+      "datasource_metric": "InfluxDB", "db": "telegraf", "measurement": "rabbitmq_queue",
+      "queue_regex": "^events\\.subscribers\\.(sync|analytics|audittrail|dataconsumer|tags)$|^method\\.account-user\\.change$",
+      "rules": [
+        { "name": "slo-8-subscriber-down", "field": "consumers", "reduce": "last", "op": "lt", "value": 1, "sustain": "5m", "severity": "P1",
+          "desc": "a live event-consumer queue has 0 consumers — subscriber down; event processing & cache invalidation halt" },
+        { "name": "slo-8-consumer-lag", "field": "messages_ready", "reduce": "last", "op": "gt", "value": 1000, "sustain": "10m", "severity": "P2",
+          "desc": "event-consumer queue backlog > 1000 (consumers alive but lagging)" }
+      ],
+      "owner": { "team": "CRM Experience", "response": "CRM Experience", "upkeep": "CRM Experience", "eventual_channel": "#team-customer-management", "webhook_id": "B08KH16DG4T" },
+      "runbook": "references/architecture/alerting-system-design.md#rb-slo-8",
+      "build_status": "buildable-now",
+      "verified": "rabbitmq_queue: live consumer queues have consumers 2-4, ready 0 (2026-06-18)."
+    },
+    {
+      "id": "F2", "journey": "RabbitMQ dead-lettering", "kind": "influx_rabbitmq_dlq",
+      "datasource_metric": "InfluxDB", "db": "telegraf", "measurement": "rabbitmq_queue",
+      "queue_regex": "_error$", "field": "messages_ready", "bucket": "5m",
+      "op": "gt", "value": 50, "sustain": "15m", "severity": "P2",
+      "owner": { "team": "Connect", "response": "Connect", "upkeep": "Connect", "eventual_channel": "#team-connect", "webhook_id": "B08KQ83KNQ0" },
+      "runbook": "references/architecture/alerting-system-design.md#rb-f2",
+      "build_status": "buildable-now",
+      "verified": "_error queues static (difference=0 baseline); publish_rate is dead, so we use non_negative_difference(messages_ready) per queue. Fires on a +50/5m dead-letter spike, not the existing static backlogs."
+    },
+
+    {
+      "id": "SLO-6", "journey": "Designer / app-builder save", "kind": "influx_slo",
+      "build_status": "deferred-no-recent-data",
+      "reason": "viewdesigner_request (and view_request) have NO data in the last 30 days (last point 2026-05-19) — the designer metric pipeline is dormant. Building on it = silent never-fire. Revive when designer metrics resume, or locate the live designer datasource.",
+      "owner": { "team": "No Code Next Gen", "webhook_id": "B08JW7L2ZRU" },
+      "runbook": "references/architecture/alerting-system-design.md#rb-slo-6"
+    },
+    {
+      "id": "SLO-2", "journey": "Gateway availability", "kind": "availability",
+      "build_status": "deferred-no-datasource",
+      "reason": "Gateway logs (method-gateway-*) are Warning-only ki-21 noise — no status codes, no errors. No InfluxDB/Prometheus gateway measurement. Datadog HAS gateway data (trace.aspnet_core.request.duration{service:ms-gateway-api}) but Grafana has no Datadog datasource plugin (install=server-admin). Path: install the Grafana Enterprise Datadog plugin and build like the others, OR native DD monitors -> DD Slack integration to #triage-bot-health. Note: gateway-down impact already surfaces via SLO-4/5/7.",
+      "owner": { "team": "Admin", "webhook_id": "B03U3LD1MS9" },
+      "runbook": "references/architecture/alerting-system-design.md#rb-slo-2"
+    },
+    {
+      "id": "SLO-3", "journey": "Gateway latency", "kind": "latency",
+      "build_status": "deferred-no-datasource",
+      "reason": "No gateway latency in any Grafana datasource (gateway logs lack ElapsedMilliseconds; no gateway metric). Datadog HAS it (trace.aspnet_core.request.duration{service:ms-gateway-api}). Same path as SLO-2: Grafana Datadog plugin (server-admin) or native DD monitors.",
+      "owner": { "team": "Admin", "webhook_id": "B03U3LD1MS9" },
+      "runbook": "references/architecture/alerting-system-design.md#rb-slo-3"
+    }
+  ],
+
+  "ownership_gaps": [
+    "runtime-core is one deployable split across 3 teams by host (runtime-core-api->Vertical App Experience, runtime-core-subscriber-api->CRM Experience, designer-core-api->No Code Next Gen).",
+    "DevOps team has no TeamSlackAlertChannel webhook in the ownership grid.",
+    "Components/projects mapped to teams not in the Teams grid: Impact, Stock Apps, Internal, Logstash, blank/Department.",
+    "Vertical App Experience and Transactions share one webhook (B063S8NBW0M).",
+    "ms-search-api vs runtime-core Method.Search alias ambiguity."
+  ]
+}

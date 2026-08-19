@@ -1,1 +1,1339 @@
-[]
+[
+  {
+    "target": "false-alarms",
+    "id": "fa-2026-07-06-ms-import-subscriber-nodata-bursty-consumer",
+    "match": {
+      "channels": [
+        "alert-system"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/299551472"
+        },
+        {
+          "contains": "No messages processed in 30m (method-import-subscriber)"
+        },
+        {
+          "contains": "[Admin][ImportSubscriber][P1]"
+        }
+      ]
+    },
+    "reason": "method-import-subscriber is a low-frequency batch AMQP consumer, not a continuous one. 24h history (2026-07-05 13:05 -> 2026-07-06 10:33) shows only 8 non-zero hit buckets, in bursts of 1-2060 messages separated by gaps of 3-11.5 hours. The monitor's 'sum(last_30m) < 1' threshold trips on every natural idle gap over 30 minutes, which happens multiple times a day by design -- not a service outage. 0 error logs on the service for the full day. This fire (11:05:32Z) came 32 minutes after the last burst ended (10:33:30Z), squarely inside the service's normal idle pattern.",
+    "silence_for": "24h",
+    "first_seen": "2026-07-06T11:05:32Z",
+    "last_seen": "2026-08-10T19:23:33Z",
+    "occurrences": 130,
+    "recommendation": "monitor threshold mismatch, not a false-alarm-forever situation -- recommend widening the No-Data window (e.g. 6h) or switching to a message-backlog-depth check instead of a hits-in-window check; flagging for Admin team, not silencing indefinitely",
+    "notes": [
+      {
+        "ts": "2026-08-09T11:20:00Z",
+        "note": "2026-08-09 ~11:20Z triage (degraded cycle, no Slack MCP surfaced this session; DD monitor scan-diff vs prior cutoff 2026-08-08T21:44:48Z, commit 976dee5, spanning a ~13.3h overnight gap per the business-hours-only scheduler). monitor 299551472 No Data 01:57:32Z, hash 01b636ec19e0784d, occ 125->126. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} over 2026-08-08T23:00:00Z-2026-08-09T02:20:00Z: large burst 2060 hits @23:00:00Z, then two small blips (1 hit @01:20:00Z, 5 hits @01:25:00Z), then null/absent for ~32.5min to the fire -- past the monitor's 30-min threshold. 0 status:error DD logs on the service over the same window. Textbook bursty idle-gap shape, unchanged. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only. See docs/investigations/2026-08-09-01b636ec19e0784d.md."
+      },
+      {
+        "ts": "2026-08-08T16:09:00Z",
+        "note": "2026-08-08 ~16:09Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch \"slack conversations history mcp\", \"mcp__slack\", \"conversations.history\" all empty). monitor 299551472 No Data 16:02:32Z, hash cd8973e144eafe9d, occ 122->123. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} over 15:02:32-16:09:00Z: last burst 15:31:00-15:31:20Z (1, 6 hits), then null/absent for the remaining ~31min to the fire -- comfortably past the monitor's 30-min threshold. 0 status:error DD logs on the service over the same window. Textbook bursty idle-gap shape, unchanged. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only."
+      },
+      {
+        "ts": "2026-08-03T22:08:38Z",
+        "note": "2026-08-03 ~22:08Z triage (degraded cycle, no Slack MCP surfaced this session): monitor 299551472 No Data 21:57:32Z, hash 39b0a01af1364c1a, occ 103->104. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} over 21:00-22:09Z: last burst 21:25:20Z (61 msgs immediately following a 447/648-msg spike at 21:22:00-21:22:20Z), then null/absent until a single straggler hit at 22:08:40Z -- a ~43min idle gap, comfortably past the monitor's 30-min threshold. 0 status:error DD logs on the service 21:00-22:09Z. Textbook bursty idle-gap shape, unchanged. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only."
+      },
+      {
+        "ts": "2026-07-27T20:20:00Z",
+        "note": "2026-07-27 ~20:08-20:20Z triage (degraded cycle, no Slack MCP surfaced this session): monitor 299551472 No Data 19:38:32Z, hash 692beb3ad2108b4a, occ 77->78. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} over 19:08:32-19:38:32Z: empty series (no points at all). 0 status:error DD logs on the service over the same window. Same idle-gap shape as prior 77 occurrences. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only."
+      },
+      {
+        "ts": "2026-07-10T11:20:00Z",
+        "note": "2026-07-10 11:20Z triage (degraded cycle, no Slack MCP): monitor 299551472 No Data 10:46:32Z, hash f30a9d63440def84, occ 32->33. DD metric sparse points (1,7,1,5) across the 45min-pre/15min-post window with mostly null/absent buckets in between -- consistent with the documented low-frequency-batch-consumer idle-gap pattern (bursts of 1-2060 msgs separated by 3-11.5h gaps). No thread-reply path in degraded mode (no Slack read access to the original alert ts) -- kb-update + self-DM confirmation only."
+      },
+      {
+        "ts": "2026-07-10T14:16:19Z",
+        "note": "2026-07-10 14:16Z triage (degraded cycle, no Slack MCP this session): monitor 299551472 fired 13:37:32Z (overall_state OK by scan time -- self-recovered), hash 396c1100265218b4, occ 33->34. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} over 13:07-13:57Z shows a single sparse point (6 hits at ~13:36Z) with the rest of the window null/absent -- consistent with the documented low-frequency-batch-consumer idle-gap pattern. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only."
+      },
+      {
+        "ts": "2026-07-10T15:08:18Z",
+        "note": "2026-07-10 15:08Z triage (degraded cycle, no Slack MCP): monitor 299551472 fired 14:31:32Z (overall_state OK by scan time -- self-recovered), hash 84a1bd62a6f20c0a, occ 34->35. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} over 13:56:32-15:06:32Z shows 4 sparse points clustered in the last ~15min of the window, rest null/absent -- consistent with the documented low-frequency-batch-consumer idle-gap pattern. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only."
+      },
+      {
+        "ts": "2026-07-10T17:07:26Z",
+        "note": "2026-07-10 17:07Z triage (degraded cycle, no Slack MCP, day 8 of the read-path gap): monitor 299551472 fired 16:52:32Z, still No Data at scan time (17:07Z), hash 418be8f6b09ccbba, occ 35->36. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} over 16:07:32-17:07:32Z shows 4 sparse points (1, 103, 2, 17) clustered around 16:36-16:39Z with the rest of the window null/absent -- consistent with the documented low-frequency-batch-consumer idle-gap pattern. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only."
+      },
+      {
+        "ts": "2026-07-10T18:10:00Z",
+        "note": "2026-07-10 18:10Z triage (degraded cycle, no Slack MCP, day 8 of the read-path gap): monitor 299551472 fired 17:34:32Z, OK by scan time (self-recovered), hash dbad6a98e3e19645, occ 36->37. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} over 17:04:32-18:04:32Z shows 4 sparse points (6, 6, 1, 6) clustered within an ~12min span (17:33-17:45Z), rest of window null/absent -- consistent with the documented low-frequency-batch-consumer idle-gap pattern. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only."
+      },
+      {
+        "ts": "2026-07-10T19:11:00Z",
+        "note": "2026-07-10 19:11Z triage (degraded cycle, no Slack MCP): monitor 299551472 fired 19:06:32Z (still No Data/near scan time), hash 1d40dd7f95ed9328, occ 37->38. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} over 18:36:32-19:36:32Z shows 3 sparse points (1, 2, 197.5) clustered within ~40s (19:12:00-19:12:40Z), rest of window null/absent -- consistent with the documented low-frequency-batch-consumer idle-gap pattern. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only."
+      },
+      {
+        "ts": "2026-07-10T20:22:00Z",
+        "note": "2026-07-10 20:22Z triage (degraded cycle, no Slack MCP, day 8 of the read-path gap): monitor 299551472 fired 19:52:32Z, OK by scan time (self-recovered), hash d471c468544915fa, occ 38->39. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} over 19:37:32-20:07:32Z shows 5 sparse points (1, 1, 6, 412, 412) clustered around 19:50:40-19:57:10Z, rest of window null/absent -- consistent with the documented low-frequency-batch-consumer idle-gap pattern. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only."
+      },
+      {
+        "ts": "2026-07-10T20:52:00Z",
+        "note": "2026-07-10 20:52Z triage (degraded cycle, no Slack MCP, day 8 of the read-path gap): monitor 299551472 fired 2026-07-10T20:40:32Z, OK by scan time (self-recovered), hash 7c48140d52e42b5e, occ 39->40. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} over 20:10:32-20:40:32Z shows 2 sparse points (1, 3) clustered at the very tail of the window (20:39-20:40Z), rest of window null/absent -- consistent with the documented low-frequency-batch-consumer idle-gap pattern. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only."
+      },
+      {
+        "ts": "2026-07-10T22:10:21Z",
+        "note": "2026-07-10 22:10Z triage (degraded cycle, no Slack MCP, day 8 of the read-path gap): monitor 299551472 fired 2026-07-10T21:56:32Z, OK by scan time (self-recovered), hash 4fd88845a98c28b6, occ 40->41. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} over 21:26:32-21:56:32Z shows 1 sparse point (1 hit at ~21:55:20Z), rest null/absent -- consistent with the documented low-frequency-batch-consumer idle-gap pattern. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only."
+      },
+      {
+        "ts": "2026-07-11T11:20:00Z",
+        "note": "2026-07-11 degraded-cycle catch-up triage (no Slack MCP): monitor 299551472 fired 2026-07-11T04:11:32Z, hash 9a0753f86026dd31, occ -> 42. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} 03:41:32-04:11:32Z: sparse points consistent with the documented low-frequency-batch-consumer idle-gap pattern (42nd consecutive occurrence). No thread-reply path in degraded mode -- kb-update + self-DM confirmation only."
+      },
+      {
+        "ts": "2026-07-11T23:31:33Z",
+        "note": "2026-07-11 23:31Z triage (degraded cycle, no Slack MCP): monitor 299551472 No Data 23:31:33Z, hash c3dfac64e5e0b4ae, occ 42->43. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} 23:01:33-23:31:33Z: no series (0), consistent with the documented idle-gap pattern. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only."
+      },
+      {
+        "ts": "2026-07-12T13:14:01Z",
+        "note": "2026-07-12 13:14Z triage (degraded cycle, no Slack MCP): monitor 299551472 No Data 12:50:32Z, hash 608a1d59fc7abb3a, occ 43->44. Fresh DD metric pull sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} over 12:20:32-12:50:32Z: empty series (0 points), and 0 error logs on the service over the trailing hour -- consistent with the documented low-frequency-batch-consumer idle-gap pattern, not an outage. No thread-reply path in degraded mode (no Slack read access to the original alert ts) -- kb-update + self-DM confirmation only."
+      },
+      {
+        "ts": "2026-07-12T17:08:19Z",
+        "note": "2026-07-12 17:08Z triage (degraded cycle, no Slack MCP): monitor 299551472 No Data 17:01:33Z, hash ec7f5bb3aba16555, occ 44->45. Fresh DD metric pull sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over 16:31:33-17:01:33Z: empty series (0 points), and 0 status:error DD logs over the same window -- consistent with the documented low-frequency-batch-consumer idle-gap pattern, not an outage. No thread-reply path in degraded mode (no Slack read access to the original alert ts) -- kb-update + self-DM confirmation only."
+      },
+      {
+        "ts": "2026-07-12T21:19:30Z",
+        "note": "2026-07-12 21:19Z triage (degraded cycle, no Slack MCP): monitor 299551472 No Data 20:31:32Z, hash c62a222071bacacb, occ 45->46. Fresh DD metric pull sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over 20:01:32-20:31:32Z: empty series (0 points), and 0 status:error DD logs over the same window -- consistent with the documented low-frequency-batch-consumer idle-gap pattern, not an outage. No thread-reply path in degraded mode (no Slack read access to the original alert ts) -- kb-update + self-DM confirmation only. See docs/investigations/2026-07-12-c62a222071bacacb.md."
+      },
+      {
+        "ts": "2026-07-13T12:08:41Z",
+        "note": "2026-07-13 12:08Z triage (degraded cycle, no Slack MCP, day 13+ of the read-path gap): monitor 299551472 No Data 11:18:32Z, hash 80e3dcbc0106dd50, occ 48->49. Fresh DD metric pull sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over 10:18:32-11:18:32Z: burst of 431 msgs (1@10:38:00Z, then 323+107@10:46:20-10:47:00Z) followed by a 31m32s idle gap to the fire -- just over the monitor's 30-min threshold, consistent with the documented low-frequency-batch-consumer idle-gap pattern. 0 status:error DD logs over the same window. No thread-reply path in degraded mode (no Slack read access) -- kb-update + self-DM confirmation only. See docs/investigations/2026-07-13-80e3dcbc0106dd50.md."
+      },
+      {
+        "ts": "2026-07-13T21:20:00Z",
+        "note": "2026-07-13 21:20Z triage (degraded cycle, no Slack MCP): monitor 299551472 fired 20:45:32Z (overall_state OK by scan time -- self-recovered), hash 28c5a5f161e1524b, occ 49->50. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} over 20:15:32-21:15:32Z shows a burst of ~180 messages clustered 20:44-20:47Z, rest of the 1h window empty -- consistent with the documented low-frequency-batch-consumer idle-gap pattern. 0 error logs. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only."
+      },
+      {
+        "ts": "2026-07-14T11:10:51Z",
+        "note": "2026-07-14 11:10Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-13T21:07:12Z cutoff): monitor 299551472 fired 10:23:32Z, hash ead8df12406283d4, occ 50->51. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over 09:48:32-10:23:32Z shows a burst of 6 sparse points (1, 75, 2, 69, 13, 898) clustered within ~3min (09:48:40-09:51:20Z), followed by a 32m12s idle gap to the fire -- just over the monitor's 30-min threshold, consistent with the documented low-frequency-batch-consumer idle-gap pattern. 0 status:error DD logs on the service over the idle window. No thread-reply path in degraded mode (no Slack read access to the original alert ts) -- kb-update + self-DM confirmation only."
+      },
+      {
+        "ts": "2026-07-14T20:07:27Z",
+        "note": "2026-07-14 20:07Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-14T18:04:03Z cutoff): monitor 299551472 No Data 19:32:32Z, hash 79dbaba3f969edfa, occ 51->52. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over 18:52:32-19:32:32Z shows a burst of 5 sparse points (1, 1, 1, 74, 202) clustered within a 2-minute span (18:58:30-19:00:30Z), followed by a ~32min idle gap to the fire -- just over the monitor's 30-min threshold, consistent with the documented low-frequency-batch-consumer idle-gap pattern. 0 status:error DD logs over the same window. No thread-reply path in degraded mode (no Slack read access to the original alert ts) -- kb-update + self-DM confirmation only. See docs/investigations/2026-07-14-79dbaba3f969edfa.md."
+      },
+      {
+        "ts": "2026-07-14T23:07:00Z",
+        "note": "2026-07-14 23:07Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-14T19:32:32Z cutoff): monitor 299551472 No Data 22:04:32Z, hash 1bdfa7659517ad73, occ 52->53. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over 21:24:32-22:04:32Z shows a burst of 5 sparse points (1, 15, 1, 1, 138) clustered within ~2.5min (21:30:40-21:33:10Z), followed by a ~31m22s idle gap to the fire -- just over the monitor's 30-min threshold, consistent with the documented low-frequency-batch-consumer idle-gap pattern. 0 status:error DD logs over the idle window. No thread-reply path in degraded mode (no Slack read access to the original alert ts) -- kb-update + self-DM confirmation only. See docs/investigations/2026-07-14-1bdfa7659517ad73.md."
+      },
+      {
+        "ts": "2026-07-15T15:14:30Z",
+        "note": "2026-07-15 14:20Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-14T22:04:32Z cutoff): monitor 299551472 fired 14:20:32Z, hash 9684e42bb3260b6a, occ 53->54. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over 13:40:32-14:20:32Z shows a burst of ~1791 msgs clustered 13:57:00-13:58:20Z, followed by a ~30.5min idle gap to the fire, then a new burst starting 14:32Z -- consistent with the documented low-frequency-batch-consumer idle-gap pattern. 0 status:error DD logs. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only."
+      },
+      {
+        "ts": "2026-07-15T16:10:10Z",
+        "note": "2026-07-15 16:10Z triage (degraded cycle, no Slack MCP -- ToolSearch confirmed no slack/conversations tool surfaced this session; day 12+ of the standing gap): DD monitor scan diff vs 2026-07-15T15:08:52Z cutoff found one state change: monitor 299551472 No Data 15:34:32Z, hash 95a4c678b6666717, occ 54->55. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over 14:54:32-15:34:32Z shows 2 sparse points (1, 11) clustered at 15:02:30-15:02:50Z, followed by a ~31.7min idle gap to the fire -- just over the monitor's 30-min threshold, consistent with the documented low-frequency-batch-consumer idle-gap pattern. 0 status:error DD logs over the window. No thread-reply path in degraded mode (no Slack read access to the original alert ts) -- kb-update + self-DM confirmation only. See docs/investigations/2026-07-15-95a4c678b6666717.md."
+      },
+      {
+        "ts": "2026-07-24T11:25:00Z",
+        "note": "2026-07-24 11:25Z triage (degraded cycle, DD monitor scan diff vs 2026-07-23T21:25:41Z cutoff): monitor 299551472 No Data 00:32:32Z, hash 9dfddfa3f6cfd86c, occ 56->57. Consistent with the documented low-frequency-batch-consumer idle-gap pattern (exact monitor-id match). No thread-reply path in degraded mode -- kb-update + self-DM confirmation only."
+      },
+      {
+        "ts": "2026-07-24T13:22:19Z",
+        "note": "2026-07-24 13:22Z triage (degraded cycle, DD monitor scan diff vs 2026-07-24T10:58:26Z cutoff): monitor 299551472 fired 12:31:32Z (overall_state OK by scan time -- self-recovered), hash 5da88c83e2a5d94b, occ 57->58. Consistent with the documented low-frequency-batch-consumer idle-gap pattern (exact monitor-id match). No thread-reply path in degraded mode -- kb-update + self-DM confirmation only."
+      },
+      {
+        "ts": "2026-07-24T15:20:00Z",
+        "note": "2026-07-24 15:20Z triage (degraded cycle, DD monitor scan diff vs 2026-07-24T13:58:52Z cutoff): monitor 299551472 fired 15:03:32Z (overall_state OK by scan time -- self-recovered), hash ae362fb9e75ac5e0, occ 58->59. Fresh DD metric pull sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over 14:33:32-15:03:32Z: 1 sparse point (1 hit at 15:02:20Z), rest of window empty, followed by a ~1m12s gap to the fire -- consistent with the documented low-frequency-batch-consumer idle-gap pattern. 0 status:error DD logs over the window. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only."
+      },
+      {
+        "ts": "2026-07-24T16:02:33Z",
+        "note": "2026-07-24 16:02Z triage (degraded cycle, DD monitor scan diff vs 2026-07-24T15:07:12Z cutoff): monitor 299551472 fired 16:02:33Z (overall_state OK by scan time -- self-recovered), hash 44b9095afd13b92e, occ 59->60. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over 15:02:33-16:02:33Z shows a burst (21+18 msgs, ~15:03:40-15:07:20Z) followed by a ~54min idle gap, then 1 msg at ~16:01:20Z just before recovery -- consistent with the documented low-frequency-batch-consumer idle-gap pattern. 0 status:error DD logs over the window. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only."
+      },
+      {
+        "ts": "2026-07-24T16:59:33Z",
+        "note": "2026-07-24 17:09Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-24T16:02:33Z cutoff): monitor 299551472 fired again 16:59:33Z, hash aac325b73ebde336, occ 60->61 -- 32min13s after the prior burst ended (16:27:20Z), squarely the same idle-gap pattern documented since 2026-07-06. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}, 15:59:33-16:59:33Z: sparse points -- 1@16:01:20Z, then a large burst 3@16:26:40Z + 339@16:27:00Z + 1714@16:27:20Z, then quiet until this fire. 0 status:error DD logs on the service across the window. Same low-frequency-batch-consumer shape as all prior 60 occurrences -- monitor's 30-min no-data threshold trips on ordinary idle gaps. gate: no thread-reply path (no Slack MCP), kb-update + self-DM only. See docs/investigations/2026-07-24-aac325b73ebde336.md."
+      },
+      {
+        "ts": "2026-07-24T19:15:00Z",
+        "note": "2026-07-24 19:15Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-24T18:07:11Z cutoff): monitor 299551472 fired 18:37:32Z (overall_state OK by scan time -- self-recovered), hash 1f10b4e15b59efa1, occ 62->63 (note: the intervening 18:03:32Z fire, hash 4b1f654bb7c9818e, bumped occurrences/last_seen last cycle but no note was appended then -- occ 62 carried over here). DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over 18:07:32-18:37:32Z: 2 sparse points (1, 27) clustered at 18:36:00-18:36:10Z, rest of window null/absent -- consistent with the documented low-frequency-batch-consumer idle-gap pattern. 0 status:error DD logs over the window. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only. See docs/investigations/2026-07-24-1f10b4e15b59efa1.md."
+      },
+      {
+        "ts": "2026-07-24T19:47:33Z",
+        "note": "2026-07-24 19:47Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-24T18:39:11Z cutoff): monitor 299551472 fired 19:47:33Z (OK at scan time, self-recovered), hash f3b108b345191f1b, occ 63->64. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over 19:17:33-19:47:33Z shows 4 sparse points (1, 5, 281, 435) clustered in the last ~40s of the window, rest null/absent -- consistent with the documented low-frequency-batch-consumer idle-gap pattern. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only. See docs/investigations/2026-07-24-f3b108b345191f1b.md."
+      },
+      {
+        "ts": "2026-07-25T11:09:00Z",
+        "note": "2026-07-25 11:09Z triage (degraded cycle, no Slack MCP): monitor 299551472 ([Admin][ImportSubscriber][P1] No messages processed in 30m (method-import-subscriber)) fired 2026-07-24T23:43:32Z, hash 88b98f78b83ba270, occ->65. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over 23:13:32-23:43:32Z: empty series (0 points) -- consistent with the documented low-frequency-batch-consumer idle-gap pattern. No thread-reply path in degraded mode -- kb-update only."
+      },
+      {
+        "ts": "2026-07-25T14:20:00Z",
+        "note": "2026-07-25 14:20Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-25T12:45:40Z cutoff): monitor 299551472 fired 2026-07-25T14:02:32Z, hash cba5791d8bc82923, occurrences -> 66. 0 service:method-import-subscriber status:error DD logs 13:32:32-14:02:32Z. 8h metric shows a single 101-hit burst landing right at the end of the window -- classic bursty-idle-gap shape matching all 65 prior occurrences. kb-update self-DM sent (no thread-reply path in degraded mode). See docs/investigations/2026-07-25-cba5791d8bc82923.md."
+      },
+      {
+        "ts": "2026-07-25T15:12:00Z",
+        "note": "2026-07-25 15:12Z triage (degraded cycle, no Slack MCP -- ToolSearch confirmed no slack/conversations tool surfaced this session): DD monitor scan diff vs 2026-07-25T14:06:21Z cutoff (185-monitor full scan, count unchanged) found one state change: monitor 299551472 fired 2026-07-25T14:32:32Z, hash 62d117fcc0746723, occurrences -> 67 -- 30min exactly after the prior occurrence (14:02:32Z), same idle-gap threshold trip. 0 service:method-import-subscriber status:error DD logs 14:02:32-14:32:32Z. 8h metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() shows only the same single 101-hit burst at the 14:00Z bucket (already captured by the prior occurrence's window) with zero further activity through 14:32:32Z -- consistent with the documented low-frequency-batch-consumer idle-gap pattern, 67th occurrence. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only. See docs/investigations/2026-07-25-62d117fcc0746723.md."
+      },
+      {
+        "ts": "2026-07-26T18:15:00Z",
+        "note": "2026-07-26 18:15Z triage (degraded cycle, no Slack MCP -- ToolSearch confirmed no slack tool surfaced this session): DD monitor scan diff vs 2026-07-26T17:06:18Z cutoff (185-monitor full scan, count unchanged, 0 newly-created) found monitor 299551472 fired 2026-07-26T17:53:32Z, hash 334ea6372260b666, occurrences -> 69. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over 16:53:32-17:53:32Z shows a single 95-hit burst at 17:21:20Z, rest of window null/absent -- consistent with the documented low-frequency-batch-consumer idle-gap pattern (69th occurrence). 0 service:method-import-subscriber status:error DD logs over the window. No thread-reply path in degraded mode (no Slack MCP read access to the original alert ts) -- kb-update + self-DM confirmation only. See docs/investigations/2026-07-26-334ea6372260b666.md."
+      },
+      {
+        "ts": "2026-07-26T19:59:32Z",
+        "note": "2026-07-26 ~20:08Z triage (degraded cycle, no Slack MCP; DD monitor scan-diff fallback vs 2026-07-26T19:09:31Z cutoff). Monitor 299551472 fired/recovered by 19:59:32Z, hash 22f8769f0b364945, occ->70. AMQP hits over 19:29:32-20:09:32Z: 5 points (1,200,1,199,200) -- idle-then-burst shape, same bursty-idle-gap mechanism as prior 69 occurrences. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-07-26-22f8769f0b364945.md."
+      },
+      {
+        "ts": "2026-07-26T21:10:00Z",
+        "note": "2026-07-26 21:10Z triage (degraded cycle, no Slack MCP): monitor 299551472 No Data 20:36:32Z, hash aa195e958a5d3003, occ 70->71. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over 20:06:32-20:51:32Z: empty series (0 messages), consistent with the documented low-frequency-batch-consumer idle-gap pattern. No thread-reply path in degraded mode -- self-DM confirmation sent. See docs/investigations/2026-07-26-aa195e958a5d3003.md."
+      },
+      {
+        "ts": "2026-07-27T14:12:00Z",
+        "note": "2026-07-27 14:12Z triage (degraded cycle, no Slack MCP -- ToolSearch confirmed no slack tool surfaced this session): DD monitor scan diff vs 2026-07-27T13:07:19Z cutoff (185-monitor full scan, count unchanged) found monitor 299551472 No Data 14:09:32Z, hash a6a1de243debc7b1, occ 72->73. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over 13:39:32-14:09:32Z shows a small burst (1+6 hits at ~13:57:50-13:58:00Z) followed by an ~11.5min idle gap to the fire -- consistent with the documented low-frequency-batch-consumer idle-gap pattern (73rd occurrence). 0 status:error DD logs on the service over the window. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only. See docs/investigations/2026-07-27-a6a1de243debc7b1.md."
+      },
+      {
+        "ts": "2026-07-27T15:20:00Z",
+        "note": "2026-07-27 15:20Z triage (degraded cycle, no Slack MCP -- ToolSearch confirmed no slack tool surfaced this session): DD monitor scan diff vs 2026-07-27T14:09:32Z cutoff found monitor 299551472 No Data 14:53:32Z, hash 86c6f76e7caa31ea, occ 73->74. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over 14:23:32-14:53:32Z: empty series (0 points), and 0 status:error DD logs over the same window -- consistent with the documented low-frequency-batch-consumer idle-gap pattern, not an outage. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only. See docs/investigations/2026-07-27-86c6f76e7caa31ea.md."
+      },
+      {
+        "ts": "2026-07-27T16:09:34Z",
+        "note": "2026-07-27 16:09Z triage (degraded cycle, no Slack MCP -- ToolSearch confirmed no slack tool surfaced this session): DD monitor scan diff vs 2026-07-27T14:53:32Z cutoff (185-monitor full scan, count unchanged) found monitor 299551472 fired 15:15:32Z (overall_state OK by scan time -- self-recovered), hash 35dbcfc6a02b6f99, occ 74->75. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over 14:45:32-15:15:32Z shows a small burst (1+30 hits at ~15:14:10-15:14:20Z) followed by a ~1m12s idle gap to the fire -- consistent with the documented low-frequency-batch-consumer idle-gap pattern (75th occurrence). 0 status:error DD logs on the service over the window. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only. See docs/investigations/2026-07-27-35dbcfc6a02b6f99.md."
+      },
+      {
+        "ts": "2026-07-27T18:12:00Z",
+        "note": "2026-07-27 ~18:08Z-18:12Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed \"slack conversations history mcp\", no matching deferred tool found). DD monitor scan diffed vs prior cutoff 2026-07-27T17:07:25Z (max last_triggered_ts processed last cycle, monitor 299251404): 185-monitor count unchanged (no monitor-creation blind spot), 1 monitor with last_triggered_ts after cutoff. 1 group, no clustering needed. Monitor 299551472 No Data 17:42:33Z, hash 95d290059a5457bf, occ 75->76. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over 17:12:33-17:42:33Z: empty series (0 points), and 0 status:error DD logs over the same window -- consistent with the documented low-frequency-batch-consumer idle-gap pattern, not an outage. No thread-reply path in degraded mode (no Slack read access to the original alert ts) -- kb-update + self-DM confirmation only. See docs/investigations/2026-07-27-95d290059a5457bf.md."
+      },
+      {
+        "ts": "2026-07-27T19:09:00Z",
+        "note": "2026-07-27 19:09Z triage (degraded cycle, no Slack MCP -- ToolSearch confirmed no slack tool surfaced this session): DD monitor scan diff vs 2026-07-27T17:42:33Z cutoff (185-monitor full scan, count unchanged) found monitor 299551472 fired 18:41:33Z (overall_state OK by scan time -- self-recovered), hash e7487272e14ed61f, occ 76->77. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over 18:11:33-18:41:33Z: single sparse point (1 hit at 18:39:50Z), rest of window null/absent, and 0 status:error DD logs over the same window -- consistent with the documented low-frequency-batch-consumer idle-gap pattern (77th occurrence). No thread-reply path in degraded mode (no Slack read access to the original alert ts) -- kb-update + self-DM confirmation only. See docs/investigations/2026-07-27-e7487272e14ed61f.md."
+      },
+      {
+        "ts": "2026-07-28T17:08:38Z",
+        "note": "2026-07-28 17:08Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-28T13:46:00Z cutoff): monitor 299551472 fired 17:04:32Z (still No Data at scan time), hash 9342b8e9b56fbf35, occ->81. sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() 05:00-17:05Z: last burst ended 16:32:00Z (264 msgs), nothing since -- 32min idle gap at fire time, just over the 30min threshold, canonical bursty-consumer idle pattern. 0 status:error DD logs on the service for the full 05:00-17:05Z window. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-07-28-9342b8e9b56fbf35.md."
+      },
+      {
+        "ts": "2026-07-28T18:10:00Z",
+        "note": "2026-07-28 18:10Z triage (degraded cycle, no Slack MCP): monitor 299551472 fired 17:40:32Z, hash 9240002471003b95, occ->82. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} over 17:10:32-17:40:32Z (30-min window): only 2 non-zero points (1 msg each) near the tail of the window (~17:39:10Z, ~17:40:20Z) -- sparse bursty-consumer shape, 0 errors on the service. Same idle-gap-vs-30min-threshold mismatch as documented. kb-update only (no thread-reply path in degraded mode -- self-DM sent). See docs/investigations/2026-07-28-9240002471003b95.md."
+      },
+      {
+        "ts": "2026-07-28T18:34:32Z",
+        "note": "2026-07-28 ~18:11-18:15Z triage (degraded cycle, no Slack MCP surfaced this session): monitor 299551472 recovered to OK 18:34:32Z, hash a81a68752c00f242, occ 82->83. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} over 18:00:32-18:40:32Z: 2 non-zero points at ~18:33-18:34Z, burst resumed right at recovery -- same idle-gap-then-burst shape as prior 82 occurrences. No thread-reply path in degraded mode -- kb-update self-DM only."
+      },
+      {
+        "ts": "2026-07-28T20:38:32Z",
+        "note": "B: monitor 299551472 recovered to OK 20:38:32Z, hash 7bc3f9e7484fd364, occ 83->84. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over 20:08:32-20:38:32Z: 3 sparse points (1,80,66) clustered in the final 20s of the window (~20:37:20-20:37:40Z), rest of window null/absent -- burst resumed right at recovery, same idle-gap-then-burst shape as prior 83 occurrences. No thread-reply path in degraded mode -- kb-update self-DM only. See docs/investigations/2026-07-28-7bc3f9e7484fd364.md."
+      },
+      {
+        "ts": "2026-07-29T11:20:00Z",
+        "note": "2026-07-29 11:20Z triage: monitor 299551472 fired 23:41:32Z (2026-07-28), hash f7399aa7dc539499, occ 84->85. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() 23:11:32-23:41:32Z: empty series (0 hits) -- consistent with the documented idle-gap mechanism. 0 error logs (service:method-import-subscriber status:error) in the same window. Self-DM sent (no thread-reply path in degraded mode). See docs/investigations/2026-07-29-f7399aa7dc539499.md."
+      },
+      {
+        "ts": "2026-07-29T12:12:48Z",
+        "note": "2026-07-29 12:12Z triage (degraded cycle, no Slack MCP -- ToolSearch confirmed no slack/conversations tool; DD monitor scan diff vs 2026-07-29T10:32:57Z cutoff, hash 4654682c6a813ad5). Monitor 299551472 No Data 2026-07-29T12:06:32Z, occ 85->86. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} over 11:36:32-12:06:32Z: 1 datapoint only (near window end) -- same natural idle-gap shape as all 85 prior occurrences. 0 status:error DD logs on the service over the same window. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-07-29-4654682c6a813ad5.md."
+      },
+      {
+        "ts": "2026-07-30T14:45:00Z",
+        "note": "2026-07-30 ~14:45Z triage (degraded cycle, no Slack MCP): monitor 299551472 fired 13:21:33Z, hash dfa51e531441d628, occ 87->88. Metric re-query: 9 hits total in the 30-min window (traffic resumed). Self-DM'd."
+      },
+      {
+        "ts": "2026-07-30T18:36:00Z",
+        "note": "2026-07-30 ~18:36Z triage (degraded cycle, no Slack MCP): monitor 299551472 fired 17:51:32Z, hash cb14009696524e4a, occ 88->89. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() 17:32:12-17:58:12Z: two ~396-message bursts separated by idle gaps -- classic bursty-consumer idle-gap shape. 0 status:error DD logs. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-07-30-cb14009696524e4a.md."
+      },
+      {
+        "ts": "2026-07-31T11:24:00Z",
+        "note": "2026-07-31 ~11:08Z triage (degraded cycle, no Slack MCP; DD monitor scan diff vs 2026-07-30T22:03:11Z cutoff after a 13h scheduler gap): monitor 299551472 No Data 2026-07-31T00:54:32Z, hash 12bc30fb01790034, occ 89->90, still No Data at scan time (~10h13m later). DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() 00:24:32-00:54:32Z: empty series (0 points), 0 status:error DD logs over the same window -- consistent with the documented low-frequency-batch-consumer idle-gap pattern, 90th occurrence. No thread-reply path in degraded mode -- kb-update self-DM sent."
+      },
+      {
+        "ts": "2026-07-31T13:13:32Z",
+        "note": "2026-07-31 ~14:00-14:20Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed 'slack conversations history mcp' and 'slack', no matching deferred tool found). monitor 299551472 fired 13:13:32Z, occ 90->91. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} over 12:43:32-13:18:32Z shows a burst (~2600 msgs, 13:04:50-13:12:20Z) then idle -- fire came ~1min after burst tail, well inside the established idle-gap shape. 0 status:error DD logs. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only."
+      },
+      {
+        "ts": "2026-07-31T15:07:56Z",
+        "note": "2026-07-31 ~15:07Z triage (degraded cycle, no Slack MCP; DD monitor scan diff vs 2026-07-31T14:05:41Z cutoff): monitor 299551472 fired 14:59:32Z, hash 1323ec6eff1438ba, occ 91->92. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} over 14:29:32-14:59:32Z: empty series (no points). 0 status:error DD logs on the service over the same window. Same idle-gap shape as prior 91 occurrences. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only."
+      },
+      {
+        "ts": "2026-07-31T16:15:00Z",
+        "note": "2026-07-31 ~16:07-16:15Z triage (degraded cycle, no Slack MCP surfaced this session): monitor 299551472 state-transition (Alert->OK recovery) 15:18:32Z, hash 483e835230d61b79, occ 92->93. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} 14:48:32-15:18:32Z: 0 points for ~28min then a 638-message burst (1,5,345,293) at 15:16:30-15:17:09Z clearing the idle condition -- same idle-gap-then-burst shape as prior occurrences. 0 error logs. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-07-31-483e835230d61b79.md."
+      },
+      {
+        "ts": "2026-07-31T17:10:10Z",
+        "note": "2026-07-31 ~17:10Z triage (degraded cycle, no Slack MCP): monitor 299551472 fired 17:01:32Z, hash c845ae8eea027148, occ 93->94. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} 16:45:00-17:10:08Z: empty series (no points at all), consistent with the monitor's own No-Data condition. 0 status:error logs on the service over the same window. Monitor still No Data at scan time (has not yet recovered to the burst side of the idle-then-burst cycle, unlike some prior occurrences) -- same natural idle-gap shape, not a service outage."
+      },
+      {
+        "ts": "2026-07-31T18:08:00Z",
+        "note": "2026-07-31 ~18:08Z triage (degraded cycle, no Slack MCP surfaced this session): monitor 299551472 fired at 17:13:32Z, hash 3ea06a2d7dbd754a, occ 94->95. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} over 16:43:32-17:13:32Z: only 1 point (value 1.0) near the very end of the window (17:12:10Z) -- idle-gap-then-trickle shape. 0 status:error DD logs on the service. Monitor already recovered to OK (overall_state_modified 17:13:32Z). Same idle-gap shape as prior 94 occurrences. No thread-reply path in degraded mode -- kb-update self-DM confirmation only."
+      },
+      {
+        "ts": "2026-07-31T20:01:32Z",
+        "note": "2026-07-31 ~20:xxZ triage (degraded cycle, no Slack MCP): monitor 299551472 fired 2026-07-31T20:01:32Z, hash cafc8e4dcfab0820, occurrences bumped. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over 19:31:32-20:01:32Z: empty series (0 datapoints), 0 status:error DD logs -- consistent with the documented low-frequency-batch-consumer idle-gap pattern. Self-DM kb-update sent (no thread-reply path in degraded mode)."
+      },
+      {
+        "ts": "2026-08-01T01:51:00Z",
+        "note": "2026-08-01 ~01:51Z triage (degraded cycle, no Slack MCP): monitor 299551472 fired 2026-08-01T01:36:32Z, hash 7dfb556c7a36c74d, occurrences bumped. sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over 01:06:32-01:36:32Z: empty series (0 datapoints), 0 status:error DD logs -- matches the documented low-frequency-batch-consumer idle-gap pattern. No thread-reply path in degraded mode -- kb-update self-DM sent."
+      },
+      {
+        "ts": "2026-08-01T15:11:35Z",
+        "note": "2026-08-01 ~15:11Z triage (degraded cycle, no Slack MCP surfaced this session): monitor 299551472 No Data 2026-08-01T14:48:33Z, hash 787c5f9d6510ebef, occ 98->99. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over 14:18:33-14:48:33Z: empty series (0 datapoints), 0 status:error DD logs on the service over the same window -- same natural-idle-gap shape as prior 98 occurrences. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only."
+      },
+      {
+        "ts": "2026-08-03T11:20:00Z",
+        "note": "2026-08-03 ~11:10-11:20Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed for slack/mcp conversation tools, none found, consistent with the standing intermittent read-path gap). monitor 299551472 No Data 23:31:32Z, hash bd99314c17ec2a23, occ 100->101. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} over 23:01:32-23:31:32Z: empty series (no points at all). 0 status:error DD logs on the service over the same window. Same idle-gap shape as prior 100 occurrences. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only."
+      },
+      {
+        "ts": "2026-08-03T13:25:00Z",
+        "note": "2026-08-03 ~13:08-13:25Z triage (degraded cycle, no Slack MCP): monitor 299551472 No Data 13:07:32Z, hash a053f3b48512b53b, occ 101->102. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} shows the consumer resumed processing at 13:15:40Z (1, 108, 516 hits) -- same natural idle-gap-then-burst shape as prior 101 occurrences, already self-resolving by scan time. 0 status:error DD logs on the service in the pre-fire window. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only."
+      },
+      {
+        "ts": "2026-08-03T21:21:00Z",
+        "note": "2026-08-03 ~21:09Z triage (degraded cycle, no Slack MCP; DD-scan-diff vs prior cutoff 2026-08-03T20:03:09Z): monitor 299551472 fired 20:47:32Z (OK at scan time, self-recovered), hash 8a5e987fd153ac19, occ 102->103. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over 19:50-21:00Z: classic bursty pattern -- bursts at 19:52-19:53Z, 20:11Z, 20:14Z, 20:45-20:46Z (immediately preceding the fire), 20:53-20:56Z, separated by >30min idle gaps. 0 errors. Textbook idle-gap shape, unchanged. Self-DM kb-update confirmation sent (no primary.ts for a thread-reply in degraded mode)."
+      },
+      {
+        "ts": "2026-08-04T11:12:04Z",
+        "note": "2026-08-04 11:12Z triage (degraded cycle, no Slack MCP surfaced this session; DD monitor scan-diff vs 2026-08-03T21:57:32Z cutoff): monitor 299551472 No Data 05:50:32Z, hash ce625e68b0a67670, occ 104->105. sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over the trailing 24h: last non-zero burst 1867 hits at 2026-08-04T05:15:00Z, then a continuous ~6h idle gap through scan time (11:12Z) with zero datapoints -- longer than most documented gaps but still within the entry's own documented 3-11.5h idle-gap range, same bursty-batch-consumer shape as all 104 prior occurrences. service:method-import-subscriber status:error DD Logs (05:15-11:12Z) = 0 hits. No thread-reply path in degraded mode (no primary.ts) -- kb-update self-DM sent instead. Standing recommendation (widen No-Data window / switch to backlog-depth check) remains unaddressed at 105 occurrences. See docs/investigations/2026-08-04-ce625e68b0a67670.md."
+      },
+      {
+        "ts": "2026-08-04T14:55:00Z",
+        "note": "2026-08-04 14:55Z triage (degraded cycle, no Slack MCP surfaced this session; DD monitor scan-diff vs prior cutoff 2026-08-04T13:20:00Z): monitor 299551472 No Data fire 2026-08-04T14:02:32Z, hash 30cb29b6948bad42, occ 106->107. sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over the trailing ~3.5h: last burst before the gap 7 hits at 13:26:00Z, then quiet until 417 hits at 14:01:00Z -- a short (~35min) idle gap, well within the entrys documented 3-11.5h range, same bursty-batch-consumer shape as all 106 prior occurrences. service:method-import-subscriber status:error env:prod DD Logs (13:32-14:02Z) = 0 hits. No thread-reply path in degraded mode (no primary.ts) -- kb-update self-DM sent instead. See docs/investigations/2026-08-04-30cb29b6948bad42.md."
+      },
+      {
+        "ts": "2026-08-04T15:43:33Z",
+        "note": "2026-08-04 ~16:08Z triage (degraded cycle, no Slack MCP surfaced this session): monitor 299551472 No Data 15:43:33Z, hash 292964230fd0e4b7, occ 107->108. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} over 14:40:00-15:45:00Z: last burst before the gap ended ~15:01:40Z (47 hits), next burst (66+7 hits) starting 15:42:00Z -- a ~40min20s idle gap, comfortably past the monitor's 30-min threshold. 0 status:error DD logs on the service. Textbook bursty idle-gap shape, unchanged. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only. See docs/investigations/2026-08-04-292964230fd0e4b7.md."
+      },
+      {
+        "ts": "2026-08-04T17:57:33Z",
+        "note": "2026-08-04 ~18:07Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed 'slack conversations history', 'mcp__slack conversations.history', 'slack': no matching deferred tool found, consistent with the standing intermittent read-path gap). DD-scan-diff vs prior cutoff 2026-08-04T17:08:12Z (from the 17:20:00Z poll-cycle summary). Full 186-monitor scan (--summary): no monitor-count regression (still 186). Monitor 299551472 No Data 17:57:33Z, hash a3e8daa3c2d02ae8, occ 109->110. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} over 17:07:33-17:57:33Z: sparse bursts at 17:22:00-17:24:20Z (~65 hits total) then a gap to 17:56:20Z (22 hits) -- comfortably past the monitor's 30-min idle threshold, textbook bursty idle-gap shape. 0 status:error DD logs on the service in the alert window. Unchanged mechanism. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only. See docs/investigations/2026-08-04-a3e8daa3c2d02ae8.md."
+      },
+      {
+        "ts": "2026-08-04T19:08:00Z",
+        "note": "Degraded cycle (no Slack MCP), DD-scan-diff vs cutoff 2026-08-04T17:57:33Z. Monitor 299551472 fired 18:32:32Z. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} 18:07:32-18:32:32Z: single point (1 hit at 18:31:20Z) -- idle-gap shape confirmed again. 0 error logs. occ 110->111."
+      },
+      {
+        "ts": "2026-08-04T19:58:32Z",
+        "note": "2026-08-04 ~20:08Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed 'slack conversations history mcp', 'mcp__slack': no matching deferred tool). DD-scan-diff vs prior cutoff 2026-08-04T18:36:34Z. Full 186-monitor scan (--summary): no monitor-count regression (still 186). Monitor 299551472 fired 19:58:32Z, hash 3a63b3444655a1dd, occ 111->112. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} over 17:00-20:03Z: activity at 17:22-17:24Z(24), 17:56Z(22), 18:31-18:47Z(201), then a ~70min idle gap to 19:57Z(2)/19:58Z(186 burst, right as the fire lands) -- textbook bursty idle-gap shape, monitor tripping on the tail of the gap just as the next burst starts. 0 status:error DD logs on the service in the alert window. Unchanged mechanism. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only. See docs/investigations/2026-08-04-3a63b3444655a1dd.md."
+      },
+      {
+        "ts": "2026-08-04T21:08:00Z",
+        "note": "2026-08-04 21:08Z triage (degraded cycle, no Slack MCP surfaced this session): monitor 299551472 No Data 20:49:32Z, hash 67d2856c0e94d197, occ 112->113. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} 20:00-20:50Z: last burst before the gap was 20:16:40Z (501 msgs), then genuinely idle until 20:48:20Z (79 msgs) -- ~31.7min gap, just past the monitor's 30-min threshold, textbook idle-gap shape. 0 status:error DD logs on the service in the window. Classified false-alarm, kb-update self-DM sent."
+      },
+      {
+        "ts": "2026-08-05T11:32:14Z",
+        "note": "2026-08-05 ~11:32Z triage (degraded cycle): monitor 299551472 fired 2026-08-05T09:44:32Z, hash 017bd988e7f69870, occ 113->114. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} 08:44:32-09:44:32Z: last burst ended ~09:13:00Z, then idle until the 09:44:32Z fire (~31.5min gap), comfortably past the 30-min threshold -- textbook bursty idle-gap shape, unchanged. Occurrence count now 114, well past the 100+ range with the underlying threshold-widening recommendation still unaddressed."
+      },
+      {
+        "ts": "2026-08-05T12:08:29Z",
+        "note": "2026-08-05 ~12:08Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed mcp__slack / slack / conversations history: no matching deferred tool found, consistent with the standing intermittent read-path gap). Ran DD-scan-diff fallback vs prior cutoff 2026-08-05T10:54:26Z (from the 2026-08-05T11:32:14Z poll-cycle summary). Full 186-monitor scan (--summary): no monitor-count regression, rules out the monitor-creation blind spot. 1 monitor had last_triggered_ts past the cutoff: 299551472 ([Admin][ImportSubscriber][P1] No messages processed in 30m, method-import-subscriber), fired 2026-08-05T11:54:32Z, hash 70179996d3969222, occ 114->115. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} over a widened 09:54:32-12:08:29Z (2h14m) window: only 5 non-null points, all clustered in a single burst 11:53:00-11:58:00Z (peak 543 msgs) -- the prior burst ended more than 2h14m before the query start, confirming an idle gap well past the 30-min threshold, consistent with the documented 3-11.5h bursty-gap pattern. 0 service:method-import-subscriber status:error DD logs over the fire window. Monitor overall_state=OK at scan time (12:08Z, ~14min after fire) -- self-recovered once the burst landed. Textbook recurrence, no new signal."
+      },
+      {
+        "ts": "2026-08-05T13:08:00Z",
+        "note": "2026-08-05 ~13:08Z triage (degraded cycle, no Slack MCP surfaced this session): monitor 299551472 No Data 13:04:32Z, hash 59cfd2e35c71cfa1, occ 115->116. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} over 10:34:32-13:04:32Z: bursts at 10:33-10:38Z (17/1069/1/205) and 11:17-11:32Z (423/117/1127/6/78), then a ~1h32m idle gap immediately before the fire -- well past the 30-min threshold, textbook bursty idle-gap shape. 0 status:error DD logs on the service over the window. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only."
+      },
+      {
+        "ts": "2026-08-05T14:09:06Z",
+        "note": "2026-08-05 ~14:09Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch confirmed no slack/conversations/mcp tool). DD monitor scan-diff vs prior cutoff 2026-08-05T13:05:56Z. Monitor 299551472 fired 13:15:32Z, hash 627e381bb9878e5b, occ 116->117 (3rd fire today after 70179996d3969222 @11:54:32Z and 59cfd2e35c71cfa1 @13:04:32Z). DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over 12:45:32-13:15:32Z: only 2 sparse points (1, 23) at 13:13:30-13:13:40Z, rest of the 30min window null/absent -- burst landed right at the tail of the eval window, consistent with the documented low-frequency-batch-consumer idle-gap pattern (monitor evaluated just before ingest caught up, self-recovered by scan time). 0 status:error DD logs over the same window. No thread-reply path in degraded mode -- kb-update self-DM confirmation only. See docs/investigations/2026-08-05-627e381bb9878e5b.md."
+      },
+      {
+        "ts": "2026-08-05T15:09:00Z",
+        "note": "2026-08-05 15:09Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed \"slack conversations.history users.info MCP\", no matching deferred tool found, consistent with the standing intermittent read-path gap [[project_degraded_cycle_no_slack_mcp]]). DD-scan-diff vs prior cutoff 2026-08-05T14:07:11Z (from the 2026-08-05T14:26:30Z poll-cycle summary). Full 186-monitor scan (--summary): no monitor-count regression (still 186), rules out the monitor-creation blind spot. 1 monitor had last_triggered_ts past the cutoff: 299551472, fired 2026-08-05T14:37:32Z, hash 2194a91681c12a8c, occ 117->118. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over a widened 12:37:32-14:37:32Z window: burst 13:13:30Z(24)/13:39:00Z(7), then a 57min idle gap, then a burst right at the fire boundary (14:36:00Z=1, 14:36:30Z=11) -- textbook bursty idle-gap shape, unchanged. 0 status:error DD logs on the service 14:07:32-14:37:32Z. Classified false-alarm, confidence 0.9. No thread-reply path in degraded mode (no source permalink) -- self-DM substituted per established degraded-cycle convention."
+      },
+      {
+        "ts": "2026-08-05T21:08:00Z",
+        "note": "2026-08-05 ~21:08Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed \"slack conversations history users info\", \"mcp slack\", \"conversations_history\": no matching deferred tool found, consistent with the standing intermittent read-path gap). DD monitor scan diff vs 2026-08-05T20:04:52Z cutoff (186-monitor full scan, count unchanged). Monitor 299551472 No Data 20:53:33Z, hash 702f40f0a58b6b63, occ 119->120. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over 20:53:33Z-24h window: last burst ended 20:20:00Z (681 msgs), fire came ~33.5min later -- just over the monitor's 30-min threshold, consistent with the documented low-frequency-batch-consumer idle-gap pattern. 0 status:error DD logs on the service 19:53:33-20:53:33Z. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only. See docs/investigations/2026-08-05-702f40f0a58b6b63.md."
+      },
+      {
+        "ts": "2026-08-05T22:09:00Z",
+        "note": "2026-08-05 ~22:09Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed \"slack conversations history mcp\", \"mcp__slack conversations_history chat_postMessage\": no matching deferred tool found, consistent with the standing intermittent read-path gap). DD monitor scan diff vs 2026-08-05T20:53:33Z cutoff (186-monitor full scan, count unchanged at 186, rules out monitor-creation blind spot). Monitor 299551472 No Data recovery-transition 22:02:32Z, hash 8428877bc1c98068, occ 120->121. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over 20:53:33-22:10:00Z: burst 21:07:30Z(41)/21:17:00Z(1)/21:30:00Z(6), then idle gap to 22:01:00Z(31) -- a ~31min gap (21:30:00Z->22:01:00Z), just over the monitor's 30-min threshold, textbook bursty-consumer idle-gap recurrence, unchanged shape from all 120 priors. 0 status:error DD logs on the service in the window. Classified false-alarm, confidence 0.9. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only. See docs/investigations/2026-08-05-8428877bc1c98068.md."
+      },
+      {
+        "ts": "2026-08-08T18:09:00Z",
+        "note": "2026-08-08 ~18:09Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch \"slack conversations history\", \"mcp__slack\" both empty, consistent with the standing intermittent read-path gap). DD monitor scan-diff fallback vs prior cycle's documented cutoff 2026-08-08T16:55:32Z (commit af81ea7). Full 186-monitor scan: 155 OK, 30 No Data, 1 Alert -- no monitor-count regression. Diffed all 186 monitors' last_triggered_ts against the cutoff: 1 transitioned past cutoff -- 299551472 (No messages processed in 30m, ->No Data 17:51:33Z), hash a54ab72b6cb04dda. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over 16:53:32-17:53:32Z: burst at 17:11:00-17:19:20Z (2,612,678,1,3 hits), then null/absent for ~32min to the 17:51:33Z fire -- past the monitor's 30-min threshold, textbook idle-gap shape. 0 service:method-import-subscriber status:error DD logs over the same window. occ 123->124. No thread-reply path in degraded mode -- self-DM kb-update confirmation sent instead."
+      },
+      {
+        "ts": "2026-08-08T22:09:00Z",
+        "note": "2026-08-08 ~22:09Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch \"slack conversations history\" and \"slack\" both empty). DD-scan-diff vs prior cutoff 2026-08-08T20:48:55Z (commit fa65245/508d9b5). Monitor 299551472 No Data 21:13:32Z, hash b3daef1d1e228b46, occ 124->125. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over 19:13:32-22:09:00Z: last burst 25 hits at 20:42:00Z, then null/absent for ~31.5min to the fire -- just past the monitor's 30-min threshold, same idle-gap mechanism as prior 124 occurrences. 0 status:error DD logs 20:42:00-21:19:00Z. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-08-08-b3daef1d1e228b46.md."
+      },
+      {
+        "ts": "2026-08-09T14:31:32Z",
+        "note": "2026-08-09 ~14:31Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch \"slack conversations history mcp\", \"slack\" both empty, consistent with the standing intermittent read-path gap). Ran DD-scan-diff fallback vs prior cycle cutoff 2026-08-09T14:08:31Z (commit e8e45e6). monitor 299551472 No Data 14:31:32Z, hash dfafa1da6b486d6d, occ 126->127. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count() over 2026-08-09T13:30:00Z-14:35:00Z: only 2 nonzero datapoints in the whole 65-min window -- a burst of 1+4=5 hits at 13:59:20-13:59:40Z, then nothing for ~32 min to the fire -- past the monitor's 30-min threshold. 0 status:error DD logs on the service over the same window. Textbook bursty idle-gap shape, unchanged from the 126 prior occurrences. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only. See docs/investigations/2026-08-09-dfafa1da6b486d6d.md."
+      },
+      {
+        "ts": "2026-08-10T11:45:00Z",
+        "note": "2026-08-10 ~11:45Z triage (degraded cycle, no Slack MCP). DD-scan-diff vs prior cutoff 2026-08-09T21:55:31Z. Monitor 299551472 fired 2026-08-10T08:50:32Z, hash ccfad3469d5ad64c, No Data at scan time. 24h volume check (sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod}.as_count(), 5min buckets, 2026-08-09T20:00:00-2026-08-10T08:50:32Z) shows only 3 non-zero buckets: 2073 hits at 23:00:00Z, 155 hits at 02:35:00Z, 1198 hits at 08:15:00Z -- bursts separated by 3.5-6.7h gaps. Last burst ended ~08:20Z; the fire at 08:50:32Z came ~30min after, squarely matching the documented 'threshold trips on every natural idle gap over 30 minutes' pattern. 0 status:error DD logs. Same mechanism as prior 127 occurrences. occ 127->128. See docs/investigations/2026-08-10-ccfad3469d5ad64c.md."
+      },
+      {
+        "ts": "2026-08-10T19:20:00Z",
+        "note": "2026-08-10 ~19:09-19:20Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch \"slack conversations history mcp\" and \"mcp__slack\" both returned no matching deferred tool). Working branch alerting-system-grafana confirmed. DD monitor scan-diff vs prior cycle cutoff 2026-08-10T17:59:11Z. monitor 299551472 fired 18:21:32Z, hash 39f5b1ec896f239a, occ 128->129. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} over 17:51:32-18:21:32Z: 1 sparse point (1 hit at ~18:19:30Z), rest of the 30-min window empty. 0 status:error DD logs on the service over the same window. Textbook bursty idle-gap shape, unchanged. No thread-reply path in degraded mode -- kb-update self-DM only. See docs/investigations/2026-08-10-39f5b1ec896f239a.md."
+      },
+      {
+        "ts": "2026-08-10T19:23:33Z",
+        "note": "2026-08-10 ~19:53-20:08Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch \"slack conversations history users info\" and \"mcp__slack\" both returned no matching deferred tool). Working branch alerting-system-grafana confirmed. DD monitor scan-diff vs prior cycle cutoff 2026-08-10T18:59:33Z. monitor 299551472 fired 19:23:33Z, hash 5325cd8c0040dabc, occ 129->130. DD metric sum:trace.amqp.command.hits{service:method-import-subscriber,env:prod} over 18:53:33-19:23:33Z: 1 sparse burst near end of window (2+31=33 hits at ~19:22:10-19:22:20Z), rest of the 30-min window empty. 0 status:error DD logs on the service over the same window. Textbook bursty idle-gap shape, unchanged. No thread-reply path in degraded mode -- kb-update self-DM only. See docs/investigations/2026-08-10-5325cd8c0040dabc.md."
+      }
+    ]
+  },
+  {
+    "target": "false-alarms",
+    "id": "fa-2026-07-07-sync-qbows-publisher-4h-liveness-monitor-noise",
+    "match": {
+      "channels": [
+        "alert-system"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/303522209"
+        },
+        {
+          "contains": "QBOWS publisher liveness"
+        },
+        {
+          "contains": "[Connect][Sync][P3]"
+        }
+      ]
+    },
+    "reason": "Monitor query is sum(last_4h):sum:trace.amqp.command.hits{service:sync.qbows.publisher,env:prod}.as_count() < 1. This fired at 18:59:06Z despite the underlying metric showing continuous, healthy traffic in every measured window: the full prior 24h (2026-07-06T19:20Z-2026-07-07T18:20Z) shows 24/24 hourly buckets non-zero at 2263-2969 msgs/hour, and a tight 4h window immediately before the trigger (15:24Z-18:24Z) shows 4/4 points non-zero at 2430-2508 msgs/hour. 0 errors on ES or DD Logs for the service in the window. Monitor self-recovered to OK within ~10 minutes. This is a brand-new monitor (created 2026-07-07, id in the same batch as sibling 303522131) with 0 prior fires -- same shape as the already-documented ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap (a different team's newly-rolled-out AMQP monitor family that intermittently trips on genuinely-healthy traffic and self-recovers within minutes).",
+    "silence_for": "24h",
+    "first_seen": "2026-07-07T18:59:06Z",
+    "last_seen": "2026-07-07T18:59:06Z",
+    "occurrences": 1,
+    "recommendation": "New monitor rollout (2026-07-07) evaluation quirk against continuously-flowing real traffic -- recommend Connect team verify trace.amqp.command.hits submission isn't briefly lagging around this monitor's evaluation boundary, or require 2 consecutive breaches before firing / widen the look-back, mirroring the fix already recommended for the analogous team:crm monitor family."
+  },
+  {
+    "target": "false-alarms",
+    "id": "fa-2026-07-11-signup-tracehandler-scanner-probe",
+    "match": {
+      "channels": [
+        "alert-system"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/154163500"
+        },
+        {
+          "contains": "Service Signup has unexpected number of errors"
+        }
+      ]
+    },
+    "reason": "ES fields.dd_service.keyword:signup AND level.keyword:Error, 04:49:40-05:24:40Z: 1 hit. Full sample: System.Web.HttpException thrown from System.Web.Handlers.TraceHandler.ProcessRequest (classic ASP.NET trace.axd diagnostic handler, disabled in prod). fields.Account.AccountId=0 (no real tenant attached) -- consistent with an external request probing /trace.axd rather than a real user action. Self-recovered, single occurrence, DD Logs 0 corroborating hits (client-request-level noise, not app-logic).",
+    "silence_for": "24h",
+    "first_seen": "2026-07-11T05:19:40Z",
+    "last_seen": "2026-08-09T19:07:40Z",
+    "occurrences": 10,
+    "notes": [
+      {
+        "ts": "2026-08-09T19:12:47Z",
+        "note": "2026-08-09 19:12Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch confirmed no slack/conversations tool; DD monitor scan-diff vs prior cutoff 2026-08-09T18:07:18Z). Monitor 154163500 fired 2026-08-09T19:07:40Z, hash 2654ee27b0455bee, occ 9->10. ES fields.dd_service.keyword:signup AND level.keyword:Error, 18:57:40-19:07:40Z: 1 hit, same signature -- System.Web.HttpException from System.Web.Handlers.TraceHandler.ProcessRequest, Request.Path=/trace.axd, StatusCode 403, Account.AccountId=0, this time Client.UserAgent='Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko); compatible; MistralAI-User/1.0' (a new bot UA for this entry -- an AI-crawler this time, same probe class). DD Logs service:signup status:error env:prod over the same window: 0 hits. Self-recovered by scan time. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only. See docs/investigations/2026-08-09-2654ee27b0455bee.md."
+      },
+      {
+        "ts": "2026-07-23T22:08:16Z",
+        "note": "2026-07-23 22:08Z triage (degraded cycle, no Slack MCP -- ToolSearch confirmed no slack/conversations tool surfaced this session; DD monitor scan diff vs 2026-07-23T20:59:12Z cutoff): monitor 154163500 fired 21:25:41Z, hash d7d6e5b972ef4017, occ 2->3. ES fields.dd_service.keyword:signup AND level.keyword:Error, 21:15-21:31Z: 1 hit. Full sample re-read: same signature as prior occurrences -- System.Web.HttpException from System.Web.Handlers.TraceHandler.ProcessRequest, Request.Path=/trace.axd, StatusCode 403, Account.AccountId=0, this time Client.UserAgent='CCBot/2.0 (https://commoncrawl.org/faq/)' (a different bot than before, same probe class). DD Logs service:signup status:error env:prod over the same window: 0 hits. Self-recovered by scan time. No thread-reply path in degraded mode (no Slack read access to the original alert ts) -- kb-update + self-DM confirmation only."
+      },
+      {
+        "ts": "2026-07-24T11:25:00Z",
+        "note": "2026-07-24 11:25Z triage (degraded cycle): monitor 154163500 fired 09:45:40Z, hash a2ce1de45dd3d143, occ 3->4. ES fields.dd_service.keyword:signup AND level.keyword:Error, 07:30-09:50Z: 2 hits, both confirmed same signature -- System.Web.HttpException from System.Web.Handlers.TraceHandler.ProcessRequest, Request.Path=/trace.axd, StatusCode 403, Account.AccountId=0 (bot UAs: Applebot-Extended/0.1 and CCBot/2.0). These same 2 hits also independently drove today's Signup Availability SLO fire (154229727, see docs/investigations/2026-07-24-e39d68628e10a744.md) -- documented as the connection between the two Signup alerts this cycle. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only."
+      },
+      {
+        "ts": "2026-07-25T11:09:00Z",
+        "note": "2026-07-25 11:09Z triage (degraded cycle, no Slack MCP): monitor 154163500 (Service Signup has unexpected number of errors) fired 2026-07-25T09:42:40Z, hash db1e39a932998206, occ->5. ES fields.dd_service.keyword:signup AND level.keyword:Error over 09:12:40-09:42:40Z: 1 hit, \"Unhandled Exception - System.Web\" -- matches the documented TraceHandler scanner-probe signature. No thread-reply path in degraded mode -- kb-update only."
+      },
+      {
+        "ts": "2026-07-25T13:15:00Z",
+        "note": "2026-07-25 13:15Z triage (degraded cycle, no Slack MCP; DD monitor scan diff vs 2026-07-25T11:56:21Z cutoff): monitor 154163500 fired 12:45:40Z, hash cde1d2e0ef5aaf0d, occ 5->6. ES fields.dd_service.keyword:signup AND level.keyword:Error, 12:15:40-12:45:40Z: 1 hit, same signature -- System.Web.HttpException from System.Web.Handlers.TraceHandler.ProcessRequest, Request.Path=/trace.axd, StatusCode 403, Account.AccountId=0, this time Client.UserAgent=Amzn-SearchBot/1.0 (Amazon crawler, a new bot UA for this entry). DD Logs service:signup status:error env:prod over the same window: 0 hits. Self-recovered by scan time. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only. See docs/investigations/2026-07-25-cde1d2e0ef5aaf0d.md."
+      },
+      {
+        "ts": "2026-07-29T17:13:00Z",
+        "note": "2026-07-29 17:13Z triage (degraded cycle, no Slack MCP; DD monitor scan-diff vs prior cutoff 2026-07-29T16:09:11Z). Monitor 154163500 (Service Signup has unexpected number of errors) fired 2026-07-29T16:48:40Z, hash ebe7bfd7abd96920, occ->8, self-recovered (OK at scan time). ES fields.dd_service.keyword:signup AND level.keyword:Error, 16:43:40-16:48:40Z (monitor's own last_5m eval window): 0 hits -- no corroborating error signal, same probe/scanner-noise mechanism as prior 7 occurrences. No thread-reply path in degraded mode -- kb-update self-DM sent."
+      }
+    ]
+  },
+  {
+    "target": "false-alarms",
+    "id": "fa-2026-07-11-sync-api-queue-consumer-bursty-idle-gap",
+    "match": {
+      "channels": [
+        "alert-system"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/301038101"
+        },
+        {
+          "contains": "[Connect][Sync][P2] SyncAPI consumer stalled (sync-api-queue-consumer)"
+        }
+      ]
+    },
+    "reason": "DD metric sum:trace.amqp.command.hits{service:sync-api-queue-consumer,env:prod}.as_count(), 09:41:41-10:11:41Z: regular non-zero hits (4,5,2,3,7,1,5,6,4,7) throughout most of the window with one ~15.3min gap (09:54:20-10:09:40Z) immediately preceding the fire -- just crosses the monitor's sum(last_15m)<1 threshold on a natural idle gap, same root-cause class as fa-2026-07-06-ms-import-subscriber-nodata-bursty-consumer but a distinct monitor/service (DD tag team:connect; ownership.md project table maps syncapi-queue-consumer -> Integrations team, note discrepancy with the DD tag).",
+    "silence_for": "24h",
+    "first_seen": "2026-07-11T10:11:41Z",
+    "last_seen": "2026-07-21T06:01:41+00:00",
+    "occurrences": 3,
+    "notes": [
+      {
+        "ts": "2026-07-12T10:03:41Z",
+        "note": "2026-07-12 triage (degraded cycle, no Slack MCP): monitor 301038101 fired 10:03:41Z, hash 4f1680519a69628d, occ 1->2. DD metric sum:trace.amqp.command.hits{service:sync-api-queue-consumer,env:prod} 09:33:41-10:03:41Z: 6 nonzero points (4,2,7,2,2,2), regular but modest traffic, consistent with the documented bursty-idle-gap pattern. 2nd occurrence, same shape as the first -- pattern confirmed. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only."
+      }
+    ]
+  },
+  {
+    "target": "false-alarms",
+    "id": "fa-2026-07-12-mapi-5xx-rate-low-traffic-ratio-artifact",
+    "match": {
+      "channels": [
+        "alert-system"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/299551641"
+        },
+        {
+          "contains": "[Admin][MAPI][P1] 5xx error rate elevated"
+        }
+      ]
+    },
+    "reason": "Monitor query is 100 * sum:trace.aspnet.request.errors{service:services/mapi,env:prod}.as_count() / sum:trace.aspnet.request.hits{...}.as_count() > 100 -- i.e. errors must exceed hits, only possible via a bucket-alignment counting artifact between two independently-aggregated metrics on very low traffic (2 total hits in the 15-min window). 0 errors found in DD metrics for the same window -- no corroborating evidence of a real error-rate spike. Same family as the already-documented gateway-4xx and ms-account-api-4xx monitoring-noise patterns.",
+    "silence_for": "24h",
+    "first_seen": "2026-07-12T09:53:21Z",
+    "last_seen": "2026-07-30T08:12:21Z",
+    "occurrences": 5,
+    "recommendation": "add a minimum-request-volume floor to this monitor's query, mirroring the fix already recommended for the sibling 4xx-spike monitors",
+    "notes": [
+      {
+        "ts": "2026-07-25T11:09:00Z",
+        "note": "2026-07-25 11:09Z triage (degraded cycle, no Slack MCP): monitor 299551641 ([Admin][MAPI][P1] 5xx error rate elevated (services/mapi)) fired 2026-07-25T08:32:21Z, hash 14cdbc4e93756c22, occ->3. DD metric errors=1 (1 point), hits=3 (2 points: 1,2) for service:services/mapi over 08:22:21-08:32:21Z -- a single error against ~3 total requests is enough to trip the errors/hits > 100% ratio threshold at this volume, consistent with the documented low-traffic-ratio artifact. No thread-reply path in degraded mode -- kb-update only."
+      },
+      {
+        "ts": "2026-07-30T14:45:00Z",
+        "note": "2026-07-30 ~14:45Z triage (degraded cycle, no Slack MCP): monitor 299551641 fired 08:12:21Z, hash 33d146f3af054911, occ 4->5. Metric re-query: 2 total errors in window. Self-DM'd."
+      }
+    ]
+  },
+  {
+    "target": "false-alarms",
+    "id": "fa-2026-07-12-signup-avg-latency-low-traffic-noise",
+    "match": {
+      "channels": [
+        "alert-system"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/154252601"
+        },
+        {
+          "contains": "Service Signup has a high average latency"
+        }
+      ]
+    },
+    "reason": "Monitor query is avg(last_15m):avg:trace.aspnet.request{env:prod,service:signup} > 5. This fired at 05:55:41Z despite raw points in the monitor's own exact 15-min evaluation window (05:40:41-05:55:41Z) showing 0.003-0.43s -- nowhere near the 5s threshold. Only 7 requests in the window (low traffic), consistent with a sparse-data average-computation artifact rather than a real latency incident. Same low-traffic-noise theme already documented for two other signup monitors (154163500, 154252126). Recurred 2026-07-12T11:39:41Z: 9 requests in window, one 14.40s outlier (11:27:30Z) among near-zero-latency requests dragged the 15-min average over threshold -- same mechanism.",
+    "silence_for": "24h",
+    "first_seen": "2026-07-12T05:55:41Z",
+    "last_seen": "2026-08-02T05:51:41Z",
+    "occurrences": 5,
+    "recommendation": "widen the evaluation window, switch to p95/p99 with a minimum-request-volume floor, or consolidate under one review with the other two noisy signup monitors",
+    "notes": [
+      {
+        "ts": "2026-07-30T14:45:00Z",
+        "note": "2026-07-30 ~14:45Z triage (degraded cycle, no Slack MCP): monitor 154252601 fired 01:28:42Z, hash a1e03b492c6b008c, occ 3->4. Metric re-query max avg 0.012s vs 5s threshold. Self-DM'd."
+      }
+    ]
+  },
+  {
+    "target": "false-alarms",
+    "id": "fa-2026-07-15-method-nativemobile-ui-rum-client-network-noise",
+    "match": {
+      "channels": [
+        "alert-system",
+        "alert-runtime-monitoring"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/305454649"
+        },
+        {
+          "contains": "method-nativemobile-ui RUM error rate high"
+        },
+        {
+          "contains": "monitors/311808962"
+        },
+        {
+          "contains": "monitors/313094708"
+        }
+      ]
+    },
+    "reason": "DD RUM Error Tracking for service:method-nativemobile-ui over the trailing 4h (2026-07-14T19:00-23:30Z): 181 @type:error events vs 1464 @type:view events = 12.4% error rate (monitor threshold >5%). Message breakdown of all 181 sampled errors: 83 'A server with the specified hostname could not be found.' (DNS resolution failure, 45.9%), 74 'cancelled' (request cancelled mid-flight, typically app backgrounding/navigation-away, 40.9%), 12 'A TLS error caused the secure connection to fail.' (6.6%), plus small counts of 'Network Error'/'offline'/Expo-token-fetch failures. Every message is a client-side network-connectivity signature (DNS/TLS/cancellation on mobile devices with flaky connectivity) -- none are application-level 4xx/5xx or server-side exceptions. No correlated backend service alert fired in the same window. This is inherent RUM noise from real-world mobile network conditions, not a backend incident.",
+    "silence_for": "24h",
+    "first_seen": "2026-07-14T23:01:19Z",
+    "last_seen": "2026-08-19T07:37:08Z",
+    "occurrences": 35,
+    "recommendation": "monitor threshold (>5% over trailing 4h) is too sensitive for a mobile RUM error-rate check that includes DNS/TLS/cancellation noise; recommend excluding 'cancelled' and DNS-resolution-failure messages from the numerator, or raising the threshold, before this becomes a recurring low-value fire; flag to Admin (owns method-nativemobile-ui per ownership.md, despite the monitor's team:crm tag). 3 occurrences in ~2.5 weeks now (2026-07-14, 2026-07-30, 2026-07-31) -- worth acting on rather than continuing to re-verify.",
+    "notes": [
+      {
+        "ts": "2026-07-31T11:24:00Z",
+        "note": "2026-07-31 ~11:08Z triage (degraded cycle, no Slack MCP; DD monitor scan diff vs 2026-07-30T22:03:11Z cutoff): monitor 305454649 fired 2026-07-31T09:45:19Z, hash 95ee6237e9f2024b, occ 1->2, STILL Alert at scan time (~1h23m later -- longer-lived than the single documented occurrence, consistent with this monitor's 4h-trailing-window formula (query2/query1)*100>5 taking longer to clear than a spot-check monitor). DD RUM Error Tracking for service:method-nativemobile-ui over the monitor's own trailing 4h window (05:45:19-09:45:19Z): 25 @type:error vs 163 @type:view = 15.3% error rate. Full message breakdown of the 25 errors: 12 'Network error, saving log locally Network Error' (48%), 5 'cancelled' (20%), 3 'Memory Warning' (12%), 3 'The network connection was lost.' (12%), 1 Expo-token-fetch TypeError (4%), 1 'Request failed with status code 401' (4%) -- 21/25 (84%) are client-side network-connectivity signatures (same family as the documented DNS/TLS/cancellation noise, slightly different message mix this occurrence), no correlated backend service alert fired in this cycle. Still classified as client-side RUM noise, not a backend incident -- note the slightly wider message variety (Memory Warning, one 401) for future comparison if this pattern ever needs re-evaluation. No thread-reply path in degraded mode -- kb-update self-DM sent."
+      },
+      {
+        "ts": "2026-07-31T11:40:00Z",
+        "note": "2026-07-31 ~11:25Z triage (degraded cycle, no Slack MCP; DD monitor scan diff vs 2026-07-31T10:44:26Z cutoff): monitor 305454649 fired 2026-07-31T11:25:20Z, hash 36a44116269641f5, occ 2->3, Warn at scan time. DD RUM Error Tracking over the monitor's own trailing 4h window (07:25:20-11:25:20Z): 46 @type:error vs 479 @type:view = 9.6% error rate. Sampled 30/46 errors: dominant 'cancelled' (~17), plus iOS push-entitlement config errors ('no valid aps-environment entitlement string'), Expo-token-fetch 503s (Expo's own infra), TLS errors, Memory Warning, Network Error -- all client-side/device/third-party-infra signatures, same mechanism family as both prior occurrences. No correlated backend alert. Still client-side RUM noise, not a backend incident. See docs/investigations/2026-07-31-36a44116269641f5.md. No thread-reply path in degraded mode -- kb-update self-DM sent."
+      },
+      {
+        "ts": "2026-08-01T10:33:00Z",
+        "note": "2026-08-01 ~10:33Z triage (degraded cycle, no Slack MCP): monitor 305454649 fired 2026-08-01T10:18:19Z, hash 4610044b45cf71ae, occ 3->4, Warn at scan time. DD RUM Error Tracking over the monitor's own trailing 4h window (06:18:19-10:18:19Z): 2 @type:error vs 59 @type:view = 3.4% error rate -- below the >5% alert threshold, consistent with the Warn (not Alert) state. Both sampled errors are 'cancelled' -- same client-side/device network-cancellation signature as all 3 prior occurrences. No correlated backend alert. No thread-reply path in degraded mode -- kb-update self-DM sent."
+      },
+      {
+        "ts": "2026-08-01T12:12:00Z",
+        "note": "2026-08-01 ~12:12Z triage (degraded cycle, no Slack MCP): monitor 305454649 fired 2026-08-01T12:06:19Z, hash 5dabfe3709020e13, occ 4->5, Warn at scan time. DD RUM Error Tracking over the monitor's own trailing 4h window (08:06:19-12:06:19Z): 10 @type:error vs 193 @type:view = 5.18% error rate -- just over the >5% threshold, consistent with Warn (not Alert). Sampled errors: 'cancelado' (Spanish-locale variant, new this occurrence) and 'cancelled' -- same client-side/device network-cancellation signature as all 4 prior occurrences. No correlated backend alert. No thread-reply path in degraded mode -- kb-update self-DM sent."
+      },
+      {
+        "ts": "2026-08-01T13:16:00Z",
+        "note": "2026-08-01 ~13:16Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-08-01T12:06:19Z cutoff): monitor 305454649 fired 2026-08-01T13:03:19Z, hash 75566ef848a03b3f, occ 5->6, Warn at scan time. DD RUM Error Tracking over the monitor's own trailing 4h window (09:03:19-13:03:19Z): 16 @type:error vs 328 @type:view = 4.88% error rate -- just under the >5% alert threshold, consistent with Warn (not Alert). All 5 sampled errors are 'cancelled' -- same client-side/device network-cancellation signature as all 5 prior occurrences. No correlated backend alert. No thread-reply path in degraded mode -- kb-update self-DM sent."
+      },
+      {
+        "ts": "2026-08-01T14:13:36Z",
+        "note": "2026-08-01 ~14:13Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-08-01T13:05:33Z cutoff): monitor 305454649 fired 2026-08-01T14:08:19Z, hash 243c10b1d9e69fa5, occ 6->7. DD RUM Error Tracking over the monitor's own trailing 4h window (10:08:19-14:08:19Z): 24 @type:error vs 508 @type:view = 4.72% error rate -- just under the >5% alert threshold, consistent with Warn (self-recovered to OK by detail-lookup time, overall_state_modified 14:09:19Z). All 5 sampled errors are 'cancelled' -- same client-side/device network-cancellation signature as all 6 prior occurrences. No correlated backend alert. No thread-reply path in degraded mode -- kb-update self-DM sent."
+      },
+      {
+        "ts": "2026-08-01T21:09:00Z",
+        "note": "2026-08-01 ~21:09Z triage (degraded cycle, no Slack MCP surfaced this session, DD monitor scan diff vs 2026-08-01T19:57:08Z cutoff): monitor 305454649 fired 2026-08-01T21:04:19Z, hash 3e0e3e7f7eb37fe3, occ 7->8. DD RUM Error Tracking for service:method-nativemobile-ui over the monitor's own trailing 4h window (17:04:19-21:04:19Z): 50 @type:error vs 470 @type:view = 10.6% error rate -- above the >5% threshold, consistent with Alert (the highest error-rate of the 8 documented occurrences). Of 30 sampled errors: 27 'cancelled' (90%), 3 'The network connection was lost.' (10%) -- same client-side/device network-connectivity signature as all 7 prior occurrences, just a higher-volume excursion, not a new failure mode. No correlated backend service alert fired in this cycle's scan (only other monitor past cutoff was the already-suppressed notifications-P95 KIR). Still classified as client-side RUM noise, not a backend incident -- flagging the elevated rate for stability-review trend-watch. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-08-01-3e0e3e7f7eb37fe3.md."
+      },
+      {
+        "ts": "2026-08-01T22:12:00Z",
+        "note": "2026-08-01 ~22:12Z triage (degraded cycle, no Slack MCP surfaced this session, DD monitor scan diff vs 2026-08-01T21:04:19Z cutoff): monitor 305454649 fired 2026-08-01T21:09:20Z, hash 396b0e524828f637, occ 8->9, Warn at scan time (5m after the prior occurrence, still inside the same elevated-rate episode). DD RUM Error Tracking for service:method-nativemobile-ui over the monitor's own trailing 4h window (17:09:20-21:09:20Z): 53 @type:error vs 480 @type:view = 11.0% error rate -- consistent with the prior occurrence's elevated rate 5 minutes earlier. Of 30 sampled errors: 27 'cancelled' (90%), 3 'The network connection was lost.' (10%) -- identical composition to the immediately-prior occurrence, same client-side/device network-connectivity signature as all 8 prior occurrences. No correlated backend service alert co-fired this cycle. Still classified as client-side RUM noise, not a backend incident. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-08-01-396b0e524828f637.md."
+      },
+      {
+        "ts": "2026-08-02T14:15:00Z",
+        "note": "2026-08-02 ~14:08Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed 'mcp__claude_ai_Slack', 'mcp__slack': no matching deferred tool found). DD monitor scan diff vs prior cutoff 2026-08-02T13:05:31Z (commit 38316be): 186 monitors scanned (151 OK, 33 No Data, 1 Alert, 1 Warn). 1 monitor transitioned past cutoff: 305454649 fired 2026-08-02T13:43:19Z, hash b9409d8870a64484, occ 10->11, Warn at scan time. DD RUM Error Tracking for service:method-nativemobile-ui over the monitor's own trailing 4h window (09:43:19-13:43:19Z): 13 @type:error vs 250 @type:view = 5.2% error rate -- just over the >5% threshold, consistent with Warn (not Alert). Sampled errors: 11 'cancelled' (84.6%), 1 Expo-token-fetch TypeError (Network request failed), 1 'Memory Warning' -- same client-side/device network-cancellation signature as all 10 prior occurrences. No correlated backend service alert co-fired this cycle (only new fire in the scan diff). No thread-reply path in degraded mode -- kb-update self-DM sent."
+      },
+      {
+        "ts": "2026-08-02T16:10:00Z",
+        "note": "2026-08-02 ~16:10Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed \"slack\", \"slack mcp conversations claude_ai atlassian jira\": no matching deferred tool found, consistent with the standing intermittent read-path gap). Ran DD-scan-diff fallback vs prior cycle's documented cutoff 2026-08-02T15:06:31Z (commit fe99725). Full 186-monitor scan: 151 OK, 33 No Data, 1 Alert, 1 Warn at scan time. Diffed monitors in Alert/No-Data/Warn state by last_triggered_ts against the 15:06:31Z cutoff: 2 monitors had timestamps past cutoff -- 305454649 ([CRM][P2] method-nativemobile-ui RUM error rate high, Warn 15:36:19Z, past cutoff, treated as new fire) and 302057011 ([CRM] runtime-core-subscriber throughput dropped, but back to OK state at scan time -- a recovery, not a new fire, not treated as pending alert). monitor 305454649 -> synthetic alert-system alert, hash c5f0af1cc599ca95. DD RUM Error Tracking for service:method-nativemobile-ui over the monitor's own trailing 4h window (11:36:19-15:36:19Z): 27 @type:error vs 429 @type:view = 6.29% error rate (above the >5% threshold, consistent with Warn). Sampled errors: 13 'cancelled' (48%), 3 'The Internet connection appears to be offline.' (11%), 2 'A server with the specified hostname could not be found.' (7%), 2 'cancelado' (7%), 2 Expo-token-fetch TypeError/Network-request-failed (7%), 1 'Memory Warning' (4%) -- same client-side/device network-connectivity signature family as all 11 prior documented occurrences, no new failure mode. No correlated backend alert co-fired (302057011 was a recovery, not a co-firing alert). Classified false-alarm, occurrences bumped 11->12, last_seen -> 2026-08-02T15:36:19Z. No thread-reply path in degraded mode (no real Slack ts) -- kb-update self-DM sent instead. Investigation report: docs/investigations/2026-08-02-c5f0af1cc599ca95.md. New cutoff for next cycle: 2026-08-02T15:36:19Z (max last_triggered_ts among monitors actually processed as pending alerts this cycle)."
+      },
+      {
+        "ts": "2026-08-03T14:13:01Z",
+        "note": "2026-08-03 ~14:13Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed for slack/conversations tools, none found, consistent with the standing intermittent read-path gap). DD monitor scan diff vs prior cycle cutoff 2026-08-03T13:07:32Z (commit 7fdff39): full 186-monitor scan, 155 OK / 29 No Data / 1 Alert / 1 Warn at scan time. Monitor 305454649 fired 2026-08-03T13:34:19Z, hash d261215129c7dbe4, occ 12->13, Warn at scan time. DD RUM Error Tracking for service:method-nativemobile-ui over the monitor own trailing 4h window (09:34:19-13:34:19Z): 236 @type:error vs 2304 @type:view = 10.24% error rate (above the >5% threshold, consistent with Warn). Sampled 30/236 errors: 28 cancelled (93%), 1 The request timed out. (3%), 1 Expo-token-fetch java.io.IOException: SERVICE_NOT_AVAILABLE (3%) -- same client-side/device network-connectivity + Expo-infra noise family as all 12 prior documented occurrences, no new failure mode. No correlated backend service alert co-fired this cycle (only other pending item was monitor 142200330, an unrelated QA synthetics No Data fire). Classified false-alarm, no thread-reply path in degraded mode -- kb-update self-DM sent instead. Investigation report: docs/investigations/2026-08-03-d261215129c7dbe4.md."
+      },
+      {
+        "ts": "2026-08-05T11:32:14Z",
+        "note": "2026-08-05 ~11:32Z triage (degraded cycle): monitor 305454649 fired 2026-08-05T07:53:20Z, hash cf48330e74c11928, occ 14->15. DD RUM errortracking service:method-nativemobile-ui @type:error over trailing 4h (03:53:20-07:53:20Z): 4 events / 80 @type:view events = 5.0% error rate (monitor threshold >5%, right at the line). Message breakdown: 2x \"cancelled\" (client-side request cancellation, matches documented noise signature), 2x \"Memory Warning\" (new message not previously catalogued in this entry's notes -- also purely client/device-level, no server correlation). No corroborated backend service alert in the same window. Consistent with documented RUM client/device noise mechanism; occurrence bumped."
+      },
+      {
+        "ts": "2026-08-07T11:14:11Z",
+        "note": "2026-08-07 triage (degraded cycle, no Slack MCP surfaced this session; DD-scan-diff vs prior cutoff 2026-08-06T22:06:12Z, commit 7728c3d): monitor 311607970 fired 2026-08-07T11:09:11Z, hash 2af206be66d9e0a7, occ 16->17, state Warn/Alert (fluctuating) at scan time. DD RUM error components over the monitor's own trailing 4h window (07:09:11-11:09:11Z): sum:rum.measure.view.error_free vs sum:rum.measure.view = 1071/1091 -> 1.83% error rate, below the >5% threshold overall (consistent with the state having eased back toward Warn by full-detail lookup time). DD RUM Error Tracking @type:error sample (22 events in-window): dominant 'no valid “aps-environment” entitlement string found for application' (iOS push-entitlement config error, previously catalogued 2026-07-31) and 'cancelled' (client-side request cancellation, the dominant signature across all 16 prior occurrences) -- same client-side/device signature family, no new failure mode, no correlated backend service alert this cycle. Classified false-alarm, occurrences bumped 16->17."
+      },
+      {
+        "ts": "2026-08-07T12:15:00Z",
+        "note": "2026-08-07 ~12:15Z triage (degraded cycle, no Slack MCP surfaced this session; DD-scan-diff vs prior cutoff 2026-08-07T11:09:26Z, commit 2c7448b): monitor 311607970 fired 2026-08-07T11:33:11Z, hash d65bc47f5721c4fc, occ 17->18, Warn at scan time. DD RUM error components over the monitor's own trailing 4h window (07:33:11-11:33:11Z): sum:rum.measure.view.error_free vs sum:rum.measure.view = 1558/1585 -> 1.70% error rate, below the >5% threshold overall (consistent with the state easing back by full-detail lookup time, same pattern as the 11:09Z occurrence 24 minutes earlier). DD RUM Error Tracking @type:error sample (31 events in-window, 5 sampled): all 5 'cancelled' -- same client-side/device request-cancellation signature as all 17 prior occurrences, no new failure mode, no correlated backend service alert this cycle (only other monitor past cutoff, 299551472 ImportSubscriber, routes to unpolled alert-admin-monitoring channel). Classified false-alarm, occurrences bumped 17->18. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-08-07-d65bc47f5721c4fc.md."
+      },
+      {
+        "ts": "2026-08-07T14:08:30Z",
+        "note": "2026-08-07 ~14:08Z triage (degraded cycle, no Slack MCP surfaced this session; DD-scan-diff vs prior cutoff 2026-08-07T12:51:10Z, commit 4638111). Monitor 311808962 (a new/3rd DD monitor id for this same check, after 305454649 and 311607970 -- text-based any_of match absorbed the id churn) fired 2026-08-07T13:45:12Z, hash 07d868645946a350, occ 19->20. DD RUM errortracking service:method-nativemobile-ui over the monitor's own trailing 4h window (09:45:12-13:45:12Z): 106 @type:error vs 980 @type:view = 10.8% error rate, above the >5% threshold. Sampled errors: Memory Warning, cancelled x2, 'Network error, saving log locally Network Error', 'The network connection was lost.' -- all client-side/device signatures, same family as all 19 prior occurrences. No correlated backend service alert this cycle (only other in-scope monitor, 77419271, is the unrelated frontend-gateway-timeout KIR). Classified false-alarm. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-08-07-07d868645946a350.md."
+      },
+      {
+        "ts": "2026-08-10T12:00:00Z",
+        "note": "2026-08-10 ~12:00Z triage (degraded cycle, no Slack MCP). DD-scan-diff vs prior cutoff 2026-08-09T21:55:31Z. Monitor 311808962 ('[CRM][P2] method-nativemobile-ui RUM error rate high') fired 2026-08-10T10:43:02Z, hash 434c0570972ae206, OK by scan time. IMPORTANT: this monitor ID does NOT match this entry's originally-documented monitor (305454649) -- 305454649 no longer appears in the current 186-monitor scan at all, and 311808962 has an identical name, query (sum(last_4h):((view-error_free)/view)*100 > 5), and tags (team:crm, service:method-nativemobile-ui) -- strong evidence the monitor was deleted and recreated under a new ID, not a genuinely distinct check. match_kb.py only matched via the bare-text fallback clause ('method-nativemobile-ui RUM error rate high'), which is exactly the scenario that fallback clause exists for -- but per standing practice (never trust a bare-word match without independent verification), ran errortracking independently rather than accepting on the bare-word match alone: DD RUM Error Tracking for service:method-nativemobile-ui over the monitor's own trailing-4h window (06:43:02-10:43:02Z): 36 @type:error vs 175 @type:view = 20.6% error rate (above the >5% threshold, consistent with a real trigger). Message breakdown (30-sample): 17 'Network error, saving log locally Network Error', 7 'cancelled', 3 'no valid aps-environment entitlement string found for application' (iOS entitlement config), 3 'Memory Warning' -- every message is the same client-side network/device-connectivity signature family already documented for this entry (DNS/TLS/cancellation/entitlement noise), none are server-side 4xx/5xx. No correlated backend service alert co-fired this cycle. Added 'monitors/311808962' to this entry's match.any_of so future scans hit directly instead of via the bare-word fallback. occ 20->21. See docs/investigations/2026-08-10-434c0570972ae206.md."
+      },
+      {
+        "ts": "2026-08-13T11:20:00Z",
+        "note": "2026-08-13 ~11:09Z triage (degraded cycle, no Slack MCP surfaced this session; DD-scan-diff vs prior cutoff 2026-08-12T22:03:56Z, commit ed39de7, after a ~13h overnight gap consistent with the chronic Task-Scheduler business-hours-only pattern). Monitor 313094708 (a 4th/5th DD monitor id for this same check, after 305454649/311607970/311808962 -- same name, same query formula sum(last_4h):((view-error_free)/view)*100>5, same tags team:crm/service:method-nativemobile-ui, created 2026-08-12T13:43:35Z) fired, overall_state_modified 2026-08-13T09:48:08Z, hash cccd4197e08af275, still Warn at scan time (11:09Z). IMPORTANT channel-scope gap found and fixed this cycle: match_kb.py returned NO hit for this occurrence (both false-alarms.json and known-issues.json) because this entry's match.channels was scoped to ['alert-system'] only, while this monitor's actual notify target is @slack-alert-runtime-monitoring -- confirmed by re-running match_kb.py with --channel alert-system instead, which matched immediately on the existing any_of clauses (content was never the blocker, only channel). This exact channel gap silently caused the 3 immediately-prior occurrences of this same monitor (32852fca00eba8b4 and 8b31d918f115b395 on 2026-08-08, 2cd317b5e40311ce on 2026-08-11) to fall through to needs-human/actionable-append instead of matching this entry, despite each of those investigations independently reaching the identical 'client-side RUM noise, mostly cancelled' conclusion documented here. Added 'alert-runtime-monitoring' to match.channels and 'monitors/313094708' to match.any_of so future occurrences on this channel match directly. Independently re-verified before trusting the (now-fixed) match, per this entry's own standing practice of never trusting a bare match without verification: DD RUM Error Tracking for service:method-nativemobile-ui over the monitor's own trailing-4h window (07:48:08-11:09:00Z, 31 @type:error events sampled): 25/31 (81%) 'cancelled' (+1 'geannuleerd', Dutch locale variant of the same signature), plus 1 Expo-token-fetch TypeError (Network request failed), 1 'The network connection was lost.', 1 SSL error, 1 Memory Warning, 1 'internet connection appears to be offline' -- every message is the same client-side/device/third-party-infra signature family documented across all 21 prior occurrences, no new failure mode. Independently recomputed the monitor's own metric from raw counters (sum:rum.measure.view.error_free vs sum:rum.measure.view, last 4h): 1444/1512 -> 4.5% error rate, consistent with the observed Warn (3-5%) band -- reproduction confirmed, not a rollup artifact. Zero server-side log correlate (service:method-nativemobile-ui status:error -> 0 hits), as expected for a pure RUM signal. No correlated backend service alert co-fired this cycle (the only other in-scope items this cycle were separate CRM-AMQP/notifications-p95/rainforest/eda-consumer/methodsession KIR groups, all unrelated). Classified false-alarm, occ 21->22. No thread-reply path in degraded mode (no real Slack ts) -- kb-update self-DM sent instead. Investigation report: docs/investigations/2026-08-13-cccd4197e08af275.md."
+      },
+      {
+        "ts": "2026-08-13T22:08:09Z",
+        "note": "2026-08-13 ~22:08Z triage (degraded cycle, no Slack MCP surfaced this session; DD-scan-diff vs prior cutoff 2026-08-13T21:08:12Z, commit 899d07a). Monitor 313094708 (already in this entry's match.any_of and match.channels since the 11:20Z occurrence today) fired, overall_state_modified 2026-08-13T22:08:09Z, hash 15d50627b76ce1e7, Warn state at scan time. Two other transitions surfaced by the same scan were excluded: 299551472 ([Admin][ImportSubscriber] No messages processed in 30m) recovered to OK, true notify target confirmed via full monitor detail lookup = @slack-alert-admin-monitoring, not one of the 4 polled alert-* channels or swat/team-incident-response -- out of scope, excluded from cutoff-setting. 77419271 (Unusual XHR errors) stayed OK->OK, same recurring re-evaluation-noise shape as every prior sighting -- skipped, no occurrence bump. Independently re-verified this occurrence before trusting the match, per this entry's own standing practice: DD RUM Error Tracking for service:method-nativemobile-ui over the monitor's own trailing-4h window (18:08:09-22:08:09Z): 460 @type:error events, 40-sample breakdown 30 'cancelled' (75%), 3 'The network connection was lost.', 3 'The Internet connection appears to be offline.', 2 'Network error, saving log locally Network Error', 1 Expo-token-fetch TypeError, 1 TLS error -- every message is the same client-side/device/third-party-infra signature family documented across all 22 prior occurrences, no new failure mode. Independently recomputed the monitor's own metric from raw counters (sum:rum.measure.view.error_free vs sum:rum.measure.view, last 4h, summed pointlist): 7305/7538 -> 3.09% error rate, consistent with the observed Warn (3-5%) band -- reproduction confirmed, not a rollup artifact. No correlated backend service alert co-fired this cycle (the only other in-scope-adjacent transition, 299551472, is an unrelated import-subscriber check on an out-of-scope channel). Classified false-alarm, occ 22->23. No thread-reply path in degraded mode (no real Slack ts) -- kb-update self-DM sent instead. See docs/investigations/2026-08-13-15d50627b76ce1e7.md."
+      },
+      {
+        "ts": "2026-08-14T11:20:00Z",
+        "note": "2026-08-14 ~11:15Z triage (degraded cycle, no Slack MCP surfaced this session; DD-scan-diff vs prior cutoff 2026-08-13T22:08:09Z, commit 08ac672, after a ~13h overnight business-hours-only Task Scheduler gap). Monitor 313094708 fired, overall_state_modified 2026-08-14T09:36:08Z, hash 6a61eece42881c69, Warn state at scan time. DD RUM Error Tracking for service:method-nativemobile-ui @type:error over the monitor own trailing-4h window (05:36:08-09:36:08Z): 12 total error events, 11 cancelled + 1 annule (French locale variant) -- 100% same client-side request-cancellation signature family as all 23 prior occurrences, no new failure mode. Independently recomputed the monitor own metric from raw counters (sum:rum.measure.view.error_free vs sum:rum.measure.view, last 4h): 543/556 -> 2.34% error rate -- below even the 3% Warn threshold, a wider miss than most prior occurrences (likely evaluation_delay/window-edge timing artifact inherent to state-diff-only degraded mode, not a sign of a different mechanism). Classified false-alarm anyway on the strength of the message-signature evidence, confidence downgraded to 0.8 to disclose the metric mismatch. No correlated backend service alert co-fired this cycle. No thread-reply path in degraded mode -- kb-update self-DM sent instead. See docs/investigations/2026-08-14-6a61eece42881c69.md."
+      },
+      {
+        "ts": "2026-08-14T22:10:17Z",
+        "note": "2026-08-14 ~22:10Z triage (degraded cycle, no Slack MCP surfaced this session; DD-scan-diff vs prior cutoff 2026-08-14T19:25:11Z, commit ad029f3). Monitor 313094708 fired, overall_state_modified 2026-08-14T22:07:08Z, hash 682aba7164b3d445, OK state at scan time. DD RUM Error Tracking for service:method-nativemobile-ui @type:error over the trailing-4h window (18:07:08-22:07:08Z): 483 events, 5-sample: 1 cancelled + 4 \"La conexión a Internet parece estar desactivada.\" (Spanish-locale network-offline variant) -- same client-side/device/third-party-infra signature family as all 24 prior occurrences, no new failure mode. Independently recomputed the monitor's own metric from raw counters (sum:rum.measure.view.error_free vs sum:rum.measure.view, last 4h): 6245/6380 -> 2.12% error rate -- below even the 3% Warn threshold, same under-shoot pattern as the 2026-08-14T09:36:08Z occurrence (degraded-mode window-edge timing artifact, not a sign of a different mechanism). No correlated backend service alert co-fired this cycle (other in-scope items were the separate ms-scheduler-api KIR and the 77419271 XHR-errors recovery, both unrelated). Classified false-alarm, occ 24->25. No thread-reply path in degraded mode (no real Slack ts) -- kb-update self-DM sent instead. See docs/investigations/2026-08-14-682aba7164b3d445.md."
+      },
+      {
+        "ts": "2026-08-15T12:15:00Z",
+        "note": "2026-08-15 ~12:15Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed \"slack conversations history mcp\" and \"slack\", neither matched, standing intermittent read-path gap, project_degraded_cycle_no_slack_mcp). DD-scan-diff vs prior cycle's committed cutoff 2026-08-15T11:10:20Z (commit dcdc8e4). Full 186-monitor scan (.scratch/monitors_scan_20260815_1209.json): 6 monitors transitioned past cutoff. 3 were recovery transitions (OK) of episodes already logged in the prior cycle -- 115456700 (RTC p95, recovered 11:24:21Z, same episode posted last cycle), 236570583 (Watchdog catch-all, recovered 11:28:33Z, same episode logged last cycle as needs-human/low-impact), 296641466 (EDA consumer AMQP, recovered 11:41:26Z, same episode suppressed last cycle) -- per project_dd_scan_diff_recovery_transition_artifact, not re-processed as new occurrences. 2 were out-of-scope on notify target (confirmed via full monitor-detail message field, not just --summary): 115452625 (designer-core-api throughput, no @slack-alert-* handle in its message at all) and 299551518 ([Admin][AccountAPI] 4xx spike, @slack-alert-admin-monitoring, not one of the 4 polled alert-* channels or swat/team-incident-response) -- excluded, consistent with prior cycles. 1 genuinely new fire: monitor 313094708 ([CRM][P2] method-nativemobile-ui RUM error rate high, alert-runtime-monitoring, @slack-alert-runtime-monitoring), overall_state Alert (not recovery), overall_state_modified 2026-08-15T11:32:09Z -- synthetic hash 861df54275d166c0 (alert_hash.py --channel C063V5HTTFU --ts 2026-08-15T11:32:09+00:00), no prior incident-log line for this hash, genuinely new. match_kb.py false-alarms hit immediately on this entry via the existing 'monitors/313094708' any_of clause + alert-runtime-monitoring channel scope (both added 2026-08-13). Independently re-verified per this entry's own standing practice (never trust a match without re-running the query this cycle): DD RUM Error Tracking for service:method-nativemobile-ui over the monitor's own trailing-4h window (07:32:09-11:32:09Z): 14 @type:error events vs 53 @type:view events = 26.4% error rate (above the >5% threshold, consistent with the escalated Alert state -- one of the higher excursions in this entry's history, though below the 2026-08-04 peak of 15.2%/2026-08-03's 236-event volume). Full 14-sample message breakdown: 14/14 (100%) 'cancelled' -- the single dominant client-side request-cancellation signature already documented across all 25 prior occurrences, no new failure mode. Zero correlated backend signal (service:method-nativemobile-ui status:error env:prod -> 0 hits in the same window). Classified false-alarm, occ 26->27, last_seen -> 2026-08-15T11:32:09Z. No thread-reply path in degraded mode (no real Slack ts) -- kb-update self-DM sent instead. See docs/investigations/2026-08-15-861df54275d166c0.md. Today (2026-08-15) totals: this is the 9th group of the day (8 from the 11:35Z cycle + this 1) -- 2 #triage-results posts so far today (both KIR, prior cycle), this group's FA classification does not add to that count. today_post_count still 2/5 daily_escalation_cap -- no cap action. Pre-existing uncommitted WIP in the shared working tree (.gitignore, kb/config.json, playbooks/channel-guidance.md, prompt.md, scripts/dd_search.py, scripts/install-tasks.ps1, scripts/run-routine.ps1, scripts/slack_send.py, stability-review-prompt.md, and the untracked dirs/files noted at cycle start) confirmed present via git status before staging and left untouched throughout -- staged only this cycle's explicit file list, no git add -A/-a. New cutoff for next cycle: 2026-08-15T11:32:09Z (max last_triggered_ts of the latest in-scope, genuinely-processed monitor this scan, 313094708)."
+      },
+      {
+        "ts": "2026-08-15T13:15:00Z",
+        "note": "2026-08-15 ~13:15Z triage (degraded cycle, no Slack MCP surfaced this session, standing gap; DD-scan-diff vs prior cycle cutoff 2026-08-15T11:32:09Z, commit f6b8277). Full 186-monitor scan (.scratch/monitors_scan_20260815_1307.json): 6 monitors transitioned past cutoff. 3 were recovery transitions (OK) of episodes already logged in the 11:35Z/prior cycles -- 115456700 (RTC p95, recovered 12:50:21Z), 296641466 (EDA consumer AMQP, recovered 12:24:27Z) -- not re-processed per project_dd_scan_diff_recovery_transition_artifact. 2 were out-of-scope on notify target (confirmed via full monitor-detail message field) -- 115452625 (designer-core-api throughput, no @slack-alert-* handle) and 299551518 ([Admin][AccountAPI] 4xx spike, @slack-alert-admin-monitoring) -- excluded, consistent with prior cycles; 123495390 ([Synthetics] Grid/Dropdown Midnight run, No Data, @slack-team-qa-performance-tests) also out-of-scope. 1 genuinely new fire: monitor 313094708 (alert-runtime-monitoring, @slack-alert-runtime-monitoring), last_triggered_ts 2026-08-15T12:58:08Z (Alert state at scan capture, Warn on a subsequent live re-check ~90s later -- the query threshold is genuinely fluctuating around the 3-5% band, not a scan artifact), synthetic hash 137586f232158dcc, no prior incident-log line. Matched this KB entry via monitors/313094708 any_of + alert-runtime-monitoring channel scope. Independently re-verified over the monitor own trailing-4h window (08:58:08-12:58:08Z): DD RUM Error Tracking service:method-nativemobile-ui @type:error = 36 events vs @type:view = 114 = 31.6% error rate (above the 5% Alert threshold, consistent with the captured Alert state). Full message breakdown of all 36 errors: 32 cancelled (88.9%), 2 cancelado (Spanish-locale variant, 5.6%), 1 Memory Warning (2.8%), 1 \"The Internet connection appears to be offline.\" (2.8%) -- same client-side/device-connectivity signature family as all 27 prior occurrences, no new failure mode. 0 correlated backend errors (service:method-nativemobile-ui status:error env:prod, same window). Classified false-alarm, confidence 0.9, occ 27->28. No thread-reply path in degraded mode (no real Slack ts) -- kb-update self-DM sent instead. See docs/investigations/2026-08-15-137586f232158dcc.md."
+      },
+      {
+        "ts": "2026-08-16T11:25:00Z",
+        "note": "2026-08-16 ~11:09Z triage (degraded cycle, no Slack MCP; DD-scan-diff vs prior cutoff 2026-08-15T21:20:31Z, commit 22c0d31, after a ~13h overnight business-hours-only Task Scheduler gap). Monitor 313094708 fired, overall_state_modified 2026-08-16T08:54:08Z, hash 37213b8040f6dbc3, OK state at scan time. Unlike all 28 prior documented occurrences, 0 @type:error events were returned by the RUM errortracking endpoint for this monitor's own trailing-4h window (04:54:08-08:54:08Z); independently recomputed the raw-counter rate instead (sum:rum.measure.view vs sum:rum.measure.view.error_free): 94/96 -- effectively ~0% error rate at very low (~94-view) overnight traffic volume, consistent with the monitor already being OK by scan time. No correlated backend service alert co-fired this cycle. Classified false-alarm on the strength of the entry's established mechanism (client-side/overnight-low-traffic noise) and the absence of any backend correlation, but confidence downgraded to 0.7 to disclose the lack of a sampled error-message signature this occurrence (a first for this entry). See docs/investigations/2026-08-16-37213b8040f6dbc3.md."
+      },
+      {
+        "ts": "2026-08-16T22:30:00Z",
+        "note": "2026-08-16 22:30Z triage (degraded cycle, no Slack MCP): monitor 313094708 fired, overall_state_modified 2026-08-16T21:30:08Z (Warn state, new episode -- prior Warn episode today already logged/closed as fa97589b51ef97bd at 15:57:08Z, this is a fresh occurrence), hash acce071edf5e22d6. RUM Error Tracking re-query (service:method-nativemobile-ui @type:error, trailing 4h 17:30:08-21:30:08Z): 34 events, 100% client-side cancellation signatures (32/34 'cancelled', 2/34 'cancelado' -- Spanish localization of the same message) -- no DNS/TLS/server-side signatures this occurrence, but still squarely within the entry's documented client-network-noise mechanism (request cancelled mid-flight, app backgrounding/navigation-away). No correlated backend service alert co-fired this cycle. Classified false-alarm, confidence 0.85. occ 30->31, last_seen/last_notified_at -> 2026-08-16T21:30:08Z. No thread-reply path in degraded mode -- kb-update self-DM sent instead. See docs/investigations/2026-08-16-acce071edf5e22d6.md."
+      },
+      {
+        "ts": "2026-08-18T11:30:00Z",
+        "note": "2026-08-18 ~11:08Z triage (degraded cycle, no Slack MCP surfaced this session; DD-scan-diff vs prior cutoff 2026-08-17T21:57:11Z, ~13h overnight business-hours-only Task Scheduler gap, commit e5f8f20). Monitor 313094708 fired, overall_state_modified 2026-08-18T11:00:09Z, hash fc55dd6770718a2a, Warn state at scan time (not yet self-recovered). DD RUM Error Tracking for service:method-nativemobile-ui @type:error over the trailing-4h window (07:00:09-11:00:09Z): 85 total error events, 8-sample: majority 'cancelled', 1 'Memory Warning', 1 iOS aps-environment entitlement config error -- same client-side/device/third-party-infra signature family as all 32 prior occurrences, no new failure mode. Independently recomputed the monitor's own metric from raw counters (sum:rum.measure.view.error_free vs sum:rum.measure.view, last 4h): 937/972 -> 3.63% error rate, consistent with the observed Warn (3-5%) band -- reproduction confirmed, not a rollup artifact. No correlated backend service alert co-fired this cycle (other in-scope items this cycle: 236570583 Watchdog catch-all needs-human, 302057011/302055141 CRM AMQP-consumer family KIR, 296641466 EDA consumer AMQP KIR, 77419271 XHR-errors KIR -- all unrelated). Classified false-alarm, occ 32->33. No thread-reply path in degraded mode (no real Slack ts) -- kb-update self-DM sent instead. See docs/investigations/2026-08-18-fc55dd6770718a2a.md."
+      },
+      {
+        "ts": "2026-08-18T12:18:08Z",
+        "note": "2026-08-18 ~12:08Z triage (degraded cycle, no Slack MCP surfaced this session; DD-scan-diff vs prior cutoff 2026-08-18T11:00:09Z, commit d5da9c2). Monitor 313094708 fired, overall_state_modified 2026-08-18T11:18:08Z, hash 6abf1108dde7fa0e, escalated to Alert state at scan time (up from Warn at the 11:00:09Z occurrence 18 minutes earlier -- same episode continuing, crossed the >5% critical threshold). DD RUM Error Tracking for service:method-nativemobile-ui @type:error over the trailing-4h window (07:18:08-11:18:08Z): 69 total error events, full sample breakdown: 25 'cancelled' (36%), 21 'Failed to retrieve IP address: Network Error' (30%), 20 'Network error, saving log locally Network Error' (29%), 2 'Network Error' (3%), 1 'Memory Warning' (1%) -- same client-side/device/third-party-infra signature family as all 33 prior occurrences, no new failure mode. Manual @type:error/@type:view ratio (69/261 = 26.4%) shows clear elevation, consistent with the escalation to Alert; however, independently recomputed the monitor's own metric formula from raw counters (sum:rum.measure.view.error_free vs sum:rum.measure.view, last 4h, summed pointlist): 1233/1267 -> 2.68% error rate, below even the 3% Warn threshold -- the same degraded-mode window-edge timing mismatch documented on 2026-08-14/2026-08-16 (state-diff-only sampling vs the metric's own rolling window), not a sign of a different mechanism. Classified false-alarm on the strength of the message-signature evidence (100% same client-side family across all samples) despite the metric mismatch; confidence downgraded to 0.8 to disclose it. No correlated backend service alert co-fired this cycle (only other in-scope item this cycle, 77419271 XHR-errors, is the unrelated gateway-timeout KIR, processed separately). occ 33->34, last_seen -> 2026-08-18T11:18:08Z. No thread-reply path in degraded mode (no real Slack ts) -- kb-update self-DM sent instead. See docs/investigations/2026-08-18-6abf1108dde7fa0e.md."
+      }
+    ],
+    "note": "2026-08-04 ~12:10Z triage (degraded cycle, no Slack MCP surfaced this session, DD monitor scan diff vs prior cutoff 2026-08-04T11:09:26Z): monitor 305454649 fired 2026-08-04T11:25:20Z, hash e487adb84d33e216, occ 13->14, Alert state at scan time (elevated vs the usual Warn). DD RUM Error Tracking for service:method-nativemobile-ui over the monitor's own trailing 4h window (07:25:20-11:25:20Z): 36 @type:error vs 237 @type:view = 15.2% error rate -- above the >5% threshold, consistent with the escalated Alert state (highest rate of the 14 documented occurrences, above the prior peak of 11.0% on 2026-08-01T21:04Z). Sampled errors: dominant 'cancelled', plus Expo-token-fetch 503s, iOS aps-environment entitlement config errors, Network Error, 'The network connection was lost.', Memory Warning, offline/IP-lookup failures -- all client-side/device/third-party-infra signatures, same mechanism family as all 13 prior occurrences, just a higher-volume excursion. No correlated backend alert co-fired this cycle. Still classified as client-side RUM noise, not a backend incident -- flagging the new peak rate for stability-review trend-watch. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-08-04-e487adb84d33e216.md."
+  },
+  {
+    "id": "fa-2026-07-23-eda-inventory-p1-p2-cofire-monitoring-noise",
+    "match": {
+      "channels": [
+        "alert-system",
+        "alert-runtime-monitoring"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/302046482"
+        },
+        {
+          "contains": "monitors/302042747"
+        },
+        {
+          "contains": "[VAE][eda_inventory]"
+        }
+      ]
+    },
+    "reason": "Two eda_inventory monitors (P1 5xx-rate, P2 p95-latency) co-fired within 7 minutes (2026-07-21T13:56:02Z / 14:02:47Z). DD metric checks for both: sum:trace.http.request.errors{service:eda_inventory,env:prod} over the window = 0; p95:trace.http.request{service:eda_inventory,env:prod} = ~0.01-0.02s (threshold was >2s). Both fully cleared by scan time. Co-firing of two monitor types with no corroborating error/latency signal on independent re-query points to a shared brief evaluation-window/telemetry-reporting blip rather than two independent real incidents on a new VAE service.",
+    "first_seen": "2026-07-21T13:56:02Z",
+    "last_seen": "2026-07-28T11:20:00Z",
+    "occurrences": 3,
+    "silence_for": "24h",
+    "match_precedence_note": "2026-07-27T20:20:00Z: monitor 302042747 (P1 5xx) fired ALONE at 19:43:47Z (302046482 P2 latency did NOT co-fire this time) -- REJECTED as a match for this entry. Re-verification found a real, non-zero error signal this time: sum:trace.http.request.errors{service:eda_inventory,env:prod} showed 17 error-tagged spans clustered 19:32:30-19:34:30Z against ~99 hits in that sub-window (~17% local rate, vs this entry's origin case which was a clean 0-error blip). 0 status:error DD logs either time (service isn't log-pipeline-instrumented), so that signal doesn't discriminate. Given the differing co-fire shape (solo vs paired) and the differing error magnitude (17 real spans vs 0), classified this occurrence as needs-human (hash a876b9df89dfdde0) instead of bumping this entry's occurrence count. See docs/investigations/2026-07-27-a876b9df89dfdde0.md."
+  },
+  {
+    "id": "fa-2026-07-23-method-import-api-transient-blips-low-traffic",
+    "match": {
+      "channels": [
+        "alert-system"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/299551465"
+        },
+        {
+          "contains": "monitors/299551459"
+        },
+        {
+          "contains": "[Admin][ImportAPI]"
+        }
+      ]
+    },
+    "reason": "Two method-import-api monitors fired 3 days apart: P2 p95-latency (2026-07-20T15:42:25Z) and P1 5xx-rate (2026-07-23T18:29:19Z). DD metric checks: p95:trace.aspnet_core.request{service:method-import-api,env:prod} over the first window shows a baseline ~0.01s with two brief spikes to 0.72s/0.19s (still far below the 5s threshold at its peak-adjacent points, consistent with a sparse-sample percentile artifact); sum:trace.aspnet_core.request.errors{service:method-import-api,env:prod} over the second window = 0 errors. Both self-recovered, no corroborating error signal.",
+    "first_seen": "2026-07-20T15:42:25Z",
+    "last_seen": "2026-07-30T13:13:20Z",
+    "occurrences": 7,
+    "silence_for": "24h",
+    "notes": [
+      {
+        "ts": "2026-07-29T17:12:00Z",
+        "note": "2026-07-29 17:12Z triage (degraded cycle, no Slack MCP; DD monitor scan-diff vs prior cutoff 2026-07-29T16:09:11Z). Monitor 299551459 ([Admin][ImportAPI][P1] 5xx error rate elevated (method-import-api)) fired 2026-07-29T16:35:19Z, hash ba1b5c4de25ce717, occ->6. Monitor query is 5xx-rate>5% over last_5m; exact eval window (16:30:19-16:35:19Z): sum:trace.aspnet_core.request.errors{service:method-import-api,env:prod}.as_count() = empty series (0 errors), sum:trace.aspnet_core.request.hits same window = 25 points summing ~53. A 4-error blip visible just outside this window (16:29:00Z, in a wider +/-5min probe) predates the monitor's own eval window -- known DD-metric-API/monitor-evaluator resampling-gap artifact documented on other entries (e.g. ki-2026-07-06-runtime-core-redis-cache-timeout-transient-burst), not evidence within the window that actually tripped the monitor. Self-recovered, no corroborating error signal inside the real eval window -- same transient-blip mechanism as prior 5 occurrences. No thread-reply path in degraded mode -- kb-update self-DM sent."
+      },
+      {
+        "ts": "2026-07-30T14:45:00Z",
+        "note": "2026-07-30 ~14:45Z triage (degraded cycle, no Slack MCP): monitor 299551459 fired 13:13:20Z, hash 4031a11dadbbe251, occ 6->7. Metric re-query: 0 errors (empty series) in exact eval window. Self-DM'd."
+      }
+    ]
+  },
+  {
+    "id": "fa-2026-07-23-methodportal-5xx-low-traffic-artifact",
+    "match": {
+      "channels": [
+        "alert-system"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/299551644"
+        },
+        {
+          "contains": "[VAE][Portal][P1] 5xx error rate elevated (methodportal.com)"
+        }
+      ]
+    },
+    "reason": "DD metric sum:trace.aspnet.request.errors{service:methodportal.com,env:prod} over 2026-07-23T04:02:24-04:42:24Z (+/-20min around the fire): 0 errors. Same low-traffic-ratio-artifact mechanism as fa-2026-07-12-mapi-5xx-rate-low-traffic-ratio-artifact and the signup low-traffic family, applied to a different service.",
+    "first_seen": "2026-07-23T04:22:24Z",
+    "last_seen": "2026-07-30T22:25:24Z",
+    "occurrences": 29,
+    "silence_for": "24h",
+    "notes": [
+      {
+        "ts": "2026-07-30T16:22:00Z",
+        "note": "2026-07-30 16:22Z triage (degraded cycle, no Slack MCP): monitor 299551644 fired 16:01:24Z, hash 36bf60317af571c8, occ 26->27. DD metric errors: empty series (0). Hits: 5 points, 1 each (near-zero traffic). Same low-traffic-ratio-artifact mechanism. No thread-reply path in degraded mode -- self-DM'd. See docs/investigations/2026-07-30-36bf60317af571c8.md."
+      },
+      {
+        "ts": "2026-07-25T11:09:00Z",
+        "note": "2026-07-25 11:09Z triage (degraded cycle, no Slack MCP): monitor 299551644 ([VAE][Portal][P1] 5xx error rate elevated (methodportal.com)) fired 2026-07-25T10:23:24Z, hash 9031801a0371029c, occ->2. DD metric errors=0 (empty series), hits=1 (1 point) for service:methodportal.com over 10:13:24-10:23:24Z -- near-zero traffic, consistent with the documented low-traffic-ratio artifact. No thread-reply path in degraded mode -- kb-update only."
+      },
+      {
+        "ts": "2026-07-25T16:20:00Z",
+        "note": "2026-07-25 16:20Z triage (degraded cycle, no Slack MCP): monitor 299551644 ([VAE][Portal][P1] 5xx error rate elevated (methodportal.com)) fired 2026-07-25T15:43:24Z, hash 5909e8d8e4298cb6, occ->3. DD metric sum:trace.aspnet.request.errors{service:methodportal.com,env:prod} 15:33:24-15:43:24Z: empty series (0 errors). sum:trace.aspnet.request.hits same window: 3 points, 67.8/1/2 -- near-zero traffic, same low-traffic-ratio-artifact mechanism as the prior occurrence. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-07-25-5909e8d8e4298cb6.md."
+      },
+      {
+        "ts": "2026-07-25T19:08:23Z",
+        "note": "2026-07-25 19:08Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch confirmed no slack/conversations tool). Monitor 299551644 ([VAE][Portal][P1] 5xx error rate elevated (methodportal.com)) fired 2026-07-25T17:10:24Z, hash a5f1e100ec858a15, occ->4. DD metric sum:trace.aspnet.request.errors{service:methodportal.com,env:prod} 17:00:24-17:10:24Z: empty series (0 errors). sum:trace.aspnet.request.hits same window: 1 point, 65.0 -- single-bucket low-traffic shape, same low-traffic-ratio-artifact mechanism as the prior 3 occurrences. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-07-25-a5f1e100ec858a15.md."
+      },
+      {
+        "ts": "2026-07-25T20:35:24Z",
+        "note": "2026-07-25 22:xxZ triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-25T18:56:18Z cutoff, hash 71e4ede0fe6967ad). Monitor 299551644 ([VAE][Portal][P1] 5xx error rate elevated (methodportal.com)) fired 2026-07-25T20:35:24Z, occ->5. DD metric sum:trace.aspnet.request.errors{service:methodportal.com,env:prod} 20:25:24-20:35:24Z: empty series (0 errors). sum:trace.aspnet.request.hits same window: 5 points (67,67,68,64,5) -- modest tapering traffic, same low-traffic-ratio-artifact mechanism as the prior 4 occurrences. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-07-25-71e4ede0fe6967ad.md."
+      },
+      {
+        "ts": "2026-07-26T11:29:25Z",
+        "note": "2026-07-26 poll cycle (degraded, no Slack MCP; DD monitor scan-diff fallback). Monitor 299551644 ([VAE][Portal][P1] 5xx error rate elevated (methodportal.com)) fired 2026-07-26T11:29:25Z, hash 0d6fb897dc390d18, occ->7 (backfill catch -- this occurrence's overall_state_modified predates the prior cycle's own scan cutoff of 2026-07-26T12:10:45Z but was not previously logged; no duplicate incident-log entry exists for monitor_id 299551644 at this timestamp, confirmed by grep before writing). DD metric sum:trace.aspnet.request.errors{service:methodportal.com,env:prod} 11:14:25-11:44:25Z: 1 error point (11:18:00Z, count=1.0) -- same low-traffic-ratio-artifact mechanism as the prior 5 occurrences. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-07-26-0d6fb897dc390d18.md."
+      },
+      {
+        "ts": "2026-07-26T15:09:24Z",
+        "note": "2026-07-26 15:09Z triage (degraded cycle, no Slack MCP surfaced this session; DD monitor scan-diff fallback vs prior cutoff 2026-07-26T14:23:00Z). Monitor 299551644 ([VAE][Portal][P1] 5xx error rate elevated (methodportal.com)) fired 2026-07-26T15:09:24Z, hash 130be0c34c1683d1, occ->8, state=Warn (not Critical). DD metric sum:trace.aspnet.request.errors{service:methodportal.com,env:prod}.as_count() 14:59:24-15:09:24Z: 1 error point (15:07:50Z, count=1.0). sum:trace.aspnet.request.hits same window: 4 points (1,1,25,40), sum=67 -- ratio 1/67=1.49%, over the 1.0 Warn threshold but well under the 5.0 Critical threshold (monitor correctly stayed Warn, not Alert). DD Logs query service:methodportal.com status:error env:prod (and unfiltered service:methodportal.com) for the same window: 0 hits both -- this service is not DD-Logs-instrumented, consistent with every prior occurrence. Unlike occurrences 1-7 (all literally 0 errors), this one has a genuine single error point, but the mechanism is the same: low absolute traffic (67 hits/10min) means even 1 error swings the ratio past the Warn floor. No thread-reply path in degraded mode (no Slack MCP -- no real primary.ts to reply to). kb-update self-DM sent. See docs/investigations/2026-07-26-130be0c34c1683d1.md."
+      },
+      {
+        "ts": "2026-07-26T18:20:00Z",
+        "note": "2026-07-26 18:20Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch confirmed no slack tool). DD monitor scan diff vs 2026-07-26T17:06:18Z cutoff (185-monitor full scan, count unchanged, 0 newly-created) found monitor 299551644 fired 2026-07-26T18:05:24Z, hash 97fa7c05a93ac7a6, occurrences -> 9, state=Warn (not Critical). DD metric sum:trace.aspnet.request.errors{service:methodportal.com,env:prod}.as_count() 17:55:24-18:05:24Z: 1 error point (18:04:00Z, count=1.0). sum:trace.aspnet.request.hits same window: 5 points (1,1,1,7,58), sum=68 -- ratio 1/68=1.47%, over the 1.0 Warn threshold but well under the 5.0 Critical threshold (monitor correctly stayed Warn). DD Logs query service:methodportal.com status:error env:prod for the same window: 0 hits -- this service remains not DD-Logs-instrumented, consistent with every prior occurrence. Same low-traffic-ratio-artifact mechanism as occurrences 1-8: low absolute traffic (68 hits/10min) means even 1 error swings the ratio past the Warn floor. No thread-reply path in degraded mode (no Slack MCP -- no real primary.ts to reply to). kb-update self-DM sent. See docs/investigations/2026-07-26-97fa7c05a93ac7a6.md."
+      },
+      {
+        "ts": "2026-07-26T19:55:24Z",
+        "note": "2026-07-26 ~20:08Z triage (degraded cycle, no Slack MCP; DD monitor scan-diff fallback vs 2026-07-26T19:09:31Z cutoff). Monitor 299551644 fired 19:55:24Z, hash bcbb69d2eed63054, occ->10, state=Warn. DD metric sum:trace.aspnet.request.errors{service:methodportal.com,env:prod}.as_count() 19:45:24-19:55:24Z: empty series (0 errors). Widened sum:trace.aspnet.request.hits same service 19:26:24-19:57:24Z: 5 points (2,1,1,65,32) -- sparse low traffic, same low-traffic-ratio-artifact mechanism as the prior 9 occurrences. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-07-26-bcbb69d2eed63054.md."
+      },
+      {
+        "ts": "2026-07-26T21:11:30Z",
+        "note": "2026-07-26 21:11Z triage (degraded cycle, no Slack MCP): monitor 299551644 Warn 20:57:24Z, hash 0d5ffd482a7a5e5f, occ 10->11. 2 errors (1@20:56:10Z, 1@20:59:00Z) against sparse hit buckets (65,1,26,39) -- same low-traffic-ratio-artifact mechanism as prior 10 occurrences. No thread-reply path in degraded mode -- self-DM confirmation sent. See docs/investigations/2026-07-26-0d5ffd482a7a5e5f.md."
+      },
+      {
+        "ts": "2026-07-26T22:24:00Z",
+        "note": "2026-07-26 22:24Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-26T21:07:18Z cutoff): monitor 299551644 fired 21:18:28Z (OK at scan time), hash 201a4dd1d0188c11, occ 11->12. sum:trace.aspnet.request.errors{service:methodportal.com,env:prod}.as_count() over 21:03:28-21:18:28Z: empty series (0 errors). sum:trace.aspnet.request.hits{service:methodportal.com,env:prod}.as_count() same window: 1 total hit -- extremely sparse traffic, same low-traffic-ratio-artifact mechanism as prior 11 occurrences (this time even more clear-cut: 0 errors observed at all). No thread-reply path in degraded mode -- kb-update + self-DM confirmation only. See docs/investigations/2026-07-26-201a4dd1d0188c11.md."
+      },
+      {
+        "ts": "2026-07-28T17:08:38Z",
+        "note": "2026-07-28 17:08Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-28T13:46:00Z cutoff): monitor 299551644 fired 2026-07-28T15:59:24Z (OK at scan time), hash 0edd6afdeb4cdd6f, occ->14. DD metric sum:trace.aspnet.request.errors{service:methodportal.com,env:prod}.as_count() 15:49:24-15:59:24Z: empty series (0 errors). sum:trace.aspnet.request.hits same window: 4 points (1,1,1,1), sum=4 -- extremely sparse traffic, canonical low-traffic-ratio-artifact mechanism, same as all 13 prior occurrences. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-07-28-0edd6afdeb4cdd6f.md."
+      },
+      {
+        "ts": "2026-07-28T18:10:00Z",
+        "note": "2026-07-28 18:10Z triage (degraded cycle, no Slack MCP): monitor 299551644 fired 18:05:24Z (Warn state), hash 3aac1a8d73f79ca4, occ->15. DD metric sum:trace.aspnet.request.errors{service:methodportal.com,env:prod} over 17:55:24-18:05:24Z: 1 error total, in the same 2s bucket as a 65-hit burst in sum:trace.aspnet.request.hits (1/65 = 1.5%, below the monitor's 5% threshold on reaggregation) -- rest of window near-zero traffic (1-2 hits/bucket). Same low-traffic-ratio-artifact mechanism as prior occurrences. kb-update only (no thread-reply path in degraded mode -- self-DM sent). See docs/investigations/2026-07-28-3aac1a8d73f79ca4.md."
+      },
+      {
+        "ts": "2026-07-28T18:15:24Z",
+        "note": "2026-07-28 ~18:11-18:15Z triage (degraded cycle, no Slack MCP surfaced this session): monitor 299551644 recovered to OK 18:15:24Z, hash bae27131e3b67b30, occ 15->16. DD metric sum:trace.aspnet.request.errors{service:methodportal.com,env:prod} over 18:00:24-18:20:24Z: 1 isolated error point -- same low-traffic-ratio artifact mechanism. No thread-reply path in degraded mode -- kb-update self-DM only."
+      },
+      {
+        "ts": "2026-07-28T20:13:47Z",
+        "note": "2026-07-28 ~20:13Z triage (degraded cycle, no Slack MCP surfaced this session): monitor 299551644 recovered to OK 19:54:25Z, hash c783651a52b115c1, occ 16->17. DD metric sum:trace.aspnet.request.errors{service:methodportal.com,env:prod}.as_count() 19:44:25-19:54:25Z: empty series (0 errors). sum:trace.aspnet.request.hits same window: 4 points (1,1,1,4), sum=7 -- extremely sparse traffic, same low-traffic-ratio-artifact mechanism as prior 16 occurrences. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-07-28-c783651a52b115c1.md."
+      },
+      {
+        "ts": "2026-07-28T21:01:24Z",
+        "note": "C: monitor 299551644 recovered to OK 21:01:24Z, hash c6bdfa078832f852, occ 17->18. DD metric sum:trace.aspnet.request.errors{service:methodportal.com,env:prod}.as_count() 20:51:24-21:01:24Z: empty series (0 errors). sum:trace.aspnet.request.hits same window: 2 points (1,1), sum=2 -- extremely sparse traffic, same low-traffic-ratio-artifact mechanism as prior 17 occurrences. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-07-28-c6bdfa078832f852.md."
+      },
+      {
+        "ts": "2026-07-29T11:20:00Z",
+        "note": "2026-07-29 11:20Z triage: monitor 299551644 recovered 09:57:24Z, hash 424f8d4a87e57cac, occ 18->19. DD metric sum:trace.aspnet.request.errors{service:methodportal.com,env:prod}.as_count() 09:42:24-09:57:24Z: 1 datapoint, value 1.0 -- single stray error on near-zero traffic, same low-traffic-ratio-artifact mechanism. Self-DM sent (no thread-reply path in degraded mode). See docs/investigations/2026-07-29-424f8d4a87e57cac.md."
+      },
+      {
+        "ts": "2026-07-29T12:12:48Z",
+        "note": "2026-07-29 12:12Z triage (degraded cycle, no Slack MCP; DD monitor scan diff vs 2026-07-29T10:32:57Z cutoff, hash 8f3dfb73b4dc8b84): monitor 299551644 fired 2026-07-29T11:41:24Z, occ 19->20. DD metric sum:trace.aspnet.request.errors{service:methodportal.com,env:prod}.as_count() 11:31:24-11:41:24Z: empty series (0 errors). sum:trace.aspnet.request.hits same window: 2 points (both 1.0), sum=2 -- extremely sparse traffic, same low-traffic-ratio-artifact mechanism as prior 19 occurrences. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-07-29-8f3dfb73b4dc8b84.md."
+      },
+      {
+        "ts": "2026-07-29T15:18:00Z",
+        "note": "2026-07-29 15:18Z triage (degraded cycle, no Slack MCP; DD monitor scan-diff vs prior cutoff 2026-07-29T13:53:24Z). Monitor 299551644 ([VAE][Portal][P1] 5xx error rate elevated (methodportal.com)) fired 2026-07-29T15:07:24Z, hash a16e6de217639f47, occ->22. DD metric sum:trace.aspnet.request.errors{service:methodportal.com,env:prod}.as_count() 14:57:24-15:07:24Z: empty series (0 errors). sum:trace.aspnet.request.hits same window: 4 points (all 1.0), sum=4 -- extremely sparse traffic, same low-traffic-ratio-artifact mechanism as prior 21 occurrences. No thread-reply path in degraded mode -- kb-update self-DM sent."
+      },
+      {
+        "ts": "2026-07-29T16:09:47Z",
+        "note": "2026-07-29 16:09Z triage (degraded cycle, no Slack MCP; DD monitor scan-diff vs prior cutoff 2026-07-29T15:08:11Z). Monitor 299551644 ([VAE][Portal][P1] 5xx error rate elevated (methodportal.com)) fired 2026-07-29T15:54:24Z, hash eda72edc0ec7cbb0, occ->23. DD metric sum:trace.aspnet.request.errors{service:methodportal.com,env:prod}.as_count() 15:44:24-15:54:24Z: empty series (0 errors). sum:trace.aspnet.request.hits same window: 1 point, 4.0 -- extremely sparse traffic, same low-traffic-ratio-artifact mechanism as prior 22 occurrences. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-07-29-eda72edc0ec7cbb0.md."
+      },
+      {
+        "ts": "2026-07-29T17:11:00Z",
+        "note": "2026-07-29 17:11Z triage (degraded cycle, no Slack MCP; DD monitor scan-diff vs prior cutoff 2026-07-29T16:09:11Z). Monitor 299551644 ([VAE][Portal][P1] 5xx error rate elevated (methodportal.com)) fired 2026-07-29T16:25:24Z, hash 6ba9adc060580341, occ->24. DD metric sum:trace.aspnet.request.errors{service:methodportal.com,env:prod}.as_count() 16:15:24-16:25:24Z: empty series (0 errors). sum:trace.aspnet.request.hits same window: 3 points (1,1,4), sum=6 -- extremely sparse traffic, same low-traffic-ratio-artifact mechanism as prior 23 occurrences. No thread-reply path in degraded mode -- kb-update self-DM sent."
+      },
+      {
+        "ts": "2026-07-30T14:45:00Z",
+        "note": "2026-07-30 ~14:45Z triage (degraded cycle, no Slack MCP): monitor 299551644 fired 14:26:24Z, hash 70e9cfc4ba6320d6, occ 25->26. Metric re-query: 1 total error in window. Self-DM'd."
+      },
+      {
+        "ts": "2026-07-30T18:33:00Z",
+        "note": "2026-07-30 ~18:33Z triage (degraded cycle, no Slack MCP): monitor 299551644 fired 17:35:25Z, hash 8dd19f417223171d, occ 27->28. DD metric sum:trace.aspnet.request.errors{service:methodportal.com,env:prod}.as_count() 17:25:25-17:35:25Z: 1 error point (17:24:00Z, value 1.0). sum:trace.aspnet.request.hits same window: 69 hits (4+65) -- sparse but non-trivial traffic, same low-traffic-ratio-artifact mechanism as prior 27 occurrences. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-07-30-8dd19f417223171d.md."
+      },
+      {
+        "ts": "2026-07-31T11:24:00Z",
+        "note": "2026-07-31 ~11:08Z triage (degraded cycle, no Slack MCP; DD monitor scan diff vs 2026-07-30T22:03:11Z cutoff after a 13h scheduler gap): monitor 299551644 fired 2026-07-30T22:25:24Z, hash 88dec8fabe5fee9a, occ 28->29. DD metric sum:trace.aspnet.request.errors{service:methodportal.com,env:prod}.as_count() 22:15:24-22:25:24Z: empty series (0 errors). sum:trace.aspnet.request.hits same window: 1 total hit -- extremely sparse traffic, same low-traffic-ratio-artifact mechanism as prior 28 occurrences. No thread-reply path in degraded mode -- kb-update self-DM sent."
+      }
+    ]
+  },
+  {
+    "id": "fa-2026-07-23-ms-audittrail-api-5xx-low-traffic-artifact",
+    "match": {
+      "channels": [
+        "alert-system"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/299551637"
+        },
+        {
+          "contains": "[Admin][AuditTrailAPI][P1] 5xx error rate elevated"
+        }
+      ]
+    },
+    "reason": "DD metric sum:trace.aspnet_core.request.errors{service:ms-audittrail-api,env:prod} over 2026-07-21T16:17:17-16:47:17Z: exactly 1 error in the entire 30-min window. DD Logs search for the same window and service returned 0 status:error hits. 5xx-rate-> N threshold tripped on a single-error/low-hits ratio, not a service degradation. Distinct from ki-rabbitmq-audittrail-healthcheck-connection-leak (RESOLVED 2026-06 RabbitMQ healthcheck connection-leak incident) -- a bare 'AuditTrail' text match to that entry is a false-positive trap given its fix_status is already resolved; a resolved bug recurring identically 5+ weeks later without any new deploy signal is implausible, so this needed its own entry rather than bumping a closed one.",
+    "first_seen": "2026-07-21T16:32:17Z",
+    "last_seen": "2026-08-04T16:29:17Z",
+    "occurrences": 3,
+    "silence_for": "24h"
+  },
+  {
+    "id": "fa-2026-07-23-qa-gatling-warehouse-load-test-noise",
+    "match": {
+      "channels": [
+        "alert-system"
+      ],
+      "any_of": [
+        {
+          "contains": "[QA][Gatling]"
+        },
+        {
+          "contains": "monitors/305931972"
+        },
+        {
+          "contains": "monitors/305932428"
+        },
+        {
+          "contains": "monitors/305925415"
+        }
+      ]
+    },
+    "reason": "Three [QA][Gatling] monitors fired across the backlog window (ms-support-api, eda_orchestrator_api, ms-apps-api P95 latency), all tagged env:warehouse team:qa source:gatling -- these are load-test result monitors against the warehouse (non-prod) environment, not production alerts. Same non-prod-noise class as the already-documented ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata and ki-2026-07-03-warehouse-dashboard-network-test-nodata (both 'confirmed-non-prod-noise').",
+    "first_seen": "2026-07-16T15:28:39Z",
+    "last_seen": "2026-08-08T21:44:48Z",
+    "occurrences": 26,
+    "silence_for": "24h",
+    "notes": [
+      {
+        "ts": "2026-07-25T21:44:48Z",
+        "note": "2026-07-25 22:xxZ triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-25T18:56:18Z cutoff, hash 52d516f472ce6281). Monitor 305932428 ([QA][Gatling] eda_orchestrator_api P95 latency high (warehouse)) fired 2026-07-25T21:44:48Z, overall_state No Data, occ->4. DD metric p95:trace.aspnet_core.request{service:eda_orchestrator_api,env:warehouse} 21:14:48-21:44:48Z: empty series (0 datapoints) -- no active Gatling run, expected No-Data behavior for this non-prod load-test monitor between test executions. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-07-25-52d516f472ce6281.md."
+      },
+      {
+        "ts": "2026-07-29T11:20:00Z",
+        "note": "2026-07-29 11:20Z triage: monitor 305925415 recovered 10:07:55Z, hash f4e87f547755768b, occ 10->11. DD metric p95:trace.aspnet_core.request{service:ms-apps-api,env:warehouse} 09:52:55-10:07:55Z: 9 points, 0.02-0.03s, far below the 2s threshold -- non-prod QA/Gatling load-test noise, same class as the sibling documented entries. Self-DM sent (no thread-reply path in degraded mode). See docs/investigations/2026-07-29-f4e87f547755768b.md."
+      },
+      {
+        "ts": "2026-07-29T12:12:48Z",
+        "note": "2026-07-29 12:12Z triage (degraded cycle, no Slack MCP; DD monitor scan diff vs 2026-07-29T10:32:57Z cutoff, hash 240296157d9893a0): monitor 305925415 ([QA][Gatling] ms-apps-api P95 latency high (warehouse)) fired 2026-07-29T12:10:55Z, occ 11->12. Monitor tags confirm env:warehouse team:qa source:gatling -- non-prod load-test monitor family, same mechanism as prior 11 occurrences. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-07-29-240296157d9893a0.md."
+      },
+      {
+        "ts": "2026-07-30T14:45:00Z",
+        "note": "2026-07-30 ~14:45Z triage (degraded cycle, no Slack MCP): monitor 305925415 fired 10:33:56Z, hash d0276e9120a5a22f, occ 12->13. Metric re-query max p95 1.00s vs 2s threshold. Self-DM'd."
+      },
+      {
+        "ts": "2026-07-31T16:15:00Z",
+        "note": "2026-07-31 ~16:07-16:15Z triage (degraded cycle, no Slack MCP): monitor 305932428 ([QA][Gatling] eda_orchestrator_api P95 latency high, warehouse) fired 15:56:48Z, hash e3645b8febf1cab0, occ->bump. DD metric p95:trace.aspnet_core.request{service:eda_orchestrator_api,env:warehouse} 15:26:48-15:56:48Z: two sustained ~59.6-59.9s p95 plateaus (vs 1s threshold) alongside a real traffic surge (14,074 requests, peak 1,004/10s) -- an actively-running Gatling load test, and a notably worse magnitude than any prior occurrence of this monitor (previously 0 data or <=1.00s). 0 error logs. Still non-prod/env:warehouse -- false-alarm classification holds for triage purposes, but flagging the magnitude deviation for QA/Gatling team awareness out-of-band (possible heavier test scenario or a real warehouse-env capacity regression). No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-07-31-e3645b8febf1cab0.md."
+      },
+      {
+        "ts": "2026-07-31T17:10:08Z",
+        "note": "2026-07-31 ~17:10Z triage (degraded cycle, no Slack MCP): monitor 305932428 [QA][Gatling] eda_orchestrator_api P95 (warehouse) fired 16:11:48Z, hash 54d9ebee48db837b, occ 14->15. DD metric p95:trace.aspnet_core.request{service:eda_orchestrator_api,env:warehouse} 16:00-16:30Z: all points ~0.0006-0.001s, well under the 1s threshold and back to OK by scan time -- transient Gatling burst already recovered. No error logs, non-prod env:warehouse."
+      },
+      {
+        "ts": "2026-07-31T17:10:09Z",
+        "note": "2026-07-31 ~17:10Z triage (degraded cycle, no Slack MCP): monitor 305925415 [QA][Gatling] ms-apps-api P95 (warehouse) fired 16:37:55Z, hash 59da1b7395f4b5e1, occ 15->16. DD metric p95:trace.aspnet_core.request{service:ms-apps-api,env:warehouse} 16:25-16:55Z: sharp spike to peak 10.55s at 16:34:30Z (vs 2s threshold) coincident with a load-test burst, decaying back to normal warehouse baseline (~0.1-0.9s) within ~15min. No error logs, non-prod env:warehouse -- same load-test-noise shape as the rest of this KB family."
+      },
+      {
+        "ts": "2026-07-31T19:57:55Z",
+        "note": "2026-07-31 ~20:xxZ triage (degraded cycle, no Slack MCP): monitor 305925415 ([QA][Gatling] ms-apps-api P95 latency high (warehouse)) fired 2026-07-31T19:57:55Z, hash 15f6eefc0b05ee7c, occurrences bumped. DD metric p95:trace.aspnet_core.request{service:ms-apps-api,env:warehouse} 19:47:55-19:57:55Z: mostly sub-second, but one real magnitude anomaly -- p95 spiked to 7.98s at 19:52:30Z (and 2.50s at 19:47:xx), both well above the 2s threshold. Flagged for QA awareness (a genuine Gatling-run latency spike, not measurement noise), but classification held as false-alarm per this entry's established non-prod (env:warehouse) scope -- same treatment as the 2026-07-29 10.55s spike. Self-DM kb-update sent (no thread-reply path in degraded mode)."
+      },
+      {
+        "ts": "2026-08-01T22:09:00Z",
+        "note": "2026-08-01 ~22:09Z triage (degraded cycle, no Slack MCP surfaced this session, DD monitor scan diff vs 2026-08-01T21:04:19Z cutoff): monitor 305925415 ([QA][Gatling] ms-apps-api P95 latency high, warehouse) fired 2026-08-01T21:08:55Z, hash f6ee3ad321c35973, occ 17->18. DD metric p95:trace.aspnet_core.request{service:ms-apps-api,env:warehouse} 20:58:55-21:08:55Z: empty series (0 datapoints) -- no active Gatling run at scan time, same no-active-run shape as the 2026-07-25 occurrence. Monitor tags confirm env:warehouse team:qa source:gatling. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-08-01-f6ee3ad321c35973.md."
+      },
+      {
+        "ts": "2026-08-01T22:14:00Z",
+        "note": "2026-08-01 ~22:14Z triage (degraded cycle, no Slack MCP surfaced this session, DD monitor scan diff vs 2026-08-01T21:04:19Z cutoff): monitor 305932428 ([QA][Gatling] eda_orchestrator_api P95 latency high, warehouse) fired 2026-08-01T21:44:48Z, hash 4a34315777f99ad9, occ 18->19. DD metric p95:trace.aspnet_core.request{service:eda_orchestrator_api,env:warehouse} 21:14:48-21:44:48Z: empty series (0 datapoints) -- no active Gatling run at scan time, same shape as the 2026-07-25 occurrence of this same monitor. Monitor tags confirm env:warehouse team:qa source:gatling. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-08-01-4a34315777f99ad9.md."
+      },
+      {
+        "ts": "2026-08-04T19:08:00Z",
+        "note": "Degraded cycle (no Slack MCP), DD-scan-diff vs cutoff 2026-08-04T17:57:33Z. Monitor 305925415 fired 18:33:55Z. DD metric p95:trace.aspnet_core.request{service:ms-apps-api,env:warehouse} 18:03:55-18:33:55Z: brief spike to 2.54s (vs 2s threshold, ~1.27x) then dropped to 0.056s/0.012s within 30s -- transient Gatling load-test burst, non-prod (env:warehouse team:qa source:gatling). occ 19->20."
+      },
+      {
+        "ts": "2026-08-05T19:10:00Z",
+        "note": "2026-08-05 ~19:10Z triage (degraded cycle, no Slack MCP; DD-scan-diff vs prior cutoff 2026-08-05T18:04:32Z, hash c30884db86707811): monitor 305925415 fired 2026-08-05T18:48:55Z, occ 21->22. DD metric p95:trace.aspnet_core.request{service:ms-apps-api,env:warehouse} over 18:18:55-19:09:59Z: 55 real datapoints, peak 2.31s at ~18:42:00Z (vs 2s threshold, ~1.16x) then decayed to sub-second baseline -- genuine transient Gatling load-test spike, non-prod env:warehouse, same class as prior 21 occurrences. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-08-05-c30884db86707811.md."
+      },
+      {
+        "ts": "2026-08-05T20:09:00Z",
+        "note": "2026-08-05 ~20:09Z triage (degraded cycle, no Slack MCP; DD-scan-diff vs prior cutoff 2026-08-05T19:05:01Z). Monitor 305925415 fired 19:36:55Z, hash a7f496a0f3e153b9, occ 22->23. p95:trace.aspnet_core.request{service:ms-apps-api,env:warehouse} over 18:53:35-21:23:35Z: 86 points, 2 breaches >2s, peak 8.91s at 19:24:00Z, non-prod env:warehouse -- same load-test-noise class as 22 priors. No thread-reply path in degraded mode (no primary.ts) -- kb-update self-DM sent."
+      },
+      {
+        "ts": "2026-08-08T21:09:00Z",
+        "note": "2026-08-08 ~21:09Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probes for \"slack conversations history\", \"mcp__slack\", \"slack\" all empty; DD-scan-diff vs prior cutoff 2026-08-08T19:54:11Z, commit fa65245). Full 186-monitor scan: 155 OK, 30 No Data, 1 Alert -- no monitor-count regression. Diffed all 186 monitors' last_triggered_ts against cutoff: 3 transitioned -- 299551472 and 299551518 both recovered to OK (recovery-transition artifact per established precedent, not treated as new pending alerts), and 305925415 ([QA][Gatling] ms-apps-api P95 latency high, warehouse) transitioned to No Data at 2026-08-08T20:48:55Z, hash 87ac7f88750aa16b. DD metric p95:trace.aspnet_core.request{service:ms-apps-api,env:warehouse} 20:18:55-20:48:55Z: empty series (0 datapoints) -- no active Gatling run at scan time, same no-active-run shape as prior empty-series occurrences (2026-07-25, 2026-08-01). Monitor tags confirm env:warehouse team:qa source:gatling. occ 24->25. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-08-08-87ac7f88750aa16b.md."
+      },
+      {
+        "ts": "2026-08-08T22:09:00Z",
+        "note": "2026-08-08 ~22:09Z triage (degraded cycle, no Slack MCP surfaced this session): DD-scan-diff vs prior cutoff 2026-08-08T20:48:55Z (commit fa65245/508d9b5). Monitor 305932428 ([QA][Gatling] eda_orchestrator_api P95 latency high, warehouse) transitioned to No Data 2026-08-08T21:44:48Z, hash 1a0d786bd650393c, occ 25->26. DD metric p95:trace.aspnet_core.request{service:eda_orchestrator_api,env:warehouse} 21:14:48-21:44:48Z: empty series (0 datapoints) -- no active Gatling run at scan time, same no-active-run shape as prior empty-series occurrences (2026-07-25, 2026-08-01). Monitor tags confirm env:warehouse team:qa source:gatling. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-08-08-1a0d786bd650393c.md."
+      }
+    ]
+  },
+  {
+    "id": "fa-2026-07-23-qbo-sync-queue-consumer-stalled-monitor-artifact",
+    "match": {
+      "channels": [
+        "alert-system",
+        "swat"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/301037701"
+        },
+        {
+          "contains": "[Connect][Sync][P1] QBO sync consumer stalled"
+        }
+      ]
+    },
+    "reason": "DD metric sum:trace.amqp.command.hits{service:sync-queue-consumer,env:prod} over 2026-07-22T15:44:01-16:24:01Z: continuous non-zero throughput throughout (54-638 messages per 30s bucket, no gap approaching the monitor's stall threshold). The 'stalled' condition does not match observed reality -- same monitoring-artifact class as the already-documented fa-2026-07-11-sync-api-queue-consumer-bursty-idle-gap, but for the sibling QBO-specific consumer service (sync-queue-consumer, not sync-api-queue-consumer). NOT the same incident as ki-qbo-sync-datadog-mass-transit-blockage (a mitigated, historical MassTransit blockage from a different date) -- a bare 'QBO Sync' text match to that entry is unverified without checking the metric, which is why this got its own entry instead of a blind occurrence bump.",
+    "first_seen": "2026-07-22T16:14:01Z",
+    "last_seen": "2026-08-05T19:05:01Z",
+    "occurrences": 10,
+    "silence_for": "24h",
+    "notes": [
+      {
+        "ts": "2026-07-24T19:14:01Z",
+        "note": "2026-07-24 19:14Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-24T18:39:11Z cutoff): monitor 301037701 fired 19:14:01Z (OK at scan time, self-recovered), hash 1e465eb3289bed07, occ 2->3. DD metric sum:trace.amqp.command.hits{service:sync-queue-consumer,env:prod}.as_count() over 18:44:01-19:14:01Z: near-continuous non-zero throughput throughout, with one ~12min data gap (~18:59:50-19:12:00Z) immediately followed by resumed throughput -- same monitoring-artifact shape as the 2 documented priors, not a genuine stall. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only. See docs/investigations/2026-07-24-1e465eb3289bed07.md."
+      },
+      {
+        "ts": "2026-07-24T21:14:01Z",
+        "note": "2026-07-24 21:14Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-24T21:00:52Z cutoff): monitor 301037701 fired 21:14:01Z (OK at scan time, self-recovered), hash e6d4996605b43a92, occ 3->4. DD metric sum:trace.amqp.command.hits{service:sync-queue-consumer,env:prod}.as_count() over 20:44:01-21:14:01Z: near-continuous non-zero throughput, with one ~12min data gap (21:00:00-21:12:00Z) immediately followed by resumed throughput -- same monitoring-artifact shape as the 3 documented priors, not a genuine stall. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only. See docs/investigations/2026-07-24-e6d4996605b43a92.md."
+      },
+      {
+        "ts": "2026-07-26T21:14:01Z",
+        "note": "2026-07-26 21:14Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-07-26T21:07:18Z cutoff): monitor 301037701 fired 21:14:01Z (OK at scan time, self-recovered), hash ff45ccd6d533cc21, occ 4->5. DD metric sum:trace.amqp.command.hits{service:sync-queue-consumer,env:prod}.as_count() over 20:44:01-21:14:01Z: near-continuous non-zero throughput (mostly 3-345/10s), with one ~11min data gap (20:41:10-20:52:10Z local bucket / 1785099670000-1785100330000 epoch_ms) immediately followed by resumed throughput -- same monitoring-artifact shape as the 4 documented priors, not a genuine stall. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only. See docs/investigations/2026-07-26-ff45ccd6d533cc21.md."
+      },
+      {
+        "ts": "2026-07-28T20:20:01Z",
+        "note": "A: DD metric sum:trace.amqp.command.hits{service:sync-queue-consumer,env:prod}.as_count() over 19:50:01-20:20:01Z: near-continuous throughput (14-301 msgs/10s), one ~11m40s gap (20:06:20-20:18:00Z) immediately followed by resumed throughput -- same monitoring-artifact shape as the 5 documented priors, not a genuine stall. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only. See docs/investigations/2026-07-28-77594a67faa969b3.md."
+      },
+      {
+        "ts": "2026-08-03T21:21:00Z",
+        "note": "2026-08-03 ~21:09Z triage (degraded cycle, no Slack MCP; DD-scan-diff vs prior cutoff 2026-08-03T20:03:09Z): monitor 301037701 fired 20:20:01Z (OK at scan time, self-recovered), hash 4fd6e028128777bf, occ 7->8. DD metric sum:trace.amqp.command.hits{service:sync-queue-consumer,env:prod}.as_count() over 19:55:00-20:25:00Z: genuine ~12min zero-throughput gap 20:06:10-20:18:10Z (not just a low-sum artifact -- literally no data points in that stretch), immediately preceded/followed by normal bursty throughput (13-478 msgs/10s). 0 errors on service:sync-queue-consumer or service:qbo-sync-api. This gap's exact timing (20:06-20:18Z) closely matches the 2026-07-28 occurrence's documented gap (20:06:20-20:18:00Z) -- looks like a recurring daily quiet-period around this time-of-day, not a random artifact. Confirmed same monitoring-artifact class as prior 7 occurrences. No thread-reply possible in degraded mode (no primary.ts); self-DM kb-update confirmation sent instead."
+      },
+      {
+        "ts": "2026-08-05T17:15:00Z",
+        "note": "2026-08-05 17:15Z triage (degraded cycle, no Slack MCP; DD-scan-diff vs prior cutoff 2026-08-05T15:44:11Z, hash 71f5e643a7bf4963): monitor 301037701 fired 17:05:01Z (OK at scan time, self-recovered), occ 8->9. DD metric sum:trace.amqp.command.hits{service:sync-queue-consumer,env:prod}.as_count() over 16:35:01-17:05:01Z: genuine ~10min zero-throughput gap ~16:52:50-17:03:00Z (no data points at all, not just a low-sum artifact), immediately preceded/followed by normal bursty throughput (1-129 msgs/10s). 0 error logs on service:sync-queue-consumer or service:qbo-sync-api in the full window. Same monitoring-artifact class as the 8 documented priors -- classified false-alarm, confidence 0.9. No thread-reply possible in degraded mode (no source permalink) -- kb-update self-DM confirmation sent instead. See docs/investigations/2026-08-05-71f5e643a7bf4963.md."
+      },
+      {
+        "ts": "2026-08-05T19:10:00Z",
+        "note": "2026-08-05 ~19:10Z triage (degraded cycle, no Slack MCP; DD-scan-diff vs prior cutoff 2026-08-05T18:04:32Z, hash c01b3fa1bdf4ea6a): monitor 301037701 fired 2026-08-05T19:05:01Z (OK at scan time, self-recovered), occ 9->10. DD metric sum:trace.amqp.command.hits{service:sync-queue-consumer,env:prod}.as_count() over 18:35:01-19:09:59Z: genuine ~10m40s zero-throughput gap 18:52:20-19:03:00Z, immediately preceded/followed by normal bursty throughput (1-355 msgs/10s). 0 error logs on sync-queue-consumer or qbo-sync-api. Same monitoring-artifact class as the 9 documented priors. No thread-reply possible in degraded mode -- kb-update self-DM confirmation sent instead. See docs/investigations/2026-08-05-c01b3fa1bdf4ea6a.md."
+      }
+    ]
+  },
+  {
+    "id": "fa-2026-07-23-rainforest-webhook-traffic-outage-business-hours-gap",
+    "match": {
+      "channels": [
+        "alert-system"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/295882894"
+        },
+        {
+          "contains": "[Rainforest] Webhook Traffic Outage"
+        }
+      ],
+      "precedence_note": "2026-07-24: a 3rd fire of monitor 295882894 at 13:01:01Z did NOT match this entry's shape despite the bare monitor-id/title match -- this occurrence was a sustained ~4h45m+ webhook silence (last real webhook hit 08:30:00Z, still No Data at scan time 13:22Z), not a brief self-resolving natural gap like the single 07-22 occurrence this entry documents (88 hits within ~1.8h). Outbound Method->Rainforest API traffic continued normally throughout (ruling out a Method-runtime-core-wide outage) and 0 error logs corroborate -- consistent with Rainforest not delivering webhooks, not a Method receiver bug. Do NOT auto-match future 295882894 fires to this FA without confirming the silence duration is short (<~2h) and self-resolving; longer/still-firing silences should be treated as needs-human per docs/investigations/2026-07-24-5b0ecb84e83b8a8f.md. occurrences/last_seen NOT bumped for this fire -- logged as a fresh needs-human finding instead (hash 5b0ecb84e83b8a8f). UPDATE 2026-08-03T13:01:01Z (hash ec802b988f1749d6): a 5th fire of monitor 295882894 showed a NEW, more concerning shape -- for the first time, OUTBOUND Method->Rainforest calls (peer.hostname:api.rainforestpay.com) went silent at the exact same timestamp (05:00:00Z) as the inbound webhook silence, diverging from the 07-24/07-27 precedent where outbound stayed healthy throughout. 0 error logs either direction; runtime-core-api overall traffic unaffected (heavy, healthy). Do NOT treat a dual-direction silence as automatically Rainforest-side -- flag for human review of a possible Method-side cause (deploy check blocked this cycle by the methodcrm-org GH_TOKEN 403 gap). occurrences/last_seen NOT bumped for this fire either -- logged as needs-human (hash ec802b988f1749d6, see docs/investigations/2026-08-03-ec802b988f1749d6.md). UPDATE 2026-08-10T13:01:01Z (hash fca288482a38cfa1): a 6th fire of monitor 295882894 -- inbound webhook traffic silent since 11:18:00Z (~1h51m as of scan time 13:09:07Z, monitor threshold breached 13:00:00Z, still No Data). Mechanism matches the ORIGINAL 07-22/07-24/07-27 asymmetric shape (outbound Method->Rainforest calls continued to 12:54:00Z, well after inbound went dark) -- NOT the 08-03 concerning dual-direction-silence variant. Duration (~1h51m) is under the ~2h guideline in this note, but the fire was still active (not yet self-resolved) at scan time, so per the note requiring BOTH short duration AND confirmed self-resolution, still not auto-matched -- logged as needs-human instead (escalation_score=5: critical_path_service +3, truly_novel +2). 0 error logs; runtime-core-api overall traffic healthy. occurrences/last_seen NOT bumped for this fire -- see docs/investigations/2026-08-10-fca288482a38cfa1.md."
+    },
+    "reason": "DD metric sum:trace.aspnet_core.request.hits{env:prod,service:runtime-core-api,resource_name:post_/api/v1/payments/rainforest/events} over a ~1.8h band centered on the 2026-07-22T13:01:01Z fire: 88 total hits, confirming webhook traffic exists around the fire (not a sustained outage) -- the monitor's sum(last_1h) < 1 threshold caught a natural low-volume gap during business hours, same family as the already-documented idle-gap false-alarms for other bursty low-frequency integrations (fa-2026-07-06 import-subscriber, fa-2026-07-07 sync-qbows-publisher).",
+    "first_seen": "2026-07-22T13:01:01Z",
+    "last_seen": "2026-08-06T13:01:01Z",
+    "occurrences": 2,
+    "silence_for": "24h"
+  },
+  {
+    "id": "fa-2026-07-23-runtime-core-api-error-rate-low-traffic-artifact",
+    "match": {
+      "channels": [
+        "alert-system",
+        "alert-runtime-monitoring"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/17420774"
+        },
+        {
+          "contains": "Service runtime-core-api has a high error rate on env:prod"
+        }
+      ]
+    },
+    "reason": "DD metric sum:trace.aspnet_core.request.errors{service:runtime-core-api,env:prod} over 2026-07-19T06:47:14-07:17:14Z: a brief burst of 1-6 errors per 10s bucket lasting ~2 minutes, ending ~11 min before the monitor's 07:02:14Z fire (sum(last_5m) threshold evaluates a window that partially captured the tail). 0 status:error DD logs found in a +/-15min band around the fire. Self-recovered by scan time (2026-07-23, overall_state OK). Single occurrence in the 8-day backlog window. NOT the same incident as ki-runtime-core-ansible-redis-deploy-burst (that entry is a resolved, one-off 2026-06 Ansible-deploy Redis-timeout incident; a bare 'runtime-core' text match to it is a false-positive trap -- see match_kb.py's first-match-wins behavior, corrected here by using a monitor-id-scoped match clause instead of the bare-service-name clause the old entry relies on).",
+    "first_seen": "2026-07-19T07:02:14Z",
+    "last_seen": "2026-07-19T07:02:14Z",
+    "occurrences": 1,
+    "silence_for": "24h"
+  },
+  {
+    "id": "fa-2026-07-23-signin-5xx-low-traffic-artifact",
+    "match": {
+      "channels": [
+        "alert-system"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/299544677"
+        },
+        {
+          "contains": "[Admin][Signin][P1] 5xx error rate elevated"
+        }
+      ]
+    },
+    "reason": "DD metric sum:trace.aspnet.request.errors{service:signin,env:prod} over 2026-07-23T16:11:17-16:41:17Z (+/-15min around the fire): 0 errors. Same low-traffic-ratio-artifact mechanism as the sibling methodportal/mapi/audittrail entries already written this cycle.",
+    "first_seen": "2026-07-23T16:26:17Z",
+    "last_seen": "2026-08-06T19:50:17Z",
+    "occurrences": 3,
+    "silence_for": "24h",
+    "notes": [
+      {
+        "ts": "2026-07-29T11:20:00Z",
+        "note": "2026-07-29 11:20Z triage: monitor 299544677 recovered 03:52:18Z, hash 4ef3e0cda245f38f, occ 1->2 (2nd-ever occurrence). DD metric sum:trace.aspnet.request.errors{service:signin,env:prod}.as_count() 03:42:18-03:52:18Z: ~4 error-count buckets (value 1.0 each) against sum:trace.aspnet.request.hits ~70 total in the same window (~5.7% rate) -- a handful of real errors on thin traffic pushing the rate over the 5% threshold, same low-traffic-ratio-artifact mechanism as the founding occurrence (that one showed 0 errors; this one shows a few, but the mechanism -- thin-traffic denominator amplifying a rate -- is identical). Self-DM sent (no thread-reply path in degraded mode). See docs/investigations/2026-07-29-4ef3e0cda245f38f.md."
+      }
+    ]
+  },
+  {
+    "id": "fa-2026-07-23-signup-pageload-p90-low-traffic-noise",
+    "match": {
+      "channels": [
+        "alert-system",
+        "alert-runtime-monitoring"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/154251781"
+        },
+        {
+          "contains": "Service Signup page load has a high p90 latency"
+        }
+      ]
+    },
+    "reason": "DD metric percentile(last_10m):p90:trace.aspnet.request{env:prod,service:signup,resource_name:get_/} over 2026-07-20T21:37-21:58Z: only 8 data points (very low traffic) with max 0.011s, far below the monitor's 4s threshold. Same low-traffic-percentile-artifact mechanism as the 2 already-documented signup monitor-noise entries (154252126, and fa-2026-07-12-signup-avg-latency-low-traffic-noise) -- a 3rd signup monitor in the same low-traffic-noise family, different resource_name/monitor id.",
+    "first_seen": "2026-07-20T21:52:01Z",
+    "last_seen": "2026-07-30T01:23:01Z",
+    "occurrences": 2,
+    "silence_for": "24h",
+    "notes": [
+      {
+        "ts": "2026-07-30T14:45:00Z",
+        "note": "2026-07-30 ~14:45Z triage (degraded cycle, no Slack MCP): monitor 154251781 fired 01:23:01Z, hash 46a36c1ad1f82afa, occ 1->2. Metric re-query max p90 0.012s vs 4s threshold. Self-DM'd, no thread-reply path in degraded mode."
+      }
+    ]
+  },
+  {
+    "target": "false-alarms",
+    "id": "fa-2026-07-26-methodportal-apps-5xx-low-traffic-artifact",
+    "match": {
+      "channels": [
+        "alert-system"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/299551647"
+        },
+        {
+          "contains": "[VAE][PortalApps][P1] 5xx error rate elevated (methodportal.com/apps)"
+        }
+      ]
+    },
+    "reason": "DD metric sum:trace.aspnet.request.errors{service:methodportal.com/apps,env:prod} over 2026-07-26T05:26:27-06:06:27Z (+/-20min around the fire): exactly 1 error point (05:34:40Z, count=1.0). Monitor computes a >25% error-RATE over a 10-min window; a single raw error against a small request denominator during a quiet period trips the ratio threshold with negligible real impact. Same low-traffic-ratio-artifact mechanism as fa-2026-07-12-mapi-5xx-rate-low-traffic-ratio-artifact and fa-2026-07-23-methodportal-5xx-low-traffic-artifact (methodportal.com, without /apps), applied to the /apps sub-path variant. Rejected an initial match_kb.py hit against ki-2026-05-29-methodsession-getaccountbysubdomain-nre (bare 'ms-account-api'-adjacent match) -- ES query for that entry's own evidence (JWT Retrieval Failed / GetAccountBySubdomain / MethodSessionService) returned 0 hits in the window, refuting it.",
+    "silence_for": "24h",
+    "first_seen": "2026-07-26T05:46:27Z",
+    "last_seen": "2026-07-26T05:46:27Z",
+    "occurrences": 1,
+    "recommendation": "Same recommendation as the sibling low-traffic-ratio-artifact entries: consider widening the monitor eval window or adding a minimum-request-count floor so a single error cannot trip a percentage threshold during low-traffic periods."
+  },
+  {
+    "target": "false-alarms",
+    "id": "fa-2026-07-30-eda-orchestrator-kafka-produce-errors-monitor-noise",
+    "match": {
+      "channels": [
+        "alert-system"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/296639892"
+        },
+        {
+          "contains": "[EDA][Kafka][P1] Kafka produce errors"
+        }
+      ]
+    },
+    "reason": "eda_orchestrator_api Kafka-produce error-ratio monitor (sum(last_5m):100 * errors/hits > 1%). DD metric re-query for the alert window (09:50:13-10:30:13Z) shows a legitimate traffic burst (baseline ~5-135 hits/10s climbing to ~2,900 hits/10s for ~90s right before the trigger) against exactly 1 total produce error in the whole 40-min window -- nowhere near a genuine 1% error rate over any real interval. 0 status:error DD logs on the service in-window. Same low-traffic/burst-ratio monitor-noise shape already documented on HTTP-status-ratio monitors (ki-2026-07-04-ms-account-api-4xx-spike-monitor-noise, ki-2026-07-07-gateway-4xx-spike-monitor-noise, fa-2026-07-12-mapi-5xx-rate-low-traffic-ratio-artifact), now confirmed on a Kafka-produce-ratio monitor too.",
+    "silence_for": "24h",
+    "first_seen": "2026-07-30T10:20:13Z",
+    "last_seen": "2026-07-30T10:20:13Z",
+    "occurrences": 1,
+    "notes": [
+      {
+        "ts": "2026-07-30T14:29:00Z",
+        "note": "2026-07-30 ~14:29Z triage (degraded cycle, no Slack MCP; DD monitor scan-diff vs prior cutoff 2026-07-29T18:01:24Z). First-ever fire of monitor 296639892 in kb/incident-log.jsonl (0 prior mentions). See docs/investigations/2026-07-30-426161c97bbe9dea.md."
+      }
+    ]
+  },
+  {
+    "target": "false-alarms",
+    "id": "fa-2026-07-30-warehouse-hosts-high-cpu-monitor-noise",
+    "match": {
+      "channels": [
+        "alert-system"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/309602252"
+        },
+        {
+          "contains": "High CPU Usage — Warehouse Hosts"
+        },
+        {
+          "contains": "High CPU Usage - Warehouse Hosts"
+        }
+      ]
+    },
+    "reason": "Non-prod QA/warehouse host CPU monitor (team:qa, env:warehouse; avg(last_5m):avg:system.cpu.user{host:dev-warehouse-linux OR host:dev-warehouse-windows} by {host} > 95). DD metric re-query for the alert window (18:29:40-19:09:40Z) never approached the 95% threshold (linux peak ~7.7%, windows peak ~36.3%, both single 10s bursts consistent with a periodic scheduled QA job) -- the monitor's own 5-min rolling evaluator apparently caught a narrower spike the reconstructed series doesn't corroborate, a resampling-gap shape already documented on several other monitor-noise entries. 0 error logs on either host. Non-prod hosts -- even a genuine spike here has 0 customer impact.",
+    "silence_for": "24h",
+    "first_seen": "2026-07-29T18:59:40Z",
+    "last_seen": "2026-07-29T18:59:40Z",
+    "occurrences": 1,
+    "notes": [
+      {
+        "ts": "2026-07-30T14:29:00Z",
+        "note": "2026-07-30 ~14:29Z triage (degraded cycle, no Slack MCP; DD monitor scan-diff vs prior cutoff 2026-07-29T18:01:24Z). First-ever fire of monitor 309602252 in kb/incident-log.jsonl (0 prior mentions). See docs/investigations/2026-07-29-450a3fc60a73ab61.md."
+      }
+    ]
+  },
+  {
+    "id": "fa-2026-07-31-rainforest-outbound-api-error-rate-low-traffic-noise",
+    "target": "false-alarms",
+    "match": {
+      "channels": [
+        "alert-system"
+      ],
+      "any_of": [
+        {
+          "contains": "Rainforest] Outbound API Error Rate"
+        },
+        {
+          "contains": "monitors/295882732"
+        }
+      ]
+    },
+    "reason": "DD monitor 295882732 ([Rainforest] Outbound API Error Rate (4xx+5xx) > 5%) fired 2026-07-31T19:34:52Z (overall_state OK by scan time -- self-recovered). This is a percentage-of-traffic monitor on a very low-volume outbound integration (env:prod, peer.hostname:api.rainforestpay.com): total request volume in the pre-fire 10-min window was ~10 requests, of which exactly 1 was a 4xx (0 were 5xx) -- 1/10 = 10% > the 5% threshold. DD logs query (service:runtime-core-api peer.hostname:api.rainforestpay.com status:error / @http.status_code:4*) returned 0 corroborating hits (outbound Rainforest calls are traced but not logged to this pipeline), so the metric API count (verified via sum:trace.http.request.hits{...,http.status_code:4*}.as_count()) is the evidence of record. A single 4xx among ~10 requests is consistent with an ordinary payment-processing rejection (e.g. a declined card), not a Method-side or Rainforest-side outage -- same low-traffic-denominator noise mechanism as the other bursty/low-volume integration monitors already documented (fa-2026-07-06 import-subscriber, fa-2026-07-11 sync-api-queue-consumer, fa-2026-07-23 rainforest-webhook-traffic-outage). Distinct monitor from the already-documented ki-2026-07-05 (P95 latency) and ki-2026-07-06 (merchant-details 503) Rainforest entries -- this is the first fire of the error-rate-specific monitor 295882732.",
+    "first_seen": "2026-07-31T19:34:52Z",
+    "last_seen": "2026-08-10T08:12:52Z",
+    "occurrences": 10,
+    "silence_for": "24h",
+    "notes": [
+      {
+        "ts": "2026-08-03T21:21:00Z",
+        "note": "2026-08-03 ~21:09Z triage (degraded cycle, no Slack MCP; DD-scan-diff vs prior cutoff 2026-08-03T20:03:09Z): monitor 295882732 fired 21:08:52Z (Warn, not Alert, at scan time), hash 5cd75d3a96650f5b, occ 1->2. Disambiguated against the other monitor-295882732-matching entry (ki-2026-07-06-rainforest-merchant-details-503-serviceunavailable) via ES: the actual error is 'Rainforest API create payin config request failed with status: BadRequest for merchant ..., amount: 0' (SourceContext RainforestProvider, but NOT GetMerchantAsync -- the KI's regex clause does not match; a $0 payin-config create attempt on the Guest-Payment screen, account sierrashredllc). DD metric sum:trace.http.request.hits{env:prod,peer.hostname:api.rainforestpay.com,...} over the monitor's own last_10m eval window (20:58:52-21:08:52Z): 23 total requests, 1 x 4xx (this BadRequest), 0 x 5xx -> 4.3% error rate, just under the monitor's 5% Alert threshold (consistent with Warn not Alert state -- a weaker signal than the documented 10%-Alert precedent). Same low-traffic-denominator single-4xx mechanism as the entry's existing reasoning, though the specific trigger this time (a $0 payment attempt) differs from the prior 'ordinary decline' framing -- worth a look by Transactions if this recurs (client-side amount validation gap on the guest payment screen), but not escalating on a single low-severity Warn-state occurrence. Self-DM kb-update confirmation sent (no primary.ts for a thread-reply in degraded mode)."
+      },
+      {
+        "ts": "2026-08-04T14:17:00Z",
+        "note": "2026-08-04 14:17Z triage (degraded cycle, no Slack MCP surfaced this session; DD monitor scan-diff vs prior cutoff 2026-08-04T13:20:00Z): monitor 295882732 fired 2026-08-04T13:27:52Z, hash 640932b45483cbaf, occ 2->3. Disambiguated against ki-2026-07-06-rainforest-merchant-details-503-serviceunavailable (also matches this monitor id): ES query fields.dd_service.keyword:\"runtime-core-api\" AND message:*rainforest* over the monitor's own last_10m eval window (13:17:52-13:27:52Z) returned 0 hits (consistent with this entry's documented finding that Rainforest calls are traced, not logged, to this pipeline); DD logs service:runtime-core-api peer.hostname:api.rainforestpay.com = 0 hits same window. DD metric sum:trace.http.request.hits{env:prod,peer.hostname:api.rainforestpay.com} by {http.status_code}, widened to 13:00-13:45Z to catch the eval-window boundary: 657x 200, 5x 400 (clustered 13:16:40-13:17:10Z, 3 hits, plus 2 more at 13:33-13:35Z), 0x 5xx anywhere in the window. No 503/ServiceUnavailable signature (which would indicate the KI's GetMerchantAsync mechanism) -- these are 400s, matching this entry's low-traffic-denominator-noise mechanism, not the KI's third-party-503 mechanism. No thread-reply path in degraded mode (no primary.ts) -- kb-update self-DM sent instead. See docs/investigations/2026-08-04-640932b45483cbaf.md."
+      },
+      {
+        "ts": "2026-08-04T15:59:53Z",
+        "note": "2026-08-04 ~16:08Z triage (degraded cycle, no Slack MCP surfaced this session): monitor 295882732 fired 15:59:53Z (OK by scan time -- self-recovered), hash 24048b3bdbb09953, occ 3->4. Disambiguated against ki-2026-07-06-rainforest-merchant-details-503-serviceunavailable (also matches this monitor id) via DD metric by status_code in the monitor's own last_10m eval window (15:49:53-15:59:53Z): 21x 200, 1x 400, 0x 5xx -> 4.5% error rate, just under the 5% Alert threshold; no 503/ServiceUnavailable signature anywhere in the window. ES fields.dd_service.keyword:\"runtime-core-api\" AND message:*rainforest*: 0 hits (Rainforest calls are traced, not logged, to this pipeline -- consistent with entry's documented finding). Same low-traffic-denominator-noise mechanism as the 3 prior occurrences. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only. See docs/investigations/2026-08-04-24048b3bdbb09953.md."
+      },
+      {
+        "ts": "2026-08-04T20:04:52Z",
+        "note": "2026-08-04 ~20:08Z triage (degraded cycle, no Slack MCP surfaced this session). DD-scan-diff vs prior cutoff 2026-08-04T18:36:34Z. Monitor 295882732 fired 20:04:52Z, hash b5ceda65ba8088ab, occ 4->5. Pre-fire 10-min window (19:54:52-20:04:52Z): 13 total outbound requests to api.rainforestpay.com, of which 1 was a 4xx (0 were 5xx) -- 1/13 = ~7.7% > the 5% threshold, same low-traffic-denominator noise mechanism as the 07-31 occurrence (1/10=10%) and the sibling bursty/low-volume integration monitors. DD logs (service:runtime-core-api peer.hostname:api.rainforestpay.com status:error) returned 0 corroborating hits. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only. See docs/investigations/2026-08-04-b5ceda65ba8088ab.md."
+      },
+      {
+        "ts": "2026-08-04T22:10:00Z",
+        "note": "2026-08-04 ~22:10Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch confirmed no slack/conversations tool surfaced). DD-scan-diff vs prior cutoff 2026-08-04T21:04:11Z (from the 21:08:00Z poll-cycle summary). Full 186-monitor scan (--summary): monitor count unchanged (still 186). 2 monitors past cutoff this cycle. Monitor 295882732 fired 2026-08-04T21:27:53Z (OK by scan time -- self-recovered), hash b3a072b99d4a6283, occ 5->6. Disambiguated against ki-2026-07-06-rainforest-merchant-details-503-serviceunavailable (also matches this monitor id): DD metric sum:trace.http.request.hits{env:prod,peer.hostname:api.rainforestpay.com} by {http.status_code} over the pre-fire 10-min window (21:17:53-21:27:53Z): ~67 x 200, 2 x 400, 0 x 5xx (~2.9% error rate on the sampled buckets -- sparse/rollup-interpolated series, consistent with this entry's low-traffic-denominator noise, not the KI's 503/ServiceUnavailable mechanism). ES fields.dd_service.keyword:\"runtime-core-api\" AND message:*rainforest* same window: 0 hits -- no 503/ServiceUnavailable signature, ruling out the sibling KI. Same low-traffic-denominator-noise mechanism as all 5 prior occurrences. No thread-reply path in degraded mode -- kb-update + self-DM confirmation only. See docs/investigations/2026-08-04-b3a072b99d4a6283.md."
+      },
+      {
+        "ts": "2026-08-05T11:32:14Z",
+        "note": "2026-08-05 ~11:32Z triage (degraded cycle): monitor 295882732 fired 2026-08-05T08:11:52Z, hash 7edc8a73451213f0, occ 6->7. DD metric sum:trace.http.request.hits{env:prod,peer.hostname:api.rainforestpay.com} by {http.status_code} over 07:58:32-08:18:32Z: ~109 x 200, 4 x 400 (peak), 0 x 5xx -- ~3.5% error rate on a low-traffic outbound integration. ES sample confirms the 400s are ordinary application-level 'Rainforest API create payment method payin request failed with status: BadRequest' rejections (account alocetsystem / internal system tenant, not a customer) -- consistent with the documented low-traffic-denominator noise mechanism. Same shape as 6 prior occurrences."
+      },
+      {
+        "ts": "2026-08-05T20:09:00Z",
+        "note": "2026-08-05 ~20:09Z triage (degraded cycle): monitor 295882732 fired 2026-08-05T20:04:52Z (Warn, not yet recovered to OK at scan time), hash 6e8933e7860ba766, occ 7->8. Disambiguated against ki-2026-07-06-rainforest-merchant-details-503-serviceunavailable (also matches this monitor id) via DD metric sum:trace.http.request.hits{env:prod,peer.hostname:api.rainforestpay.com} by {http.status_code} over the monitor's own last_10m eval window (19:54:52-20:04:52Z): 33 x 200, 1 x 400, 0 x 5xx -> ~2.9% error rate on a low-traffic outbound integration. ES fields.dd_service.keyword:\"runtime-core-api\" AND message:*rainforest* same window: 1 hit -- 'Rainforest API create payment method payin request failed with status: BadRequest' (account sierrashredllc, ordinary application-level rejection), NOT a 503/ServiceUnavailable signature -- rules out the sibling KI's third-party-outage mechanism. Same low-traffic-denominator-noise mechanism as the 7 prior occurrences. No thread-reply path in degraded mode -- kb-update self-DM sent."
+      },
+      {
+        "ts": "2026-08-10T11:35:00Z",
+        "note": "2026-08-10 ~11:35Z triage (degraded cycle, no Slack MCP). DD-scan-diff vs prior cutoff 2026-08-09T21:55:31Z. Monitor 295882732 fired 2026-08-10T08:12:52Z, hash 5fe7f191428f7931, OK by scan time (self-recovered). Re-query of the monitor's own eval window (last_10m, 08:02:52-08:12:52Z): 215 total outbound requests, 1 4xx, 0 5xx -> 0.47% error rate in this coarser re-aggregation, well under the 5% threshold (the real-time trigger likely caught a narrower sub-window with a higher denominator-skew, consistent with documented low-volume-denominator noise, or a monitor-evaluation lag artifact -- same caveat noted elsewhere in this KB corpus). 0 corroborating DD logs (rainforest outbound calls are traced but not logged to this pipeline, as documented). Same low-traffic-denominator noise mechanism as prior 9 occurrences. occ 9->10. See docs/investigations/2026-08-10-5fe7f191428f7931.md."
+      }
+    ]
+  },
+  {
+    "target": "false-alarms",
+    "id": "fa-2026-08-02-qa-warehouse-hosts-cpu-nodata",
+    "match": {
+      "channels": [
+        "alert-system"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/309602252"
+        },
+        {
+          "contains": "High CPU Usage"
+        },
+        {
+          "contains": "Warehouse Hosts"
+        }
+      ]
+    },
+    "reason": "Monitor 309602252 (avg(last_5m):avg:system.cpu.user{host:dev-warehouse-linux OR host:dev-warehouse-windows} by {host} > 95, env:warehouse, team:qa) fired 2026-08-02T04:08:32Z as No Data (not an actual CPU breach -- the hosts stopped reporting the metric entirely). 0 prior documented occurrences of this monitor in kb/incident-log.jsonl (first-ever fire). DD metric re-query (avg:system.cpu.user{host:dev-warehouse-linux OR host:dev-warehouse-windows} by {host}, 2026-08-02T03:38:32-04:38:32Z, a widened 1h window) returned an empty series -- consistent with the hosts being offline/idle rather than under real CPU load. env:warehouse is a non-prod QA/Gatling load-test environment (same family as fa-2026-07-23-qa-gatling-warehouse-load-test-noise); these hosts are commonly powered down or idle between test runs. No prod impact, no user impact.",
+    "silence_for": "24h",
+    "first_seen": "2026-08-02T11:22:21Z",
+    "last_seen": "2026-08-08T23:08:33Z",
+    "occurrences": 2,
+    "recommendation": "If this monitor is meant to catch genuine CPU exhaustion on the warehouse QA hosts, consider adding a separate host-liveness/No-Data-specific notification instead of treating 'no metric reported' the same as 'CPU > 95%' -- the two failure modes need different responses. Low priority given non-prod scope.",
+    "notes": [
+      {
+        "ts": "2026-08-09T11:15:00Z",
+        "note": "2026-08-09 ~11:15Z triage (degraded cycle, no Slack MCP; DD monitor scan-diff vs prior cutoff 2026-08-08T21:44:48Z, commit 976dee5, spanning a ~13.3h overnight gap per the business-hours-only scheduler). Monitor 309602252 fired 2026-08-08T23:08:33Z as No Data again, occ 1->2. DD metric re-query (avg:system.cpu.user{host:dev-warehouse-linux OR host:dev-warehouse-windows} by {host}, 2h window 22:28:33-00:28:33Z) returned an empty series -- same hosts-not-reporting shape as the first occurrence. See docs/investigations/2026-08-08-a49f10896c3893f7.md."
+      }
+    ]
+  },
+  {
+    "target": "false-alarms",
+    "id": "fa-2026-08-02-signup-availability-slo-monitor-noise",
+    "match": {
+      "channels": [
+        "alert-system"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/154229727"
+        },
+        {
+          "contains": "Service Signup Availability SLO"
+        }
+      ]
+    },
+    "reason": "Monitor 154229727 (error_budget('f543e0152a9b5118a647770c1a1e3a2d').over('7d') > 30, service:signup, team:first-strike) fired 2026-08-01T23:56:27Z, self-recovered to OK by scan time. 21 prior undocumented occurrences in kb/incident-log.jsonl (none ever KB'd -- gap filled by this entry). Fresh evidence this cycle: ES aggregate fields.dd_service.keyword:signup AND level.keyword:Error over the preceding 24h (2026-08-01T11:56-23:56Z) = 1 hit total; DD Logs service:signup env:prod status:error over the same window = 0 hits. Negligible real-error signal for a service that supposedly burned >30% of its 7-day error budget. Consistent with an SLO-monitor evaluation/rollup artifact rather than a genuine availability degradation -- error-budget SLO monitors are especially prone to this because a single stale/duplicated bad datapoint can still sit inside the 7d rolling window.",
+    "silence_for": "24h",
+    "first_seen": "2026-08-02T11:22:21Z",
+    "last_seen": "2026-08-01T23:56:27Z",
+    "occurrences": 1,
+    "recommendation": "Recommend to Growth/First-Strike team: verify the SLO error_budget definition (id f543e0152a9b5118a647770c1a1e3a2d) isn't double-counting or including non-representative datapoints; consider a minimum-sample-count gate given signup is a low-traffic endpoint (same low-traffic-noise family as fa-2026-07-12-signup-avg-latency-low-traffic-noise, ki-2026-07-06-signup-low-traffic-p90-latency-monitor-noise, and this cycle's new fa-2026-08-02-signup-high-error-rate-low-traffic-noise)."
+  },
+  {
+    "target": "false-alarms",
+    "id": "fa-2026-08-02-signup-high-error-rate-low-traffic-noise",
+    "match": {
+      "channels": [
+        "alert-system"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/154230536"
+        },
+        {
+          "contains": "Service Signup has a high error rate"
+        }
+      ]
+    },
+    "reason": "Monitor 154230536 (sum(last_10m):(sum:trace.aspnet.request.errors{env:prod,service:signup}.as_count() / sum:trace.aspnet.request.hits{env:prod,service:signup}.as_count()) > 0.1, team:first-strike) fired 2026-08-02T05:44:56Z, self-recovered by scan time. 2 prior undocumented occurrences in kb/incident-log.jsonl (never KB'd -- gap filled by this entry). Re-query over the monitor's own 10-min window (05:34:56-05:44:56Z): sum:trace.aspnet.request.errors{env:prod,service:signup}.as_count() = empty series (0), sum:trace.aspnet.request.hits{env:prod,service:signup}.as_count() = 7 total hits across the window (1-2 per bucket). DD Logs service:signup env:prod status:error over the same window = 0 hits. Classic low-traffic-ratio artifact: signup is a low-volume pre-account endpoint, so a denominator of single-digit hits makes the error-rate percentage extremely noisy -- same mechanism as the other signup low-traffic-noise KB entries (fa-2026-07-12-signup-avg-latency-low-traffic-noise, ki-2026-07-06-signup-low-traffic-p90-latency-monitor-noise, fa-2026-07-11-signup-tracehandler-scanner-probe).",
+    "silence_for": "24h",
+    "first_seen": "2026-08-02T11:22:21Z",
+    "last_seen": "2026-08-02T05:44:56Z",
+    "occurrences": 1,
+    "recommendation": "Recommend to Growth/First-Strike team: gate this monitor on a minimum request-count denominator (e.g. require hits > 20 in the eval window) before evaluating the error-rate percentage, same recommendation as the sibling signup low-traffic monitors."
+  },
+  {
+    "target": "false-alarms",
+    "id": "fa-2026-08-15-sommselection-bingbot-analytics-beacon-noise",
+    "match": {
+      "channels": [
+        "alert-frontend-errors"
+      ],
+      "any_of": [
+        {
+          "contains": "for account: sommselection"
+        }
+      ]
+    },
+    "reason": "Monitor 77419271 (\"Unusual number of XHR errors for account\", >40 XHR errors in 5min rolled up by @account_name) fired 2026-08-15T16:07:12Z on group @account_name:sommselection (overall_state_modified). Naive text match against the monitor title/id also hits the chronic ki-2026-05-21-gateway-microservices-timeout entry (bare \"Unusual number of XHR errors for account\" / \"monitors/77419271\" clauses) -- but the underlying mechanism here is NOT the gateway/GetSyncWidgetInfoAsync timeout pattern. DD logs re-query (service:method-ui, 2026-08-15T15:47:12-16:07:12Z, 200-cap sample): 57/200 hits are account:sommselection, and 100% of those (57/57) are POST https://sommselection.methodportal.com/api/analytics/user/Event?eventName=GoTo+Screen failures with http.status_code=0 (network-level, error.origin=network, error.stack=\"Failed to load\") -- zero server-side 4xx/5xx. All 57 hits share exactly ONE session_id and ONE client IP (4.246.104.192, Microsoft/Azure hosting ASN AS8075). User-agent breakdown: 48/57 identify as bingbot, 9/57 as HeadlessChrome -- a single automated crawler session, not real users. The remaining 109/200 sampled hits in the same window are the usual diffuse syncwidget/GetSyncWidgetInfoAsync pattern across many other accounts (unrelated, chronic ki-21 baseline, not what tripped this account-scoped group). Zero real customer impact -- one bot crawling sommselection's portal generated enough client-side analytics-beacon network failures to cross the per-account threshold.",
+    "silence_for": "24h",
+    "first_seen": "2026-08-15T16:07:12Z",
+    "last_seen": "2026-08-15T16:07:12Z",
+    "occurrences": 1,
+    "recommendation": "Match is deliberately scoped to this specific account (\"for account: sommselection\") rather than the bare monitor id / generic title, to avoid shadowing genuine future ki-2026-05-21-gateway-microservices-timeout recurrences on other accounts (see feedback_kb_bare_monitor_id_false_match). If this bot-crawler-triggers-analytics-beacon-XHR-errors mechanism recurs on other accounts, consider a broader KB entry keyed on the single-session/single-IP/non-human-useragent signature rather than account name. Longer-term fix candidate for Growth (owns Analytics component): don't let unauthenticated/bot crawler traffic execute the analytics-beacon POST at all (gate on a real user session), or have the monitor exclude http.status_code:0 network-level client failures from the XHR-error count."
+  }
+]

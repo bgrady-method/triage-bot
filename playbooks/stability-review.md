@@ -42,7 +42,7 @@ Before any analysis:
      '/"ts"/ { match($0, /"ts":[ ]?([0-9]+)/, a); if (a[1] >= from && a[1] <= to) c++ } END { print c+0 }' \
      kb/incident-log.jsonl
    ```
-   - **< 10 lines:** the bot has not been running long enough or has been disabled. Post `🟡 stability-review: only N incident-log lines in window — skipping (need ≥10)` to `#triage-bot-health` and exit cleanly. Do not commit a report.
+   - **< 10 lines:** the bot has not been running long enough or has been disabled. DM Ben `🟡 stability-review: only N incident-log lines in window — skipping (need ≥10)` and exit cleanly. Do not commit a report.
    - **10-49 lines:** proceed but include a "Limited data" disclaimer in the Executive Summary. The report exists; trend analysis is unreliable.
    - **≥ 50 lines:** full run.
 4. **Idempotence:** if `stability-reviews/<YYYY-MM>/report.md` already exists, prepare to overwrite. The new report prepends `> _Updated <ISO-8601 ts> — superseding earlier run_` so the latest is canonical.

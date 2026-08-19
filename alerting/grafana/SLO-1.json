@@ -1,0 +1,100 @@
+{
+  "folder": "Triage Bot / SLO",
+  "slo": "SLO-1",
+  "build_status": "buildable-now",
+  "rules": [
+    {
+      "uid": "slo-1-auth-errors",
+      "title": "SLO-1 Sign-in / authentication \u2014 auth errors (P2)",
+      "condition": "COND",
+      "data": [
+        {
+          "refId": "C",
+          "relativeTimeRange": {
+            "from": 1800,
+            "to": 0
+          },
+          "datasourceUid": "Elasticsearch",
+          "model": {
+            "refId": "C",
+            "query": "_index:method-microservices-authentication-* AND level:Error",
+            "alias": "",
+            "metrics": [
+              {
+                "id": "1",
+                "type": "count"
+              }
+            ],
+            "bucketAggs": [
+              {
+                "id": "2",
+                "type": "date_histogram",
+                "field": "@timestamp",
+                "settings": {
+                  "interval": "5m",
+                  "min_doc_count": "0"
+                }
+              }
+            ],
+            "timeField": "@timestamp"
+          }
+        },
+        {
+          "refId": "R",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "R",
+            "type": "reduce",
+            "reducer": "sum",
+            "expression": "C"
+          }
+        },
+        {
+          "refId": "COND",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "COND",
+            "type": "threshold",
+            "expression": "R",
+            "conditions": [
+              {
+                "evaluator": {
+                  "type": "gt",
+                  "params": [
+                    4
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "noDataState": "OK",
+      "execErrState": "Error",
+      "for": "30m",
+      "labels": {
+        "slo": "SLO-1",
+        "severity": "P2",
+        "owner": "Admin",
+        "pager": "triage-bot"
+      },
+      "annotations": {
+        "summary": "SLO-1 Sign-in / authentication: >= 5 auth errors in 30m (ES Elasticsearch, _index-scoped).",
+        "owner_team": "Admin",
+        "slo": "SLO-1",
+        "journey": "Sign-in / authentication",
+        "runbook": "references/architecture/alerting-system-design.md#rb-slo-1"
+      },
+      "ruleGroup": "slo-1-auth-errors",
+      "isPaused": false,
+      "notification_settings": {
+        "receiver": "triage-bot-health",
+        "group_by": [
+          "alertname",
+          "slo"
+        ]
+      },
+      "_group_interval_s": 300
+    }
+  ]
+}

@@ -12,7 +12,7 @@
     "alert-runtime-monitoring": "C063V5HTTFU",
     "swat": "C01L5K42GQ6",
     "team-incident-response": "C0B6233UN4S",
-    "triage-bot-health": "C0B0Q3KHC07"
+    "triage-results": "C0B0Q3KHC07"
   },
   "stability_review": {
     "max_spend_usd": 5

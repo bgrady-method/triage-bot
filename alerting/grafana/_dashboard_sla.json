@@ -1,0 +1,28 @@
+{
+  "target_folder": "sla",
+  "dashboard": {
+    "uid": "triage-bot-sla-readme",
+    "title": "Triage Bot \u2014 SLA (reporting only)",
+    "tags": [
+      "triage-bot-sla"
+    ],
+    "schemaVersion": 39,
+    "version": 0,
+    "panels": [
+      {
+        "id": 1,
+        "type": "text",
+        "gridPos": {
+          "x": 0,
+          "y": 0,
+          "w": 24,
+          "h": 6
+        },
+        "options": {
+          "mode": "markdown",
+          "content": "**SLA folder \u2014 reporting only.** SLAs are contractual and are **never paged**. This folder is for attainment/reporting dashboards (added later); no alert rules live here. See references/architecture/alerting-system-design.md."
+        }
+      }
+    ]
+  }
+}

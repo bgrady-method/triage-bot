@@ -4,7 +4,7 @@ Operational controls for the `stability-review` routine. Mirrors the structure o
 
 ## What it does
 
-Runs monthly (first Tuesday at 09:23 local). Reads the trailing 30 days of triage-bot output, applies postmortem 5-whys analysis to recurring patterns, computes availability / MTTR / error-budget burn against proposed SLO targets, cross-references Jira read-only, and commits a markdown report to `stability-reviews/YYYY-MM/report.md`. Posts a one-liner to `#triage-bot-health` and DMs Ben the Executive Summary.
+Runs monthly (first Tuesday at 09:23 local). Reads the trailing 30 days of triage-bot output, applies postmortem 5-whys analysis to recurring patterns, computes availability / MTTR / error-budget burn against proposed SLO targets, cross-references Jira read-only, and commits a markdown report to `stability-reviews/YYYY-MM/report.md`. DMs Ben a status one-liner and the Executive Summary.
 
 The routine is **read-only** on Jira, monitors, and KB (other than appending one cost-tracking line to `kb/incident-log.jsonl`).
 
@@ -71,9 +71,9 @@ To verify Atlassian access during a manual run, the report's Methodology section
 
 In order:
 
-1. Slack MCP OAuth may have expired between the post-to-channel step and the DM step. Re-authorize the connector.
+1. Slack MCP OAuth may have expired between the status one-liner DM and the Exec Summary DM. Re-authorize the connector.
 2. The DM was posted but Slack collapsed it as a "self-DM with too many recent messages" (rare). Search Slack for `stability-review YYYY-MM`.
-3. The routine posted to a different channel because `kb/config.json.channels."triage-bot-health"` is wrong. Verify the channel ID.
+3. `BEN_USER_ID` failed to resolve (`users.info`/`auth.test`), so the self-DM never opened. Check the routine's Slack OAuth identity.
 
 ## "The report cited a course module path that doesn't exist"
 

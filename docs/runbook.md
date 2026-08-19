@@ -26,14 +26,14 @@ If a single misconfigured monitor is firing dozens of times per hour, the routin
 
 In order:
 
-1. Check `#triage-bot-health` — the heartbeat (every 6h) flags daily-cap hits and a missing-poll-cycle warning if no cron run has fired in 90 minutes.
+1. Check **Ben's DM from the triage-bot** — the heartbeat (every 6h) DMs daily-cap hits and a missing-poll-cycle warning if no cron run has fired in 90 minutes.
 2. Check the routine's run history at https://claude.ai/code/routines — look for failed runs.
 3. Check `kb/incident-log.jsonl` last 50 lines on `main`. Every poll cycle appends one `classification: "poll-cycle"` summary line, even if zero new alerts. If the most recent line is more than ~70 minutes old, the cron isn't firing.
 4. Check that the Slack MCP connection in the routine still has a valid OAuth — connectors sometimes need re-authorization after a long idle period.
 
 Most common causes:
 - `kb/config.json.enabled: false` (kill switch on)
-- Daily run cap hit (`#triage-bot-health` will say so)
+- Daily run cap hit (the heartbeat DM will say so)
 - Slack MCP OAuth expired
 - Channel IDs in `kb/config.json` are wrong (the bot polls but can't find the channels)
 - The alert author user matches `BEN_USER_ID` and is being filtered by step 0b's "skip self" rule (only happens if Ben hand-posted a test message)

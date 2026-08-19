@@ -64,7 +64,7 @@ Cloud cron's hourly minimum is the latency floor — alerts in `#swat` may sit u
 ## Setup
 
 1. **Push this repo** (already done): `https://github.com/bgrady-method/triage-bot`.
-2. **Get channel IDs.** In Slack, right-click each of the four alert channels + `#triage-bot-health`, copy the channel ID, paste into `kb/config.json`.
+2. **Get channel IDs.** In Slack, right-click each of the four alert channels + `#triage-results` (the findings channel; formerly `#triage-bot-health`), copy the channel ID, paste into `kb/config.json`.
 3. **Create the three Anthropic routines** at https://claude.ai/code/routines (or use the local Windows Task Scheduler setup in `scripts/install-tasks.ps1`):
    - `triage` — paste `prompt.md`, configure per `routines/triage.yaml` (cron `0 * * * *`, Slack + GitHub MCPs, the secrets list).
    - `heartbeat` — inline prompt from `routines/heartbeat.yaml`, cron `0 */6 * * *`.

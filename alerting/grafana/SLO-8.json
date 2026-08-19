@@ -1,0 +1,157 @@
+{
+  "folder": "Triage Bot / SLO",
+  "slo": "SLO-8",
+  "build_status": "buildable-now",
+  "rules": [
+    {
+      "uid": "slo-8-subscriber-down",
+      "title": "SLO-8 Subscriber / event-consumer health \u2014 slo-8-subscriber-down (P1)",
+      "condition": "COND",
+      "data": [
+        {
+          "refId": "Q",
+          "relativeTimeRange": {
+            "from": 300,
+            "to": 0
+          },
+          "datasourceUid": "InfluxDB",
+          "model": {
+            "refId": "Q",
+            "query": "SELECT last(\"consumers\") FROM \"rabbitmq_queue\" WHERE \"queue\" =~ /^events\\.subscribers\\.(sync|analytics|audittrail|dataconsumer|tags)$|^method\\.account-user\\.change$/ AND $timeFilter GROUP BY \"queue\"",
+            "rawQuery": true,
+            "resultFormat": "time_series"
+          }
+        },
+        {
+          "refId": "R",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "R",
+            "type": "reduce",
+            "reducer": "last",
+            "expression": "Q"
+          }
+        },
+        {
+          "refId": "COND",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "COND",
+            "type": "threshold",
+            "expression": "R",
+            "conditions": [
+              {
+                "evaluator": {
+                  "type": "lt",
+                  "params": [
+                    1
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "noDataState": "OK",
+      "execErrState": "Error",
+      "for": "5m",
+      "labels": {
+        "slo": "SLO-8",
+        "severity": "P1",
+        "owner": "CRM Experience",
+        "pager": "triage-bot"
+      },
+      "annotations": {
+        "summary": "SLO-8: a live event-consumer queue has 0 consumers \u2014 subscriber down; event processing & cache invalidation halt",
+        "owner_team": "CRM Experience",
+        "slo": "SLO-8",
+        "journey": "Subscriber / event-consumer health",
+        "runbook": "references/architecture/alerting-system-design.md#rb-slo-8"
+      },
+      "ruleGroup": "slo-8-subscriber-down",
+      "isPaused": false,
+      "notification_settings": {
+        "receiver": "triage-bot-health",
+        "group_by": [
+          "alertname",
+          "slo"
+        ]
+      }
+    },
+    {
+      "uid": "slo-8-consumer-lag",
+      "title": "SLO-8 Subscriber / event-consumer health \u2014 slo-8-consumer-lag (P2)",
+      "condition": "COND",
+      "data": [
+        {
+          "refId": "Q",
+          "relativeTimeRange": {
+            "from": 600,
+            "to": 0
+          },
+          "datasourceUid": "InfluxDB",
+          "model": {
+            "refId": "Q",
+            "query": "SELECT last(\"messages_ready\") FROM \"rabbitmq_queue\" WHERE \"queue\" =~ /^events\\.subscribers\\.(sync|analytics|audittrail|dataconsumer|tags)$|^method\\.account-user\\.change$/ AND $timeFilter GROUP BY \"queue\"",
+            "rawQuery": true,
+            "resultFormat": "time_series"
+          }
+        },
+        {
+          "refId": "R",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "R",
+            "type": "reduce",
+            "reducer": "last",
+            "expression": "Q"
+          }
+        },
+        {
+          "refId": "COND",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "COND",
+            "type": "threshold",
+            "expression": "R",
+            "conditions": [
+              {
+                "evaluator": {
+                  "type": "gt",
+                  "params": [
+                    1000
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "noDataState": "OK",
+      "execErrState": "Error",
+      "for": "10m",
+      "labels": {
+        "slo": "SLO-8",
+        "severity": "P2",
+        "owner": "CRM Experience",
+        "pager": "triage-bot"
+      },
+      "annotations": {
+        "summary": "SLO-8: event-consumer queue backlog > 1000 (consumers alive but lagging)",
+        "owner_team": "CRM Experience",
+        "slo": "SLO-8",
+        "journey": "Subscriber / event-consumer health",
+        "runbook": "references/architecture/alerting-system-design.md#rb-slo-8"
+      },
+      "ruleGroup": "slo-8-consumer-lag",
+      "isPaused": false,
+      "notification_settings": {
+        "receiver": "triage-bot-health",
+        "group_by": [
+          "alertname",
+          "slo"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "folder": "Triage Bot / SLO",
+  "slo": "SLO-5",
+  "build_status": "buildable-now",
+  "rules": [
+    {
+      "uid": "slo-5-latency",
+      "title": "SLO-5 Action execution \u2014 latency (P2)",
+      "condition": "COND",
+      "data": [
+        {
+          "refId": "LAT",
+          "relativeTimeRange": {
+            "from": 600,
+            "to": 0
+          },
+          "datasourceUid": "approutine_action_metrics",
+          "model": {
+            "refId": "LAT",
+            "query": "SELECT mean(\"mean\") FROM \"approutine_actions\" WHERE $timeFilter",
+            "rawQuery": true,
+            "resultFormat": "time_series"
+          }
+        },
+        {
+          "refId": "R",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "R",
+            "type": "reduce",
+            "reducer": "last",
+            "expression": "LAT"
+          }
+        },
+        {
+          "refId": "COND",
+          "datasourceUid": "__expr__",
+          "model": {
+            "refId": "COND",
+            "type": "threshold",
+            "expression": "R",
+            "conditions": [
+              {
+                "evaluator": {
+                  "type": "gt",
+                  "params": [
+                    1000
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "noDataState": "OK",
+      "execErrState": "Error",
+      "for": "10m",
+      "labels": {
+        "slo": "SLO-5",
+        "severity": "P2",
+        "owner": "No Code Next Gen",
+        "pager": "triage-bot"
+      },
+      "annotations": {
+        "summary": "SLO-5 Action execution: mean('mean') latency > 1000ms sustained 10m (mean-based \u2014 no stored p95).",
+        "owner_team": "No Code Next Gen",
+        "slo": "SLO-5",
+        "journey": "Action execution",
+        "runbook": "references/architecture/alerting-system-design.md#rb-slo-5"
+      },
+      "ruleGroup": "slo-5-latency",
+      "isPaused": false,
+      "notification_settings": {
+        "receiver": "triage-bot-health",
+        "group_by": [
+          "alertname",
+          "slo"
+        ]
+      }
+    }
+  ]
+}
