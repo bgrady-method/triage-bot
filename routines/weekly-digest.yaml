@@ -1,0 +1,63 @@
+# Routine: weekly-digest  (v0.1)
+#
+# Runs weekly (Monday 09:00 local). Summarises the trailing 7 days of
+# SUPPRESSED triage activity — the known-issue recurrences and low-impact
+# findings the triage routine deliberately did not post — into one scannable
+# post to #triage-results.
+#
+# Why this exists: triage does not post known-issue recurrences (they were
+# ~13/day of things Ben already knew, which trained everyone to ignore the
+# channel). Suppression is only defensible if the suppressed pile stays visible
+# on a human timescale. The monthly stability-review is too slow to be that —
+# a chronic issue could go 4 weeks unmentioned. This digest is the weekly proof
+# that "we stopped posting it" did not become "we stopped noticing it".
+#
+# Division of labour:
+#   weekly-digest    -> what recurred / what's new / what's aging (counts, deltas)
+#   stability-review -> why it keeps happening + what to change (RCA, framing)
+# The digest must NOT publish availability percentages — that needs the
+# industry-framing apparatus, which belongs to the monthly review.
+#
+# This file is the source of truth for the deployed weekly-digest routine.
+# When updating weekly-digest-prompt.md or this YAML: edit here, commit, then
+# sync to https://claude.ai/code/routines — they're not auto-pushed, and the
+# deployed prompt is an INLINE snapshot captured at create time.
+#
+# NOTE (branch drift — repo-wide, not specific to this routine): the sibling
+# YAMLs declare branch `main`, but the live local Task Scheduler routines run
+# and commit on `alerting-system-grafana`. Deploy this via scripts/install-tasks.ps1
+# (local, uses the checked-out branch), not the cloud runner, until that's reconciled.
+#
+# Operational controls:
+#   - Kill switch: kb/config.json.enabled = false (same as all routines).
+#   - Read-only: never classifies, never writes KB, never opens a PR, never
+#     mutates Datadog/ES. Writes only the post, its message-log line, and one
+#     incident-log line for cost tracking.
+
+name: weekly-digest
+description: Weekly summary of suppressed recurrences — counts, deltas, fix_status aging
+
+prompt_file: weekly-digest-prompt.md
+
+trigger:
+  type: cron
+  expression: "0 9 * * 1"      # Mondays 09:00 local
+
+repos:
+  # The bot's own repo — this routine reads its own recorded state and posts a summary.
+  - url: https://github.com/bgrady-method/triage-bot
+    branch: main
+    push_branches: ["main"]    # commits the message-log line + incident-log line
+
+  # No Method service repos: the digest reports what triage already recorded and
+  # does not re-investigate anything, so it needs no per-service CLAUDE.md.
+
+mcp_connectors:
+  - slack       # posting to #triage-results
+
+secrets:
+  - GH_TOKEN
+  - SLACK_BOT_TOKEN            # scripts/slack_send.py write path
+
+settings:
+  timeout_minutes: 10          # reads 7 days of actionable files + KB + incident log

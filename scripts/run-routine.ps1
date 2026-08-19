@@ -1,6 +1,6 @@
 param(
     [Parameter(Mandatory=$true)]
-    [ValidateSet('triage','heartbeat','stability-review','pir-ingest')]
+    [ValidateSet('triage','heartbeat','stability-review','pir-ingest','weekly-digest')]
     [string]$Routine,
 
     [switch]$Force
@@ -51,6 +51,7 @@ $prompts = @{
     'heartbeat' = 'Run the heartbeat routine. Read routines/heartbeat.yaml from this repo for the full inline prompt and execute it end-to-end.'
     'stability-review' = 'Run the stability-review routine. Read routines/stability-review.yaml and stability-review-prompt.md from this repo for the full procedure and execute it end-to-end.'
     'pir-ingest' = 'Run the pir-ingest routine. Read routines/pir-ingest.yaml from this repo for the full inline prompt and execute it end-to-end. Fetch the Method PIR Confluence blog (pageId 133496969) via Atlassian MCP, parse engineer-authored incident blocks, dedupe against kb/known-issues.json, and write any new entries with confidence=0.95.'
+    'weekly-digest' = 'Run the weekly-digest routine. Read routines/weekly-digest.yaml and weekly-digest-prompt.md from this repo for the full procedure and execute it end-to-end. Read-only: summarise the trailing 7 days of SUPPRESSED triage activity (recurrences triage deliberately did not post) from docs/actionable/, kb/known-issues.json and kb/incident-log.jsonl, then post one stability-summary to #triage-results. Never classify an alert, never write to the KB, never open a PR, never mutate Datadog/ES.'
 }
 
 $prompt = $prompts[$Routine]
@@ -62,9 +63,19 @@ $exitCode = 1
 # Stability-review is a once-monthly deep cross-service synthesis over
 # a 30-day data corpus (digest, investigations, KB, message corpus,
 # fresh DD/ES queries, Jira, PIRs) plus 5-whys + architecture-lens +
-# industry-framing + recommendation tracker. Default Haiku is undersized
-# for that workload; pin to Sonnet for the depth without paying Opus.
-# Other routines (triage, heartbeat, pir-ingest) stay on the default.
+# industry-framing + recommendation tracker.
+#
+# NOTE (verified 2026-07-15): this pin is currently a NO-OP. It was added when
+# claude.exe's no-flag default was Haiku; the default now resolves to Sonnet 5,
+# so every routine already gets the model this line asks for. Confirmed from
+# modelUsage in logs/triage-20260715-110704.json — a triage run passing NO
+# --model flag spent $13.90 on claude-sonnet-5 and 15 output tokens on Haiku.
+#
+# Kept deliberately rather than deleted: it pins the floor for this routine, so
+# if the default is ever downgraded (e.g. to cut the hourly triage bill),
+# stability-review keeps the depth it needs instead of silently regressing.
+# Do NOT cite "the model" to explain why stability-review costs more than
+# triage — that difference is now workload, not model.
 $modelArgs = @()
 if ($Routine -eq 'stability-review') {
     $modelArgs = @('--model', 'sonnet')
