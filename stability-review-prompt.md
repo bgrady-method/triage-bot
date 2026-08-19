@@ -441,11 +441,42 @@ Use `references/methodology/postmortem-template.md` as the structure. Sections i
 1. Executive Summary
 2. Methodology
 3. Findings (one per cluster, ordered by ICE descending)
-4. **Industry comparison (required — see "Mandatory framing" below)**
-5. **Recommendation tracker (required if prior-month report exists — see Phase 3c)**
-6. Trend Analysis (skip if no prior report; if prior reports exist, list them and check status of their recommendations)
-7. Open Follow-ups
-8. Appendix: raw queries
+4. **Chronic-issue action items (required — see "Chronic issues" below)**
+5. **Industry comparison (required — see "Mandatory framing" below)**
+6. **Recommendation tracker (required if prior-month report exists — see Phase 3c)**
+7. Trend Analysis (skip if no prior report; if prior reports exist, list them and check status of their recommendations)
+8. Open Follow-ups
+9. Appendix: raw queries
+
+### Chronic issues — action items, not a tally
+
+**Why this section exists.** Triage does not post known-issue recurrences; it bumps the KB entry and files the occurrence. That is deliberate — a recurrence Ben already knows about is not news, and posting it hourly trained everyone to ignore the channel. But suppression is only defensible if *something* drives these to resolution, and that something is this report. **This section is the entire reason the bot is allowed to go quiet about them.**
+
+Producing a table of counts does not satisfy this. A reader must finish it knowing what to *do*.
+
+**Include every `kb/known-issues.json` entry that is either `last_seen`-in-window or above 20 occurrences:**
+
+| KB id | occ | first_seen → age | `fix_status` | owning team | Next step (concrete, assignable) |
+|---|---|---|---|---|---|
+
+- **Owning team is identification only.** Render handles as inert text — never an `@`-mention, never a post to a team channel (Hard rule #13). Source: `references/architecture/ownership.md`.
+- **Next step must be executable without further discovery.** "Investigate the gateway timeouts" fails. "Confirm whether the 2026-06-05 rollback left the Ocelot timeout at the pre-incident value; if so, the residual is config, not code" passes.
+
+**Retire-or-fix ruling (required for noise-tagged entries).** For every entry the bot has itself tagged `monitoring-noise-suspected` or `confirmed-non-prod-noise`, rule explicitly: **retire the monitor, tune its threshold, or fix the underlying issue.** Pick one and say why.
+
+A monitor that reliably fires on non-prod noise is not a known issue — it is a defective monitor, and re-triaging it every hour forever is the most expensive way to ignore it. As of 2026-07-15 the clearest instance is `ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata`: **87 occurrences**, `fix_status: confirmed-non-prod-noise`, and its own `evidence_query` is a bare monitor-id list (`monitors {121308660,133625690,…} overall_state == 'No Data'`) — i.e. the entry cannot distinguish a real failure from the noise it was written to describe. That is a monitor to retire, not an issue to track.
+
+**Note the write-path constraint:** Hard rule #3 forbids this routine from mutating Datadog. So the ruling is a *recommendation for a human*, or a pointer to the user-invoked `datadog-dashboards` / `grafana-alerting` skills. Say which, and name who would run it. Never imply the routine will action it itself.
+
+**Aging pressure on the concentration.** The top entries by occurrence are where the leverage is — as of 2026-07-15, three entries carry ~66% of all 1,452 KB occurrences:
+
+| occ | entry | `fix_status` | the question to force |
+|---|---|---|---|
+| 578 | `ki-2026-05-21-gateway-microservices-timeout` | `chronic-residual-post-rollback-2026-06-05` | 40% of all occurrences, and "chronic residual" has been the status since June. Is this being fixed, accepted, or forgotten? Name which. |
+| 237 | `ki-2026-05-24-runtime-core-rtc-p95-recurring` | `investigating` | `investigating` since May. Who, and what would conclude it? |
+| 142 | `ki-2026-07-03-ms-scheduler-api-getseriesasync` | `proposed` | A fix is *proposed* — what blocks it shipping? |
+
+For any entry whose `fix_status` has not changed in ≥30 days, say so explicitly and treat the staleness itself as the finding. A status that never changes is a decision nobody has made.
 
 ### Mandatory framing (applies to every report this routine writes)
 
@@ -465,6 +496,7 @@ Quality gate before writing:
 - [ ] Every Jira reference uses ticket keys (no free-text "see the deadlock ticket").
 - [ ] No PII in quotes.
 - [ ] **Phase 0a.5 PIR sync ran successfully**; Executive Summary contains a `PIR sync: +N entries` line (even when N=0). If the sync failed, a `🟡 PIR sync failed` warning is documented in the Executive Summary and a DM warning was sent to Ben.
+- [ ] **Chronic-issue action items section present**, with: (a) a row for every KB entry `last_seen`-in-window or >20 occurrences; (b) every row's Next step executable without further discovery — no "investigate X"; (c) an explicit retire-or-fix ruling for **every** `monitoring-noise-suspected` / `confirmed-non-prod-noise` entry, naming who would action it and via which path (Hard rule #3 means this routine never touches Datadog itself); (d) aging pressure on the top-3 concentration; (e) any `fix_status` unchanged ≥30 days flagged as a finding in its own right. Owning teams rendered as inert text only (Hard rule #13).
 - [ ] **Industry-comparison section present** with: (a) tier benchmark table 99.99%/99.95%/99.9%/99.5%, (b) Method-against-tiers row per metric with annualized-if-sustained column, (c) explicit annualization caveat naming P0-count-per-window, (d) concentration-vs-distribution call.
 - [ ] Executive Summary's headline availability numbers have **industry context inline** ("X% — N notches below/at/above the 99.9% peer norm") — never bare percentages.
 - [ ] **Recommendation tracker section present** if a prior-month report exists. Each prior recommendation has a row with Jira key (or `unfiled`), status, and last-updated date. Unfiled-count and chronic-unfiled escalations are surfaced in the Executive Summary.
