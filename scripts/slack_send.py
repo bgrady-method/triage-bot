@@ -53,7 +53,8 @@ def guard_channel(channel_id, id_to_name, forbidden):
     if channel_id in forbidden:
         name = id_to_name.get(channel_id, channel_id)
         sys.stderr.write(f"refusing to post to #{name} ({channel_id}) — incident-response channel is "
-                         f"never written to (gate_reason=swat-bypass). Output goes to Ben's DM.\n")
+                         f"never written to (gate_reason=swat-bypass). Post the finding to "
+                         f"#triage-results instead.\n")
         sys.exit(3)
 
 
@@ -96,7 +97,13 @@ def main():
     pd = sub.add_parser("dm"); pd.add_argument("--user", required=True); pd.add_argument("--text", required=True)
     pp = sub.add_parser("post"); pp.add_argument("--channel", required=True); pp.add_argument("--text", required=True); pp.add_argument("--thread-ts", dest="thread_ts")
     for p in (pd, pp):
-        p.add_argument("--type", default="other", help="message_type for the audit log")
+        # Always pass --type explicitly. "other" is a deliberately inert default:
+        # the daily escalation cap greps this field in docs/messages/<date>/
+        # triage-results.jsonl, so a default that named a real class would let
+        # untyped sends silently count against (or evade) the cap.
+        p.add_argument("--type", default="other",
+                       help="message_type for the audit log. One of: kb-update|known-issue|"
+                            "new-fix|needs-human|health-status|stability-summary|thread-reply|other")
         p.add_argument("--dry-run", action="store_true", help="validate guards + payload; do not send")
     a = ap.parse_args()
 
@@ -113,7 +120,7 @@ def main():
         if a.thread_ts:
             payload["thread_ts"] = a.thread_ts
         api("chat.postMessage", payload, token_or_die())
-        log_jsonl(a.channel, f"#{name}", name, a.type or "thread-reply", a.thread_ts, a.text)
+        log_jsonl(a.channel, f"#{name}", name, a.type, a.thread_ts, a.text)
         print(f"sent: post -> #{name}")
 
     elif a.cmd == "dm":
@@ -123,7 +130,7 @@ def main():
         opened = api("conversations.open", {"users": a.user}, tok)
         dm_id = opened["channel"]["id"]
         api("chat.postMessage", {"channel": dm_id, "text": a.text, "mrkdwn": True}, tok)
-        log_jsonl(dm_id, "self-dm", "self-dm", a.type or "needs-human", None, a.text)
+        log_jsonl(dm_id, "self-dm", "self-dm", a.type, None, a.text)
         print(f"sent: dm -> {a.user}")
 
 
