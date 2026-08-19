@@ -1589,8 +1589,8 @@
     "id": "ki-2026-07-03-eda-consumer-amqp-stopped-publishing",
     "title": "[EDA][Consumer][P3] eda_consumer AMQP publish-hits monitor intermittently goes No Data (team:devops, self-recovering, no correlated pipeline impact)",
     "first_seen": "2026-06-20T10:21:00Z",
-    "last_seen": "2026-08-18T10:55:26Z",
-    "occurrences": 54,
+    "last_seen": "2026-08-19T08:49:26Z",
+    "occurrences": 55,
     "match": {
       "channels": [
         "alert-system",
@@ -1630,7 +1630,7 @@
     "fix_template": null,
     "confidence": 0.8,
     "owning_team": "Integrations",
-    "last_notified_at": "2026-08-18T10:55:26Z",
+    "last_notified_at": "2026-08-19T12:25:00Z",
     "notes": [
       {
         "ts": "2026-06-20T10:13:00Z",
