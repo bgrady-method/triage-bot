@@ -3238,8 +3238,8 @@
     "id": "ki-2026-07-06-runtime-core-redis-cache-timeout-transient-burst",
     "title": "runtime-core-api Runtime.Caching.CacheContext brief Redis command-timeout burst (DD monitor 227940275 'Redis Errors is High') -- self-recovers in ~1min, hits 20+ distinct accounts simultaneously",
     "first_seen": "2026-07-05T16:42:35+00:00",
-    "last_seen": "2026-07-24T16:55:36Z",
-    "occurrences": 21,
+    "last_seen": "2026-08-19T13:30:35+00:00",
+    "occurrences": 22,
     "match": {
       "channels": [
         "alert-system",
@@ -3295,7 +3295,7 @@
     "fix_template": null,
     "confidence": 0.75,
     "owning_team": "Vertical App Experience",
-    "last_notified_at": "2026-07-23T20:12:31Z",
+    "last_notified_at": "2026-08-19T13:30:35+00:00",
     "notes": [
       {
         "ts": "2026-07-06T21:11:27Z",
