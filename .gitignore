@@ -12,9 +12,24 @@ node_modules/
 # Bot-generated transient artifacts. Routine cycle JSON + runs.jsonl live in logs/.
 logs/
 
+# Query scratch dumps that investigation cycles write to the repo root
+# (es_agg_accounts.json, dd_redis_metric.json, ...). These are raw ES/DD
+# responses and routinely contain CUSTOMER ACCOUNT NAMES — es_agg_accounts.json
+# from the 2026-07-15 push-storm investigation holds 516 real account buckets.
+# Nothing tracked lives at the repo root as *.json (verified), so this pattern is
+# safe, and it means a stray `git add -A` can't push tenant data to GitHub.
+# Durable output belongs in docs/investigations/ or kb/, never a root dump.
+/es_*.json
+/dd_*.json
+
 # .claude/ is version-controlled (skills, helper scripts, PIR sync cache) so the
 # routine's config travels with the repo. Only genuinely user-local or
 # runtime-transient bits stay ignored:
 .claude/settings.local.json
 .claude/scheduled_tasks.lock
 .claude/worktrees/
+
+# Session scratch: one-off KB-write scripts and raw ES/DD dumps written during
+# investigation cycles. Transient by construction, and the dumps carry customer
+# account names. Durable output belongs in docs/, kb/ or scripts/.
+.scratch/
