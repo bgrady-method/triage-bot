@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-08-19T15:31:11+00:00",
-    "occurrences": 697,
+    "last_seen": "2026-08-19T18:09:11+00:00",
+    "occurrences": 698,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -711,6 +711,10 @@
       {
         "ts": "2026-08-19T15:31:00Z",
         "note": "2026-08-19 15:31Z triage (degraded cycle, no Slack MCP surfaced this session; DD-scan-diff vs prior cutoff 2026-08-19T13:47:11Z): monitor 77419271 fired 2026-08-19T15:31:11Z, hash 81278de3867c7e9e, occ 696->697. DD method-ui XHR error logs 15:11:11-15:31:11Z: 200-sample-cap saturated, 107 distinct accounts (top englandlogistics 10 ~5.0%, vickyshelpinghands2 10 ~5.0%, airfiltersales/wastecostsolutionsinc/yoderbilt 5 each ~2.5%), dominant path GET /gateway/syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync status_code:0 -- canonical chronic ki-21 shape, diffuse no concentration. ES aggregate (query manually restored with GetSyncWidgetInfoAsync regex clause per the known kb_to_es_query.py drop bug) same window: 507 hits, 100% attributed to service:gateway -- confirms Ocelot ResponderMiddleware mechanism, higher magnitude than prior 13:47Z occurrence's 365 hits, still chronic range. Monitor 115456700 (ki-24) transitioned 24 min later at 15:55:20Z -- proximity noted but co-fire criterion (>=2 alerts each in same 60-min window) not met in degraded mode (1 synthetic alert per monitor per cycle), processed as independent group per precedent (2026-07-13 note). last_notified_at (2026-08-18T19:12:24Z) ~20h19m ago, WITHIN 24h suppression window; occ 697 not %10; fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window, appended to docs/actionable/2026-08-19.md. See docs/investigations/2026-08-19-81278de3867c7e9e.md."
+      },
+      {
+        "ts": "2026-08-19T18:09:11Z",
+        "note": "2026-08-19 18:09Z triage (degraded cycle, no Slack MCP): occ#697->698 via monitor 77419271 last_triggered 18:09:11Z (Warn, live). Synthetic hash eb668c6ed9cd29fc (channel C03TYHGRS23 + DD monitor ts). DD method-ui XHR error logs 17:49:11-18:09:11Z: 200-sample-cap saturated, 97 distinct accounts (top progressivewestman3 17 ~8.5%, homeicenorthamerica2 10, tdienterprises 9, EnglandLogistics 9), 167/200 GetSyncWidgetInfoAsync/syncwidget path -- canonical diffuse chronic shape, NOT the 2026-06-04 100x outage surge. ES aggregate (query manually restored with GetSyncWidgetInfoAsync clause per the known kb_to_es_query.py regex-drop bug) same window: 342 hits, 100% service:gateway -- confirms Ocelot ResponderMiddleware mechanism. Other scan-diff candidate this cycle (299551472 Admin ImportSubscriber) out-of-scope, notify @slack-alert-admin-monitoring. No ki-24 co-fire check run (single in-scope candidate this cycle). last_notified_at (2026-08-18T19:12:24Z) ~22h57m ago, WITHIN 24h suppression window (by ~1h3m); occ 698 not %10; fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window, appended to docs/actionable/2026-08-19.md. See docs/investigations/2026-08-19-eb668c6ed9cd29fc.md."
       }
     ],
     "prior_last_notified_at": "2026-08-17T19:08:51Z"
