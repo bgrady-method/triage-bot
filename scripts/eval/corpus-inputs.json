@@ -1,0 +1,82 @@
+{
+  "_readme": "Alert inputs for investigation replay. Investigate each case from the alert and live read-only datasources only. Do not seek out or read any file containing expected verdicts, prior conclusions, or the original investigation report for these alert hashes.",
+  "rubric": "playbooks/investigation-outcomes.md",
+  "cases": [
+    {
+      "id": "case-01",
+      "alert_hash": "2bc49da0e23cdcf0",
+      "ts": "2026-07-15T13:13:15Z",
+      "channel": "alert-system",
+      "also_fired_in": "alert-no-code-next-gen",
+      "source": "App Update Consumer relay (BSN4EQX43); collateral DD monitors via B011R3D650X",
+      "monitor_id": null,
+      "alert_text": "App Update Consumer - Failed / HTTP request error / Publisher: templatedevv2 / App Name: Sales Orders / App ID: 55b7fa26-9d45-400d-829f-a3610098567c / Job ID: d055f8dd-9bb5-4996-9d71-dd7bae39c557 / Update Type: Push Update / Error: Request failed with Status Code BadRequest and content {\"HttpStatus\":400,\"ErrorMessages\":[\"The field 'Name' already exists. Please change the spelling and try again.\"],\"ErrorCodes\":[50]}",
+      "group_size": "~174 consumer-failure events",
+      "collateral_monitors_firing": [
+        299251779,
+        227940275,
+        115456700
+      ],
+      "kb_snapshot": "pre-0715"
+    },
+    {
+      "id": "case-02",
+      "alert_hash": "678faf4460a4a81a",
+      "ts": "2026-07-06T14:30:24Z",
+      "channel": "alert-runtime-monitoring",
+      "monitor_id": 299251404,
+      "monitor_name": "Service tables-fields has a high error rate on env:prod",
+      "alert_text": "(none -- synthetic, DD-monitor-sourced)",
+      "group_size": 1,
+      "kb_snapshot": "pre-0706"
+    },
+    {
+      "id": "case-03",
+      "alert_hash": "4d6fa5f451cc4760",
+      "ts": "2026-07-15T14:55:29Z",
+      "channel": "alert-system",
+      "monitor_id": 299551589,
+      "monitor_name": "[Admin][PreferencesAPI][P2] P95 latency high (ms-preferences-api)",
+      "alert_text": "[Admin][PreferencesAPI][P2] P95 latency high (ms-preferences-api)",
+      "group_size": 1,
+      "kb_snapshot": "pre-0715"
+    },
+    {
+      "id": "case-04",
+      "alert_hash": "0e879dcf6548f92e",
+      "ts": "2026-07-15T13:46:30Z",
+      "channel": "alert-system",
+      "monitor_id": 121308660,
+      "monitor_name": "[Synthetics] Method UI Grid and Dropdown Performance Test Day run",
+      "alert_text": "[Synthetics] Method UI Grid and Dropdown Performance Test Day run",
+      "group_size": 2,
+      "kb_snapshot": "pre-0715"
+    },
+    {
+      "id": "case-05",
+      "alert_hash": "e1511df33b09734c",
+      "ts": "2026-07-15T14:45:56Z",
+      "channel": "alert-system",
+      "monitor_id": 154230536,
+      "monitor_name": "Service Signup has a high error rate on env:prod",
+      "alert_text": "(synthetic, DD-monitor-sourced)",
+      "group_size": 3,
+      "satellite_monitors": [
+        154229727,
+        154163500
+      ],
+      "kb_snapshot": "pre-0715"
+    },
+    {
+      "id": "case-06",
+      "alert_hash": "9684e42bb3260b6a",
+      "ts": "2026-07-15T14:20:32Z",
+      "channel": "alert-system",
+      "monitor_id": 299551472,
+      "monitor_name": "[Admin][ImportSubscriber][P1] No messages processed in 30m (method-import-subscriber)",
+      "alert_text": "[Admin][ImportSubscriber][P1] No messages processed in 30m (method-import-subscriber)",
+      "group_size": 1,
+      "kb_snapshot": "pre-0715"
+    }
+  ]
+}

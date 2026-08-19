@@ -1,0 +1,248 @@
+{
+  "meta": {
+    "purpose": "Replay corpus for tuning the investigation approach. Each case is a real alert the routine has already processed. Variants receive ONLY the `input` block; `ground_truth` and `baseline` are for the judge and must never be shown to an investigator.",
+    "built": "2026-07-15",
+    "source": "kb/incident-log.jsonl + docs/investigations/",
+    "rubric": "playbooks/investigation-outcomes.md",
+    "retention_note": "Replays hit live Datadog/Elasticsearch. DD/ES retention is roughly 15-30d, so cases older than ~10d may return thinner evidence than the original run saw. Score reasoning and verdict correctness, not byte-identical evidence.",
+    "contamination_control": {
+      "problem": "The routine writes what it learns back into kb/known-issues.json. Replaying against the CURRENT KB would let a variant look up the answer -- e.g. ki-2026-07-15-app-update-push-salesorders-v182-name-collision (case A's root cause) was written ~2h after the alert, and its first_seen is backdated to the incident start, so no timestamp filter excludes it. Case C's entry likewise had its occurrences bumped 18->19 and last_notified_at reset by the very run being replayed.",
+      "fix": "Each case names a `kb_snapshot` -- the KB as of the last commit BEFORE the cycle that processed that alert, materialized from git. Investigators MUST read the KB from the snapshot path, never from the live working tree.",
+      "snapshots": {
+        "pre-0715": {
+          "ref": "ec0459b",
+          "covers": [
+            "A-push-storm",
+            "C-wrong-service-zero-corroboration",
+            "D-confirmed-non-prod-noise",
+            "E-signup-error-rate",
+            "F-import-subscriber-nodata"
+          ],
+          "verified": "0 push-storm entries; case C entry at occurrences=18, last_notified_at=2026-07-13T21:20:00Z"
+        },
+        "pre-0706": {
+          "ref": "bdec040",
+          "covers": [
+            "B-tables-fields-false-match"
+          ],
+          "verified": "0 push-storm entries"
+        }
+      },
+      "residual_bias": "Case B is weakened as an anchor: ki-2026-07-02's evidence_query has since been changed from a bare monitors/<id> clause to an error-rate ratio, so the original 04:28Z trap may no longer reproduce even against the pre-0706 snapshot. B now tests bare-id discipline in general rather than that specific historical failure. Treat a B result as suggestive, not decisive.",
+      "KNOWN_FLAW_answer_key_leak": {
+        "discovered": "2026-07-23, by the tournament's own adversarial-attack agent",
+        "problem": "The kb_snapshot mechanism protected kb/known-issues.json but NOT docs/investigations/<date>-<alert_hash>.md, which are the full prose answer keys. Investigators had Read/Glob/Grep over the live repo and each case's alert_hash was given to them verbatim, so any variant could grep docs/investigations/ for the hash and read the exact root cause, KB false-match analysis, and confidence. The _readme's 'do not read the answer' was an honor-system instruction, not a technical control. This confounds the 2026-07-15 run: `baseline` (defined as 'faithfully reproduce prompt.md', whose step 8 writes to exactly that path) is the variant most naturally oriented toward docs/investigations/, so its win cannot be cleanly attributed to investigation quality.",
+        "required_fix_for_any_rerun": "Run investigators against a filesystem where the answers are absent: either (a) a throwaway worktree/copy with docs/investigations/ and kb/incident-log.jsonl removed for the corpus dates, or (b) agent isolation that denies Read on those paths. Neutralised case ids (case-01..06) already keep the hash out of the LABEL, but the hash is still in the input block by necessity, so path-level denial is the only real control. Also incident-log.jsonl leaks the recorded classification and must be removed/denied the same way.",
+        "does_this_invalidate_the_2026-07-15_result": "It confounds it but does not reverse the practical conclusion. Contamination can only INFLATE the winner, never demote it — so 'no variant cleanly beat baseline' is robust (removing baseline's advantage moves it toward the pack, not below it). The margin was already tiny (16.25 vs 15) and within variance. The decision the tournament existed to inform — 'is there a new investigation approach worth shipping?' — is answered 'no' either way. A clean re-run could only matter if an alternative would beat a DE-contaminated baseline, which nothing in the anchor spread suggests."
+      }
+    },
+    "scoring": {
+      "anchor_cases": "Cases with ground_truth.hard = true have a documented or independently-evidenced correct answer. On these, reaching the correct verdict OUTRANKS any prose-quality score. A variant that writes beautifully and concludes wrongly must lose.",
+      "soft_cases": "ground_truth.hard = false means there is no proven answer; judge on the five outcomes in the rubric only. Do NOT treat `baseline` as truth on these -- it is a comparison point, and on at least one anchor the baseline is demonstrably wrong.",
+      "dimensions": [
+        "root_cause",
+        "resources",
+        "next_steps",
+        "possible_resolutions",
+        "verdict",
+        "honest_unknowns"
+      ],
+      "scale": "0-3 per dimension, plus binary cold_actionable"
+    }
+  },
+  "cases": [
+    {
+      "id": "A-push-storm",
+      "hard_anchor": true,
+      "input": {
+        "alert_hash": "2bc49da0e23cdcf0",
+        "ts": "2026-07-15T13:13:15Z",
+        "channel": "alert-system",
+        "also_fired_in": "alert-no-code-next-gen",
+        "source": "App Update Consumer relay (BSN4EQX43); collateral DD monitors via B011R3D650X",
+        "monitor_id": null,
+        "alert_text": "App Update Consumer - Failed / HTTP request error / Publisher: templatedevv2 / App Name: Sales Orders / App ID: 55b7fa26-9d45-400d-829f-a3610098567c / Job ID: d055f8dd-9bb5-4996-9d71-dd7bae39c557 / Update Type: Push Update / Error: Request failed with Status Code BadRequest and content {\"HttpStatus\":400,\"ErrorMessages\":[\"The field 'Name' already exists. Please change the spelling and try again.\"],\"ErrorCodes\":[50]}",
+        "group_size": "~174 consumer-failure events",
+        "collateral_monitors_firing": [
+          299251779,
+          227940275,
+          115456700
+        ],
+        "kb_snapshot": "pre-0715"
+      },
+      "ground_truth": {
+        "hard": true,
+        "verdict": "needs-human",
+        "must_name_root_cause": "app-update-agent (Runtime.AppUpdate.Agent) -- Sales Orders template app v182 push declares a 'Name' field that already exists on view InvSalesOrderRevertReason, so ms-tables-fields-api rejects it HTTP 400 / ErrorCode 50",
+        "must_not_attribute_to": [
+          "Redis -- the circuit breaker opened 10s AFTER the first bundle failure (13:13:27.74Z vs 13:13:17.21Z); Redis is an effect of the load, not its cause",
+          "runtime-core-api RTC p95 -- monitor 115456700 fired 8 min BEFORE the push began (13:05:25Z) and continued after it ended; independent chronic noise",
+          "tables-fields -- the p95 breach is collateral from 4.5x request volume, not the fault's origin"
+        ],
+        "must_not_match_kb": [
+          "ki-2026-07-06-tables-fields-redis-circuitbreaker-p95-latency (bare match on monitors/299251779; inverted causality)",
+          "ki-2026-07-06-runtime-core-redis-cache-timeout-transient-burst (bare match on monitors/227940275; wrong service -- Redis errors were tables-fields 41, runtime-core-api 0)"
+        ],
+        "may_match_kb_but_separately": "ki-2026-05-24-runtime-core-rtc-p95-recurring -- genuine but independent; log as its own occurrence, not as blast radius",
+        "key_finding_expected": "Bundle application is not atomic: SuccessfulBundle wrote the preference field while UnSuccessfulBundle failed, leaving ~196 accounts with a preference pointing at a table that was never created.",
+        "rationale": "Every claim above is established by timestamp ordering and per-service metric breakout in the original investigation. This is the strongest anchor in the corpus.",
+        "source": "docs/investigations/2026-07-15-2bc49da0e23cdcf0.md"
+      },
+      "baseline": {
+        "classification": "needs-human",
+        "confidence": 0.88,
+        "escalation_score": 9,
+        "doc": "docs/investigations/2026-07-15-2bc49da0e23cdcf0.md",
+        "assessment": "correct -- this is the exemplar in the rubric"
+      }
+    },
+    {
+      "id": "B-tables-fields-false-match",
+      "hard_anchor": true,
+      "input": {
+        "alert_hash": "678faf4460a4a81a",
+        "ts": "2026-07-06T14:30:24Z",
+        "channel": "alert-runtime-monitoring",
+        "monitor_id": 299251404,
+        "monitor_name": "Service tables-fields has a high error rate on env:prod",
+        "alert_text": "(none -- synthetic, DD-monitor-sourced)",
+        "group_size": 1,
+        "kb_snapshot": "pre-0706"
+      },
+      "ground_truth": {
+        "hard": true,
+        "verdict": "needs-human",
+        "must_not_match_kb": [
+          "ki-2026-07-02-tables-fields-fieldtablenameref-null-linked-fields -- matched earlier the same day (04:28Z) on a bare monitors/<id> clause and was wrong; this is a distinct new bug"
+        ],
+        "rationale": "Documented standing lesson: a match_kb hit is not a confirmed recurrence. The 04:28Z cycle false-matched this monitor to ki-2026-07-02; the 15:09Z cycle correctly classified it as a distinct new bug at confidence 0.8 with matched_kb=null.",
+        "source": "memory: feedback_kb_bare_monitor_id_false_match; docs/investigations/2026-07-06-678faf4460a4a81a.md",
+        "retention_risk": "medium -- 9 days old; DD/ES evidence may be thinner than the original run saw"
+      },
+      "baseline": {
+        "classification": "needs-human",
+        "confidence": 0.8,
+        "escalation_score": 4,
+        "gate_reason": "daily-cap",
+        "doc": "docs/investigations/2026-07-06-678faf4460a4a81a.md",
+        "assessment": "correct at 15:09Z (an earlier 04:28Z cycle got it wrong -- that error is what this anchor tests for)"
+      }
+    },
+    {
+      "id": "C-wrong-service-zero-corroboration",
+      "hard_anchor": true,
+      "input": {
+        "alert_hash": "4d6fa5f451cc4760",
+        "ts": "2026-07-15T14:55:29Z",
+        "channel": "alert-system",
+        "monitor_id": 299551589,
+        "monitor_name": "[Admin][PreferencesAPI][P2] P95 latency high (ms-preferences-api)",
+        "alert_text": "[Admin][PreferencesAPI][P2] P95 latency high (ms-preferences-api)",
+        "group_size": 1,
+        "kb_snapshot": "pre-0715"
+      },
+      "ground_truth": {
+        "hard": true,
+        "verdict": "refuse the recurrence match -- insufficient evidence to call this a known-issue-recurrence",
+        "must_not_match_kb": [
+          "ki-2026-07-06-runtime-core-redis-cache-timeout-transient-burst -- THREE independent reasons this match is invalid: (1) wrong service: the KB entry's own evidence_query is scoped `fields.dd_service.keyword:runtime-core-api` while this alert is ms-preferences-api; (2) zero corroboration: the entry's evidence_query returned 0 hits for this occurrence; (3) the entry's own playbook excludes co-firing with tables-fields Redis circuit-breaker, which was active this window."
+        ],
+        "rationale": "This is the live instance of anti-pattern #4 (zero-corroboration recurrence) and anti-pattern #7 (trusting the alerting service). A match with no supporting evidence is a guess with a KB id attached.",
+        "source": "playbooks/investigation-outcomes.md anti-patterns 4 + 7; kb/known-issues.json evidence_query for the entry; docs/investigations/2026-07-15-4d6fa5f451cc4760.md",
+        "note": "The correct handling is NOT necessarily 'needs-human' -- a defensible verdict is 'unverified: monitor fired, mechanism unestablished, no KB match confirmed'. What must NOT happen is bumping the entry to occurrence #19 and posting."
+      },
+      "baseline": {
+        "classification": "known-issue-recurrence",
+        "confidence": 0.7,
+        "matched_kb": "ki-2026-07-06-runtime-core-redis-cache-timeout-transient-burst",
+        "action": "bumped occurrences 18->19, set last_notified_at=2026-07-15T14:55:29Z, POSTED on window-expiry",
+        "doc": "docs/investigations/2026-07-15-4d6fa5f451cc4760.md",
+        "assessment": "WRONG -- baseline is the failure case here. Do not treat baseline as truth on this case."
+      }
+    },
+    {
+      "id": "D-confirmed-non-prod-noise",
+      "hard_anchor": true,
+      "input": {
+        "alert_hash": "0e879dcf6548f92e",
+        "ts": "2026-07-15T13:46:30Z",
+        "channel": "alert-system",
+        "monitor_id": 121308660,
+        "monitor_name": "[Synthetics] Method UI Grid and Dropdown Performance Test Day run",
+        "alert_text": "[Synthetics] Method UI Grid and Dropdown Performance Test Day run",
+        "group_size": 2,
+        "kb_snapshot": "pre-0715"
+      },
+      "ground_truth": {
+        "hard": true,
+        "verdict": "no-action",
+        "match_is_correct": "ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata IS the right entry -- the match itself is not the error",
+        "what_must_happen": "The entry's fix_status is `confirmed-non-prod-noise` at 87 occurrences. The verdict must be no-action, and the finding must not be posted as if it required attention. A good report should also flag that the entry's evidence_query is itself a bare monitor-id list (`monitors {121308660,133625690,...} overall_state == 'No Data'`) -- i.e. the KB entry cannot distinguish a real failure from noise on those monitors.",
+        "rationale": "Tests whether a variant reads fix_status and reaches a no-action verdict, rather than dutifully re-triaging noise the bot has already confirmed is non-prod. 87 occurrences of confirmed noise is the single clearest instance of effort spent on something requiring no action.",
+        "source": "kb/known-issues.json: fix_status=confirmed-non-prod-noise, occurrences=87"
+      },
+      "baseline": {
+        "classification": "known-issue-recurrence",
+        "confidence": 0.9,
+        "gate_reason": "known-issue-window",
+        "doc": "docs/investigations/2026-07-15-0e879dcf6548f92e.md",
+        "assessment": "match correct; suppressed only by the 24h timer rather than by a no-action verdict"
+      }
+    },
+    {
+      "id": "E-signup-error-rate",
+      "hard_anchor": false,
+      "input": {
+        "alert_hash": "e1511df33b09734c",
+        "ts": "2026-07-15T14:45:56Z",
+        "channel": "alert-system",
+        "monitor_id": 154230536,
+        "monitor_name": "Service Signup has a high error rate on env:prod",
+        "alert_text": "(synthetic, DD-monitor-sourced)",
+        "group_size": 3,
+        "satellite_monitors": [
+          154229727,
+          154163500
+        ],
+        "kb_snapshot": "pre-0715"
+      },
+      "ground_truth": {
+        "hard": false,
+        "rationale": "No proven answer. A realistic needs-human case that exercises grouping (3 monitors), novelty detection (no KB match, no prior hash), and impact reasoning against an anonymous pre-signup session (AccountId=0, not enumerable via account_impact.py). Judge on the five outcomes only.",
+        "watch_for": "The baseline scored this 4 (group_size +2, truly_novel +2) with every impact signal at 0 -- including deploy_correlation, which it could not check because methodcrm/* git fetch 403s. A variant that silently scores deploy_correlation as 0 without declaring the gap is less honest than one that names it."
+      },
+      "baseline": {
+        "classification": "needs-human",
+        "confidence": 0.75,
+        "escalation_score": 4,
+        "gate_reason": "scored",
+        "doc": "docs/investigations/2026-07-15-e1511df33b09734c.md"
+      }
+    },
+    {
+      "id": "F-import-subscriber-nodata",
+      "hard_anchor": false,
+      "input": {
+        "alert_hash": "9684e42bb3260b6a",
+        "ts": "2026-07-15T14:20:32Z",
+        "channel": "alert-system",
+        "monitor_id": 299551472,
+        "monitor_name": "[Admin][ImportSubscriber][P1] No messages processed in 30m (method-import-subscriber)",
+        "alert_text": "[Admin][ImportSubscriber][P1] No messages processed in 30m (method-import-subscriber)",
+        "group_size": 1,
+        "kb_snapshot": "pre-0715"
+      },
+      "ground_truth": {
+        "hard": false,
+        "expected_verdict": "false-alarm / no-action",
+        "rationale": "Matches fa-2026-07-06-ms-import-subscriber-nodata-bursty-consumer (53 occurrences) -- a bursty consumer that self-recovers; No Data reflects idle, not failure. Marked soft rather than hard because 'self-recovers' is an inference from repetition rather than a proven mechanism; a variant that questions whether the monitor should exist at all is arguably doing better than one that files it as a known false-alarm.",
+        "source": "kb/false-alarms.json"
+      },
+      "baseline": {
+        "classification": "false-alarm",
+        "confidence": 0.9,
+        "doc": "docs/investigations/2026-07-15-9684e42bb3260b6a.md"
+      }
+    }
+  ]
+}
