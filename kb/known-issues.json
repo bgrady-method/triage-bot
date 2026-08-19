@@ -963,8 +963,8 @@
     "id": "ki-2026-05-28-mobile-asyncstorage-securestore-keychain",
     "title": "Method iOS app (v2.1.537): 'Failed to migrate from AsyncStorage to SecureStore' (ERR_KEY_CHAIN) storm",
     "first_seen": "2026-05-28T00:07:21Z",
-    "last_seen": "2026-08-18T17:28:33Z",
-    "occurrences": 21,
+    "last_seen": "2026-08-19T19:42:33Z",
+    "occurrences": 22,
     "match": {
       "channels": [
         "alert-system",
@@ -1003,9 +1003,9 @@
       ],
       "tightening_note": "2026-06-10: required at least one of AsyncStorage/SecureStore/ERR_KEY_CHAIN in all_of, then require either the canonical 'Failed to migrate' phrase OR ERR_KEY_CHAIN + Method/2.1.x version-pinning OR both AsyncStorage and SecureStore mentioned together. Confidence 0.8 retained — root cause unconfirmed without mobile-team trace."
     },
-    "evidence_source": "datadog_logs",
-    "evidence_query": "service:nonprod/apps (ERR_KEY_CHAIN OR \"Failed to migrate from AsyncStorage to SecureStore\")",
-    "evidence_note": "Client-originated iOS keychain errors RELAYED server-side to DD Logs via mobilenative.method.me POST /apps/v1/logging/mobile, dd_service 'nonprod/apps' — NOT in ES/Kibana and NOT in RUM. Ground the current magnitude with `dd_search.py logs --query <evidence_query>`; cite that count and link the DD log search. If 0 in window, there is no current recurrence — do NOT re-assert the historical 2026-05-28 figures (826 / ~4859 / 5996-day) as if current. Verify the live service name if 0 (the relay host/service may have changed).",
+    "evidence_source": "elasticsearch",
+    "evidence_query": "fields.dd_service.keyword:\"nonprod/apps\" AND message:*ERR_KEY_CHAIN*",
+    "evidence_note": "Client-originated iOS keychain errors RELAYED server-side to ES via mobilenative.method.me POST /apps/v1/logging/mobile, dd_service 'nonprod/apps' -- NOT in RUM. CORRECTED 2026-08-19: evidence_source was documented as datadog_logs but dd_search.py logs against the documented query has returned 0 hits on every occurrence checked since 2026-07-02 (07-02, 07-13, 08-18, 08-19) despite ES holding the data every time -- switched the declared evidence_source/evidence_query to the ES query that has actually been used for verification since 2026-06-24. Ground the current magnitude with the ES aggregate above; cite that count and link Kibana. If 0 in window, there is no current recurrence -- do NOT re-assert historical figures as if current.",
     "diagnosis": "Client-side error from the Method native mobile app (iOS, observed UA Method/2.1.537 CFNetwork/Darwin). The app's one-time AsyncStorage->SecureStore storage migration fails with the iOS keychain error code ERR_KEY_CHAIN, logged server-side via mobilenative.method.me POST /apps/v1/logging/mobile (MethodUI.Controllers.LoggingController relay; dd_service 'nonprod/apps' on PROD-NEW-04/5/6 - ingestion hosts only, not a server fault). Volume on 2026-05-28: ~0 in the 08-11Z window, 826 in 11-13Z, ~4859 in the 13:48-14:08Z window (accelerating ~240/min), 5996 total for the UTC day vs ~3 in the 24h-ago baseline (~80x). Surfaced via Datadog error-tracking new-issue monitor 227951254 (Alert state). Server-side has no fix - the migration/keychain access is client-side in the mobile app.",
     "playbook": "1) Confirm volume + app version in ES: level:(ERROR OR FATAL) AND fields.dd_service:\"nonprod/apps\" AND message:\"Failed to migrate from AsyncStorage\" -- check fields.UserAgent for app version (e.g. Method/2.1.537) and OS (CFNetwork/Darwin = iOS). 2) This is a CLIENT bug: route to the mobile team. Likely cause is a missing/incorrect iOS keychain access group or entitlement, or a SecureStore key collision, introduced by the storage-migration code path in the suspected release (2.1.537). 3) Mitigation options for mobile team: ship a patch that wraps the migration in a try/catch and falls back to AsyncStorage (do not block app start on keychain), or fix the keychain entitlement. 4) Server side: no action beyond monitoring volume; consider whether the /apps/v1/logging/mobile pipeline should down-rank this to WARN to avoid error-tracking noise.",
     "fix_status": "needs-human",
@@ -1013,7 +1013,7 @@
     "fix_template": null,
     "confidence": 0.8,
     "owning_team": "Admin",
-    "last_notified_at": "2026-08-18T17:28:33Z",
+    "last_notified_at": "2026-08-19T19:42:33Z",
     "notes": [
       {
         "ts": "2026-06-24T18:27:25Z",
@@ -1030,6 +1030,10 @@
       {
         "ts": "2026-08-18T17:28:33Z",
         "note": "2026-08-18 17:28Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-08-18T17:08:11Z cutoff): ki-28 occ#21, 36-day quiet gap (last fire 2026-07-13). Surfaced via Watchdog catch-all monitor 236570583 ('New issue to review', fired 17:28:33Z) -- alert body empty, so classification came from an ES sweep. Earlier same-cycle investigation of this monitor (827a4df973cb67b0, 15:48Z) only checked the ki-2026-05-29 sibling candidate and refuted it, missing this signature -- broad level.keyword:Error sweep this occurrence surfaced fields.dd_service.keyword:\"nonprod/apps\" at 2347/2667 hits, of which 2292 (97.7%) matched messageTemplate.keyword:\"Failed to migrate from AsyncStorage to SecureStore: {code:ERR_KEY_CHAIN}\" (canonical ki-28 signature). Single-device storm: 2298/2347 (97.9%) from IP 216.77.93.75, UserAgent Method/2.1.383 CFNetwork/Darwin (iOS), account perfectlypurepools3. account_impact.py returned clusters_unconfigured (SSH/SQL tunnel unavailable this session) -- impact left unresolved, not asserted zero. last_notified_at (2026-07-02T12:43:53Z per entry, actually 2026-07-13T13:08:00Z) is far past 24h suppression -> POSTED to #triage-results, gate_reason=null. Synthetic hash ed18f342cbd2e1cd (channel CPHHABKAA + DD monitor ts). See docs/investigations/2026-08-18-ed18f342cbd2e1cd.md."
+      },
+      {
+        "ts": "2026-08-19T19:42:33Z",
+        "note": "2026-08-19 19:42Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-08-19T18:54:11Z cutoff): ki-28 occ#22, next-day recurrence (last fire 2026-08-18 17:28Z, ~26h14m gap). Surfaced via Watchdog catch-all monitor 236570583 ('New issue to review', fired 19:42:33Z) -- alert body empty; ran the required broad level:(ERROR OR FATAL) sweep first (only 3-4 hits, all an unrelated Rainforest tokenized-payment error -- ruled out), then checked both sibling KB candidates directly per project_monitor_236570583_multi_candidate_check: ki-2026-05-29 GetAccountBySubdomain/JWT-Retrieval-Failed signature = 0 hits (ruled out), ki-2026-05-28 AsyncStorage/SecureStore/ERR_KEY_CHAIN signature = 181 hits in fields.dd_service.keyword:'nonprod/apps' (confirmed). Signature variant this occurrence: messageTemplate 'Failed to get secure item token: {\"code\":\"ERR_KEY_CHAIN\"}' (previously seen: 'Failed to migrate from AsyncStorage to SecureStore: {code:ERR_KEY_CHAIN}') -- same ERR_KEY_CHAIN keychain-access root symptom, matches the KB's all_of regex. Single-device storm: 181/181 (100%) from ClientIpAddress 172.56.91.56, UserAgent Method/2.1.717 CFNetwork/3860.700.1 Darwin/25.6.0 (iOS) -- newer app version than any prior occurrence (2.1.383 on 08-18, 2.1.537 original). 24h-ago baseline same window: 0 hits -- genuine fresh spike, not steady-state. No account name resolvable from this log line (pre-auth client-relay endpoint via LoggingController) -- extrapolation not warranted, device-specific retry-loop per step 4.4 branch 3. last_notified_at (2026-08-18T17:28:33Z) = ~26h14m ago, PAST 24h suppression window -> POSTED to #triage-results, gate_reason=null. Synthetic hash ba54cdf0d406e3f9 (channel CPHHABKAA + DD monitor ts 2026-08-19T19:42:33+00:00). Also corrected the entry's evidence_source/evidence_query field (was datadog_logs, empirically 0 every check since 07-02; now elasticsearch, matching the query every real investigation has actually used since 06-24) -- see evidence_note. See docs/investigations/2026-08-19-ba54cdf0d406e3f9.md."
       }
     ]
   },
