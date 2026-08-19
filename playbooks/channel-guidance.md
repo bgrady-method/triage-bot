@@ -27,6 +27,17 @@ Each alert channel has a different upstream and a different signal-to-noise prof
 
 **Bias:** highest false-alarm rate of the four channels (noisy monitors). Build the KB here aggressively — many entries will be `false-alarm` with `silence_for: "24h"`.
 
+## #alert-no-code-next-gen
+
+**Source:** the No Code Next Gen team's error channel (`C09D5KJRBSS`) — alerts auto-routed to the team that owns the app-builder / designer / action-execution surface. Content overlaps `#alert-runtime-monitoring` (Datadog monitors on `runtime-core-api`, `designer-core-api`, `ms-apps-api`, `ms-tables-fields-api`) but is scoped to NCNG-owned services. Ties to the SLO work in `alerting/datadog/ncng-slo-dashboard.json` (SLO-5 action execution, SLO-6 designer save) and `references/architecture/alerting-system-design.md`.
+
+**Investigation order:** treat like `#alert-runtime-monitoring` — Datadog playbook (`playbooks/dd-investigate.md`) full pass, then APM trace, then ES for exception detail.
+1. `dd-investigate.md` Step 1 (firing monitor → pull its `query`).
+2. Golden signals vs baseline; APM for a representative trace.
+3. ES (`fields.dd_service.keyword:<service>` + `level.keyword:Error`, aggregate by `message.keyword`) for the granular per-field/per-account signal — `ms-tables-fields-api` in particular emits far more to ES/Serilog than to DD APM (see the FieldTableNameRef KB entry).
+
+**Bias:** app-builder metadata / view-save / action-execution errors. Expect heavy overlap with existing runtime KB entries (`ki-2026-07-02-tables-fields-fieldtablenameref-null-linked-fields`, `ki-2026-06-15-runtime-core-updateviews-linkedviatablename-nre`) — **dedup against those before treating a fire as novel.** Owning team is `No Code Next Gen` (`#team-no-code-next-gen`, inert routing text — never @-mention per Hard rule #13).
+
 ## #alert-system
 
 **Source:** mixed. Infrastructure events (RabbitMQ queue depth, Redis health, AWS notifications), some application alerts that don't fit the runtime category.
@@ -69,6 +80,7 @@ Findings post to **`#triage-results`** (gated by the escalation/suppression logi
 |---|---|
 | `alert-frontend-errors` | `#triage-results` |
 | `alert-runtime-monitoring` | `#triage-results` |
+| `alert-no-code-next-gen` | `#triage-results` |
 | `alert-system` | `#triage-results` |
 | `swat` | `#triage-results` (always notifies — `swat-bypass`). **Never post into #swat itself** — no thread replies, no top-level posts. |
 | `team-incident-response` | `#triage-results` (same handling as #swat). **Never post into #team-incident-response itself.** |
