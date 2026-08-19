@@ -2,9 +2,14 @@
 
 Three subcommands mirror the parts of the dd-investigate playbook a routine
 needs:
-  - logs       : POST /api/v2/logs/events/search
-  - monitors   : GET  /api/v1/monitor (with state filters)
-  - metric     : POST /api/v1/query (timeseries query)
+  - logs         : POST /api/v2/logs/events/search
+  - monitors     : GET  /api/v1/monitor (with state filters)
+  - metric       : POST /api/v1/query (timeseries query)
+  - errortracking: POST /api/v2/rum/analytics/aggregate (+ events/search) —
+                   RUM / Error-Tracking events (mobile + browser client-side
+                   errors). This is where iOS/Android crash + error data lives;
+                   it is NOT in Logs or ES. Use it to GROUND mobile findings
+                   (e.g. ERR_KEY_CHAIN counts) with a real, reproducible number.
 
 Auth via env vars:
   DD_API_KEY   — Datadog API key
@@ -122,6 +127,64 @@ def cmd_metric(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_errortracking(args: argparse.Namespace) -> int:
+    """RUM / Error-Tracking: reproducible count + sample of client-side error events.
+
+    Mobile (iOS/Android) and browser errors live in RUM, NOT in Logs or ES.
+    Returns a `count` (from the analytics aggregate) so findings can cite a
+    real number, plus a small `sample` and the raw aggregate response so the
+    number is independently checkable. Build the human link from the RUM /
+    Error-Tracking explorer URL pattern in prompt.md.
+    """
+    base = f"https://api.{_site()}/api/v2/rum"
+    flt = {"query": args.query, "from": args.from_, "to": args.to}
+    result: dict[str, Any] = {"query": args.query, "from": args.from_, "to": args.to}
+
+    # 1) reproducible total count via the analytics aggregate endpoint
+    agg = _request(
+        "POST",
+        f"{base}/analytics/aggregate",
+        {"compute": [{"aggregation": "count", "type": "total"}], "filter": flt},
+    )
+    count = None
+    try:
+        buckets = ((agg or {}).get("data") or {}).get("buckets") or []
+        if buckets:
+            count = next(iter((buckets[0].get("computes") or {}).values()), None)
+    except Exception:
+        count = None
+    result["count"] = count
+    result["raw_aggregate"] = agg  # keep raw so the number is verifiable even if extraction shifts
+
+    # 2) a small sample of the underlying error events
+    if args.limit > 0:
+        srch = _request(
+            "POST",
+            f"{base}/events/search",
+            {"filter": flt, "page": {"limit": args.limit}, "sort": "-timestamp"},
+        )
+        data = (srch or {}).get("data") or []
+        sample = []
+        for ev in data[: args.limit]:
+            a = ev.get("attributes") or {}
+            inner = a.get("attributes") or {}
+            err = inner.get("error") or {}
+            app = inner.get("application") or {}
+            sample.append({
+                "timestamp": a.get("timestamp"),
+                "service": a.get("service") or inner.get("service"),
+                "type": inner.get("type") or a.get("type"),
+                "message": (err.get("message") if isinstance(err, dict) else None) or inner.get("message"),
+                "app_version": app.get("version") if isinstance(app, dict) else None,
+            })
+        result["sample"] = sample
+        result["returned"] = len(data)
+
+    json.dump(result, sys.stdout, indent=2 if args.pretty else None)
+    sys.stdout.write("\n")
+    return 0
+
+
 def main() -> int:
     p = argparse.ArgumentParser(description="Datadog API helper.")
     p.add_argument("--pretty", action="store_true")
@@ -146,6 +209,13 @@ def main() -> int:
     pq.add_argument("--from-unix", required=True, type=int, help="Unix epoch seconds (start).")
     pq.add_argument("--to-unix", required=True, type=int, help="Unix epoch seconds (end).")
     pq.set_defaults(func=cmd_metric)
+
+    pe = sub.add_parser("errortracking", help="RUM / Error-Tracking events (mobile + browser client errors).")
+    pe.add_argument("--query", required=True, help='RUM query, e.g. "@type:error ERR_KEY_CHAIN" or "@error.message:*keychain*".')
+    pe.add_argument("--from", dest="from_", default="now-1h", help="ISO 8601 or epoch ms (relative may be unsupported by RUM).")
+    pe.add_argument("--to", default="now", help="ISO 8601 or epoch ms.")
+    pe.add_argument("--limit", type=int, default=5, help="Sample event count (0 = count only).")
+    pe.set_defaults(func=cmd_errortracking)
 
     args = p.parse_args()
     return args.func(args)

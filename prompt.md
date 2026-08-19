@@ -277,26 +277,45 @@ python scripts/match_kb.py --kb kb/known-issues.json --channel <channel_name> --
 ```
 
 - **False-alarm hit** → `classification = "false-alarm"`. Update entry's `last_seen` + `occurrences`. Action: thread-reply on the **primary** alert with `🤖 known false alarm — <reason>`. Skip to step 7.
-- **Known-issue hit** → `classification = "known-issue-recurrence"`. Update entry's `last_seen` + `occurrences`. **Before jumping to step 7, run ONE ES aggregate query to confirm the recurrence and to source the Kibana URL for the DM:**
+- **Known-issue hit** → `classification = "known-issue-recurrence"`. Update entry's `last_seen` + `occurrences`. **Before step 7 you MUST (a) confirm the recurrence in the datasource that actually holds its evidence, and (b) capture the numbers for the root-cause-analysis block. Two hard requirements for every KIR finding: it carries ≥1 corroboration link you verified non-empty this cycle, and it shows the RCA (query + observed numbers + reasoning). A link that resolves to nothing is worse than no link — never present a verdict without a path a developer can independently run.**
 
-  ```bash
-  ES_QUERY="$(python scripts/kb_to_es_query.py --kb-id <ki-id>)"
-  python scripts/es_search.py aggregate \
-    --query "$ES_QUERY" --from "${alert_start_iso}" --to "${alert_end_iso}" \
-    --field "fields.dd_service.keyword" --top 5
-  ```
+  Read the KB entry's `evidence_source` (`elasticsearch` | `datadog_apm` | `datadog_logs` | `datadog_rum`; default `elasticsearch` if absent) and `evidence_query`, then confirm in that source:
 
-  Capture: total hits in window, top-3 services by hit count. These populate the DM's Evidence section (step 7).
+  - **`datadog_rum`** (pure client-side errors visible only in RUM/Error-Tracking — browser/mobile, not relayed server-side):
+    ```bash
+    python scripts/dd_search.py errortracking --query "<evidence_query>" --from "${alert_start_iso}" --to "${alert_end_iso}"
+    ```
+    Cite the returned `count` (**null/0 → recurrence did NOT reproduce; do not assert one**). Link the RUM/Error-Tracking explorer. Never label it an "ES sweep", never build a Kibana link.
 
-  Build the Kibana URL from `KIBANA_BASE_URL` + the same `$ES_QUERY` + the alert window — every KIR DM gets a working Kibana link, no exceptions.
+  - **`datadog_logs`** (server-side logs, incl. client errors *relayed* through a server endpoint — e.g. the mobile keychain `ki-2026-05-28-mobile-asyncstorage-securestore-keychain`, relayed to `service:nonprod/apps`):
+    ```bash
+    python scripts/dd_search.py logs --query "<evidence_query>" --from "${alert_start_iso}" --to "${alert_end_iso}" --limit 3
+    ```
+    Cite the returned event count (**0 → no recurrence; do not assert one** — do NOT recycle historical KB numbers as if current). Link the DD log search. Only build a Kibana link if ES independently has the data.
 
-  If `scripts/kb_to_es_query.py` is missing or returns an error, fall back to the first non-regex `contains` pattern from the KB entry's `match.any_of` (or, if all clauses are regex, the entry's title-first-clause). Don't skip the ES query — degraded query is fine; missing query is not.
+  - **`datadog_apm`** (latency-only / APM-sourced KBs, e.g. `ki-2026-05-24-runtime-core-rtc-p95-recurring`) — run the metric, do NOT query ES:
+    ```bash
+    python scripts/dd_search.py metric --query "<evidence_query>" \
+      --from-unix <alert_start_unix> --to-unix <alert_end_unix>
+    ```
+    Capture: count of points over `evidence_threshold_s`, peak value + its timestamp, total points. Confirm latency-only with `dd_search.py logs --query 'service:<svc> status:error env:prod'` → expect 0. Corroboration link = **time-anchored** DD APM traces (`https://app.datadoghq.com/apm/traces?query=service%3A<svc>%20%40duration%3A%3E<thr>s&start=<epoch_ms>&end=<epoch_ms>`) and/or the DD metric-explorer link — both resolve to the actual spikes.
 
-  If `es_search.py` itself errors (HTTP 4xx/5xx), still build the Kibana URL (URL construction doesn't depend on a successful query), and write the prescribed `Kibana: ES queries failed (HTTP <code>)` evidence line.
+  - **`elasticsearch`** (error/log-sourced KBs) — run the ES aggregate:
+    ```bash
+    ES_QUERY="$(python scripts/kb_to_es_query.py --kb-id <ki-id>)"
+    python scripts/es_search.py aggregate \
+      --query "$ES_QUERY" --from "${alert_start_iso}" --to "${alert_end_iso}" \
+      --field "fields.dd_service.keyword" --top 5
+    ```
+    Capture total hits + top-3 services. **Attach the Kibana link only if this returned >0 hits.** If it returned 0, the ES query is NOT evidence for this KB — write `Kibana: 0 hits in window (not the evidence datasource for this KB)` and corroborate from the KB's DD/other source instead. If `kb_to_es_query.py` is missing/errors, fall back to the first non-regex `contains` from `match.any_of`. If `es_search.py` errors (HTTP 4xx/5xx), write `Kibana: ES queries failed (HTTP <code>)`.
 
-  Then: post to `#triage-results` the playbook + this-week occurrence count + `fix_jira` link + Evidence section (step 7).
+  **Every KIR finding to `#triage-results` (step 7) includes BOTH:**
+  1. **Root-cause analysis block** — the exact query run, the observed numbers (count / peak / timestamps), the latency-only-or-error confirmation, and the one-line reasoning to the classification.
+  2. **Corroborate-independently block** — ≥1 link whose backing query you ran this cycle and that returned data, pointing at the evidence datasource, plus the runnable command. Never zero working links.
 
-  **Rationale.** KIR alerts still warrant fresh evidence. The diagnosis is in the KB; the current magnitude and concentration are not. One ES query so Ben sees current breadth without leaving the DM. ~5–10 KIR DMs/hour during ki-21 storms = ~5–10 extra ES queries/hour at peak, well within Elastic Cloud quota.
+  Then post the playbook + occurrence count + `fix_jira` link + these two blocks.
+
+  **Rationale.** KIR alerts still warrant fresh, *verifiable* evidence — the diagnosis is in the KB, but the current magnitude and the corroboration path are not. A forced Kibana link on a Datadog-sourced KB reads as evidence and isn't; that's the failure mode this replaces. New KB entries you write should declare `evidence_source`/`evidence_query` so this stays automatic.
 - **No hit** → continue to step 4.
 
 ### 4. Investigation
@@ -374,6 +393,7 @@ Run the deploy check on each. If any has a recent deploy, load its CLAUDE.md.
 Branch on `channel_name` per `playbooks/channel-guidance.md`:
 - `alert-frontend-errors` → ES first (`playbooks/es-investigate.md`), then Datadog RUM. Skip APM.
 - `alert-runtime-monitoring` → Datadog playbook (`playbooks/dd-investigate.md`) full pass.
+- `alert-no-code-next-gen` → same as `alert-runtime-monitoring` (Datadog full pass → APM → ES). NCNG team error channel; dedup hard against the tables-fields / runtime-core view-metadata KB entries before treating a fire as novel.
 - `alert-system` → parallel Datadog + ES; SQL only if alert names a customer/DB.
 - `swat` / `team-incident-response` → Datadog + ES wide window (`now-1h+`); pull recent deploys; read the human coordination thread for rollback/root-cause pointers (step 4.0a). **Findings post to `#triage-results`, same as the other alert channels. NEVER post anything into #swat or #team-incident-response (no thread replies, no top-level posts, no reactions).**
 
@@ -395,6 +415,12 @@ Always include in your investigation:
 - Recent deploys correlated to the start time, if any
 - Whether the group contains signals from multiple channels or bots (may indicate cascading failure)
 
+**Provenance & honesty — applies to EVERY `#triage-results` message (KIR, new-alert, AND proactive-sweep), no exceptions:**
+- **Every message carries a reproducible path:** the exact query you ran, its datasource, a clickable link built from that query, and the source-alert link (the DD monitor / Error-Tracking issue URL that fired). A finding a developer cannot independently re-run is not shippable — provenance is mandatory, not optional.
+- **No ungrounded numbers.** A count, ratio, "Nx baseline", app version, or occurrence figure may appear ONLY if it came from a query you actually ran this cycle and can cite. If you did not run a query that produced the number, do not state the number. Round counts you got from a real query are fine; invented precision is not.
+- **Cite the source that actually holds the data — never mislabel it.** Do not write "ES sweep" for data that is not in ES. Client-side **mobile/browser errors (iOS/Android crashes, RUM, Error-Tracking) are NOT in ES or DD Logs** — they live in RUM. Query them with `dd_search.py errortracking` (returns a reproducible `count` + sample) and link the RUM/Error-Tracking explorer.
+- **Generic / empty-body alerts are not incidents.** If the only signal is a catch-all alert with no body (e.g. monitor `227951254` "New issue to review", which fires on *any* new error-tracking issue), say exactly that and link it. Do NOT manufacture a quantified, root-caused incident around it. If you cannot reproduce the magnitude with any tool, write `<source> alert fired; magnitude per the alert, not independently reproduced` and link the alert — never substitute a fabricated figure.
+
 **Collect provenance URLs as you go** — every tool call should yield a link:
 
 | Source | URL pattern |
@@ -402,6 +428,8 @@ Always include in your investigation:
 | DD monitor | `https://app.datadoghq.com/monitors/<id>` |
 | DD log search | `https://app.datadoghq.com/logs?query=<url-encoded-query>&from_ts=<epoch_ms>&to_ts=<epoch_ms>&live=false` |
 | DD metric | `https://app.datadoghq.com/metric/explorer?live=false&page=0&exp_metric=<metric>&exp_scope=<scope>&exp_agg=avg&start=<epoch_s>&end=<epoch_s>` |
+| DD APM traces | `https://app.datadoghq.com/apm/traces?query=<url-encoded-query>&start=<epoch_ms>&end=<epoch_ms>` (time-anchored; the corroboration link for `datadog_apm` KBs — e.g. `service:runtime-core-api @duration:>3s`) |
+| DD RUM / Error-Tracking | `https://app.datadoghq.com/rum/error-tracking?query=<url-encoded-query>&from_ts=<epoch_ms>&to_ts=<epoch_ms>` (mobile/browser client errors — the source + link for `evidence_source: datadog_rum` KBs; ground the count with `dd_search.py errortracking`) |
 | Kibana | `<KIBANA_BASE_URL>/app/discover#/?_g=(time:(from:'<iso>',to:'<iso>'))&_a=(query:(language:kuery,query:'<url-encoded-query>'))` |
 
 **Kibana URL construction rules** (failures here have caused bad DMs):
@@ -409,9 +437,9 @@ Always include in your investigation:
 2. `$KIBANA_BASE_URL` is different from `$ELK_BASE_URL`. The latter is the ES REST API endpoint that `es_search.py` queries; the former is the Kibana UI host for human-clickable links.
 3. If `$KIBANA_BASE_URL` is not set in the env: write the evidence line as `Kibana: URL unavailable (set KIBANA_BASE_URL in .env)`. **Do NOT write "Kibana: unavailable — VPN down"** or any variant that implies ES/Kibana depends on VPN/SSH — they do not.
 4. If `es_search.py` returned data but the link can't be built, the data is still in the investigation report; surface that fact instead of pretending ES was unreachable.
-5. **Every cycle that reaches DM construction has run at least one ES query** — full investigation (step 4) for new alerts, KIR shortcut (step 3) for known-issue recurrences. There is no "env set but unused" case. If you find yourself wanting to write "not used this cycle" or any variant, you skipped the step-3 KIR ES query — go back and run it. The two prescribed strings in rules 3 and 4 are the **only** acceptable non-URL states for the Kibana evidence line; do not invent a third.
+5. **A Kibana link is evidence only when ES is the evidence datasource AND its query returned >0 hits this cycle.** For `datadog_apm`/`datadog_logs` KBs (and any ES query that returned 0), do NOT emit a Kibana link as evidence — corroborate from the datasource that actually holds the signal (step 3). The acceptable non-URL Kibana states are `URL unavailable (set KIBANA_BASE_URL in .env)`, `ES queries failed (HTTP <code>)`, and `0 hits in window (not the evidence datasource for this KB)`; do not invent a fourth, and do not present an empty search as evidence.
 
-Build `evidence_links = [(label, url), ...]` — these all appear in the final DM. If ES queries actually failed (HTTP 4xx/5xx from `es_search.py`), say so explicitly: `Kibana: ES queries failed (HTTP <code>)`. Don't conflate "URL builder couldn't run" with "ES is down".
+**Hard requirement:** every finding ships with (1) **≥1 corroboration link verified non-empty** — you ran its backing query this cycle and it returned data — and (2) a **root-cause-analysis block** (query + observed numbers + reasoning). A developer must be able to independently re-run our analysis and follow the logic. Build `evidence_links = [(label, url), ...]`; each link is a datasource the bot actually queried this cycle. If ES queries failed (HTTP 4xx/5xx), say so explicitly; don't conflate "URL builder couldn't run" with "ES is down".
 
 Save partial findings to a temp file as you go (`/tmp/findings-${group_hash}.json`); if anything errors, the group's try/catch in step 8 DMs the file to Ben (slack_send.py dm).
 
