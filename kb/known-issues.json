@@ -3878,8 +3878,8 @@
     "id": "ki-2026-07-07-notifications-p95-latency-monitor-noise",
     "title": "[CRM][P2] notifications P95 latency high monitor fires but re-query of the same evaluation window shows the metric never approaches the threshold -- monitor/data artifact, not real latency",
     "first_seen": "2026-07-06T10:01:07Z",
-    "last_seen": "2026-08-16T08:43:07Z",
-    "occurrences": 36,
+    "last_seen": "2026-08-19T08:43:07Z",
+    "occurrences": 37,
     "match": {
       "channels": [
         "alert-system",
@@ -3904,7 +3904,7 @@
     "fix_template": null,
     "confidence": 0.72,
     "owning_team": "CRM Experience",
-    "last_notified_at": "2026-08-16T11:25:00Z",
+    "last_notified_at": "2026-08-19T12:20:00Z",
     "notes": [
       {
         "ts": "2026-07-06T11:40:00Z",
@@ -3997,6 +3997,10 @@
       {
         "ts": "2026-08-10T11:40:00Z",
         "note": "2026-08-10 ~11:40Z triage (degraded cycle, no Slack MCP). DD-scan-diff vs prior cutoff 2026-08-09T21:55:31Z. Monitor 302056327 fired 2026-08-10T08:43:07Z, hash 60096deed3b299ad, occ 31->32, OK by scan time (self-recovered). Re-query p95:trace.aspnet.request{service:notifications,env:prod} at both fine (2s interval, the monitor's own last_10m eval window 08:33:07-08:43:07Z) and coarse (20s interval, wider 65min window) granularity found NO breach at all -- fine-grained peak 0.032s, coarse peak 0.317s, both well under the 1s threshold -- reinforcing the documented monitor-noise diagnosis rather than a rollup-artifact (the real value never approached threshold at any resolution checked). 0 status:error DD logs. last_notified_at (2026-08-08T11:33:00Z) ~1d21h10m ago -- EXCEEDS 24h suppression window -> POST to #triage-results, gate_reason=null (window-expiry). See docs/investigations/2026-08-10-60096deed3b299ad.md."
+      },
+      {
+        "ts": "2026-08-19T12:20:00Z",
+        "note": "2026-08-19 ~12:20Z triage (degraded cycle, no Slack MCP surfaced this session; DD-scan-diff vs prior cutoff 2026-08-19T07:37:08Z): monitor 302056327 recovered Alert->OK at 2026-08-19T08:43:07Z, hash 1e768fa1f908a223, occ 36->37. p95:trace.aspnet.request{service:notifications,env:prod} re-queried at native (30s) interval over the wider surrounding window (07:30:00-09:00:00Z, 180 points, no gaps): max value 0.343s at 08:30:00Z, 0 points at or above the 1s threshold anywhere in the window -- no rollup-artifact single-point spike this time either (cleanest non-reproduction shape, comparable to the 2026-08-10 occurrence). 0 status:error DD logs on service:notifications in-window. last_notified_at (2026-08-16T11:25:00Z) ~72h51m ago -- EXCEEDS 24h suppression window -> POSTED to #triage-results, gate_reason=null (window-expiry). Channel-scope note: this entry declares match.channels=[alert-system, swat] but the monitor consistently notifies @slack-alert-runtime-monitoring in practice (dozens of prior occurrences processed under alert-runtime-monitoring) -- treated as an established legit dual-path per project_kb_channel_scope_staleness_2026_08_13, not corrected."
       }
     ]
   },
