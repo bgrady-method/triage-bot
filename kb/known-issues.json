@@ -723,8 +723,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-08-19T15:55:20+00:00",
-    "occurrences": 265,
+    "last_seen": "2026-08-20T14:07:18Z",
+    "occurrences": 267,
     "match": {
       "channels": [
         "alert-system",
@@ -963,8 +963,8 @@
     "id": "ki-2026-05-28-mobile-asyncstorage-securestore-keychain",
     "title": "Method iOS app (v2.1.537): 'Failed to migrate from AsyncStorage to SecureStore' (ERR_KEY_CHAIN) storm",
     "first_seen": "2026-05-28T00:07:21Z",
-    "last_seen": "2026-08-19T20:48:33+00:00",
-    "occurrences": 23,
+    "last_seen": "2026-08-20T13:45:34Z",
+    "occurrences": 24,
     "match": {
       "channels": [
         "alert-system",
@@ -4558,8 +4558,8 @@
     "id": "ki-2026-08-14-nonprod-apps-redis-crossslot-cacheflush",
     "title": "method-nativemobile-ui relay (service:nonprod/apps) Redis CROSSSLOT error in multi-key Lua cache-flush script (DD monitor 227940275 'Redis Errors is High') -- distinct mechanism from the two runtime-core-api-scoped Redis-timeout entries",
     "first_seen": "2026-07-31T13:07:36Z",
-    "last_seen": "2026-08-14T13:19:35Z",
-    "occurrences": 2,
+    "last_seen": "2026-08-20T13:54:36Z",
+    "occurrences": 3,
     "match": {
       "channels": [
         "alert-system",
@@ -4591,11 +4591,15 @@
     "fix_template": null,
     "confidence": 0.8,
     "owning_team": "Admin",
-    "last_notified_at": null,
+    "last_notified_at": "2026-08-20T13:54:36Z",
     "notes": [
       {
         "ts": "2026-08-14T14:08:05Z",
         "note": "2026-08-14 ~14:08Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-08-14T12:35:11Z cutoff): monitor 227940275 recovered-OK 13:19:35Z, hash 3169429e58035f6a. Both standing candidate KB entries formally refuted for this occurrence: ki-2026-07-06's evidence_query (level.keyword:Error AND fields.dd_service.keyword:runtime-core-api AND messageTemplate.keyword:\"Redis operation timed out after 5 seconds\") = 0 hits over the eval window; ki-2026-07-07's evidence_query (fields.dd_service.keyword:runtime-core-api AND message.keyword:\"Session Token Expiry Failed\") = 0 hits. DD metric sum:trace.redis.command.errors{env:prod} by {service} over 12:35:11-13:24:35Z: exactly 2 points, both service:nonprod/apps (1 at 13:02:30Z, 8 at 13:13:00Z) -- 0 on any other service, same shape as the 2026-07-31 occurrence (hash 43c326afb17cc913) that first identified nonprod/apps as this monitor's other real source. Unlike that first occurrence, this time the ES sample pinned the exact mechanism: 6 hits for 'Error clearing cache items async > Area: Account, Group: , AccountName: ' in the window, all StackExchange.Redis.RedisServerException 'ERR Command del in script attempted to access keys that don't hash to the same slot' at 13:13:00.86-13:13:01.31Z (local -05:00 = 08:13:00.86-08:13:01.31), traced to Method.Phoenix.Common.Caching.RedisCacheExtended.FlushEndpointWithLuaAsync -> RedisCache.FlushAsync. Historical check: this exact message has 469 hits service-wide (all nonprod/apps) over 2026-07-01 to 2026-08-14 -- chronic, high-volume, mostly sub-threshold. Given this is now the 2nd confirmed occurrence of the nonprod/apps shape (1st with the exact CROSSSLOT signature pinned) and evidence is robust (concrete stack trace + reproducible ES query + 6.5-week historical volume), writing this as its own KB entry per the standing 'watch for recurrence, warrants its own entry' note left on the 2026-07-31 investigation report, and to stop match_kb.py's bare-id first-match-wins trap from defaulting future nonprod/apps fires to the wrong runtime-core-api-scoped sibling entries. Scored as needs-human: critical_path_services_match 0 (nonprod/apps not in critical_path_services), active_users_affected 0 (blank AccountName -- no account attribution possible, system/session-level flush), deploy_correlation 0 (methodcrm-org GH_TOKEN 403 gap, method-nativemobile-ui not fetchable), metric_breach_magnitude 0 (re-queried sum landed at 9, just under the monitor's own >10 threshold -- another instance of the documented DD Metrics-API resampling gap, monitor evaluator saw something the re-query didn't fully capture), account_tier 0, group_size 0 (singleton), cross_channel_corroboration 0 (not verifiable, no Slack MCP), novel +2 (no matched_kb, no prior alert_hash in 7d), swat_thread_corroboration 0 (not checkable), matched_kb_inhibition 0 (none), operator_engagement 0 (not checkable), recent_post_same_kb 0 (n/a, first-ever notify on this new entry), monitor_history -1 (monitor_id 227940275: fire_count 8 in last 30d, dm_count 1, dm_rate 0.125 -> bracket 0.1-0.4), recency_decay 0 (1st fire today for this monitor) = total escalation_score 1, below actionable_score_threshold(2) -> logged to docs/actionable/2026-08-14.md as a terse low-impact line, gate_reason=low-impact, no post to #triage-results, no DM (self-DM sent separately as a kb-update confirmation per the false-alarm-style KB-write convention). See docs/investigations/2026-08-14-3169429e58035f6a.md."
+      },
+      {
+        "ts": "2026-08-20T13:54:36Z",
+        "note": "2026-08-20 ~13:54Z triage (degraded cycle, no Slack MCP, DD monitor scan-diff vs 13:04:12Z cutoff): monitor 227940275 recovered-OK 13:54:36Z, hash cc8d68eb69e64a66. Fresh by-service breakdown per standing practice: broad message:*Redis* sweep found 9 hits but ALL on runtime-core-api with a different signature ('Redis operation cancelled', 2 diffuse accounts) that does not match any of the 3 known Redis KB entries and is NOT tagged by the monitor's own metric (trace.redis.command.errors by {service} carried only service:nonprod/apps in this window, 5 points, sum ~7.0) -- confirms this occurrence is this entry's mechanism, not a coincidence. ES evidence_query confirmed 11/11 hits on nonprod/apps, same CROSSSLOT signature and same Lua script hash (474bf3366059b56081122d19eafc6fc1e02aa237) as 2026-08-14. NEW: unlike both prior occurrences (blank AccountName), all 11 hits this time carry a concrete AccountName (mvwd, AccountId 76657) via DELETE /apps/api/cache/account -- first occurrence where the flush is attributable to a specific customer account rather than a system/session-level operation. account_impact.py returned not_found for mvwd (clusters prod3/prod4/prod5 unconfigured this session) -- user-count impact not resolvable, recorded as a coverage gap. last_notified_at was null (first-ever notify on this entry) -> POSTED to #triage-results per gate rule (not a severity judgment call). See docs/investigations/2026-08-20-cc8d68eb69e64a66.md."
       }
     ]
   },
