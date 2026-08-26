@@ -3660,8 +3660,8 @@
     "id": "ki-2026-07-06-tables-fields-redis-circuitbreaker-p95-latency",
     "title": "ms-tables-fields-api p95 request latency spike driven by a transient Redis connectivity blip (circuit breaker OPENED); first confirmed cross-service correlation with runtime-core-api RTC p95 (ki-24)",
     "first_seen": "2026-07-06T13:36:39Z",
-    "last_seen": "2026-08-10T00:42:32Z",
-    "occurrences": 16,
+    "last_seen": "2026-08-23T12:10:39Z",
+    "occurrences": 17,
     "match": {
       "channels": [
         "alert-system",
@@ -3699,7 +3699,7 @@
     "fix_template": null,
     "confidence": 0.8,
     "owning_team": "Admin (ms-tables-fields-api); Vertical App Experience (runtime-core-api, cross-service corroboration)",
-    "last_notified_at": "2026-08-10T11:15:00Z",
+    "last_notified_at": "2026-08-23T12:10:39Z",
     "notes": [
       {
         "ts": "2026-07-06T14:16:00Z",
