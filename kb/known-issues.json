@@ -1049,8 +1049,8 @@
     "id": "ki-2026-05-29-methodsession-getaccountbysubdomain-nre",
     "title": "method-platform-ui apps backend NRE in MethodSessionService.GetAccountBySubdomain() -> 'JWT Retrieval Failed' on subdomain-less synthetic monitor probes (Centreon + Datadog Watchdog noise)",
     "first_seen": "2026-05-29T12:49:31Z",
-    "last_seen": "2026-08-13T02:04:27Z",
-    "occurrences": 33,
+    "last_seen": "2026-08-26T12:59:33Z",
+    "occurrences": 34,
     "match": {
       "channels": [
         "alert-system"
@@ -1083,7 +1083,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.85,
-    "last_notified_at": "2026-08-13T02:04:27Z",
+    "last_notified_at": "2026-08-26T12:59:33Z",
     "notes": [
       {
         "ts": "2026-07-05T20:28:02Z",
