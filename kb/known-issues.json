@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-08-26T19:07:11Z",
-    "occurrences": 715,
+    "last_seen": "2026-08-26T20:08:11Z",
+    "occurrences": 716,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -723,6 +723,10 @@
       {
         "ts": "2026-08-20T22:09:00Z",
         "note": "2026-08-20 22:09Z triage (degraded cycle, no Slack MCP): occ#708 via monitor 77419271 last_triggered 22:05:11Z (Warn at scan time). Synthetic hash 537f1fed648315e0 (channel C03TYHGRS23 + DD monitor ts 22:05:11Z). Ran DD-scan-diff fallback vs prior cutoff 2026-08-20T20:51:11Z -- full 176-monitor scan, this was the only monitor past cutoff. ES aggregate (message:*GetSyncWidgetInfoAsync*, regex clause manually restored per project_kb_to_es_query_drops_regex_clause) 21:45:11-22:05:11Z: 118 hits, 100% service:gateway -- confirms Ocelot ResponderMiddleware mechanism. 24h-ago baseline same window: 130 hits (-9.2%, within noise band, not a regression). Sample record confirmed canonical stack: RequestTimedOutError/TaskCanceledException -> IOException -> SocketException(125), RequestPath /gateway/syncutil/syncwidget/sterlinghardwareltd/GetSyncWidgetInfoAsync. DD method-ui XHR log sample (100): 55 distinct accounts, top AvantSleep 16 (16.0%) -- AvantSleep is a documented chronic repeat-offender (flagged at 9-20% in multiple prior occurrences), diffuse long tail otherwise, not treated as a new concentration signal. No co-fire: ki-24 RTC siblings 115456700/117279738 last fired 14:06-14:07Z (~8h prior), Redis 227940275 last 18:53:35Z (~3h prior), 5XX 70171778 OK since 08-14 -- no shared-upstream backpressure this window. last_notified_at (2026-08-20T08:18:11Z) ~13h47m prior, WITHIN 24h suppression window; occ 708 not %10; fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window, appended to docs/actionable/2026-08-20.md. See docs/investigations/2026-08-20-537f1fed648315e0.md."
+      },
+      {
+        "ts": "2026-08-26T20:10:00Z",
+        "note": "2026-08-26 20:10Z triage (degraded cycle, no Slack MCP): occ#716 via monitor 77419271, this time an ALERT-state transition (not a recovery like the prior 2 occurrences this cycle-session) last_triggered 20:08:11Z. kb_to_es_query.py again dropped the GetSyncWidgetInfoAsync regex clause (recurring, unpatched tool bug) -- manually restored. ES aggregate 19:48:11-20:08:11Z: 327 hits, 100% service:gateway. 24h-ago baseline same window: 315 hits (+3.8%) -- chronic magnitude, not escalating despite the Alert (vs OK-recovery) state this time. No ki-24/Redis co-fire this cycle (full 182-monitor diff vs prior cutoff 19:07:11Z showed only 2 other transitions: 305925415 QA Gatling and 299551472 Admin ImportSubscriber, both out-of-scope notify targets, no RTC/Redis signal). last_notified_at (2026-08-26T14:20:00Z) ~5h48m ago, well within 24h suppression window; occ 716 not a multiple of 10; fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window."
       }
     ],
     "prior_last_notified_at": "2026-08-17T19:08:51Z"
