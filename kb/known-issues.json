@@ -3611,8 +3611,8 @@
     "id": "ki-2026-07-06-tables-fields-alter-column-ddl-syntax-error",
     "title": "ms-tables-fields-api AlterTableToDropColumn raises SqlException 'Incorrect syntax near COLUMN' when deleting a field (distinct from the FieldTableNameRef null-ref KB)",
     "first_seen": "2026-07-06T14:27:40Z",
-    "last_seen": "2026-08-04T20:44:24Z",
-    "occurrences": 3,
+    "last_seen": "2026-08-23T23:11:24Z",
+    "occurrences": 4,
     "match": {
       "channels": [
         "alert-system",
@@ -3640,7 +3640,7 @@
     "owning_team": "Admin",
     "evidence_source": "elasticsearch",
     "evidence_query": "fields.dd_service.keyword:\"tables-fields\" AND level.keyword:\"Error\"",
-    "last_notified_at": "2026-08-04T21:08:00Z",
+    "last_notified_at": "2026-08-23T23:11:24Z",
     "notes": [
       {
         "ts": "2026-07-06T15:09:00Z",
@@ -4191,8 +4191,8 @@
     "id": "ki-2026-07-11-tables-fields-savefieldlegacyextended-nre",
     "title": "tables-fields SaveFieldLegacyExtended NullReferenceException (distinct from ki-2026-07-02 and ki-2026-07-06)",
     "first_seen": "2026-07-11T00:13:24Z",
-    "last_seen": "2026-07-11T00:13:24Z",
-    "occurrences": 1,
+    "last_seen": "2026-08-23T23:11:24Z",
+    "occurrences": 2,
     "match": {
       "channels": [
         "alert-system",
@@ -4213,7 +4213,8 @@
     "fix_status": "needs-human",
     "fix_jira": null,
     "fix_template": null,
-    "confidence": 0.6
+    "confidence": 0.6,
+    "last_notified_at": "2026-08-23T23:11:24Z"
   },
   {
     "id": "ki-2026-07-12-designer-core-api-throughput-anomaly-monitor-noise",
@@ -4424,8 +4425,8 @@
     "id": "ki-2026-07-28-tables-fields-editview-viewgen-failed-after-retry",
     "title": "ms-tables-fields-api EditView view-regeneration fails after retry (System.Exception 'Failed to generate view {X} after retry') -- 4th distinct bug class on monitor 299251404",
     "first_seen": "2026-07-28T17:48:24Z",
-    "last_seen": "2026-08-04T20:44:24Z",
-    "occurrences": 3,
+    "last_seen": "2026-08-23T23:11:24Z",
+    "occurrences": 4,
     "match": {
       "channels": [
         "alert-system",
@@ -4452,7 +4453,7 @@
     "confidence": 0.7,
     "evidence_source": "elasticsearch",
     "evidence_query": "fields.dd_service.keyword:tables-fields AND level.keyword:Error AND message.keyword:\"SaveFieldLegacyExtended Failed\"",
-    "last_notified_at": "2026-08-04T21:08:00Z",
+    "last_notified_at": "2026-08-23T23:11:24Z",
     "notes": [
       {
         "ts": "2026-08-02T17:12:00Z",
