@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-08-28T21:07:11Z",
-    "occurrences": 736,
+    "last_seen": "2026-08-28T21:58:11Z",
+    "occurrences": 737,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -743,6 +743,10 @@
       {
         "ts": "2026-08-28T11:41:11Z",
         "note": "2026-08-28 11:41Z triage (degraded cycle, no Slack MCP): occ#727->728 via monitor 77419271 last_triggered 11:41:11Z (OK now, self-recovered). Synthetic hash 9c5faaaae14e6cc5 (channel C03TYHGRS23 + DD monitor ts 11:41:11Z). ES aggregate (kb_to_es_query.py again dropped the GetSyncWidgetInfoAsync regex clause, standing bug project_kb_to_es_query_drops_regex_clause, manually restored) 11:21:11-11:41:11Z: 63 hits, 100% service:gateway. 24h-ago baseline same window: 57 hits (+10.5%) -- chronic magnitude, not a regression. last_notified_at 2026-08-27T12:24:11Z = ~23h17m ago, WITHIN 24h suppression window (narrow margin, ~43min from expiry) -> SUPPRESS gate_reason=known-issue-window. fix_status chronic-residual-post-rollback-2026-06-05 unchanged. No co-fire with ki-24 this cycle (full 182-monitor scan showed only 1 other in-scope transition, monitor 313094708, unrelated mechanism)."
+      },
+      {
+        "ts": "2026-08-28T21:58:11Z",
+        "note": "2026-08-28 21:58Z triage (degraded cycle, no Slack MCP): occ#736->737 via monitor 77419271 last_triggered 21:58:11Z (OK now, self-recovered). Synthetic hash d515de3cd51085b4 (channel C03TYHGRS23 + DD monitor ts 21:58:11Z). ES aggregate (query manually restored with GetSyncWidgetInfoAsync regex clause per the known kb_to_es_query.py drop bug) 21:58:11-22:11:37Z: 48 hits, 100% service:gateway -- confirms Ocelot ResponderMiddleware mechanism. 24h-ago baseline same window: 71 hits (-32.4%) -- chronic magnitude, not a regression. No ki-24/Redis co-fire this cycle (full 182-monitor scan showed no other alert-system/runtime-monitoring transition near this time; screened out an out-of-scope ImportSubscriber P1 transition on admin-monitoring). last_notified_at (2026-08-28T14:58:11Z) 7h0m ago, WITHIN 24h suppression window; occ 736->737 (not %10); fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window, appended to docs/actionable/2026-08-28.md. See docs/investigations/2026-08-28-d515de3cd51085b4.md."
       }
     ],
     "prior_last_notified_at": "2026-08-17T19:08:51Z"
