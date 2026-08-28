@@ -1073,8 +1073,8 @@
     "id": "ki-2026-05-29-methodsession-getaccountbysubdomain-nre",
     "title": "method-platform-ui apps backend NRE in MethodSessionService.GetAccountBySubdomain() -> 'JWT Retrieval Failed' on subdomain-less synthetic monitor probes (Centreon + Datadog Watchdog noise)",
     "first_seen": "2026-05-29T12:49:31Z",
-    "last_seen": "2026-08-26T12:59:33Z",
-    "occurrences": 34,
+    "last_seen": "2026-08-28T13:06:33Z",
+    "occurrences": 35,
     "match": {
       "channels": [
         "alert-system"
@@ -1107,7 +1107,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.85,
-    "last_notified_at": "2026-08-26T12:59:33Z",
+    "last_notified_at": "2026-08-28T13:06:33Z",
     "notes": [
       {
         "ts": "2026-07-05T20:28:02Z",
@@ -1188,6 +1188,10 @@
       {
         "ts": "2026-08-13T13:15:00Z",
         "note": "2026-08-13 13:15Z triage (degraded cycle, no Slack MCP surfaced this session; DD-scan-diff vs prior cutoff 2026-08-13T11:08:12Z). Monitor 236570583 ('New issue to review' Watchdog) fired again 12:49:33Z, hash 270c8ba7bce3d929 -- 2nd fire today (1st was 06:39:33Z, hash 6f527ac6c5b3d73d, also refuted). Same-window ES corroboration (12:19:33-12:49:33Z): message.keyword:\"JWT Retrieval Failed\" OR messageTemplate.keyword:*GetAccountBySubdomain* = 0 hits. REFUTED -- 6th refutation, no occurrence bump. Broad ES sweep (level.keyword:Error) same window: 161 hits diffuse across 5 services, no standout. Logged as a fresh needs-human finding, score -1 (novel +2, monitor_maturity -2, recency_decay -1 [2nd same-monitor fire today]) -> actionable low-impact, not posted. See docs/investigations/2026-08-13-270c8ba7bce3d929.md."
+      },
+      {
+        "ts": "2026-08-28T13:08:47Z",
+        "note": "2026-08-28 13:08Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch for slack/conversations tools returned none, standing intermittent gap). DD-scan-diff vs prior cutoff 2026-08-28T11:47:08Z. Monitor 236570583 ('New issue to review' Watchdog) fired 13:06:33Z, hash 36cfa49512d27534, occ 34->35. Same-window ES corroboration (12:36:33-13:06:33Z) per this entry's precedence_note (exact message.keyword/messageTemplate.keyword, aggregated by fields.UserAgent.keyword): 28 hits, 100% WindowsPowerShell/5.1.20348.1850 UA -- canonical synthetic-probe NRE signature CONFIRMED this cycle. Sampled 1 raw hit: System.NullReferenceException at Com.Method.ServiceContract.Services.Account.MethodSessionService.GetAccountBySubdomain(), exact canonical stack trace match. Sibling candidate ki-2026-05-28-mobile-asyncstorage-securestore-keychain checked and refuted (3 hits nonprod/apps in-window vs this entry's documented thousands-per-spike magnitude -- consistent with chronic ~3/24h baseline noise, not a recurrence). last_notified_at (2026-08-26T12:59:33Z) ~48h07m ago, PAST 24h suppression window -> POST, gate_reason=null (window-expiry). owning_team Admin (method-platform-ui per ownership.md:379). See docs/investigations/2026-08-28-36cfa49512d27534.md."
       }
     ],
     "prior_last_notified_at": "2026-08-07T13:12:48Z"
