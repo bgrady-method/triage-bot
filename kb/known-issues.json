@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-08-27T22:07:11Z",
-    "occurrences": 727,
+    "last_seen": "2026-08-28T11:41:11Z",
+    "occurrences": 728,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -739,6 +739,10 @@
       {
         "ts": "2026-08-27T19:09:11Z",
         "note": "2026-08-27 19:09Z triage (degraded cycle, no Slack MCP): occ#725 via monitor 77419271 last_triggered 19:06:12Z (Warn at scan time). Cutoff 2026-08-27T18:09:11Z; full 182-monitor scan (no count regression) surfaced 3 transitions, 2 out-of-scope (295928665 @slack-alert-transactions-monitoring Rainforest P95 latency, 299551472 @slack-alert-admin-monitoring ImportSubscriber No-Data -- both confirmed via message-field lookup, and both created months/years before this window so not monitor-creation false positives), 1 in-scope (77419271). Synthetic hash 33c97aa63cd3b7e9 (channel C03TYHGRS23 + DD monitor ts 19:06:12Z). DD method-ui XHR error logs 18:46:12-19:06:12Z: 100-sample, 65 distinct accounts (top timberwolfforest 7, m11stockappsqbdt2 5, crslaboratories 4), 100% status_code:0, dominant path GetSyncWidgetInfoAsync -- canonical diffuse chronic shape, no concentration. ES aggregate (query manually restored with GetSyncWidgetInfoAsync regex clause per the known kb_to_es_query.py drop bug) same window: 472 hits, 100% service:gateway -- confirms Ocelot ResponderMiddleware mechanism. 24h-ago baseline same window: 369 hits (+27.9%) -- elevated but within documented chronic variance band, not treated as a regression. No ki-24 co-fire this cycle (only 1 in-scope transition in the full diff). Operator-engagement check not performed (no Slack read path this session). last_notified_at (2026-08-27T12:24:11Z) ~6h42m ago, WITHIN 24h suppression window; occ 724->725 (not %10); fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window, appended docs/actionable/2026-08-27.md. Ownership: ms-gateway-api -> Admin (references/architecture/ownership.md:426), not tagged (Hard rule #13). See docs/investigations/2026-08-27-33c97aa63cd3b7e9.md."
+      },
+      {
+        "ts": "2026-08-28T11:41:11Z",
+        "note": "2026-08-28 11:41Z triage (degraded cycle, no Slack MCP): occ#727->728 via monitor 77419271 last_triggered 11:41:11Z (OK now, self-recovered). Synthetic hash 9c5faaaae14e6cc5 (channel C03TYHGRS23 + DD monitor ts 11:41:11Z). ES aggregate (kb_to_es_query.py again dropped the GetSyncWidgetInfoAsync regex clause, standing bug project_kb_to_es_query_drops_regex_clause, manually restored) 11:21:11-11:41:11Z: 63 hits, 100% service:gateway. 24h-ago baseline same window: 57 hits (+10.5%) -- chronic magnitude, not a regression. last_notified_at 2026-08-27T12:24:11Z = ~23h17m ago, WITHIN 24h suppression window (narrow margin, ~43min from expiry) -> SUPPRESS gate_reason=known-issue-window. fix_status chronic-residual-post-rollback-2026-06-05 unchanged. No co-fire with ki-24 this cycle (full 182-monitor scan showed only 1 other in-scope transition, monitor 313094708, unrelated mechanism)."
       }
     ],
     "prior_last_notified_at": "2026-08-17T19:08:51Z"
