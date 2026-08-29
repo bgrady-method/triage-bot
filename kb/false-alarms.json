@@ -1373,5 +1373,32 @@
     "last_seen": "2026-08-26T20:29:00Z",
     "occurrences": 5,
     "recommendation": "Raise the monitor warn threshold (e.g. to ~950-1000) or switch to a rate-of-change / deviation-from-trailing-average check instead of an absolute daily-count threshold -- normal volume has organically grown past the original calibration. Flagging for the CRM team, not silencing indefinitely."
+  },
+  {
+    "target": "false-alarms",
+    "id": "fa-2026-08-29-customerdataminer-updatecompanyinsegment-test-tenant-404",
+    "match": {
+      "channels": [
+        "alert-system",
+        "swat",
+        "team-incident-response"
+      ],
+      "any_of": [
+        {
+          "contains": "UpdateCompanyInSegment: Failed to update company in segment"
+        },
+        {
+          "contains": "UpdateCompanyInSegment"
+        },
+        {
+          "regex": "CustomerDataMiner.*UpdateCompanyInSegment"
+        }
+      ]
+    },
+    "reason": "CustomerDataMiner.Service.UpdateCompanyInSegment throws System.Net.WebException 404 daily for a stable set of ~9 obviously-synthetic/QA tenant names (e.g. testtenant2, tenantsub, tetyuri, newtenantnametest1, displayprod, mtbolt6) -- confirmed via exact-phrase ES match (message:\"UpdateCompanyInSegment: Failed to update company in segment\"), 9 hits/24h and consistently ~1x/tenant/day (63 hits/7d) on 2026-08-29. Each tenant is a test/QA account that was never registered in the downstream marketing-segment tool CustomerDataMiner syncs to, so the 404 is expected -- this is a background segment-sync job hitting test fixtures, not a real customer-facing failure. No production/named-customer accounts observed in the affected set across the sampled window.",
+    "silence_for": "24h",
+    "first_seen": "2026-08-29T06:32:34Z",
+    "occurrences": 1,
+    "discovered_via": "monitor 236570583 (Watchdog New issue to review catch-all) broad Error.keyword sweep, per project_monitor_236570583_multi_candidate_check"
   }
 ]
