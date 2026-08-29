@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-08-29T11:50:11Z",
-    "occurrences": 739,
+    "last_seen": "2026-08-29T15:59:11Z",
+    "occurrences": 740,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -157,7 +157,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.88,
-    "last_notified_at": "2026-08-28T14:58:11Z",
+    "last_notified_at": "2026-08-29T15:59:11Z",
     "prior_fix_status": "chronic-residual-post-rollback-2026-06-05",
     "notes": [
       {
@@ -747,9 +747,13 @@
       {
         "ts": "2026-08-28T21:58:11Z",
         "note": "2026-08-28 21:58Z triage (degraded cycle, no Slack MCP): occ#736->737 via monitor 77419271 last_triggered 21:58:11Z (OK now, self-recovered). Synthetic hash d515de3cd51085b4 (channel C03TYHGRS23 + DD monitor ts 21:58:11Z). ES aggregate (query manually restored with GetSyncWidgetInfoAsync regex clause per the known kb_to_es_query.py drop bug) 21:58:11-22:11:37Z: 48 hits, 100% service:gateway -- confirms Ocelot ResponderMiddleware mechanism. 24h-ago baseline same window: 71 hits (-32.4%) -- chronic magnitude, not a regression. No ki-24/Redis co-fire this cycle (full 182-monitor scan showed no other alert-system/runtime-monitoring transition near this time; screened out an out-of-scope ImportSubscriber P1 transition on admin-monitoring). last_notified_at (2026-08-28T14:58:11Z) 7h0m ago, WITHIN 24h suppression window; occ 736->737 (not %10); fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window, appended to docs/actionable/2026-08-28.md. See docs/investigations/2026-08-28-d515de3cd51085b4.md."
+      },
+      {
+        "ts": "2026-08-29T15:59:11Z",
+        "note": "2026-08-29 15:59Z triage (degraded cycle, no Slack MCP): occ#739->740 via monitor 77419271 last_triggered 15:59:11Z (OK now, self-recovered). Synthetic hash 26478309e9a9c40d (channel C03TYHGRS23 + DD monitor ts 15:59:11Z). Co-transitioned monitor 299551472 (ImportSubscriber No Data, admin-monitoring) screened out as out-of-scope, no group formed. ES aggregate (kb_to_es_query.py dropped the GetSyncWidgetInfoAsync regex clause again, standing bug project_kb_to_es_query_drops_regex_clause, manually restored) 14:59:11-15:59:11Z: 57 hits, 100% service:gateway. Sample stack confirms Ocelot.Responder.Middleware.ResponderMiddleware RequestTimedOutError/TaskCanceledException hitting /syncutil/syncwidget/<account>/GetSyncWidgetInfoAsync (e.g. bluewatersolutions, papajifoods3). RequestPath aggregate shows 10+ distinct accounts in this single 1h window (top bucket papajifoods3 23/57). 24h-ago baseline same window: 948 hits (-94.0%) -- much quieter than yesterday, still chronic pattern not a regression. account_impact.py returned not_found for all 10 sampled accounts (clusters_unconfigured: prod3/4/5 this session) -- not a naming issue, a session coverage gap; user_count_source=fallback, active_users_affected signal scored 0. last_notified_at (2026-08-28T14:58:11Z) 25h01m ago, EXCEEDS 24h suppression window -> POST gate_reason=null. fix_status chronic-residual-post-rollback-2026-06-05 unchanged. No ki-24 co-fire this cycle (full 182-monitor scan, only 2 transitions since prior cutoff, other one out-of-scope)."
       }
     ],
-    "prior_last_notified_at": "2026-08-17T19:08:51Z"
+    "prior_last_notified_at": "2026-08-28T14:58:11Z"
   },
   {
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
