@@ -1649,8 +1649,8 @@
     "id": "ki-2026-07-03-eda-consumer-amqp-stopped-publishing",
     "title": "[EDA][Consumer][P3] eda_consumer AMQP publish-hits monitor intermittently goes No Data (team:devops, self-recovering, no correlated pipeline impact)",
     "first_seen": "2026-06-20T10:21:00Z",
-    "last_seen": "2026-08-29T12:55:27Z",
-    "occurrences": 61,
+    "last_seen": "2026-08-29T20:44:26Z",
+    "occurrences": 62,
     "match": {
       "channels": [
         "alert-system",
@@ -1819,6 +1819,10 @@
       {
         "ts": "2026-08-28T10:57:26Z",
         "note": "2026-08-28 11:14Z triage (degraded cycle, DD monitor scan diff, alert-system, hash e16d7005285b71a5): monitor 296641466 fired 10:57:26Z (No Data), OK by scan time. Sibling P1 monitors 296632224/296636101 both OK, last_triggered 2026-07-23T06:20-06:21Z -- quiet >5wk, core EDA pipeline healthy. Sparse AMQP metric (2 datapoints in 50min window, 2.0 at 10:55:20Z), consistent with the documented benign idle-gap shape. last_notified_at (2026-08-27T11:47:00Z) ~23h10m ago, WITHIN 24h suppression window -> SUPPRESS, occ 58->59."
+      },
+      {
+        "ts": "2026-08-29T21:11:47Z",
+        "note": "2026-08-29 ~21:11Z triage (degraded cycle, no Slack MCP surfaced this session; DD monitor scan-diff vs prior cutoff 2026-08-29T19:50:31Z). Monitor 296641466 fired 2026-08-29T20:44:26Z (OK at scan time, self-recovered), hash a45470936d3a2f67, occ 61->62. Sibling P1 monitors 296632224 (Event ingest stopped) and 296636101 (Kafka events stopped) both OK, last_triggered 2026-07-23T06:20-06:21Z (>5 weeks stale) -- core EDA pipeline healthy. sum:trace.amqp.command.hits{service:eda_consumer,env:prod}.as_count() over the exact 30-min eval window (20:14:26-20:44:26Z): 1 nonzero datapoint (2.0 hits at 20:42:50Z, right at window tail), rest empty -- same benign near-zero-traffic shape as the majority of prior occurrences. service:eda_consumer status:error DD Logs = 0 hits same window. last_notified_at (2026-08-29T10:23:26Z) ~10h21m ago, WITHIN 24h suppression window; occ 62 not a 10th-multiple; fix_status unchanged (escalated-for-review) -> SUPPRESSED, gate_reason=known-issue-window, appended to docs/actionable/2026-08-29.md. See docs/investigations/2026-08-29-a45470936d3a2f67.md."
       }
     ]
   },
