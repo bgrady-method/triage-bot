@@ -2385,8 +2385,8 @@
     "id": "ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap",
     "title": "New team:crm AMQP-consumer heartbeat/throughput-stall monitors (5 sibling IDs, created 2026-07-02) intermittently trip on quiet-period low-traffic dips, then self-recover within minutes — no corroborating errors",
     "first_seen": "2026-07-04T13:07:31Z",
-    "last_seen": "2026-08-29T19:50:31Z",
-    "occurrences": 151,
+    "last_seen": "2026-08-29T20:48:31Z",
+    "occurrences": 152,
     "match": {
       "channels": [
         "alert-system",
@@ -2742,6 +2742,10 @@
       {
         "ts": "2026-08-29T11:08:21Z",
         "note": "2026-08-29 triage (degraded cycle, no Slack MCP, catch-up after ~13h overnight scheduler gap; hash ff5e9dd4a021dfba): monitor 302057011 (runtime-core-subscriber throughput) fired 05:12:31Z, occ 147->148. Genuine sub-2msg/s dip confirmed 02:20-02:56Z (~36min), 0 error logs, canonical quiet-period shape -- though the overall_state_modified timestamp (05:12:31Z) lagged the observed dip by ~2h16m and the 15m window ending exactly at that timestamp was itself healthy (avg 14.5msg/s) -- evidence-timing caveat noted, not treated as a real deviation (no sustained low throughput, no errors). No sibling co-fire. last_notified_at (2026-08-27T11:24:22Z) ~41h48m ago, EXCEEDED 24h suppression window -> POST, gate_reason=null. See docs/investigations/2026-08-29-ff5e9dd4a021dfba.md."
+      },
+      {
+        "ts": "2026-08-29T21:14:00Z",
+        "note": "2026-08-29 ~21:14Z triage (degraded cycle, no Slack MCP surfaced this session; DD monitor scan-diff vs prior cutoff 2026-08-29T19:50:31Z): monitor 302057011 (runtime-core-subscriber throughput) still in Alert state, overall_state_modified advanced to 2026-08-29T20:48:31Z (further transition within the same still-open incident first seen 19:50:31Z), hash ce1163a0b183cb8e, occ 151->152. Rolling-15m-avg reconstruction of the monitor query over 19:00-21:12Z: rolling avg first dropped below 2 msg/s at 19:27:00Z and was STILL below threshold at 21:11:30Z (last sample) -- continuous ~1h44m sub-threshold stretch, trough 0.94 msg/s @20:47:00Z. This is the longest continuous dip logged for this entry to date (prior longest comparable: occurrence 136, ~110min). 0 error logs on service:runtime-core-subscriber for the full window. No co-fire across the CRM AMQP-consumer/heartbeat sibling family (302055141/302055017/302055075/302055190 all OK). fix_status unchanged (monitoring-noise-suspected-unconfirmed). last_notified_at (2026-08-29T18:55:31Z) ~1h53m ago, WITHIN 24h suppression window; occ 152 not a 10th-multiple -> SUPPRESSED, gate_reason=known-issue-window, appended to docs/actionable/2026-08-29.md. FLAGGED for escalation if still unrecovered next cycle -- would be 3 consecutive cycles of an ever-lengthening single incident, past the documented flap pattern. See docs/investigations/2026-08-29-ce1163a0b183cb8e.md."
       }
     ]
   },
