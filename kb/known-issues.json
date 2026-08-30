@@ -3967,8 +3967,8 @@
     "id": "ki-2026-07-07-notifications-p95-latency-monitor-noise",
     "title": "[CRM][P2] notifications P95 latency high monitor fires but re-query of the same evaluation window shows the metric never approaches the threshold -- monitor/data artifact, not real latency",
     "first_seen": "2026-07-06T10:01:07Z",
-    "last_seen": "2026-08-29T08:43:07Z",
-    "occurrences": 41,
+    "last_seen": "2026-08-30T08:43:07Z",
+    "occurrences": 42,
     "match": {
       "channels": [
         "alert-system",
