@@ -2389,8 +2389,8 @@
     "id": "ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap",
     "title": "New team:crm AMQP-consumer heartbeat/throughput-stall monitors (5 sibling IDs, created 2026-07-02) intermittently trip on quiet-period low-traffic dips, then self-recover within minutes — no corroborating errors",
     "first_seen": "2026-07-04T13:07:31Z",
-    "last_seen": "2026-08-30T13:54:31Z",
-    "occurrences": 156,
+    "last_seen": "2026-08-30T16:59:31Z",
+    "occurrences": 157,
     "match": {
       "channels": [
         "alert-system",
@@ -2754,6 +2754,10 @@
       {
         "ts": "2026-08-30T14:08:17Z",
         "note": "2026-08-30 14:08Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-08-30T13:00:09Z cutoff): monitor 302057011 (runtime-core-subscriber throughput) fired 13:54:31Z, hash 5466195684ee0f66, occurrences 155->156. DD metric sum:trace.amqp.command.hits{service:runtime-core-subscriber,env:prod}.as_rate() 13:24:31-13:54:31Z: mostly sub-2msg/s (0.1-1.8 typical) with scattered small bursts, then a clearing run of 20-41msg/s from ~13:51:40Z through window end -- canonical quiet-period-flap shape, matching all 155 prior occurrences. 0 status:error DD logs. No sibling monitor in the 5-monitor family co-fired this cycle (full 182-monitor scan). last_notified_at (2026-08-29T18:55:31Z) ~18h59m old, WITHIN 24h suppression window; occurrence 156 not %10; fix_status unchanged -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-08-30-5466195684ee0f66.md."
+      },
+      {
+        "ts": "2026-08-30T17:09:00Z",
+        "note": "2026-08-30 17:09Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-08-30T14:19:11Z cutoff; hash 94269a9ccb29c03d): monitor 302057011 (runtime-core-subscriber throughput) fired 2026-08-30T16:59:31Z, occ 156->157. DD metric sum:trace.amqp.command.hits{service:runtime-core-subscriber,env:prod}.as_rate() over 16:29:31-17:08:33Z: baseline ~20msg/s with periodic bursts (up to 373.9 at 16:31:50Z) through ~16:42:00Z, then a sustained sub-2msg/s trough (mostly 0.1-2.0msg/s) from ~16:42:10Z through window end (17:08:33Z, ~26min unresolved at scan time -- still Alert/not yet self-recovered, well under the playbook's ~1h escalation threshold and nowhere near the 2026-08-29 ~1h44m duration-deviation outlier) -- canonical quiet-period-flap shape, matching all 156 prior occurrences. 0 service:runtime-core-subscriber status:error DD logs for the window. No sibling monitor in the 5-monitor family co-fired this cycle (full 182-monitor scan vs cutoff: only this monitor plus 2 out-of-scope Admin-routed monitors, 299551472 and 299603204, transitioned). last_notified_at (2026-08-29T18:55:31Z) ~22h13m old, WITHIN 24h suppression window; occurrence 157 not %10; fix_status unchanged -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-08-30-94269a9ccb29c03d.md."
       }
     ]
   },
