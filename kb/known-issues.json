@@ -3725,7 +3725,8 @@
     "match": {
       "channels": [
         "alert-system",
-        "alert-runtime-monitoring"
+        "alert-runtime-monitoring",
+        "alert-no-code-next-gen"
       ],
       "any_of": [
         {
