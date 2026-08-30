@@ -2389,8 +2389,8 @@
     "id": "ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap",
     "title": "New team:crm AMQP-consumer heartbeat/throughput-stall monitors (5 sibling IDs, created 2026-07-02) intermittently trip on quiet-period low-traffic dips, then self-recover within minutes — no corroborating errors",
     "first_seen": "2026-07-04T13:07:31Z",
-    "last_seen": "2026-08-30T10:12:31Z",
-    "occurrences": 155,
+    "last_seen": "2026-08-30T13:54:31Z",
+    "occurrences": 156,
     "match": {
       "channels": [
         "alert-system",
@@ -2750,6 +2750,10 @@
       {
         "ts": "2026-08-29T21:14:00Z",
         "note": "2026-08-29 ~21:14Z triage (degraded cycle, no Slack MCP surfaced this session; DD monitor scan-diff vs prior cutoff 2026-08-29T19:50:31Z): monitor 302057011 (runtime-core-subscriber throughput) still in Alert state, overall_state_modified advanced to 2026-08-29T20:48:31Z (further transition within the same still-open incident first seen 19:50:31Z), hash ce1163a0b183cb8e, occ 151->152. Rolling-15m-avg reconstruction of the monitor query over 19:00-21:12Z: rolling avg first dropped below 2 msg/s at 19:27:00Z and was STILL below threshold at 21:11:30Z (last sample) -- continuous ~1h44m sub-threshold stretch, trough 0.94 msg/s @20:47:00Z. This is the longest continuous dip logged for this entry to date (prior longest comparable: occurrence 136, ~110min). 0 error logs on service:runtime-core-subscriber for the full window. No co-fire across the CRM AMQP-consumer/heartbeat sibling family (302055141/302055017/302055075/302055190 all OK). fix_status unchanged (monitoring-noise-suspected-unconfirmed). last_notified_at (2026-08-29T18:55:31Z) ~1h53m ago, WITHIN 24h suppression window; occ 152 not a 10th-multiple -> SUPPRESSED, gate_reason=known-issue-window, appended to docs/actionable/2026-08-29.md. FLAGGED for escalation if still unrecovered next cycle -- would be 3 consecutive cycles of an ever-lengthening single incident, past the documented flap pattern. See docs/investigations/2026-08-29-ce1163a0b183cb8e.md."
+      },
+      {
+        "ts": "2026-08-30T14:08:17Z",
+        "note": "2026-08-30 14:08Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-08-30T13:00:09Z cutoff): monitor 302057011 (runtime-core-subscriber throughput) fired 13:54:31Z, hash 5466195684ee0f66, occurrences 155->156. DD metric sum:trace.amqp.command.hits{service:runtime-core-subscriber,env:prod}.as_rate() 13:24:31-13:54:31Z: mostly sub-2msg/s (0.1-1.8 typical) with scattered small bursts, then a clearing run of 20-41msg/s from ~13:51:40Z through window end -- canonical quiet-period-flap shape, matching all 155 prior occurrences. 0 status:error DD logs. No sibling monitor in the 5-monitor family co-fired this cycle (full 182-monitor scan). last_notified_at (2026-08-29T18:55:31Z) ~18h59m old, WITHIN 24h suppression window; occurrence 156 not %10; fix_status unchanged -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-08-30-5466195684ee0f66.md."
       }
     ]
   },
