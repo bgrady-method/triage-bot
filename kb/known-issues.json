@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-08-31T14:54:12Z",
-    "occurrences": 749,
+    "last_seen": "2026-08-31T16:10:11Z",
+    "occurrences": 750,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -157,7 +157,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.88,
-    "last_notified_at": "2026-08-30T20:59:11Z",
+    "last_notified_at": "2026-08-31T16:20:00Z",
     "prior_fix_status": "chronic-residual-post-rollback-2026-06-05",
     "notes": [
       {
@@ -767,6 +767,10 @@
       {
         "ts": "2026-08-31T15:22:00Z",
         "note": "2026-08-31 15:22Z triage (degraded cycle, no Slack MCP -- DD monitor scan diff): occ#749 via monitor 77419271 last_triggered 14:54:12Z (OK now, self-recovered). Synthetic hash 720ce1695126818d (channel C03TYHGRS23 + monitor ts 14:54:12Z). kb_to_es_query.py dropped the regex clause again (known gap, project_kb_to_es_query_drops_regex_clause) -- manually restored GetSyncWidgetInfoAsync. RCA: ES aggregate 14:34:12-14:54:12Z (20min window) = 556 hits, 100% service:gateway, vs 6 hits same window 24h ago -- ~92.7x same-window spike. Sample record read in full: RequestTimedOutError -> TaskCanceledException -> IOException -> SocketException(125), canonical Ocelot ResponderMiddleware mechanism. DD method-ui XHR error logs (limit 100, sample not exhaustive) 14:34-14:54Z: diffuse account fan-out, top account access2mobilityinc 5% -- canonical chronic shape, no concentration. This is the 5th consecutive cycle showing elevated magnitude today (32-48x -> ~33x -> ~95-112x -> ~92.7x this cycle) -- sustained, not a one-off, consistent with the trend already flagged to Ben in prior cycles notes. No ki-24 co-fire in the joint-treatment sense: ki-24 (monitor 115456700) fired 7 min earlier (14:47:21Z) but each is a singleton alert -- precedence_note co-fire criterion (>=2 alerts each) not met, proximity noted only. last_notified_at (2026-08-30T20:59:11Z) ~18h12m before this fire (eval time 2026-08-31T15:11:34Z) -- WITHIN 24h suppression window; occ 748->749 (not %10); fix_status (chronic-residual-post-rollback-2026-06-05) unchanged -> SUPPRESS, gate_reason=known-issue-window, appended to docs/actionable/2026-08-31.md with the sustained multi-cycle elevated-magnitude trend called out explicitly. See docs/investigations/2026-08-31-720ce1695126818d.md."
+      },
+      {
+        "ts": "2026-08-31T16:20:00Z",
+        "note": "2026-08-31 16:20Z triage (degraded cycle, no Slack MCP): occ#750 via monitor 77419271 last_triggered 16:10:11Z (OK, self-recovered by scan time). Synthetic hash 55088fbbeae8e15f (channel C03TYHGRS23 + DD monitor ts 16:10:11Z). Full 182-monitor scan diffed vs prior cutoff 2026-08-31T14:54:12Z -> 2 candidates; 1 out-of-scope (299544656 4xx spike gateway, routes to @slack-alert-admin-monitoring), 1 in-scope (this one). ES aggregate (query manually restored with GetSyncWidgetInfoAsync regex clause per the known kb_to_es_query.py drop bug) 15:50:11-16:10:11Z: 801 hits, 100% service:gateway, vs 7 hits same window 24h ago (~114.4x). Confirmed at 1h width too (2398 vs 21, ~114.2x) -- not a rollup artifact. Sample records read in full: canonical RequestTimedOutError -> TaskCanceledException -> HttpIOException/SocketException(125) -> Ocelot.Responder.Middleware.ResponderMiddleware mechanism, RequestPath /syncutil/syncwidget/{account}/GetSyncWidgetInfoAsync. DD XHR log sample (100 records) diffuse, top account stlouismo2 9% -- no concentration, canonical chronic shape. This is the 6th CONSECUTIVE cycle today with elevated magnitude (32-48x -> ~33x -> ~95-112x -> ~92.7x -> ~114.4x this cycle) -- accelerating, not subsiding. No ki-24 co-fire this cycle (only 1 in-scope candidate). Deploy correlation on ms-gateway-api blocked (gh api 404, standing methodcrm-org token gap). last_notified_at (2026-08-30T20:59:11Z) ~19h11m before this fire -- WITHIN 24h suppression window, BUT occ 749->750 hits %10==0 -> RESURFACE, gate_reason=known-issue-occurrence-resurface, POSTED to #triage-results. fix_status unchanged (chronic-residual-post-rollback-2026-06-05). See docs/investigations/2026-08-31-55088fbbeae8e15f.md."
       }
     ],
     "prior_last_notified_at": "2026-08-28T14:58:11Z"
