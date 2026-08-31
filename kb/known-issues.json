@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-08-31T04:49:11Z",
-    "occurrences": 745,
+    "last_seen": "2026-08-31T12:07:11Z",
+    "occurrences": 746,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -759,6 +759,10 @@
       {
         "ts": "2026-08-31T11:16:40Z",
         "note": "2026-08-31 ~11:16Z triage (degraded cycle, no Slack MCP). DD-scan-diff vs prior cutoff 2026-08-30T21:36:31Z. Monitor 77419271 fired 2026-08-31T04:49:11Z (recovered by scan time), hash 07eb2a0573bfe45e, occ 744->745. last_notified_at (2026-08-30T20:59:11Z) ~7h50m before this fire -- within 24h suppression window, occ not %10 -- SUPPRESS, gate_reason=known-issue-window. Attempted independent corroboration this occurrence (errortracking service:method-ui/method-platform-ui @type:error, DD logs service:ms-gateway-api RequestTimedOutError) both returned 0 in a narrow +/-10min window around the fire -- not pursued further given certain suppression and this entry's extreme chronicity (745 occurrences, chronic-residual-post-rollback, no fix_status change). Disclosed rather than fabricated a hit; evidence_source remains unset (default elasticsearch) on this entry, worth setting explicitly to datadog_rum given the diagnosis is RUM/XHR-sourced."
+      },
+      {
+        "ts": "2026-08-31T12:14:00Z",
+        "note": "2026-08-31 ~12:14Z triage (degraded cycle, no Slack MCP surfaced this session; DD-scan-diff vs prior cutoff 2026-08-31T11:01:26Z). Monitor 77419271 fired, overall_state_modified 2026-08-31T12:07:11Z, hash 6e4c7bbd760272b8, Warn state at scan time. kb_to_es_query.py dropped the GetSyncWidgetInfoAsync regex clause again (known bug) -- manually restored it. ES aggregate for GetSyncWidgetInfoAsync: 20min window (11:47:11-12:07:11Z) 97 hits vs 2 hits same window 24h-ago (48x); 1h window (11:07:11-12:07:11Z) 163 vs 5 (32x); 4h window 260 hits, directionally consistent -- NOT a narrow-window sampling artifact, confirmed across three window sizes. 100% service:gateway / SourceContext Ocelot.Responder.Middleware.ResponderMiddleware, sample record shows the same RequestTimedOutError/TaskCanceledException/SocketException(125) stack as this entry documented diagnosis -- mechanism unchanged. Spread across 10+ distinct accounts by RequestPath (top pettravelsolution 34/163=21%, then crslaboratories 17, 8 more accounts at 4-9 each) -- no single-account concentration, infrastructure-shaped not account-specific. No co-firing of ki-24 (RTC p95) or Redis monitors this cycle -- precedence_note shared-upstream check not triggered. Deploy-correlation check blocked: ms-account-api/ms-preferences-api/ms-gateway-api all under methodcrm org, GH_TOKEN 403s on fetch (standing gap), and local clones are months stale (May/April/June) -- disclosed, not treated as no-deploy. Magnitude (32-48x) is well above this entry own typical chronic delta (usually ~10-20%) -- flagged explicitly per this entry own 2026-06-04 lesson (check ms-account/ms-preferences deploys when this shape fires >10x), even though the deploy check itself was blocked. occ 745->746, last_seen updated; last_notified_at (2026-08-30T20:59:11Z) ~15h15m old, WITHIN 24h suppression window, occ 746 not %10, fix_status unchanged -> SUPPRESS gate_reason=known-issue-window, appended to docs/actionable/2026-08-31.md with the magnitude anomaly called out, also flagged in the kb-update self-DM to Ben. See docs/investigations/2026-08-31-6e4c7bbd760272b8.md."
       }
     ],
     "prior_last_notified_at": "2026-08-28T14:58:11Z"
