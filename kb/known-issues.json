@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-08-31T13:52:11Z",
-    "occurrences": 748,
+    "last_seen": "2026-08-31T14:54:12Z",
+    "occurrences": 749,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -763,6 +763,10 @@
       {
         "ts": "2026-08-31T12:14:00Z",
         "note": "2026-08-31 ~12:14Z triage (degraded cycle, no Slack MCP surfaced this session; DD-scan-diff vs prior cutoff 2026-08-31T11:01:26Z). Monitor 77419271 fired, overall_state_modified 2026-08-31T12:07:11Z, hash 6e4c7bbd760272b8, Warn state at scan time. kb_to_es_query.py dropped the GetSyncWidgetInfoAsync regex clause again (known bug) -- manually restored it. ES aggregate for GetSyncWidgetInfoAsync: 20min window (11:47:11-12:07:11Z) 97 hits vs 2 hits same window 24h-ago (48x); 1h window (11:07:11-12:07:11Z) 163 vs 5 (32x); 4h window 260 hits, directionally consistent -- NOT a narrow-window sampling artifact, confirmed across three window sizes. 100% service:gateway / SourceContext Ocelot.Responder.Middleware.ResponderMiddleware, sample record shows the same RequestTimedOutError/TaskCanceledException/SocketException(125) stack as this entry documented diagnosis -- mechanism unchanged. Spread across 10+ distinct accounts by RequestPath (top pettravelsolution 34/163=21%, then crslaboratories 17, 8 more accounts at 4-9 each) -- no single-account concentration, infrastructure-shaped not account-specific. No co-firing of ki-24 (RTC p95) or Redis monitors this cycle -- precedence_note shared-upstream check not triggered. Deploy-correlation check blocked: ms-account-api/ms-preferences-api/ms-gateway-api all under methodcrm org, GH_TOKEN 403s on fetch (standing gap), and local clones are months stale (May/April/June) -- disclosed, not treated as no-deploy. Magnitude (32-48x) is well above this entry own typical chronic delta (usually ~10-20%) -- flagged explicitly per this entry own 2026-06-04 lesson (check ms-account/ms-preferences deploys when this shape fires >10x), even though the deploy check itself was blocked. occ 745->746, last_seen updated; last_notified_at (2026-08-30T20:59:11Z) ~15h15m old, WITHIN 24h suppression window, occ 746 not %10, fix_status unchanged -> SUPPRESS gate_reason=known-issue-window, appended to docs/actionable/2026-08-31.md with the magnitude anomaly called out, also flagged in the kb-update self-DM to Ben. See docs/investigations/2026-08-31-6e4c7bbd760272b8.md."
+      },
+      {
+        "ts": "2026-08-31T15:22:00Z",
+        "note": "2026-08-31 15:22Z triage (degraded cycle, no Slack MCP -- DD monitor scan diff): occ#749 via monitor 77419271 last_triggered 14:54:12Z (OK now, self-recovered). Synthetic hash 720ce1695126818d (channel C03TYHGRS23 + monitor ts 14:54:12Z). kb_to_es_query.py dropped the regex clause again (known gap, project_kb_to_es_query_drops_regex_clause) -- manually restored GetSyncWidgetInfoAsync. RCA: ES aggregate 14:34:12-14:54:12Z (20min window) = 556 hits, 100% service:gateway, vs 6 hits same window 24h ago -- ~92.7x same-window spike. Sample record read in full: RequestTimedOutError -> TaskCanceledException -> IOException -> SocketException(125), canonical Ocelot ResponderMiddleware mechanism. DD method-ui XHR error logs (limit 100, sample not exhaustive) 14:34-14:54Z: diffuse account fan-out, top account access2mobilityinc 5% -- canonical chronic shape, no concentration. This is the 5th consecutive cycle showing elevated magnitude today (32-48x -> ~33x -> ~95-112x -> ~92.7x this cycle) -- sustained, not a one-off, consistent with the trend already flagged to Ben in prior cycles notes. No ki-24 co-fire in the joint-treatment sense: ki-24 (monitor 115456700) fired 7 min earlier (14:47:21Z) but each is a singleton alert -- precedence_note co-fire criterion (>=2 alerts each) not met, proximity noted only. last_notified_at (2026-08-30T20:59:11Z) ~18h12m before this fire (eval time 2026-08-31T15:11:34Z) -- WITHIN 24h suppression window; occ 748->749 (not %10); fix_status (chronic-residual-post-rollback-2026-06-05) unchanged -> SUPPRESS, gate_reason=known-issue-window, appended to docs/actionable/2026-08-31.md with the sustained multi-cycle elevated-magnitude trend called out explicitly. See docs/investigations/2026-08-31-720ce1695126818d.md."
       }
     ],
     "prior_last_notified_at": "2026-08-28T14:58:11Z"
@@ -771,8 +775,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-08-31T00:40:20Z",
-    "occurrences": 279,
+    "last_seen": "2026-08-31T14:47:21Z",
+    "occurrences": 280,
     "match": {
       "channels": [
         "alert-system",
@@ -813,7 +817,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.85,
-    "last_notified_at": "2026-08-30T11:49:18Z",
+    "last_notified_at": "2026-08-31T15:20:00Z",
     "prior_last_notified_at": "2026-08-15T11:21:46Z",
     "notes": [
       {
@@ -1007,6 +1011,10 @@
       {
         "ts": "2026-08-31T11:16:40Z",
         "note": "2026-08-31 ~11:16Z triage (degraded cycle, no Slack MCP). Monitor 115456700 fired 2026-08-31T00:40:20Z, hash eaaa8b63039e73f4, occ 278->279. Re-queried p95:trace.aspnet_core.request{env:prod,service:runtime-core-api,resource_name:post_/api/v1/runtime/load/_screenid*} over the +/-15min window around fire: peak 3.35s, consistent with the established chronic latency-only pattern (no new mechanism). last_notified_at (2026-08-30T11:49:18Z) ~23h27m before this fire -- within 24h suppression window, occ not %10 -- SUPPRESS, gate_reason=known-issue-window."
+      },
+      {
+        "ts": "2026-08-31T15:20:00Z",
+        "note": "2026-08-31 15:20Z triage (degraded cycle, no Slack MCP -- DD monitor scan diff): occ#280 via monitor 115456700 last_triggered 14:47:21Z (OK now, self-recovered). Synthetic hash bd9cbc7bbb8b9063 (channel CPHHABKAA + monitor ts 14:47:21Z). DD APM p95 metric on runtime-core-api resource_name post_/api/v1/runtime/load/_screenid* over 14:27:21-14:47:21Z: 6 points >3.0s clustered in a 70s burst 14:39:20-14:40:30Z, peak 10.08s at 14:40:10Z, rest of window flat 0.7-2.3s. Confirmed latency-only: service:runtime-core-api status:error env:prod same window = 0 hits, matches documented latency-only-no-errors signature. No ki-21 co-fire this cycle in the joint-treatment sense: ki-21 (monitor 77419271) fired 7 min later (14:54:12Z) but each is a singleton (1 alert), so precedence_note co-fire criterion (>=2 alerts each in same 60-min window) not met -- proximity noted, not treated as joint shared-upstream incident, consistent with prior precedent (e.g. 2026-07-13 note). last_notified_at (2026-08-30T11:49:18Z) ~27h22m ago (eval time 2026-08-31T15:11:34Z), PAST 24h suppression window -> POST gate_reason=null, last_notified_at bumped to now. occ 279->280 (not %10, window naturally elapsed). fix_status (investigating) unchanged. See docs/investigations/2026-08-31-bd9cbc7bbb8b9063.md."
       }
     ],
     "owning_team": "Vertical App Experience"
