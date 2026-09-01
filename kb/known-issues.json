@@ -2215,8 +2215,8 @@
     "id": "ki-2026-07-03-ms-scheduler-api-seriesid-negative-recordid",
     "title": "ms-scheduler-api GetSeriesAsync throws InvalidOperationException when called with recordId=-1 (chronic, code-level missing-guard bug, now confirmed across multiple accounts, ~10-21+/day for 7+ days)",
     "first_seen": "2026-06-26T00:00:00Z",
-    "last_seen": "2026-09-01T03:37:33Z",
-    "occurrences": 149,
+    "last_seen": "2026-09-01T20:09:33Z",
+    "occurrences": 150,
     "match": {
       "channels": [
         "alert-system",
@@ -2253,7 +2253,7 @@
     "fix_template": null,
     "confidence": 0.8,
     "owning_team": "CRM Experience",
-    "last_notified_at": "2026-09-01T03:37:33Z",
+    "last_notified_at": "2026-09-01T21:15:00Z",
     "notes": [
       {
         "ts": "2026-07-03T13:09:00Z",
@@ -2334,6 +2334,10 @@
       {
         "ts": "2026-09-01T11:22:55Z",
         "note": "2026-09-01 ~11:22Z triage (degraded cycle, no Slack MCP; DD-scan-diff vs prior cutoff 2026-08-31T22:07:11Z). Monitor 303750093 fired 2026-09-01T03:37:33Z, hash 6d6bef49bdc5b3c4, occ 148->149. First fire since 2026-08-14T21:50:33Z (~17-day quiet gap -- by far the longest gap on record for this entry; flagging that this is a notably long dormancy, worth re-verifying the signature stays canonical rather than assuming continuity). ES search (evidence_query field, fields.dd_service.keyword:\"ms-scheduler-api\" AND exceptions.Message.keyword:\"Failed to Get Series Id for record -1 in table Activity\", 03:07:33-03:37:33Z monitor eval window) = 13 hits, 2 accounts -- BioAgEnergy:12 (new dominant contributor, not previously seen in this entry's account history), accurateforklift3:1 (also new). Same canonical GetSeriesIdAsync(recordId=-1)/SeriesDataProvider.cs:143/123 signature confirmed by exact evidence_query match (not a raw-search substitution this time -- the field-name fix from 2026-07-12 continues to hold). Both accounts are newly-observed for this entry, continuing the broadening-account-list pattern documented in prior notes. last_notified_at was 2026-08-14T21:50:33Z, ~17d ago -- EXCEEDS 24h suppression window -> POST to #triage-results per window-expiry gate (gate_reason=null), last_notified_at bumped to 2026-09-01T03:37:33Z. See docs/investigations/2026-09-01-6d6bef49bdc5b3c4.md."
+      },
+      {
+        "ts": "2026-09-01T21:15:00Z",
+        "note": "2026-09-01 ~21:15Z triage (degraded cycle, no Slack MCP; DD-scan-diff vs prior cutoff 2026-09-01T17:51:38Z). Monitor 303750093 fired 2026-09-01T20:09:33Z, hash c46eb85d8e3900c4, self-recovered (OK) by scan time -- occ 149->150. ES search (evidence_query field, fields.dd_service.keyword:\"ms-scheduler-api\" AND exceptions.Message.keyword:\"Failed to Get Series Id for record -1 in table Activity\", 19:39:33-20:19:33Z window bracketing the eval window) = 26 hits, 4 accounts -- enzusainc:12 (new contributor), foamtechinc:6 (known), islandsashanddoorNEW:5 (new contributor), baymonservalllp:3 (known) -- two new distinct accounts, continuing the code-level-defect broadening pattern (now 14+ distinct accounts total across the entry history). DD metric re-check on the monitor own approximate 10m eval window (19:59:33-20:09:33Z): 16 errors / 562 hits = 2.84%, already back under the 5% critical threshold by scan time -- same marginal/self-recovering shape as every prior occurrence. last_notified_at was 2026-09-01T03:37:33Z, ~16h38m ago -- WITHIN the 24h suppression window, BUT occurrence 149->150 crossed the every-10th-occurrence resurface rule -> POST to #triage-results, gate_reason=known-issue-occurrence-resurface, last_notified_at bumped to now. See docs/investigations/2026-09-01-c46eb85d8e3900c4.md."
       }
     ]
   },
