@@ -4537,8 +4537,8 @@
     "id": "ki-2026-07-15-app-update-push-salesorders-v182-name-collision",
     "title": "App Update push of template app 'Sales Orders' v182 fails on ~196 accounts with 400 ErrorCode 50 \"The field 'Name' already exists\" on view InvSalesOrderRevertReason -- leaves partial schema (preference field created, target table missing); the ~5,500-account fan-out is also a 4.5x load storm on ms-tables-fields-api",
     "first_seen": "2026-07-15T13:13:13Z",
-    "last_seen": "2026-07-30T15:57:35Z",
-    "occurrences": 2,
+    "last_seen": "2026-09-02T16:47:39Z",
+    "occurrences": 3,
     "match": {
       "channels": [
         "alert-system",
@@ -4576,13 +4576,17 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.88,
-    "last_notified_at": "2026-07-30T16:19:23Z",
+    "last_notified_at": "2026-09-02T17:20:00Z",
     "owning_team": "CRM Experience",
     "notes": "Follow-ups: (a) make bundle application atomic or roll back SuccessfulBundle entries on partial failure -- highest-value fix; (b) throttle/stagger the push consumer (~5,500 accounts in 27 min = 4.5x load on a critical-path service, and it grows with the subscriber base); (c) reconcile the 196 accounts left on v181 content + a v182 preference field; (d) NO monitor exists on app-update job failure rate -- 196 accounts failed and every monitor that fired named the wrong service.",
     "history": [
       {
         "ts": "2026-07-30T16:19:23Z",
         "note": "2026-07-30 ~15:57-16:06Z triage (degraded cycle, no Slack MCP): occ 1->2, 15 days after the origin incident, confirming the mechanism recurs across different apps. This occurrence: mass push of app \"Send Email\" v71 (JobId 8e0f2faa, ~5,174 subscriber accounts), started 15:49:52Z. Redis circuit breaker opened twice as an effect (15:53:10Z, 15:56:52Z), tripping monitor 227940275; tables-fields p95 spiked to 1.72s peak, tripping monitor 299251779 8 min later. Load story: 19,991 hits / 751 peak bucket vs 3,726 / 235 the same window 24h earlier (~5.4x volume, ~3.2x peak) -- comparable to the origin's 4.5x. Functional damage much smaller than the origin case: only 1 account (stellarair) failed, HTTP 400 on view Activity/field ReceivePaymentRecordID, and the bundle rejected ATOMICALLY (SuccessfulBundle and UnSuccessfulBundle both empty) -- no split-schema stranding this time, unlike the origin's 196-account partial-apply. RTC screen load (115456700) and RTC p95 (117279738) did not co-fire (last triggered 2026-07-29). last_notified_at (2026-07-15T15:10:00Z) far past the 24h suppression window -> POSTED to #triage-results, gate_reason=null. See docs/investigations/2026-07-30-d2be1b43cde2233b.md."
+      },
+      {
+        "ts": "2026-09-02T17:20:00Z",
+        "note": "2026-09-02 ~17:20Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed 'slack conversations history mcp' and 'mcp__slack', no matching deferred tool found). DD monitor scan-diff vs prior cutoff 2026-09-02T16:01:01Z. Monitor 299251779 fired 16:47:39Z, hash 5e48cdf6e050e2a1, occ 2->3. 3rd distinct app confirming the mechanism generalizes: ES app-update-agent 'App Publish - Started' for app Home Watch Admin v208 (JobId e660bec6) at 16:33:44Z, 76s before DD metric p95:trace.aspnet_core.request{env:prod,service:tables-fields} peaked 5.77s at 16:35:00Z (widened 16:10-17:00Z re-query; the monitor's own narrow 16:37:39-16:47:39Z eval window only showed 0.407s max -- classic rolling-window lag). Request volume 2157 vs 944 24h-ago in the 10min window (~2.3x). Entry's own literal evidence_query (AppId-scoped to the ORIGINAL Sales Orders v182 incident) correctly returned 0 hits -- not applicable, different app; the generalized App-Publish-precedes-spike mechanism is the operative evidence per the 2026-07-30 Send-Email-v71 precedent. Redis-circuit-breaker sibling entry (ki-2026-07-06) checked and ruled out (0 hits). 0 error-level ES/DD-logs hits in the publish-to-spike window -- cleanest occurrence yet, load-only, no functional failures. last_notified_at (2026-07-30T16:19:23Z) ~34 days stale, PAST 24h suppression window -> POST to #triage-results, gate_reason=null (window-expiry). See docs/investigations/2026-09-02-5e48cdf6e050e2a1.md."
       }
     ]
   },
