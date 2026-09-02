@@ -1562,11 +1562,12 @@
     "id": "ki-2026-07-02-miurl-agent-account-cluster-internal-lookup",
     "title": "miurl-agent 100%-failure calls to ms-account-api internal cluster-lookup endpoint (chronic, low-volume)",
     "first_seen": "2026-07-02T14:07:56Z",
-    "last_seen": "2026-07-20T16:43:56+00:00",
-    "occurrences": 6,
+    "last_seen": "2026-09-02T18:43:56+00:00",
+    "occurrences": 7,
     "match": {
       "channels": [
-        "alert-system"
+        "alert-system",
+        "alert-runtime-monitoring"
       ],
       "any_of": [
         {
@@ -1589,7 +1590,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.65,
-    "last_notified_at": "2026-07-23T20:12:31Z",
+    "last_notified_at": "2026-09-02T18:43:56Z",
     "notes": [
       {
         "ts": "2026-07-02T15:08:30Z",
@@ -1606,6 +1607,10 @@
       {
         "ts": "2026-07-08T17:55:57Z",
         "note": "2026-07-08 18:09Z triage (degraded cycle, no Slack MCP): occ#5, monitor 302048396 re-fired 17:55:57Z after a ~6-day quiet gap (OK now, self-recovered). DD APM sum:trace.http.request.errors by resource_name 17:08:53-18:08:53Z = 38 total errors, 38/38 (100%) on GET .../account/v3/cluster/internal/account -- identical signature to occ#1-4, no new resource_name. Synthetic hash eec4a2ba60fc3342 (channel CPHHABKAA + DD monitor ts 17:55:57Z). last_notified_at 2026-07-02T16:08:11Z = ~6 days ago, EXCEEDS 24h suppression window -> POSTED to #triage-results, gate_reason=null, last_notified_at bumped to 2026-07-08T17:55:57Z. See docs/investigations/2026-07-08-eec4a2ba60fc3342.md."
+      },
+      {
+        "ts": "2026-09-02T19:08:22Z",
+        "note": "2026-09-02 ~19:08Z triage (degraded cycle, no Slack MCP): occ#7, monitor 302048396 fired 18:43:56Z (OK now, self-recovered). DD metric sum:trace.http.request.errors{service:miurl-agent,env:prod} by resource_name over the monitor's own 10-min eval window (18:33:56-18:43:56Z) = 10 total errors, 10/10 (100%) on GET .../account/v3/cluster/internal/account -- identical signature to all 6 prior occurrences, no new resource_name. Raw hits/errors breakdown showed low absolute traffic (90 hits/10 total errors) driving momentary 100% ratio in sparse 20s buckets -- consistent with the entry's own documented low-volume caveat, not a magnitude change. Confirmed real match.channels staleness: monitor's live notify tag is @slack-alert-runtime-monitoring (not alert-system as declared) -- bare-text match_kb.py call under the real channel (alert-runtime-monitoring) returned [], only matched after re-querying under the KB's stale declared channel (alert-system); a bare 'contains: miurl' clause on a DIFFERENT, unrelated 2026-06-16 KB entry (shortlink-domain-unreachable, single swat incident) also matched and was rejected as a first-match-wins bare-word trap. Fixed match.channels to add 'alert-runtime-monitoring' (kept alert-system too) so future cycles match on the real channel without needing the fallback. last_notified_at (2026-07-23T20:12:31Z) ~40 days stale, PAST 24h window -> POSTED to #triage-results, gate_reason=null (window-expiry). occ 6->7. Repo confirmed local: legacy-miurl-api/MIURLAgent/ (not legacy-miurl-consumer as the diagnosis best-guessed) -- origin fetch 403'd (methodcrm-org GH_TOKEN gap), local clone stale (~4mo, last commit 2026-04-30), no reliable deploy-correlation signal, disclosed not guessed. Ownership ambiguity reconfirmed: ownership.md name-matches 'MiURL'/'legacy-miurl-api' components to Transactions; monitor's own tags still say team:vae -- unresolved, flagged again."
       }
     ]
   },
