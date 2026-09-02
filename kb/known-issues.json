@@ -4428,8 +4428,8 @@
     "id": "ki-2026-07-12-rest-api-tables-endpoint-5xx-recurring-burst",
     "title": "rest-api POST /api/{version}/tables/{table} recurring 5xx burst (APM-only, self-recovering, no error-log trace)",
     "first_seen": "2026-07-12T02:40:38Z",
-    "last_seen": "2026-08-03T19:41:38Z",
-    "occurrences": 4,
+    "last_seen": "2026-09-02T12:44:38Z",
+    "occurrences": 5,
     "match": {
       "channels": [
         "alert-system"
@@ -4454,7 +4454,7 @@
     "fix_template": null,
     "confidence": 0.7,
     "owning_team": "unmapped",
-    "last_notified_at": "2026-08-03T19:41:38Z",
+    "last_notified_at": "2026-09-02T12:44:38Z",
     "notes": [
       {
         "ts": "2026-07-12T02:40:38Z",
@@ -4475,6 +4475,10 @@
       {
         "ts": "2026-08-03T19:41:38Z",
         "note": "2026-08-03 ~20:08Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed \"slack conversations history mcp\" and \"+slack\": no matching deferred tool found, standing gap). monitor 70171778 fired 19:41:38Z, hash 546e6b3d4c12cbe4. FIRST CONFIRMED MATCH since entry creation (previous 4 occurrences on 2026-07-28/07-29/07-31 all REFUTED bare matches with a different real driver each time). sum:trace.aspnet_core.request.errors{env:prod,http.status_code:5*} by {service} over the widened 30-min window (19:11:38-19:41:38Z): rest-api 25, ms-scheduler-api 2, oauth2.identity.server 2, gateway 2, ms-identity-api 1 (grand total 32, just over the >30 threshold) -- rest-api dominant, burst clustered tightly 19:34:30-19:36:00Z (self-recovered by the tight 19:36:38-19:41:38Z eval-window query, which returned 0 across all services -- consistent with this entry's documented self-recovering-within-eval-window shape). By {resource_name} on rest-api: 100% (25/25) on get_/api/v_version_/tables/_table -- matches this entry's documented GET-tables-endpoint concentration exactly. service:rest-api status:error env:prod DD Logs 19:30-19:40Z: 0 hits, confirming the APM-only signature. last_notified_at (2026-07-27T00:31:38Z) ~7.8 days ago, past the 24h suppression window -> POSTED to #triage-results, gate_reason=null (window-expiry)."
+      },
+      {
+        "ts": "2026-09-02T12:44:38Z",
+        "note": "2026-09-02 ~13:10Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch probed \"slack conversations history\" and \"mcp__slack\", no matching deferred tool found, standing gap). monitor 70171778 fired 12:44:38Z, hash ee8b027e8880adf5. CONFIRMED MATCH (5th confirmed occurrence): sum:trace.aspnet_core.request.errors{env:prod,http.status_code:5*} by {service} over the widened 30-min window (12:14:38-12:44:38Z): rest-api 101, ms-scheduler-api 8, gateway 8, oauth2.identity.server 1, ms-authentication-api 1 (grand total 119) -- rest-api dominant (85%). By {resource_name} on rest-api: 101/101 (100%) on get_/api/v_version_/tables/_table, matching this entry's documented GET-tables-endpoint concentration exactly. service:rest-api status:error env:prod DD Logs 12:14:38-12:44:38Z: 0 hits, confirming the APM-only DD-Logs signature is unchanged. HOWEVER -- for the first time, a broader ES/Logstash sweep (level.keyword:Error AND fields.dd_service.keyword:\"rest-api\", triggered while investigating a co-occurring generic Watchdog fire, monitor 236570583, hash 89636a92b60f1520, same window) found real log corroboration this DD-Logs check has always missed: 1140 ES Error-level hits in the 12:28:33-12:58:33Z window (vs 25 in the same window 24h prior -- ~45x), 1138/1140 (99.8%) on RequestPath /api/v1/tables/EdiOrders, all System.Data.SqlClient.SqlException \"Conversion failed when converting the nvarchar value '<PONumber-LineNumber>' to data type int.\" -- a single account (kuumbamade2, AccountId 157750), single external integration client (User-Agent: node) repeatedly calling GET /api/v1/tables/EdiOrders?filter=id eq '<hyphenated-value>'&top=1 against an int-typed id column with hyphen-formatted string values (e.g. '731723-000486'). This refines the diagnosis: the burst is real and account-specific (one integration sending malformed filter values), not a mysterious log-silent APM artifact -- DD Logs (the product) never had this data, but ES/Logstash (Serilog sink) did all along; prior investigations only checked DD Logs and concluded APM-only. Suggested follow-up: (a) file a defect for Method.Data.RestApi.Controllers.TablesController.QueryRecordsAsync / GlobalExceptionHandler to return 400 instead of an unhandled 500 on a type-conversion failure, (b) flag kuumbamade2's integration owner about the malformed 'id' filter format. last_notified_at (2026-08-03T19:41:38Z) ~30 days ago, past the 24h suppression window -> POSTED to #triage-results, gate_reason=null (window-expiry). See docs/investigations/2026-09-02-ee8b027e8880adf5.md."
       }
     ]
   },
