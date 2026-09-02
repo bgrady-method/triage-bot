@@ -1402,8 +1402,8 @@
     "reason": "Recurring Warn-level Twilio outbound SMS volume alert (monitor 314197080, threshold warn 800 / critical 1000 per rolling 24h). 5 occurrences over 9 days (2026-08-19, 2026-08-20, 2026-08-26 x3) all at consistent magnitude 800-836/24h -- normal business volume sitting at the warn line, not a spike. The monitor message itself documents \"normal peak ~750\" as its calibration baseline, which current organic volume has outgrown. Delivery-status breakdown consistently ~94% ok / <5% warn / <2% error across every occurrence -- no fraud or delivery-failure signature. ~77-84% of volume concentrated on a single messaging_service_sid each time, consistent with one legitimate high-volume customer workflow, not distributed abuse.",
     "silence_for": "24h",
     "first_seen": "2026-08-19T15:19:00Z",
-    "last_seen": "2026-08-26T20:29:00Z",
-    "occurrences": 5,
+    "last_seen": "2026-09-02T20:29:01Z",
+    "occurrences": 6,
     "recommendation": "Raise the monitor warn threshold (e.g. to ~950-1000) or switch to a rate-of-change / deviation-from-trailing-average check instead of an absolute daily-count threshold -- normal volume has organically grown past the original calibration. Flagging for the CRM team, not silencing indefinitely."
   },
   {
