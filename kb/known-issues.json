@@ -1562,8 +1562,8 @@
     "id": "ki-2026-07-02-miurl-agent-account-cluster-internal-lookup",
     "title": "miurl-agent 100%-failure calls to ms-account-api internal cluster-lookup endpoint (chronic, low-volume)",
     "first_seen": "2026-07-02T14:07:56Z",
-    "last_seen": "2026-09-02T18:43:56+00:00",
-    "occurrences": 7,
+    "last_seen": "2026-09-16T01:43:56Z",
+    "occurrences": 8,
     "match": {
       "channels": [
         "alert-system",
@@ -1590,7 +1590,7 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.65,
-    "last_notified_at": "2026-09-02T18:43:56Z",
+    "last_notified_at": "2026-09-16T01:43:56Z",
     "notes": [
       {
         "ts": "2026-07-02T15:08:30Z",
