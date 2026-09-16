@@ -1190,8 +1190,8 @@
     "reason": "eda_orchestrator_api Kafka-produce error-ratio monitor (sum(last_5m):100 * errors/hits > 1%). DD metric re-query for the alert window (09:50:13-10:30:13Z) shows a legitimate traffic burst (baseline ~5-135 hits/10s climbing to ~2,900 hits/10s for ~90s right before the trigger) against exactly 1 total produce error in the whole 40-min window -- nowhere near a genuine 1% error rate over any real interval. 0 status:error DD logs on the service in-window. Same low-traffic/burst-ratio monitor-noise shape already documented on HTTP-status-ratio monitors (ki-2026-07-04-ms-account-api-4xx-spike-monitor-noise, ki-2026-07-07-gateway-4xx-spike-monitor-noise, fa-2026-07-12-mapi-5xx-rate-low-traffic-ratio-artifact), now confirmed on a Kafka-produce-ratio monitor too.",
     "silence_for": "24h",
     "first_seen": "2026-07-30T10:20:13Z",
-    "last_seen": "2026-07-30T10:20:13Z",
-    "occurrences": 1,
+    "last_seen": "2026-09-13T21:11:12Z",
+    "occurrences": 2,
     "notes": [
       {
         "ts": "2026-07-30T14:29:00Z",
