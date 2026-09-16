@@ -1436,5 +1436,27 @@
     "first_seen": "2026-08-29T06:32:34Z",
     "occurrences": 1,
     "discovered_via": "monitor 236570583 (Watchdog New issue to review catch-all) broad Error.keyword sweep, per project_monitor_236570583_multi_candidate_check"
+  },
+  {
+    "target": "false-alarms",
+    "id": "fa-2026-09-16-nativemobile-push-registration-transient-network-gms",
+    "match": {
+      "channels": [
+        "alert-runtime-monitoring"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/316592235"
+        },
+        {
+          "contains": "push registration failures high"
+        }
+      ]
+    },
+    "reason": "DD RUM Error Tracking for method-nativemobile-ui push-token registration, trailing 4h (2026-09-16T14:44:45-18:44:45Z): 9 @context.push.failure_class errors (monitor threshold >=10 critical, >=5 warn -- Warn state only). Full sample breakdown: 5x 'Push registration failed (launch-token): Error encountered while fetching Expo token: TypeError: Network request failed.' (client-side network connectivity), 4x 'Push registration failed (register-token/launch-token): Fetching the token failed: java.util.concurrent.ExecutionException: java.io.IOException: SERVICE_NOT_AVAILABLE' (Android Google Play Services transiently unavailable -- a well-documented GMS condition, not a Method defect). Both failure classes are already classified by the app's utilities/pushRegistration.ts classifier (no 'unclassified' spike per the monitor's own message guidance). ES sweep for push/Expo backend correlation in the same window returned only unrelated services (sync-xero-subscriber, nonprod/apps) -- no method-nativemobile-ui or push-backend signal. No new failure mode; classic mobile-client transient-connectivity noise.",
+    "silence_for": "24h",
+    "first_seen": "2026-09-16T18:44:45Z",
+    "last_seen": "2026-09-16T18:44:45Z",
+    "occurrences": 1
   }
 ]
