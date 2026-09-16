@@ -4433,8 +4433,8 @@
     "id": "ki-2026-07-12-rest-api-tables-endpoint-5xx-recurring-burst",
     "title": "rest-api POST /api/{version}/tables/{table} recurring 5xx burst (APM-only, self-recovering, no error-log trace)",
     "first_seen": "2026-07-12T02:40:38Z",
-    "last_seen": "2026-09-02T12:44:38Z",
-    "occurrences": 5,
+    "last_seen": "2026-09-14T13:56:38Z",
+    "occurrences": 6,
     "match": {
       "channels": [
         "alert-system"
@@ -4459,7 +4459,7 @@
     "fix_template": null,
     "confidence": 0.7,
     "owning_team": "unmapped",
-    "last_notified_at": "2026-09-02T12:44:38Z",
+    "last_notified_at": "2026-09-14T13:56:38Z",
     "notes": [
       {
         "ts": "2026-07-12T02:40:38Z",
