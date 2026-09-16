@@ -1462,6 +1462,28 @@
   },
   {
     "target": "false-alarms",
+    "id": "fa-2026-09-03-reportgenerationapi-p95-latency-monitor-noise",
+    "match": {
+      "channels": [
+        "alert-runtime-monitoring"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/316588178"
+        },
+        {
+          "contains": "default_web_site/reportgenerationapi P95 latency high"
+        }
+      ]
+    },
+    "reason": "Monitor avg(last_10m):p95:trace.aspnet.request{service:default_web_site/reportgenerationapi,env:prod} > 5. Re-query showed max p95 0.746s, fully recovered; 0 ES hits for reportgenerationapi/ReportGeneration in window. Distinct from the separate unfiled innuwindow2 DevExpress-layout/SQL-schema bug on monitor 316587947 (error-rate, not this p95-latency monitor) -- do not conflate.",
+    "silence_for": "24h",
+    "first_seen": "2026-09-03T20:29:38Z",
+    "last_seen": "2026-09-03T20:29:38Z",
+    "occurrences": 1
+  },
+  {
+    "target": "false-alarms",
     "id": "fa-2026-09-16-nativemobile-push-registration-transient-network-gms",
     "match": {
       "channels": [
