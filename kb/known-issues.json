@@ -1250,7 +1250,8 @@
         "note": "2026-08-28 13:08Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch for slack/conversations tools returned none, standing intermittent gap). DD-scan-diff vs prior cutoff 2026-08-28T11:47:08Z. Monitor 236570583 ('New issue to review' Watchdog) fired 13:06:33Z, hash 36cfa49512d27534, occ 34->35. Same-window ES corroboration (12:36:33-13:06:33Z) per this entry's precedence_note (exact message.keyword/messageTemplate.keyword, aggregated by fields.UserAgent.keyword): 28 hits, 100% WindowsPowerShell/5.1.20348.1850 UA -- canonical synthetic-probe NRE signature CONFIRMED this cycle. Sampled 1 raw hit: System.NullReferenceException at Com.Method.ServiceContract.Services.Account.MethodSessionService.GetAccountBySubdomain(), exact canonical stack trace match. Sibling candidate ki-2026-05-28-mobile-asyncstorage-securestore-keychain checked and refuted (3 hits nonprod/apps in-window vs this entry's documented thousands-per-spike magnitude -- consistent with chronic ~3/24h baseline noise, not a recurrence). last_notified_at (2026-08-26T12:59:33Z) ~48h07m ago, PAST 24h suppression window -> POST, gate_reason=null (window-expiry). owning_team Admin (method-platform-ui per ownership.md:379). See docs/investigations/2026-08-28-36cfa49512d27534.md."
       }
     ],
-    "prior_last_notified_at": "2026-08-07T13:12:48Z"
+    "prior_last_notified_at": "2026-08-07T13:12:48Z",
+    "precedence_note": "2026-09-16T17:43:33Z REFUTED: monitor 236570583 fired; broad Error sweep top bucket (nonprod/apps, 169/465) was mobile-client-relayed network noise (Push registration failed / getAccounts Network Error), not JWT/GetAccountBySubdomain. Classified false-alarm (hash 8b22d6a1f16f1189), no occurrence bump."
   },
   {
     "id": "ki-2026-06-02-purchase-history-unique-index-duplicate",
