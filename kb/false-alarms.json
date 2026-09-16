@@ -1484,6 +1484,28 @@
   },
   {
     "target": "false-alarms",
+    "id": "fa-2026-09-11-ms-tags-api-p95-latency-monitor-noise",
+    "match": {
+      "channels": [
+        "alert-runtime-monitoring"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/301582337"
+        },
+        {
+          "contains": "[VAE][ms-tags-api][P2] P95 latency high (ms-tags-api)"
+        }
+      ]
+    },
+    "reason": "Monitor avg(last_10m):p95:trace.aspnet_core.request{service:ms-tags-api,env:prod} > 2. Re-query showed max p95 0.722s, fully recovered; 0 ES errors.",
+    "silence_for": "24h",
+    "first_seen": "2026-09-11T14:58:17Z",
+    "last_seen": "2026-09-11T14:58:17Z",
+    "occurrences": 1
+  },
+  {
+    "target": "false-alarms",
     "id": "fa-2026-09-16-nativemobile-push-registration-transient-network-gms",
     "match": {
       "channels": [
