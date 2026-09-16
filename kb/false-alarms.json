@@ -729,8 +729,8 @@
     },
     "reason": "Two eda_inventory monitors (P1 5xx-rate, P2 p95-latency) co-fired within 7 minutes (2026-07-21T13:56:02Z / 14:02:47Z). DD metric checks for both: sum:trace.http.request.errors{service:eda_inventory,env:prod} over the window = 0; p95:trace.http.request{service:eda_inventory,env:prod} = ~0.01-0.02s (threshold was >2s). Both fully cleared by scan time. Co-firing of two monitor types with no corroborating error/latency signal on independent re-query points to a shared brief evaluation-window/telemetry-reporting blip rather than two independent real incidents on a new VAE service.",
     "first_seen": "2026-07-21T13:56:02Z",
-    "last_seen": "2026-07-28T11:20:00Z",
-    "occurrences": 3,
+    "last_seen": "2026-09-11T14:22:47Z",
+    "occurrences": 4,
     "silence_for": "24h",
     "match_precedence_note": "2026-07-27T20:20:00Z: monitor 302042747 (P1 5xx) fired ALONE at 19:43:47Z (302046482 P2 latency did NOT co-fire this time) -- REJECTED as a match for this entry. Re-verification found a real, non-zero error signal this time: sum:trace.http.request.errors{service:eda_inventory,env:prod} showed 17 error-tagged spans clustered 19:32:30-19:34:30Z against ~99 hits in that sub-window (~17% local rate, vs this entry's origin case which was a clean 0-error blip). 0 status:error DD logs either time (service isn't log-pipeline-instrumented), so that signal doesn't discriminate. Given the differing co-fire shape (solo vs paired) and the differing error magnitude (17 real spans vs 0), classified this occurrence as needs-human (hash a876b9df89dfdde0) instead of bumping this entry's occurrence count. See docs/investigations/2026-07-27-a876b9df89dfdde0.md."
   },
