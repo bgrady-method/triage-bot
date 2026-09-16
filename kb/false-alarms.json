@@ -1153,7 +1153,8 @@
     "id": "fa-2026-07-26-methodportal-apps-5xx-low-traffic-artifact",
     "match": {
       "channels": [
-        "alert-system"
+        "alert-system",
+        "alert-runtime-monitoring"
       ],
       "any_of": [
         {
@@ -1167,8 +1168,8 @@
     "reason": "DD metric sum:trace.aspnet.request.errors{service:methodportal.com/apps,env:prod} over 2026-07-26T05:26:27-06:06:27Z (+/-20min around the fire): exactly 1 error point (05:34:40Z, count=1.0). Monitor computes a >25% error-RATE over a 10-min window; a single raw error against a small request denominator during a quiet period trips the ratio threshold with negligible real impact. Same low-traffic-ratio-artifact mechanism as fa-2026-07-12-mapi-5xx-rate-low-traffic-ratio-artifact and fa-2026-07-23-methodportal-5xx-low-traffic-artifact (methodportal.com, without /apps), applied to the /apps sub-path variant. Rejected an initial match_kb.py hit against ki-2026-05-29-methodsession-getaccountbysubdomain-nre (bare 'ms-account-api'-adjacent match) -- ES query for that entry's own evidence (JWT Retrieval Failed / GetAccountBySubdomain / MethodSessionService) returned 0 hits in the window, refuting it.",
     "silence_for": "24h",
     "first_seen": "2026-07-26T05:46:27Z",
-    "last_seen": "2026-07-26T05:46:27Z",
-    "occurrences": 1,
+    "last_seen": "2026-09-04T07:00:27Z",
+    "occurrences": 2,
     "recommendation": "Same recommendation as the sibling low-traffic-ratio-artifact entries: consider widening the monitor eval window or adding a minimum-request-count floor so a single error cannot trip a percentage threshold during low-traffic periods."
   },
   {
