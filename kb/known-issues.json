@@ -2224,8 +2224,8 @@
     "id": "ki-2026-07-03-ms-scheduler-api-seriesid-negative-recordid",
     "title": "ms-scheduler-api GetSeriesAsync throws InvalidOperationException when called with recordId=-1 (chronic, code-level missing-guard bug, now confirmed across multiple accounts, ~10-21+/day for 7+ days)",
     "first_seen": "2026-06-26T00:00:00Z",
-    "last_seen": "2026-09-01T22:26:33Z",
-    "occurrences": 151,
+    "last_seen": "2026-09-14T22:40:36Z",
+    "occurrences": 152,
     "match": {
       "channels": [
         "alert-system",
@@ -2262,7 +2262,7 @@
     "fix_template": null,
     "confidence": 0.8,
     "owning_team": "CRM Experience",
-    "last_notified_at": "2026-09-01T21:15:00Z",
+    "last_notified_at": "2026-09-14T22:40:36Z",
     "notes": [
       {
         "ts": "2026-07-03T13:09:00Z",
