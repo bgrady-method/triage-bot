@@ -1440,6 +1440,28 @@
   },
   {
     "target": "false-alarms",
+    "id": "fa-2026-09-03-method-mobile-notifications-api-p95-latency-monitor-noise",
+    "match": {
+      "channels": [
+        "alert-runtime-monitoring"
+      ],
+      "any_of": [
+        {
+          "contains": "monitors/302056407"
+        },
+        {
+          "contains": "[CRM][P2] method-mobile-notifications-api P95 latency high"
+        }
+      ]
+    },
+    "reason": "Monitor avg(last_10m):p95:trace.aspnet_core.request{service:method-mobile-notifications-api,env:prod} > 1.5. Re-query at fire+~10min showed max p95 0.377s, fully recovered -- classic low-traffic momentary-spike pattern, same mechanism as ki-2026-07-07-notifications-p95-latency-monitor-noise on the sibling notifications service.",
+    "silence_for": "24h",
+    "first_seen": "2026-09-03T13:17:27Z",
+    "last_seen": "2026-09-03T13:17:27Z",
+    "occurrences": 1
+  },
+  {
+    "target": "false-alarms",
     "id": "fa-2026-09-16-nativemobile-push-registration-transient-network-gms",
     "match": {
       "channels": [
