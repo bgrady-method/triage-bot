@@ -1708,8 +1708,8 @@
     "id": "ki-2026-07-03-eda-consumer-amqp-stopped-publishing",
     "title": "[EDA][Consumer][P3] eda_consumer AMQP publish-hits monitor intermittently goes No Data (team:devops, self-recovering, no correlated pipeline impact)",
     "first_seen": "2026-06-20T10:21:00Z",
-    "last_seen": "2026-09-16T10:34:26Z",
-    "occurrences": 67,
+    "last_seen": "2026-09-17T08:59:27Z",
+    "occurrences": 68,
     "match": {
       "channels": [
         "alert-system",
@@ -1894,6 +1894,10 @@
       {
         "ts": "2026-09-02T11:07:51Z",
         "note": "2026-09-02 ~11:07Z triage (degraded cycle, no Slack MCP; DD-scan-diff vs prior cutoff 2026-09-01T21:05:09Z). Monitor 296641466 fired 2026-09-02T10:36:26Z (No Data), hash 8c790754e6d52f75, occ 65->66. Sibling P1 monitors 296632224/296636101 both OK (last fired 2026-07-23, no co-firing). service:eda_consumer status:error DD Logs 10:06:26-10:36:26Z = 0 hits. Same benign quiet-period shape. last_notified_at was 2026-09-01T10:54:27Z, ~24h13m ago -- EXCEEDS 24h suppression window (marginal) -> POST to #triage-results, gate_reason=null (window-expiry), last_notified_at bumped to 2026-09-02T10:36:26Z. See docs/investigations/2026-09-02-8c790754e6d52f75.md."
+      },
+      {
+        "ts": "2026-09-17T08:59:27Z",
+        "note": "2026-09-17 ~11:10Z triage (degraded cycle). Monitor 296641466 fired 2026-09-17T08:59:27Z, hash 3081a6a81b443bce, occ 67->68. Re-queried sum:trace.amqp.command.hits{service:eda_consumer,env:prod} over the monitor's exact 30m eval window (08:29:27-08:59:27Z): 3 points, sum=8 (>=1, does not match the monitor's own <1 alert condition -- evaluation-lag artifact). Wider metric trend showed a real ~13min gap (08:58:40-09:11:40Z) that self-recovered (32 events at 09:11:40Z). 0 status:error DD logs, 0 ES Level:Error hits on eda_consumer in-window -- confirms self-recovering quiet period, no pipeline impact. last_notified_at (2026-09-16T10:34:26Z) ~22h25m ago, WITHIN 24h suppression window -> SUPPRESS, gate_reason=known-issue-window. fix_status unchanged (escalated-for-review)."
       }
     ]
   },
