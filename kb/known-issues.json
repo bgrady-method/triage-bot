@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-09-16T19:17:11Z",
-    "occurrences": 758,
+    "last_seen": "2026-09-17T07:45:12Z",
+    "occurrences": 759,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -791,6 +791,10 @@
       {
         "ts": "2026-09-01T11:22:55Z",
         "note": "2026-09-01 ~11:22Z triage (degraded cycle, no Slack MCP surfaced this session; DD-scan-diff vs prior cutoff 2026-08-31T22:07:11Z). Monitor 77419271 last_triggered 2026-09-01T01:51:11Z (OK, self-recovered), hash f0000bb128330bee, occ 754->755. last_notified_at (2026-08-31T16:20:00Z) ~9h31m before this fire -- WITHIN 24h suppression window; occ 755 not %10; fix_status unchanged -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-09-01-f0000bb128330bee.md."
+      },
+      {
+        "ts": "2026-09-17T07:45:12Z",
+        "note": "2026-09-17 ~11:10Z triage (degraded cycle, DD-scan-diff). Monitor 77419271 fired 2026-09-17T07:45:12Z, hash fa1997466ae5eb54, occ 758->759. ES GetSyncWidgetInfoAsync sweep 07:25:12-07:45:12Z: 6 hits, 100% service:gateway -- same as 24h-ago baseline (6 hits) -- chronic magnitude, no regression. last_notified_at (2026-09-16T19:17:11Z) ~12h28m ago, WITHIN 24h suppression window -> SUPPRESS, gate_reason=known-issue-window. fix_status unchanged (chronic-residual-post-rollback-2026-06-05)."
       }
     ],
     "prior_last_notified_at": "2026-08-28T14:58:11Z"
