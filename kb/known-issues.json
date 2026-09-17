@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-09-17T14:03:12Z",
-    "occurrences": 760,
+    "last_seen": "2026-09-17T16:36:12Z",
+    "occurrences": 761,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -160,6 +160,10 @@
     "last_notified_at": "2026-09-17T14:40:00Z",
     "prior_fix_status": "chronic-residual-post-rollback-2026-06-05",
     "notes": [
+      {
+        "ts": "2026-09-17T16:36:12Z",
+        "note": "2026-09-17 ~17:10Z triage (degraded cycle, DD-scan-diff vs prior cutoff 14:03:12Z): occ 760->761 via monitor 77419271 last_triggered 16:36:12Z (OK by scan time, self-recovered). Synthetic hash 00bacba117afe526 (channel C03TYHGRS23 + DD monitor ts 16:36:12Z). Prior scan (15:10Z cycle) had already confirmed the 14:42:11Z transition was a recovery-transition artifact of occ 760 (not double-counted); this 16:36:12Z transition is a distinct, later state-modification event (~2h gap, no candidate found in between at the 15:10Z scan), so treated as a genuinely new occurrence per standing DD-scan-diff protocol. ES aggregate (GetSyncWidgetInfoAsync, regex clause manually restored per kb_to_es_query.py drop bug) over the full 14:42:11-16:36:12Z window: 2431 hits, 100% service:gateway -- confirms Ocelot ResponderMiddleware mechanism, chronic. DD method-ui error logs sample (service:method-ui status:error, 100-record sample): diffuse across accounts, top texasmetalcarports 8/100 (8%) -- canonical diffuse chronic shape, no single-account concentration; extrapolation branch 1 (infrastructure-shaped, gateway/microservices.methodlocal.int pool) applies, not account-specific. No ki-24 co-fire meeting the >=2-alerts-each threshold this cycle (115456700 fired once, occ 285, separate group) -- proximity noted (ki-24 breach window ~15:17-15:25Z sits inside this ki-21 evidence window) but not merged per 2026-07-13 precedent. last_notified_at (2026-09-17T14:40:00Z) ~2h30m ago, WITHIN 24h suppression window; occ 761 not %10; fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS, gate_reason=known-issue-window, appended to docs/actionable/2026-09-17.md. See docs/investigations/2026-09-17-00bacba117afe526.md."
+      },
       {
         "ts": "2026-09-17T14:40:00Z",
         "note": "2026-09-17 14:40Z triage (degraded cycle): occ 759->760 via monitor 77419271 last_triggered 14:03:12Z, hash 71f9733291772a49. ES aggregate (regex clause manually restored per standing kb_to_es_query.py drop bug) 13:33:12-14:03:12Z: 421 hits, 100% gateway; 24h-ago baseline same window: 460 hits (-8.5%) -- chronic, not a regression. occ crosses %10 boundary (760) -> POSTED to #triage-results regardless of 24h window (last_notified_at was only ~19h old), gate_reason=known-issue-occurrence-resurface. fix_status chronic-residual-post-rollback-2026-06-05 unchanged. PROXIMITY: ki-24 monitors 117279738 (13:04:18Z) and 115456700 (14:02:20Z, only 52s before this fire) both fired same cycle -- <2 alerts each so not merged per 2026-07-13 precedent, but flagged as increasingly tight proximity. See docs/investigations/2026-09-17-71f9733291772a49.md."
@@ -807,8 +811,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-09-17T14:02:20Z",
-    "occurrences": 284,
+    "last_seen": "2026-09-17T15:25:20Z",
+    "occurrences": 285,
     "match": {
       "channels": [
         "alert-system",
@@ -852,6 +856,10 @@
     "last_notified_at": "2026-09-17T14:20:00Z",
     "prior_last_notified_at": "2026-09-14T20:15:18Z",
     "notes": [
+      {
+        "ts": "2026-09-17T15:25:20Z",
+        "note": "2026-09-17 ~17:10Z triage (degraded cycle, DD-scan-diff vs prior cutoff 14:03:12Z): occ 284->285 via monitor 115456700 (Screen Load) last_triggered/recovered 15:25:20Z, hash 41214e82846d4a10. This is a genuinely NEW breach, not a recovery-transition artifact of occ 284 (14:02:20Z) -- fine-grained metric re-query (13:55:00-15:29:30Z, 30s buckets) shows clean ~1-2s baseline throughout the intervening ~75min with no other excursion, then a distinct 3-point breach cluster at 15:17:00/15:17:30/15:18:00Z (5.50s/5.68s/5.77s, peak ratio (5.77-3)/3=0.92 -> +2 metric-breach-magnitude bracket), consistent with the monitor's rolling-5m p95 window tripping Alert then clearing by 15:25:20Z. Latency-only confirmed: `dd_search.py logs --query 'service:runtime-core-api status:error env:prod'` 15:12:00-15:30:00Z returned 0 hits. No ki-21 co-fire meeting the >=2-alerts-each threshold this cycle (77419271 fired once, occ 761, separate group) -- proximity noted (this breach sits inside ki-21's wider 14:42-16:36Z evidence window) but not merged per 2026-07-13 precedent. last_notified_at (2026-09-17T14:20:00Z) ~2h55m ago (from processing time), WITHIN 24h suppression window; occ 285 not %10; fix_status investigating unchanged -> SUPPRESS, gate_reason=known-issue-window, appended to docs/actionable/2026-09-17.md. Corroboration: DD APM traces https://app.datadoghq.com/apm/traces?query=service%3Aruntime-core-api%20%40duration%3A%3E3s&start=1789657020000&end=1789657800000 (time-anchored to the 15:17:00-15:30:00Z breach). See docs/investigations/2026-09-17-41214e82846d4a10.md."
+      },
       {
         "ts": "2026-09-17T14:35:00Z",
         "note": "2026-09-17 14:35Z triage (degraded cycle): occ 283->284 via monitor 115456700 (Screen Load) last_triggered 14:02:20Z, hash 9fe5b1e43e0c1a57. DD metric screenid 13:32:20-14:02:20Z: 12/180 points >3s peak 9.47s@13:54:40Z; actionid same window 7/180 >3s peak 6.94s@13:54:40Z -- both peak at the SAME timestamp, tighter co-spike than this cycle's earlier occurrence. Latency-only confirmed (0 error logs). SUPPRESSED: last_notified_at was just reset to 2026-09-17T14:20:00Z by this entry's own earlier occurrence (117279738, 13:04:18Z) processed first in this same cycle -- within-window per same-cycle gate ordering, gate_reason=known-issue-window. See docs/investigations/2026-09-17-9fe5b1e43e0c1a57.md."
