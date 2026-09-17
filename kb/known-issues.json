@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-09-17T07:45:12Z",
-    "occurrences": 759,
+    "last_seen": "2026-09-17T14:03:12Z",
+    "occurrences": 760,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -157,9 +157,13 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.88,
-    "last_notified_at": "2026-09-16T19:17:11Z",
+    "last_notified_at": "2026-09-17T14:40:00Z",
     "prior_fix_status": "chronic-residual-post-rollback-2026-06-05",
     "notes": [
+      {
+        "ts": "2026-09-17T14:40:00Z",
+        "note": "2026-09-17 14:40Z triage (degraded cycle): occ 759->760 via monitor 77419271 last_triggered 14:03:12Z, hash 71f9733291772a49. ES aggregate (regex clause manually restored per standing kb_to_es_query.py drop bug) 13:33:12-14:03:12Z: 421 hits, 100% gateway; 24h-ago baseline same window: 460 hits (-8.5%) -- chronic, not a regression. occ crosses %10 boundary (760) -> POSTED to #triage-results regardless of 24h window (last_notified_at was only ~19h old), gate_reason=known-issue-occurrence-resurface. fix_status chronic-residual-post-rollback-2026-06-05 unchanged. PROXIMITY: ki-24 monitors 117279738 (13:04:18Z) and 115456700 (14:02:20Z, only 52s before this fire) both fired same cycle -- <2 alerts each so not merged per 2026-07-13 precedent, but flagged as increasingly tight proximity. See docs/investigations/2026-09-17-71f9733291772a49.md."
+      },
       {
         "ts": "2026-08-26T16:04:11Z",
         "note": "2026-08-26 16:04Z triage (degraded cycle, no Slack MCP): occ#711 via monitor 77419271 last_triggered 16:04:11Z (OK now, self-recovered). Synthetic hash 6e22a35e8aa2803f (channel C03TYHGRS23 + DD monitor ts 16:04:11Z). ES aggregate (query manually restored with GetSyncWidgetInfoAsync regex clause per the known kb_to_es_query.py drop bug) 15:44:11-16:04:11Z: 473 hits, 100% service:gateway -- confirms Ocelot ResponderMiddleware mechanism. 24h-ago baseline same window: 420 hits (+12.6%) -- chronic magnitude, not a regression. No ki-24/Redis co-fire this cycle (full 182-monitor scan showed no other alert-system/runtime-monitoring transition near this time). last_notified_at (2026-08-26T14:20:00Z) ~1h44m ago, WITHIN 24h suppression window; occ 711->712 (not %10); fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window, appended to docs/actionable/2026-08-26.md. See docs/investigations/2026-08-26-6e22a35e8aa2803f.md."
@@ -797,14 +801,14 @@
         "note": "2026-09-17 ~11:10Z triage (degraded cycle, DD-scan-diff). Monitor 77419271 fired 2026-09-17T07:45:12Z, hash fa1997466ae5eb54, occ 758->759. ES GetSyncWidgetInfoAsync sweep 07:25:12-07:45:12Z: 6 hits, 100% service:gateway -- same as 24h-ago baseline (6 hits) -- chronic magnitude, no regression. last_notified_at (2026-09-16T19:17:11Z) ~12h28m ago, WITHIN 24h suppression window -> SUPPRESS, gate_reason=known-issue-window. fix_status unchanged (chronic-residual-post-rollback-2026-06-05)."
       }
     ],
-    "prior_last_notified_at": "2026-08-28T14:58:11Z"
+    "prior_last_notified_at": "2026-09-16T19:17:11Z"
   },
   {
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-09-16T07:57:20Z",
-    "occurrences": 282,
+    "last_seen": "2026-09-17T14:02:20Z",
+    "occurrences": 284,
     "match": {
       "channels": [
         "alert-system",
@@ -845,9 +849,17 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.85,
-    "last_notified_at": "2026-09-14T20:15:18Z",
-    "prior_last_notified_at": "2026-08-15T11:21:46Z",
+    "last_notified_at": "2026-09-17T14:20:00Z",
+    "prior_last_notified_at": "2026-09-14T20:15:18Z",
     "notes": [
+      {
+        "ts": "2026-09-17T14:35:00Z",
+        "note": "2026-09-17 14:35Z triage (degraded cycle): occ 283->284 via monitor 115456700 (Screen Load) last_triggered 14:02:20Z, hash 9fe5b1e43e0c1a57. DD metric screenid 13:32:20-14:02:20Z: 12/180 points >3s peak 9.47s@13:54:40Z; actionid same window 7/180 >3s peak 6.94s@13:54:40Z -- both peak at the SAME timestamp, tighter co-spike than this cycle's earlier occurrence. Latency-only confirmed (0 error logs). SUPPRESSED: last_notified_at was just reset to 2026-09-17T14:20:00Z by this entry's own earlier occurrence (117279738, 13:04:18Z) processed first in this same cycle -- within-window per same-cycle gate ordering, gate_reason=known-issue-window. See docs/investigations/2026-09-17-9fe5b1e43e0c1a57.md."
+      },
+      {
+        "ts": "2026-09-17T14:20:00Z",
+        "note": "2026-09-17 14:20Z triage (degraded cycle, no Slack MCP): occ 282->283 via monitor 117279738 (Action Execution) last_triggered 13:04:18Z (OK by scan time, self-recovered), hash 281bae6e93f12dcd. DD metric p95 screenid re-queried 12:34:18-13:04:18Z: 16/180 points >3s, peak 10.72s@12:55:30Z; actionid same window 13/180 points >3s, peak 8.50s@12:56:50Z -- canonical dual-endpoint co-spike, peaks 80s apart. Latency-only confirmed: 0 status:error DD logs same window. last_notified_at (2026-08-15T11:21:46Z / actually 2026-09-14T20:15:18Z) far past 24h suppression window -> POSTED to #triage-results, gate_reason=null (window-expiry). fix_status 'investigating' unchanged. Proximity flag: ki-21 (monitor 77419271) fired 59min later same cycle (14:03:12Z), and this entry's own monitor 115456700 fired again later in the SAME cycle (14:02:20Z, second occurrence -- will suppress on this post's fresh last_notified_at per KIR same-cycle gate ordering). Not merged per <2 alerts each precedent (2026-07-13). See docs/investigations/2026-09-17-281bae6e93f12dcd.md."
+      },
       {
         "ts": "2026-07-27T20:20:00Z",
         "note": "2026-07-27 ~20:08-20:20Z triage (degraded cycle, no Slack MCP surfaced this session): monitor 115456700 (RTC Screen Load) last_triggered 19:44:20Z (OK by scan time, self-recovered), hash 8c120b03904c5257, occ 249->250. DD metric p95:trace.aspnet_core.request{...screenid*} re-queried 19:14:20-19:44:20Z: 27+ of 180 points > 3s threshold, peak 10.39s @19:36:30Z. Latency-only confirmed: 0 status:error DD logs same window. CO-FIRE: monitor 299551623 ([Admin][SearchAPI][P2] P95 latency) ALSO breached 19:49:03Z (OK by scan time) -- ms-search-api's own p95 metric independently re-queried 19:19:03-19:49:03Z shows the SAME spike window (19:35:30-19:38:20Z, peak 13.74s @19:38:10Z), confirmed via each service's own APM series, not just alert-timestamp proximity -- matches the ki-2026-07-14-cross-service-p95-latency-shared-upstream signature per that entry's own precedence_note ('treat co-fire with any of those entries as this same expanded signature'). Grouped both monitors as one investigation (RTC primary, ms-search-api satellite); classification/posting driven primarily off the cross-service entry (occ 1->2, see that entry's note) -- this entry's own occurrence counter bumped in parallel since RTC's own criteria independently matched. occurrence 250 crosses the every-10th-occurrence resurface threshold -> POSTED to #triage-results regardless of the 24h window (last_notified_at was only ~3h09m old), gate_reason=known-issue-occurrence-resurface. fix_status 'investigating' unchanged. See docs/investigations/2026-07-27-8c120b03904c5257.md."
@@ -4760,8 +4772,8 @@
     "id": "ki-2026-08-14-nonprod-apps-redis-crossslot-cacheflush",
     "title": "method-nativemobile-ui relay (service:nonprod/apps) Redis CROSSSLOT error in multi-key Lua cache-flush script (DD monitor 227940275 'Redis Errors is High') -- distinct mechanism from the two runtime-core-api-scoped Redis-timeout entries",
     "first_seen": "2026-07-31T13:07:36Z",
-    "last_seen": "2026-08-20T13:54:36Z",
-    "occurrences": 3,
+    "last_seen": "2026-09-17T13:48:35Z",
+    "occurrences": 4,
     "match": {
       "channels": [
         "alert-system",
@@ -4793,8 +4805,12 @@
     "fix_template": null,
     "confidence": 0.8,
     "owning_team": "Admin",
-    "last_notified_at": "2026-08-20T13:54:36Z",
+    "last_notified_at": "2026-09-17T14:30:00Z",
     "notes": [
+      {
+        "ts": "2026-09-17T14:30:00Z",
+        "note": "2026-09-17 14:30Z triage (degraded cycle, no Slack MCP): occ 3->4 via monitor 227940275 last_triggered 13:48:35Z (OK by scan time), hash f593bc996416df67. Corrected a bare match_kb.py hit that pointed at ki-2026-07-06 (text-matched 'Redis Errors is High') -- by-service DD metric breakdown for the exact 5min eval window (13:43:35-13:48:35Z) showed 0 errors on runtime-core-api and all errors (nonprod/apps) scoped there, per this entry's own precedence_note. ES evidence_query re-run 13:18:35-13:48:35Z: 8 hits, all nonprod/apps, all StackExchange.Redis.RedisServerException CROSSSLOT inside RedisCacheExtended.FlushEndpointWithLuaAsync -- 2 accounts affected (staplesenterprises4, suntreksolar), both via DELETE /apps/api/cache/account from method-platform-ui. last_notified_at (2026-08-20T13:54:36Z) far past 24h window -> POSTED to #triage-results, gate_reason=null (window-expiry). fix_status 'needs-human' unchanged -- no fix_jira filed yet. See docs/investigations/2026-09-17-f593bc996416df67.md."
+      },
       {
         "ts": "2026-08-14T14:08:05Z",
         "note": "2026-08-14 ~14:08Z triage (degraded cycle, no Slack MCP, DD monitor scan diff vs 2026-08-14T12:35:11Z cutoff): monitor 227940275 recovered-OK 13:19:35Z, hash 3169429e58035f6a. Both standing candidate KB entries formally refuted for this occurrence: ki-2026-07-06's evidence_query (level.keyword:Error AND fields.dd_service.keyword:runtime-core-api AND messageTemplate.keyword:\"Redis operation timed out after 5 seconds\") = 0 hits over the eval window; ki-2026-07-07's evidence_query (fields.dd_service.keyword:runtime-core-api AND message.keyword:\"Session Token Expiry Failed\") = 0 hits. DD metric sum:trace.redis.command.errors{env:prod} by {service} over 12:35:11-13:24:35Z: exactly 2 points, both service:nonprod/apps (1 at 13:02:30Z, 8 at 13:13:00Z) -- 0 on any other service, same shape as the 2026-07-31 occurrence (hash 43c326afb17cc913) that first identified nonprod/apps as this monitor's other real source. Unlike that first occurrence, this time the ES sample pinned the exact mechanism: 6 hits for 'Error clearing cache items async > Area: Account, Group: , AccountName: ' in the window, all StackExchange.Redis.RedisServerException 'ERR Command del in script attempted to access keys that don't hash to the same slot' at 13:13:00.86-13:13:01.31Z (local -05:00 = 08:13:00.86-08:13:01.31), traced to Method.Phoenix.Common.Caching.RedisCacheExtended.FlushEndpointWithLuaAsync -> RedisCache.FlushAsync. Historical check: this exact message has 469 hits service-wide (all nonprod/apps) over 2026-07-01 to 2026-08-14 -- chronic, high-volume, mostly sub-threshold. Given this is now the 2nd confirmed occurrence of the nonprod/apps shape (1st with the exact CROSSSLOT signature pinned) and evidence is robust (concrete stack trace + reproducible ES query + 6.5-week historical volume), writing this as its own KB entry per the standing 'watch for recurrence, warrants its own entry' note left on the 2026-07-31 investigation report, and to stop match_kb.py's bare-id first-match-wins trap from defaulting future nonprod/apps fires to the wrong runtime-core-api-scoped sibling entries. Scored as needs-human: critical_path_services_match 0 (nonprod/apps not in critical_path_services), active_users_affected 0 (blank AccountName -- no account attribution possible, system/session-level flush), deploy_correlation 0 (methodcrm-org GH_TOKEN 403 gap, method-nativemobile-ui not fetchable), metric_breach_magnitude 0 (re-queried sum landed at 9, just under the monitor's own >10 threshold -- another instance of the documented DD Metrics-API resampling gap, monitor evaluator saw something the re-query didn't fully capture), account_tier 0, group_size 0 (singleton), cross_channel_corroboration 0 (not verifiable, no Slack MCP), novel +2 (no matched_kb, no prior alert_hash in 7d), swat_thread_corroboration 0 (not checkable), matched_kb_inhibition 0 (none), operator_engagement 0 (not checkable), recent_post_same_kb 0 (n/a, first-ever notify on this new entry), monitor_history -1 (monitor_id 227940275: fire_count 8 in last 30d, dm_count 1, dm_rate 0.125 -> bracket 0.1-0.4), recency_decay 0 (1st fire today for this monitor) = total escalation_score 1, below actionable_score_threshold(2) -> logged to docs/actionable/2026-08-14.md as a terse low-impact line, gate_reason=low-impact, no post to #triage-results, no DM (self-DM sent separately as a kb-update confirmation per the false-alarm-style KB-write convention). See docs/investigations/2026-08-14-3169429e58035f6a.md."
@@ -4803,7 +4819,8 @@
         "ts": "2026-08-20T13:54:36Z",
         "note": "2026-08-20 ~13:54Z triage (degraded cycle, no Slack MCP, DD monitor scan-diff vs 13:04:12Z cutoff): monitor 227940275 recovered-OK 13:54:36Z, hash cc8d68eb69e64a66. Fresh by-service breakdown per standing practice: broad message:*Redis* sweep found 9 hits but ALL on runtime-core-api with a different signature ('Redis operation cancelled', 2 diffuse accounts) that does not match any of the 3 known Redis KB entries and is NOT tagged by the monitor's own metric (trace.redis.command.errors by {service} carried only service:nonprod/apps in this window, 5 points, sum ~7.0) -- confirms this occurrence is this entry's mechanism, not a coincidence. ES evidence_query confirmed 11/11 hits on nonprod/apps, same CROSSSLOT signature and same Lua script hash (474bf3366059b56081122d19eafc6fc1e02aa237) as 2026-08-14. NEW: unlike both prior occurrences (blank AccountName), all 11 hits this time carry a concrete AccountName (mvwd, AccountId 76657) via DELETE /apps/api/cache/account -- first occurrence where the flush is attributable to a specific customer account rather than a system/session-level operation. account_impact.py returned not_found for mvwd (clusters prod3/prod4/prod5 unconfigured this session) -- user-count impact not resolvable, recorded as a coverage gap. last_notified_at was null (first-ever notify on this entry) -> POSTED to #triage-results per gate rule (not a severity judgment call). See docs/investigations/2026-08-20-cc8d68eb69e64a66.md."
       }
-    ]
+    ],
+    "prior_last_notified_at": "2026-08-20T13:54:36Z"
   },
   {
     "id": "ki-billingengine-api-key1-removed-in-refactor",
