@@ -4071,8 +4071,8 @@
     "id": "ki-2026-07-07-notifications-p95-latency-monitor-noise",
     "title": "[CRM][P2] notifications P95 latency high monitor fires but re-query of the same evaluation window shows the metric never approaches the threshold -- monitor/data artifact, not real latency",
     "first_seen": "2026-07-06T10:01:07Z",
-    "last_seen": "2026-09-16T08:43:07Z",
-    "occurrences": 45,
+    "last_seen": "2026-09-17T08:43:07Z",
+    "occurrences": 46,
     "match": {
       "channels": [
         "alert-system",
@@ -4203,6 +4203,10 @@
       {
         "ts": "2026-09-02T11:07:51Z",
         "note": "2026-09-02 ~11:07Z triage (degraded cycle, no Slack MCP; DD-scan-diff vs prior cutoff 2026-09-01T21:05:09Z). Monitor 302056327 fired 2026-09-02T08:43:07Z, hash a02ba3507a341301, occ 43->44. p95:trace.aspnet.request{service:notifications,env:prod} over the exact 10-min eval window (08:33:07-08:43:07Z): 60 points, range 0.001-0.042s -- clean non-reproduction, no rollup-artifact single-point spike this occurrence. last_notified_at was 2026-08-31T08:43:07Z, ~50h25m ago -- EXCEEDS 24h suppression window -> POST to #triage-results, gate_reason=null (window-expiry), last_notified_at bumped to 2026-09-02T08:43:07Z. See docs/investigations/2026-09-02-a02ba3507a341301.md."
+      },
+      {
+        "ts": "2026-09-17T08:43:07Z",
+        "note": "2026-09-17 ~11:10Z triage (degraded cycle). Monitor 302056327 fired 2026-09-17T08:43:07Z, hash 09c3c68ccefaa0d3, occ 45->46. Re-queried p95:trace.aspnet.request{service:notifications,env:prod} over exact 10-min eval window (08:33:07-08:43:07Z): 60 points, max 0.041s, avg 0.020s -- clean non-reproduction, same as all 45 prior occurrences. 0 status:error DD logs on service:notifications in-window. last_notified_at (2026-09-16T08:43:07Z) is EXACTLY 24h00m00s before this fire -- boundary case, does NOT exceed 24h suppression_window_hours (consistent with the 2026-08-30 precedent) -- SUPPRESS, gate_reason=known-issue-window, last_notified_at unchanged."
       }
     ]
   },
