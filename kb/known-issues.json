@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-09-23T17:51:11Z",
-    "occurrences": 767,
+    "last_seen": "2026-09-23T18:58:12Z",
+    "occurrences": 768,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -811,6 +811,10 @@
       {
         "ts": "2026-09-17T21:11:15Z",
         "note": "2026-09-17 ~21:09Z triage (degraded cycle, DD-scan-diff vs prior cutoff 20:08:11Z): occ 764->765 via monitor 77419271, last_triggered_ts 20:13:12Z, overall_state Warn at scan time (active, not a recovery-transition artifact -- overall_state_modified 21:09:11Z post-dates last_triggered_ts, consistent with an ongoing/still-firing window rather than a stale snapshot). Synthetic hash 707fe7eafa333e8b (channel C03TYHGRS23 + DD monitor ts 20:13:12Z). ES aggregate (kb_to_es_query.py output + GetSyncWidgetInfoAsync regex clause manually restored per standing kb_to_es_query.py drop-bug) over 20:13:12-21:11:15Z: 699 hits, 100% service:gateway -- confirms chronic Ocelot ResponderMiddleware mechanism, no new signature. No ki-24 co-fire this cycle (only 1 in-scope candidate from the scan diff). last_notified_at (2026-09-17T14:40:00Z) ~6h31m old, well under 24h suppression_window_hours; occurrences%10=5, not every-10th; fix_status unchanged (chronic-residual-post-rollback-2026-06-05) since last notify -- suppressed under known-issue-window gate."
+      },
+      {
+        "ts": "2026-09-23T18:58:12Z",
+        "note": "2026-09-23 ~19:35Z triage (degraded cycle, no Slack MCP surfaced this session; DD-scan-diff vs prior cutoff 2026-09-23T18:08:38Z). occ 767->768 via monitor 77419271 last_triggered 18:58:12Z, hash d14a3fd81f7702d5 (OK at scan time, self-recovered). ES aggregate (GetSyncWidgetInfoAsync regex clause manually restored per standing kb_to_es_query.py drop bug) 18:38:12-18:58:12Z: 429 hits, 100% service:gateway -- confirms Ocelot ResponderMiddleware mechanism. 24h-ago baseline same window: 452 hits (-5%) -- chronic, not a regression. No ki-24 co-fire this cycle (RTC monitors 115456700/117279738 both quiet, last_triggered_ts null in this scan). last_notified_at (2026-09-23T17:51:11Z) ~1h7m ago, WITHIN 24h suppression window; occ 768 not %10; fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS, gate_reason=known-issue-window, appended to docs/actionable/2026-09-23.md. See docs/investigations/2026-09-23-d14a3fd81f7702d5.md."
       }
     ],
     "prior_last_notified_at": "2026-09-16T19:17:11Z"
