@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-09-24T11:34:11Z",
-    "occurrences": 773,
+    "last_seen": "2026-09-24T14:05:12Z",
+    "occurrences": 774,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -819,6 +819,10 @@
       {
         "ts": "2026-09-23T18:58:12Z",
         "note": "2026-09-23 ~19:35Z triage (degraded cycle, no Slack MCP surfaced this session; DD-scan-diff vs prior cutoff 2026-09-23T18:08:38Z). occ 767->768 via monitor 77419271 last_triggered 18:58:12Z, hash d14a3fd81f7702d5 (OK at scan time, self-recovered). ES aggregate (GetSyncWidgetInfoAsync regex clause manually restored per standing kb_to_es_query.py drop bug) 18:38:12-18:58:12Z: 429 hits, 100% service:gateway -- confirms Ocelot ResponderMiddleware mechanism. 24h-ago baseline same window: 452 hits (-5%) -- chronic, not a regression. No ki-24 co-fire this cycle (RTC monitors 115456700/117279738 both quiet, last_triggered_ts null in this scan). last_notified_at (2026-09-23T17:51:11Z) ~1h7m ago, WITHIN 24h suppression window; occ 768 not %10; fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS, gate_reason=known-issue-window, appended to docs/actionable/2026-09-23.md. See docs/investigations/2026-09-23-d14a3fd81f7702d5.md."
+      },
+      {
+        "ts": "2026-09-24T14:05:12Z",
+        "note": "2026-09-24 ~14:07Z triage (degraded cycle, no Slack MCP surfaced this session; DD-scan-diff vs prior cutoff 2026-09-24T13:04:38Z). monitor 77419271 fired 14:05:12Z, hash 16ce453e96da93da, occ 773->774. ES aggregate (kb_to_es_query.py regex-drop bug recurred again -- GetSyncWidgetInfoAsync manually restored) 13:35:12-14:05:12Z: 396 hits, 100% gateway; 24h-ago baseline 352 hits (+12.5%) -- chronic, not an escalation. last_notified_at (2026-09-23T21:15:00Z) ~16h50m ago, WITHIN 24h suppression window; occ 774 not %10 -> SUPPRESS, gate_reason=known-issue-window, appended to docs/actionable/2026-09-24.md. See docs/investigations/2026-09-24-16ce453e96da93da.md."
       }
     ],
     "prior_last_notified_at": "2026-09-16T19:17:11Z"
@@ -827,8 +831,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-09-23T16:53:20Z",
-    "occurrences": 287,
+    "last_seen": "2026-09-24T13:35:20Z",
+    "occurrences": 288,
     "match": {
       "channels": [
         "alert-system",
@@ -1079,6 +1083,10 @@
       {
         "ts": "2026-08-31T15:20:00Z",
         "note": "2026-08-31 15:20Z triage (degraded cycle, no Slack MCP -- DD monitor scan diff): occ#280 via monitor 115456700 last_triggered 14:47:21Z (OK now, self-recovered). Synthetic hash bd9cbc7bbb8b9063 (channel CPHHABKAA + monitor ts 14:47:21Z). DD APM p95 metric on runtime-core-api resource_name post_/api/v1/runtime/load/_screenid* over 14:27:21-14:47:21Z: 6 points >3.0s clustered in a 70s burst 14:39:20-14:40:30Z, peak 10.08s at 14:40:10Z, rest of window flat 0.7-2.3s. Confirmed latency-only: service:runtime-core-api status:error env:prod same window = 0 hits, matches documented latency-only-no-errors signature. No ki-21 co-fire this cycle in the joint-treatment sense: ki-21 (monitor 77419271) fired 7 min later (14:54:12Z) but each is a singleton (1 alert), so precedence_note co-fire criterion (>=2 alerts each in same 60-min window) not met -- proximity noted, not treated as joint shared-upstream incident, consistent with prior precedent (e.g. 2026-07-13 note). last_notified_at (2026-08-30T11:49:18Z) ~27h22m ago (eval time 2026-08-31T15:11:34Z), PAST 24h suppression window -> POST gate_reason=null, last_notified_at bumped to now. occ 279->280 (not %10, window naturally elapsed). fix_status (investigating) unchanged. See docs/investigations/2026-08-31-bd9cbc7bbb8b9063.md."
+      },
+      {
+        "ts": "2026-09-24T13:35:20Z",
+        "note": "2026-09-24 ~14:07Z triage (degraded cycle, no Slack MCP surfaced this session; DD-scan-diff vs prior cutoff 2026-09-24T13:04:38Z). monitor 115456700 fired 13:35:20Z, hash bc7b65fd7228e008, occ 287->288. p95:trace.aspnet_core.request{env:prod,service:runtime-core-api,resource_name:post_/api/v1/runtime/load/_screenid*} over 13:05:20-13:35:20Z: 25/180 points over the 3.0s threshold, peak 9.77s at 13:22:40Z, cluster tightly spans 13:21:30-13:28:50Z. service:runtime-core-api status:error env:prod DD Logs same window: 0 hits, confirming latency-only. last_notified_at (2026-09-23T16:53:20Z) ~21h WITHIN 24h suppression window; occ 288 not %10; fix_status (investigating) unchanged -> SUPPRESS, gate_reason=known-issue-window, appended to docs/actionable/2026-09-24.md. See docs/investigations/2026-09-24-bc7b65fd7228e008.md."
       }
     ],
     "owning_team": "Vertical App Experience"
@@ -4501,8 +4509,8 @@
     "id": "ki-2026-07-12-rest-api-tables-endpoint-5xx-recurring-burst",
     "title": "rest-api POST /api/{version}/tables/{table} recurring 5xx burst (APM-only, self-recovering, no error-log trace)",
     "first_seen": "2026-07-12T02:40:38Z",
-    "last_seen": "2026-09-24T13:04:38Z",
-    "occurrences": 10,
+    "last_seen": "2026-09-24T13:15:38Z",
+    "occurrences": 11,
     "match": {
       "channels": [
         "alert-system"
@@ -4564,6 +4572,10 @@
       {
         "ts": "2026-09-24T13:04:38Z",
         "note": "2026-09-24 ~13:08Z triage (degraded cycle, no Slack MCP -- ToolSearch probed \"slack conversations history mcp\" and \"slack\", no matching deferred tool found, standing gap; DD-scan-diff vs prior cutoff 2026-09-24T11:34:11Z, fresh 189-monitor scan, no count regression). monitor 70171778 fired 13:04:38Z, hash e3e8674dae1c6308, occ 9->10. By-service 5xx breakdown 12:34:38-13:04:38Z (30min): rest-api 37 (86%), gateway 3, ms-scheduler-api 2, method-mobile-notifications-api 1 -- total 43. By-resource on rest-api: 37/37 (100%) patch_/api/v_version_/tables/_table_/_recordid -- 3rd consecutive PATCH-dominant occurrence (same shape as 2026-09-23T19:25:00Z and 2026-09-24T03:15:38Z). This entry's exact evidence_query (post_/api/v_version_/tables/_table) returned 0 hits -- PARTIAL reproduction on the literal query, but family-level tables/{table} concentration (100%) confirms the mechanism. +32% vs 24h-ago baseline (37 vs 28) -- modest elevation, not an outsized burst. service:rest-api status:error env:prod DD Logs same window: 0 hits, consistent with the documented APM-only signature. Treated as confirmed-on-mechanism (not refuted); confidence downgraded to 0.55 for the literal-query mismatch. last_notified_at (2026-09-23T17:15:38Z) ~19h49m ago, WITHIN the 24h suppression window -- but occ just bumped 9->10, triggering the every-10th-occurrence resurface rule -> POSTED to #triage-results, gate_reason=known-issue-occurrence-resurface. See docs/investigations/2026-09-24-e3e8674dae1c6308.md."
+      },
+      {
+        "ts": "2026-09-24T13:15:38Z",
+        "note": "2026-09-24 ~14:07Z triage (degraded cycle, no Slack MCP surfaced this session; DD-scan-diff vs prior cutoff 2026-09-24T13:04:38Z). monitor 70171778 fired 13:15:38Z, hash 5ed2104fd6b70f1b, occ 10->11 -- only ~11min after the prior occurrence (13:04:38Z, occ 10, posted via 10th-occurrence resurface). By-service 5xx breakdown 12:45:38-13:15:38Z (30min): rest-api 85 (91.4%), gateway 4, ms-scheduler-api 3, method-mobile-notifications-api 1 -- total 93. By-resource on rest-api: patch_/api/v_version_/tables/_table_/_recordid 84 (98.8%), get_..._table 1 (1.2%) -- 4th CONSECUTIVE PATCH-dominant occurrence (following 2026-09-23T19:25:00Z, 2026-09-24T03:15:38Z, 2026-09-24T13:04:38Z); entry's literal POST evidence_query returned 0 hits again (partial reproduction on the exact query, family-level tables/{table} concentration at 100% confirms the mechanism). -15.2% vs 24h-ago baseline (84 vs 99) -- chronic, not an escalation. 0 DD Logs hits, consistent with the APM-only signature. Treated as confirmed-on-mechanism; confidence downgraded to 0.55. last_notified_at (2026-09-24T13:04:38Z) only ~11min old, well WITHIN 24h suppression window; occ 11 not %10; fix_status (recurring-unconfirmed-root-cause) unchanged -> SUPPRESS, gate_reason=known-issue-window, appended to docs/actionable/2026-09-24.md. Flagging (again) that 4 consecutive PATCH-dominant occurrences warrants a future KB refinement to broaden evidence_query beyond the single POST literal. See docs/investigations/2026-09-24-5ed2104fd6b70f1b.md."
       }
     ]
   },
