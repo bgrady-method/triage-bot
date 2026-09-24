@@ -132,8 +132,8 @@
     "id": "ki-2026-05-21-gateway-microservices-timeout",
     "title": "ms-gateway-api Ocelot timeouts proxying to microservices.methodlocal.int (sync-util / preferences / account paths)",
     "first_seen": "2026-05-20T16:00:00Z",
-    "last_seen": "2026-09-24T09:11:11Z",
-    "occurrences": 772,
+    "last_seen": "2026-09-24T11:34:11Z",
+    "occurrences": 773,
     "match": {
       "channels": [
         "alert-frontend-errors"
@@ -160,6 +160,10 @@
     "last_notified_at": "2026-09-23T21:15:00Z",
     "prior_fix_status": "chronic-residual-post-rollback-2026-06-05",
     "notes": [
+      {
+        "ts": "2026-09-24T11:34:11Z",
+        "note": "2026-09-24 12:09Z triage (degraded cycle, DD-scan-diff vs prior cutoff 2026-09-24T10:58:26Z): occ 772->773 via monitor 77419271 last_triggered 11:34:11Z (OK by scan time, self-recovered). Only 1 in-scope candidate this cycle. Synthetic hash 52ed1ce92dfda990 (channel C03TYHGRS23 + DD monitor ts 11:34:11Z). ES aggregate (GetSyncWidgetInfoAsync regex clause manually restored per standing kb_to_es_query.py drop bug) 11:14:11-11:34:11Z: 38 hits, 100% service:gateway -- confirms Ocelot ResponderMiddleware mechanism. 24h-ago baseline same window: 44 hits (-13.6%) -- chronic, not a regression. DD method-ui XHR error sample (100 records, broader query not scoped to ki-21 signature): 37 distinct accounts, top fujimats 25/100 (25%, mostly /apps/manage/fujimats/LegacyPermissions -- not the canonical GetSyncWidgetInfoAsync path) -- single-account concentration noted as a minor shape deviation (not actioned; consistent with prior single-account-burst non-incidents e.g. 2026-08-16 tcg3/capitalcoinco3). last_notified_at (2026-09-23T21:15:00Z) ~14h19m ago, WITHIN 24h suppression window; occ 773 not %10; fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS gate_reason=known-issue-window, appended to docs/actionable/2026-09-24.md. See docs/investigations/2026-09-24-52ed1ce92dfda990.md."
+      },
       {
         "ts": "2026-09-17T16:36:12Z",
         "note": "2026-09-17 ~17:10Z triage (degraded cycle, DD-scan-diff vs prior cutoff 14:03:12Z): occ 760->761 via monitor 77419271 last_triggered 16:36:12Z (OK by scan time, self-recovered). Synthetic hash 00bacba117afe526 (channel C03TYHGRS23 + DD monitor ts 16:36:12Z). Prior scan (15:10Z cycle) had already confirmed the 14:42:11Z transition was a recovery-transition artifact of occ 760 (not double-counted); this 16:36:12Z transition is a distinct, later state-modification event (~2h gap, no candidate found in between at the 15:10Z scan), so treated as a genuinely new occurrence per standing DD-scan-diff protocol. ES aggregate (GetSyncWidgetInfoAsync, regex clause manually restored per kb_to_es_query.py drop bug) over the full 14:42:11-16:36:12Z window: 2431 hits, 100% service:gateway -- confirms Ocelot ResponderMiddleware mechanism, chronic. DD method-ui error logs sample (service:method-ui status:error, 100-record sample): diffuse across accounts, top texasmetalcarports 8/100 (8%) -- canonical diffuse chronic shape, no single-account concentration; extrapolation branch 1 (infrastructure-shaped, gateway/microservices.methodlocal.int pool) applies, not account-specific. No ki-24 co-fire meeting the >=2-alerts-each threshold this cycle (115456700 fired once, occ 285, separate group) -- proximity noted (ki-24 breach window ~15:17-15:25Z sits inside this ki-21 evidence window) but not merged per 2026-07-13 precedent. last_notified_at (2026-09-17T14:40:00Z) ~2h30m ago, WITHIN 24h suppression window; occ 761 not %10; fix_status chronic-residual-post-rollback-2026-06-05 unchanged -> SUPPRESS, gate_reason=known-issue-window, appended to docs/actionable/2026-09-17.md. See docs/investigations/2026-09-17-00bacba117afe526.md."
