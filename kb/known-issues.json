@@ -1671,8 +1671,8 @@
     "id": "ki-2026-07-02-tables-fields-fieldtablenameref-null-linked-fields",
     "title": "ms-tables-fields-api ArgumentNullException on account-specific linked fields with null FieldTableNameRef -- App Update SaveViewBundleInternal fails 400 (chronic, account-specific)",
     "first_seen": "2026-05-28T17:27:49Z",
-    "last_seen": "2026-09-21T22:12:24Z",
-    "occurrences": 16,
+    "last_seen": "2026-09-24T20:16:24Z",
+    "occurrences": 17,
     "match": {
       "channels": [
         "alert-system",
@@ -1704,8 +1704,12 @@
     "fix_template": null,
     "confidence": 0.75,
     "owning_team": "Admin",
-    "last_notified_at": "2026-09-21T22:12:24Z",
+    "last_notified_at": "2026-09-24T20:16:24Z",
     "notes": [
+      {
+        "ts": "2026-09-24T20:16:24Z",
+        "note": "2026-09-24 ~20:16Z triage (degraded cycle, no Slack MCP surfaced this session): occ#17 via DD monitor 299251404 last_triggered 20:16:24Z (OK by scan time, self-recovered). DD APM sum:trace.aspnet_core.request.errors{env:prod,service:tables-fields}.as_count()/sum:trace.aspnet_core.request.hits{...}.as_count() over 19:49:24-20:24:24Z: single-bucket peak 4.11% @20:09:30Z vs 1% threshold (ratio ~3.11), all other 10s buckets 0 -- same small-denominator per-minute-bucket shape as prior occurrences. ES fields.dd_service.keyword:tables-fields AND level.keyword:Error, same window: 86 hits total -> message.keyword aggregation top buckets FieldTableNameRef Is Null (18), GetAllFields Failed (18), GetColumnForAllFields failed (18), FieldTableNameRef Is Null (Parameter 'FieldTableNameRef') (9), GetFieldList Failed (6) -- matches THIS entry's documented signature exactly, ruling out the other tables-fields KB entries. 7 distinct dd_trace_id (42/23/9/6/4/1/1 hits); full-record read of the dominant trace (42 hits, 6ab52ad200000000acd38ff72f3607de) confirms ActionName API.Controllers.FieldController.SaveViewBundleInternal, RequestPath /v1/field/SaveViewBundleInternal -- matches documented pipeline, but no fields.Account correlation recoverable at this call site this time (searched message.keyword:\"App Update - Failed\" in-window, 0 hits) -- same account-blind-spot variant seen at occ#9/#11. last_notified_at (2026-09-21T22:12:24Z) was ~2d22h04m ago -- EXCEEDED 24h suppression window -> POSTED to #triage-results, gate_reason=null (window-expiry). See docs/investigations/2026-09-24-1b37f3e38e799a01.md."
+      },
       {
         "ts": "2026-07-13T18:23:31Z",
         "note": "2026-07-13 18:23Z triage (degraded cycle, DD monitor scan diff -- widened diff to ALL last_triggered_ts > prior cutoff 2026-07-13T17:02:08Z, not just currently-Alert/No-Data; hash fa007b4590aa0fa3): occ#9 via monitor 299251404 last_triggered 2026-07-13T17:52:24Z (OK by scan time, self-recovered). Re-verified against the standing bare-monitor-id false-match risk (this monitor now backs 3 distinct KB entries -- this one, ki-2026-07-06-tables-fields-alter-column-ddl-syntax-error, and ki-2026-07-09-tables-fields-getfieldnames-duplicate-key-shippingaddress): ES aggregate fields.dd_service.keyword:tables-fields AND level.keyword:Error, 17:30:00-18:10:00Z, returned 18 hits across 6 traces, top buckets FieldTableNameRef Is Null(4)/GetAllFields Failed(4)/GetColumnForAllFields failed(4)/GetFields Failed(4) -- matches THIS entry's signature exactly, ruling out the other two. DD APM error-rate metric (sum:trace.aspnet_core.request.errors{env:prod,service:tables-fields}.as_count()/sum:trace.aspnet_core.request.hits{...}.as_count()) peaked 22.2% @17:46:10Z vs 1% threshold (ratio ~21, small-denominator per-minute bucket consistent with the documented low-absolute-volume fan-out shape). NEW NUANCE: sample ES record shows ActionName API.Controllers.FieldController.GetFields, RequestPath /v1/field/GetFields -- a DIRECT live API call, not the SaveViewBundleInternal / App Update Consumer background pipeline seen in all 8 priors. Same exception (ArgumentNullException, 'FieldTableNameRef Is Null') and same underlying null-metadata condition -- consistent with this entry's own diagnosis that MetadataDataProvider.cs throws from 2 call sites for the same root cause. No account name recoverable from this endpoint's log lines (ActionId not account-scoped at this call site, unlike the App-Update-Consumer path). last_notified_at (2026-07-09T20:02:24Z) was ~3d21h50m ago -- EXCEEDED 24h suppression window -> POSTED to #triage-results, gate_reason=null (window-expiry), last_notified_at bumped to 2026-07-13T18:23:31Z. See docs/investigations/2026-07-13-fa007b4590aa0fa3.md."
