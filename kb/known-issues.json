@@ -4501,8 +4501,8 @@
     "id": "ki-2026-07-12-rest-api-tables-endpoint-5xx-recurring-burst",
     "title": "rest-api POST /api/{version}/tables/{table} recurring 5xx burst (APM-only, self-recovering, no error-log trace)",
     "first_seen": "2026-07-12T02:40:38Z",
-    "last_seen": "2026-09-24T03:15:38Z",
-    "occurrences": 9,
+    "last_seen": "2026-09-24T13:04:38Z",
+    "occurrences": 10,
     "match": {
       "channels": [
         "alert-system"
@@ -4525,9 +4525,9 @@
     "fix_status": "recurring-unconfirmed-root-cause",
     "fix_jira": null,
     "fix_template": null,
-    "confidence": 0.7,
+    "confidence": 0.55,
     "owning_team": "unmapped",
-    "last_notified_at": "2026-09-23T17:15:38Z",
+    "last_notified_at": "2026-09-24T13:04:38Z",
     "notes": [
       {
         "ts": "2026-07-12T02:40:38Z",
@@ -4560,6 +4560,10 @@
       {
         "ts": "2026-09-24T03:15:38Z",
         "note": "2026-09-24 degraded cycle: monitor 70171778 fired 03:15:38Z, hash 634b512937290659, occ 8->9. 28 total 5xx: 24 PATCH-by-recordid (85.7%), 4 GET (14.3%); entry's exact POST-resource evidence_query returned 0 hits -- PARTIAL reproduction, same PATCH-dominant shape as the 2026-09-23T19:25:00Z occurrence. +180% vs 24h-ago baseline (28 vs 10). Confidence downgraded to 0.55; family-level tables/{table} concentration still holds -> treated as confirmed-on-mechanism, occurrence bumped. last_notified_at (2026-09-23T17:15:38Z) ~10h old, WITHIN 24h window -> SUPPRESS, gate_reason=known-issue-window."
+      },
+      {
+        "ts": "2026-09-24T13:04:38Z",
+        "note": "2026-09-24 ~13:08Z triage (degraded cycle, no Slack MCP -- ToolSearch probed \"slack conversations history mcp\" and \"slack\", no matching deferred tool found, standing gap; DD-scan-diff vs prior cutoff 2026-09-24T11:34:11Z, fresh 189-monitor scan, no count regression). monitor 70171778 fired 13:04:38Z, hash e3e8674dae1c6308, occ 9->10. By-service 5xx breakdown 12:34:38-13:04:38Z (30min): rest-api 37 (86%), gateway 3, ms-scheduler-api 2, method-mobile-notifications-api 1 -- total 43. By-resource on rest-api: 37/37 (100%) patch_/api/v_version_/tables/_table_/_recordid -- 3rd consecutive PATCH-dominant occurrence (same shape as 2026-09-23T19:25:00Z and 2026-09-24T03:15:38Z). This entry's exact evidence_query (post_/api/v_version_/tables/_table) returned 0 hits -- PARTIAL reproduction on the literal query, but family-level tables/{table} concentration (100%) confirms the mechanism. +32% vs 24h-ago baseline (37 vs 28) -- modest elevation, not an outsized burst. service:rest-api status:error env:prod DD Logs same window: 0 hits, consistent with the documented APM-only signature. Treated as confirmed-on-mechanism (not refuted); confidence downgraded to 0.55 for the literal-query mismatch. last_notified_at (2026-09-23T17:15:38Z) ~19h49m ago, WITHIN the 24h suppression window -- but occ just bumped 9->10, triggering the every-10th-occurrence resurface rule -> POSTED to #triage-results, gate_reason=known-issue-occurrence-resurface. See docs/investigations/2026-09-24-e3e8674dae1c6308.md."
       }
     ]
   },
