@@ -549,8 +549,8 @@
     "reason": "DD RUM Error Tracking for service:method-nativemobile-ui over the trailing 4h (2026-07-14T19:00-23:30Z): 181 @type:error events vs 1464 @type:view events = 12.4% error rate (monitor threshold >5%). Message breakdown of all 181 sampled errors: 83 'A server with the specified hostname could not be found.' (DNS resolution failure, 45.9%), 74 'cancelled' (request cancelled mid-flight, typically app backgrounding/navigation-away, 40.9%), 12 'A TLS error caused the secure connection to fail.' (6.6%), plus small counts of 'Network Error'/'offline'/Expo-token-fetch failures. Every message is a client-side network-connectivity signature (DNS/TLS/cancellation on mobile devices with flaky connectivity) -- none are application-level 4xx/5xx or server-side exceptions. No correlated backend service alert fired in the same window. This is inherent RUM noise from real-world mobile network conditions, not a backend incident. 2026-09-24T10:17:08Z (this occurrence): RUM re-query trailing 4h (06:17:08-10:17:08Z) returned 6 hits: 3x 'cancelled' (catalogued class), 1x 'Memory Warning' (device-level, benign, unrelated to network), 2x 'Push registration failed (register-token/launch-token): ...IOException: INTERNAL_SERVER_ERROR' -- not verbatim catalogued here but same GMS/FCM-token-fetch-IOException family documented under sibling entry fa-2026-09-16-nativemobile-push-registration-transient-network-gms (which itself has absorbed new IOException variant strings each occurrence). No backend/server-side correlation (0 hits service:method-nativemobile-ui/nonprod-apps status:error). Still classic mobile-client noise, cross-referenced against the sibling entry rather than a clean verbatim match -- flagged for future attention if INTERNAL_SERVER_ERROR becomes a dominant class.",
     "silence_for": "24h",
     "first_seen": "2026-07-14T23:01:19Z",
-    "last_seen": "2026-09-24T19:58:09Z",
-    "occurrences": 61,
+    "last_seen": "2026-11-19T13:58:08Z",
+    "occurrences": 62,
     "recommendation": "monitor threshold (>5% over trailing 4h) is too sensitive for a mobile RUM error-rate check that includes DNS/TLS/cancellation noise; recommend excluding 'cancelled' and DNS-resolution-failure messages from the numerator, or raising the threshold, before this becomes a recurring low-value fire; flag to Admin (owns method-nativemobile-ui per ownership.md, despite the monitor's team:crm tag). 3 occurrences in ~2.5 weeks now (2026-07-14, 2026-07-30, 2026-07-31) -- worth acting on rather than continuing to re-verify.",
     "notes": [
       {
@@ -1168,8 +1168,8 @@
     "reason": "DD metric sum:trace.aspnet.request.errors{service:methodportal.com/apps,env:prod} over 2026-07-26T05:26:27-06:06:27Z (+/-20min around the fire): exactly 1 error point (05:34:40Z, count=1.0). Monitor computes a >25% error-RATE over a 10-min window; a single raw error against a small request denominator during a quiet period trips the ratio threshold with negligible real impact. Same low-traffic-ratio-artifact mechanism as fa-2026-07-12-mapi-5xx-rate-low-traffic-ratio-artifact and fa-2026-07-23-methodportal-5xx-low-traffic-artifact (methodportal.com, without /apps), applied to the /apps sub-path variant. Rejected an initial match_kb.py hit against ki-2026-05-29-methodsession-getaccountbysubdomain-nre (bare 'ms-account-api'-adjacent match) -- ES query for that entry's own evidence (JWT Retrieval Failed / GetAccountBySubdomain / MethodSessionService) returned 0 hits in the window, refuting it.",
     "silence_for": "24h",
     "first_seen": "2026-07-26T05:46:27Z",
-    "last_seen": "2026-09-21T03:23:27Z",
-    "occurrences": 3,
+    "last_seen": "2026-11-04T04:46:27Z",
+    "occurrences": 4,
     "recommendation": "Same recommendation as the sibling low-traffic-ratio-artifact entries: consider widening the monitor eval window or adding a minimum-request-count floor so a single error cannot trip a percentage threshold during low-traffic periods."
   },
   {
@@ -1191,8 +1191,8 @@
     "reason": "eda_orchestrator_api Kafka-produce error-ratio monitor (sum(last_5m):100 * errors/hits > 1%). DD metric re-query for the alert window (09:50:13-10:30:13Z) shows a legitimate traffic burst (baseline ~5-135 hits/10s climbing to ~2,900 hits/10s for ~90s right before the trigger) against exactly 1 total produce error in the whole 40-min window -- nowhere near a genuine 1% error rate over any real interval. 0 status:error DD logs on the service in-window. Same low-traffic/burst-ratio monitor-noise shape already documented on HTTP-status-ratio monitors (ki-2026-07-04-ms-account-api-4xx-spike-monitor-noise, ki-2026-07-07-gateway-4xx-spike-monitor-noise, fa-2026-07-12-mapi-5xx-rate-low-traffic-ratio-artifact), now confirmed on a Kafka-produce-ratio monitor too.",
     "silence_for": "24h",
     "first_seen": "2026-07-30T10:20:13Z",
-    "last_seen": "2026-09-13T21:11:12Z",
-    "occurrences": 2,
+    "last_seen": "2026-10-11T22:27:13Z",
+    "occurrences": 3,
     "notes": [
       {
         "ts": "2026-07-30T14:29:00Z",
@@ -1407,8 +1407,8 @@
     "reason": "Recurring Warn-level Twilio outbound SMS volume alert (monitor 314197080, threshold warn 800 / critical 1000 per rolling 24h). 5 occurrences over 9 days (2026-08-19, 2026-08-20, 2026-08-26 x3) all at consistent magnitude 800-836/24h -- normal business volume sitting at the warn line, not a spike. The monitor message itself documents \"normal peak ~750\" as its calibration baseline, which current organic volume has outgrown. Delivery-status breakdown consistently ~94% ok / <5% warn / <2% error across every occurrence -- no fraud or delivery-failure signature. ~77-84% of volume concentrated on a single messaging_service_sid each time, consistent with one legitimate high-volume customer workflow, not distributed abuse.",
     "silence_for": "24h",
     "first_seen": "2026-08-19T15:19:00Z",
-    "last_seen": "2026-09-09T17:49:00Z",
-    "occurrences": 7,
+    "last_seen": "2026-11-18T15:49:00Z",
+    "occurrences": 8,
     "recommendation": "Raise the monitor warn threshold (e.g. to ~950-1000) or switch to a rate-of-change / deviation-from-trailing-average check instead of an absolute daily-count threshold -- normal volume has organically grown past the original calibration. Flagging for the CRM team, not silencing indefinitely."
   },
   {
@@ -1458,7 +1458,8 @@
     "silence_for": "24h",
     "first_seen": "2026-09-03T13:17:27Z",
     "last_seen": "2026-09-03T13:17:27Z",
-    "occurrences": 1
+    "occurrences": 1,
+    "precedence_note": "2026-11-19: the 20:04-20:07Z fire was the prod-msl-03 memory-exhaustion host stall (load 314, swap 0%), not this entry's mechanism -- not bumped; see docs/investigations/2026-11-19-035c826a3e7aeef9.md"
   },
   {
     "target": "false-alarms",
@@ -1479,8 +1480,8 @@
     "reason": "Monitor avg(last_10m):p95:trace.aspnet.request{service:default_web_site/reportgenerationapi,env:prod} > 5. Re-query showed max p95 0.746s, fully recovered; 0 ES hits for reportgenerationapi/ReportGeneration in window. Distinct from the separate unfiled innuwindow2 DevExpress-layout/SQL-schema bug on monitor 316587947 (error-rate, not this p95-latency monitor) -- do not conflate.",
     "silence_for": "24h",
     "first_seen": "2026-09-03T20:29:38Z",
-    "last_seen": "2026-09-23T18:21:38Z",
-    "occurrences": 2
+    "last_seen": "2026-11-18T10:41:38Z",
+    "occurrences": 3
   },
   {
     "target": "false-alarms",
@@ -1502,7 +1503,8 @@
     "silence_for": "24h",
     "first_seen": "2026-09-11T14:58:17Z",
     "last_seen": "2026-09-11T14:58:17Z",
-    "occurrences": 1
+    "occurrences": 1,
+    "precedence_note": "2026-11-19: the 20:04-20:07Z fire was the prod-msl-03 memory-exhaustion host stall (load 314, swap 0%), not this entry's mechanism -- not bumped; see docs/investigations/2026-11-19-035c826a3e7aeef9.md"
   },
   {
     "target": "false-alarms",
@@ -1523,8 +1525,8 @@
     "reason": "DD RUM Error Tracking for method-nativemobile-ui push-token registration, trailing 4h (2026-09-16T14:44:45-18:44:45Z): 9 @context.push.failure_class errors (monitor threshold >=10 critical, >=5 warn -- Warn state only). Full sample breakdown: 5x 'Push registration failed (launch-token): Error encountered while fetching Expo token: TypeError: Network request failed.' (client-side network connectivity), 4x 'Push registration failed (register-token/launch-token): Fetching the token failed: java.util.concurrent.ExecutionException: java.io.IOException: SERVICE_NOT_AVAILABLE' (Android Google Play Services transiently unavailable -- a well-documented GMS condition, not a Method defect). Both failure classes are already classified by the app's utilities/pushRegistration.ts classifier (no 'unclassified' spike per the monitor's own message guidance). ES sweep for push/Expo backend correlation in the same window returned only unrelated services (sync-xero-subscriber, nonprod/apps) -- no method-nativemobile-ui or push-backend signal. No new failure mode; classic mobile-client transient-connectivity noise. 2026-09-17T17:04:46Z (3rd occurrence): RUM re-query trailing 4h (13:04:46-17:04:46Z) returned 5 hits (Warn threshold only): 2x Expo 'Network request failed', 2x GMS 'SERVICE_NOT_AVAILABLE' (same two known classes), plus 1 new string 'MISSING_INSTANCEID_SERVICE' -- also a well-documented transient Android/GMS Instance-ID-service condition, not flagged 'unclassified' by the app's own classifier guidance. Still classic mobile-client transient-connectivity/GMS noise, no backend signal. 2026-09-17T19:47:45Z (4th occurrence): RUM re-query trailing 4h (15:47:45-19:47:45Z) returned 16 hits (Warn threshold) -- composition shifted: this time DOMINANT class (10/16, 62.5%) is \"no valid ‘aps-environment’ entitlement string found for application\" (iOS push-entitlement config error), not previously seen under THIS monitor/entry but already documented as a well-understood benign client-config noise class under the sibling entry fa-2026-07-15-method-nativemobile-ui-rum-client-network-noise (dev/test-signed builds without prod push entitlements hitting prod telemetry). Remaining 6: 4x Expo launch-token \"Network request failed\", 1x register-token \"Network request failed\", 1x register-post \"Request failed with status code 401\" (single event, not repeated -- not treated as a backend signal). No unclassified strings; still classic mobile-client config/connectivity noise, cross-referenced against the sibling entry rather than a novel mechanism. 2026-09-17T22:05:45Z (5th occurrence): RUM re-query trailing 4h (18:05:45-22:05:45Z) returned 4 hits (below even the Warn threshold of 5, though the monitor's own evaluation already transitioned overall_state to Warn by 22:09:45Z -- likely small evaluation-window/indexing skew, not a magnitude escalation). Composition: 2x 'SERVICE_NOT_AVAILABLE' (GMS transient, already-catalogued class), 1x Expo launch-token 'Network request failed' (already-catalogued class), 1x register-post 'Request failed with status code 401' (single event, not repeated -- same isolated 401 pattern seen in the 4th occurrence, still not treated as a backend signal). No unclassified strings, no new failure mode. Still classic mobile-client transient-connectivity/GMS noise. 2026-09-23T20:22:45Z (7th occurrence): RUM re-query trailing 4h (16:22:45-20:22:45Z) returned 5 hits (below Warn threshold of 5 is not met -- threshold is >=5 so this is at the Warn boundary, monitor overall_state transitioned to Warn at 20:22:45Z). Composition: 5/5 (100%) 'Push registration failed (launch-token): Error encountered while fetching Expo token: TypeError: Network request failed.' -- single already-catalogued class this time, no GMS/iOS-entitlement/unclassified strings. Still classic mobile-client transient-connectivity noise. 2026-09-23T21:17:45Z (8th occurrence): RUM re-query trailing 4h (17:17:45-21:17:45Z) returned 4 hits, below Warn threshold of 5 despite monitor's overall_state_modified landing here (small evaluation-window skew, consistent with the 5th-occurrence pattern). Composition: 4/4 (100%) 'Push registration failed (launch-token): Error encountered while fetching Expo token: TypeError: Network request failed.' -- single already-catalogued class, no GMS/iOS-entitlement/unclassified strings. Still classic mobile-client transient-connectivity noise.",
     "silence_for": "24h",
     "first_seen": "2026-09-16T18:44:45Z",
-    "last_seen": "2026-09-24T16:27:45Z",
-    "occurrences": 10,
+    "last_seen": "2026-11-03T22:14:45Z",
+    "occurrences": 11,
     "note": " 2026-09-24T13:36:46Z (this occurrence): trailing 4h RUM (09:36:46-13:36:46Z) returned 143 errors vs 1017 views = 14.06% error rate. 100-record sample: 51 'cancelled' (51%), 35 'The Internet connection appears to be offline.' (35%), 5 'The network connection was lost.' (5%), 3 push-reg 'Network request failed' (3%), 2 push-reg 'SERVICE_NOT_AVAILABLE' (2%), 1 'Memory Warning', 1 SSL error, 1 timeout, 1 non-ASCII French 'annul...' cancellation variant -- all previously-catalogued client-network/device noise, no new failure mode. 0 backend correlation (service:method-nativemobile-ui status:error env:prod). occ 8->9.",
     "notes": [
       {

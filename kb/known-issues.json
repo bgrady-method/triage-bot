@@ -829,14 +829,15 @@
         "note": "2026-09-24 ~14:07Z triage (degraded cycle, no Slack MCP surfaced this session; DD-scan-diff vs prior cutoff 2026-09-24T13:04:38Z). monitor 77419271 fired 14:05:12Z, hash 16ce453e96da93da, occ 773->774. ES aggregate (kb_to_es_query.py regex-drop bug recurred again -- GetSyncWidgetInfoAsync manually restored) 13:35:12-14:05:12Z: 396 hits, 100% gateway; 24h-ago baseline 352 hits (+12.5%) -- chronic, not an escalation. last_notified_at (2026-09-23T21:15:00Z) ~16h50m ago, WITHIN 24h suppression window; occ 774 not %10 -> SUPPRESS, gate_reason=known-issue-window, appended to docs/actionable/2026-09-24.md. See docs/investigations/2026-09-24-16ce453e96da93da.md."
       }
     ],
-    "prior_last_notified_at": "2026-09-16T19:17:11Z"
+    "prior_last_notified_at": "2026-09-16T19:17:11Z",
+    "precedence_note": "2026-11-19: the 20:04-20:07Z fire was the prod-msl-03 memory-exhaustion host stall (load 314, swap 0%), not this entry's mechanism -- not bumped; see docs/investigations/2026-11-19-035c826a3e7aeef9.md"
   },
   {
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-09-24T15:07:20Z",
-    "occurrences": 289,
+    "last_seen": "2026-11-15T07:53:20Z",
+    "occurrences": 291,
     "match": {
       "channels": [
         "alert-system",
@@ -1671,8 +1672,8 @@
     "id": "ki-2026-07-02-tables-fields-fieldtablenameref-null-linked-fields",
     "title": "ms-tables-fields-api ArgumentNullException on account-specific linked fields with null FieldTableNameRef -- App Update SaveViewBundleInternal fails 400 (chronic, account-specific)",
     "first_seen": "2026-05-28T17:27:49Z",
-    "last_seen": "2026-09-24T22:06:24Z",
-    "occurrences": 18,
+    "last_seen": "2026-11-19T21:16:24Z",
+    "occurrences": 19,
     "match": {
       "channels": [
         "alert-system",
@@ -1704,7 +1705,7 @@
     "fix_template": null,
     "confidence": 0.75,
     "owning_team": "Admin",
-    "last_notified_at": "2026-09-24T20:16:24Z",
+    "last_notified_at": "2026-11-19T21:16:24Z",
     "notes": [
       {
         "ts": "2026-09-24T20:16:24Z",
@@ -1764,8 +1765,8 @@
     "id": "ki-2026-07-03-eda-consumer-amqp-stopped-publishing",
     "title": "[EDA][Consumer][P3] eda_consumer AMQP publish-hits monitor intermittently goes No Data (team:devops, self-recovering, no correlated pipeline impact)",
     "first_seen": "2026-06-20T10:21:00Z",
-    "last_seen": "2026-09-24T10:58:26Z",
-    "occurrences": 70,
+    "last_seen": "2026-11-19T11:29:26Z",
+    "occurrences": 71,
     "match": {
       "channels": [
         "alert-system",
@@ -1805,7 +1806,7 @@
     "fix_template": null,
     "confidence": 0.8,
     "owning_team": "Integrations",
-    "last_notified_at": "2026-09-24T10:58:26Z",
+    "last_notified_at": "2026-11-19T11:29:26Z",
     "notes": [
       {
         "ts": "2026-06-20T10:13:00Z",
@@ -1959,7 +1960,8 @@
         "ts": "2026-09-24T10:58:26Z",
         "note": "2026-09-24 degraded cycle: monitor 296641466 fired 10:58:26Z, hash b8e139c9505df0f6, occ 69->70. trace.amqp.command.hits{service:eda_consumer}: 12 near-zero points (1-2), matching monitor's <1/30m low-volume query. 0 status:error logs. last_notified_at (2026-09-23T10:57:26Z) ~24h01m old -- EXCEEDS 24h window; occurrence 70 also a 10th-multiple -- both independently call for notify -> POST to #triage-results, gate_reason=null (window-expiry), last_notified_at bumped to 2026-09-24T10:58:26Z."
       }
-    ]
+    ],
+    "precedence_note": "2026-11-19: monitors 296632224/296636101 fires at 2026-11-13T22:23Z were the recovery edge of a fleet-wide Datadog APM blackout (17:37-22:15Z), not this mechanism -- not bumped."
   },
   {
     "id": "ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata",
@@ -2294,8 +2296,8 @@
     "id": "ki-2026-07-03-ms-scheduler-api-seriesid-negative-recordid",
     "title": "ms-scheduler-api GetSeriesAsync throws InvalidOperationException when called with recordId=-1 (chronic, code-level missing-guard bug, now confirmed across multiple accounts, ~10-21+/day for 7+ days)",
     "first_seen": "2026-06-26T00:00:00Z",
-    "last_seen": "2026-09-14T22:40:36Z",
-    "occurrences": 152,
+    "last_seen": "2026-11-16T05:28:33Z",
+    "occurrences": 153,
     "match": {
       "channels": [
         "alert-system",
@@ -2533,8 +2535,8 @@
     "id": "ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap",
     "title": "New team:crm AMQP-consumer heartbeat/throughput-stall monitors (5 sibling IDs, created 2026-07-02) intermittently trip on quiet-period low-traffic dips, then self-recover within minutes — no corroborating errors",
     "first_seen": "2026-07-04T13:07:31Z",
-    "last_seen": "2026-09-24T08:26:22Z",
-    "occurrences": 172,
+    "last_seen": "2026-11-19T09:29:21Z",
+    "occurrences": 174,
     "match": {
       "channels": [
         "alert-system",
@@ -2581,7 +2583,7 @@
     "fix_template": null,
     "confidence": 0.82,
     "owning_team": "CRM Experience (runtime-core-subscriber-api, per ownership.md:454) / Admin (mobile-notifications-stack, per ownership.md:416) — split by service; DD monitor tags say team:crm for both, ownership.md disagrees for the mobile-notifications component",
-    "last_notified_at": "2026-09-24T08:26:22Z",
+    "last_notified_at": "2026-11-19T09:29:21Z",
     "notes": [
       {
         "ts": "2026-07-04T16:10:00Z",
@@ -3625,7 +3627,8 @@
         "ts": "2026-08-20T18:53:35Z",
         "note": "2026-08-20 ~19:11Z triage (degraded cycle, DD monitor scan diff vs 2026-08-20T17:31:12Z cutoff): monitor 227940275 fired 18:53:35Z, self-recovered to OK, hash 238f9bcd6785f812. 5th REFUTED MATCH sharing the exact resampling-gap shape (2026-07-15, 2026-07-29, 2026-07-30, 2026-08-08, this occurrence). Scoped trace.redis.command.errors by {service} to the monitor own exact 5-min eval window (18:48:35-18:53:35Z per its query sum(last_5m):...>10) -- EMPTY series, 0 errors on any service. This entry own evidence_query (level.keyword:Error AND fields.dd_service.keyword:runtime-core-api AND messageTemplate.keyword:\"Redis operation timed out after 5 seconds\") = 0 hits over the same window. Session-Token-Expiry-Failed reclassification target also 0 hits. No co-firing RTC p95 (115456700/117279738) or tables-fields circuit-breaker (302103451) -- all last fired 14:06-14:07Z, ~4.7h earlier. NEW: a wider +/-10min probe (18:40-19:10Z) found a genuinely real but temporally-adjacent Redis command-error spike on service:sync-xero-subscriber (26+6=32 errors at 18:47:10-18:47:20Z) -- this is BEFORE the monitor exact eval window starts (18:48:35Z), so per the entry own 2026-07-29/2026-07-30 wider-probe-catches-a-predating-spike lesson, treated as NOT the cause of this fire. No app-level error/exception log corroborates the sync-xero-subscriber spike either -- the only ES hits for that service in the window (1583 of them) are benign level:Information \"Redis Lock Acquired\" distributed-lock messages (Sync.Domain.Interfaces.ISyncConcurrencyService), and DD Logs has zero entries for this service in the hour. No occurrence bump on this entry (5th refutation). Classified as its own low-score needs-human finding (score ~-1, well below both actionable and escalation thresholds) -- appended to docs/actionable/2026-08-20.md as a low-impact line. RECOMMENDATION (reiterating 2026-08-08): 5 consecutive occurrences now share this exact resampling-gap shape -- consider splitting into its own KB entry per Ben standing suggestion. See docs/investigations/2026-08-20-238f9bcd6785f812.md."
       }
-    ]
+    ],
+    "precedence_note": "2026-11-19: the 20:04-20:07Z fire was the prod-msl-03 memory-exhaustion host stall (load 314, swap 0%), not this entry's mechanism -- not bumped; see docs/investigations/2026-11-19-035c826a3e7aeef9.md"
   },
   {
     "id": "ki-2026-07-06-signup-low-traffic-p90-latency-monitor-noise",
@@ -3991,7 +3994,7 @@
         "note": "2026-08-10 ~11:15Z triage (degraded cycle, no Slack MCP surfaced this session -- ToolSearch confirmed no slack/mcp tool). DD monitor scan-diff vs prior cutoff 2026-08-09T21:55:31Z (from the 2026-08-09T22:11:00Z poll-cycle entry). Monitor 302103451 fired 2026-08-10T00:42:32Z, hash 4ff37c3aa92545dc, occ 15->16. Redis-circuitbreaker evidence_query re-run in the monitor's own eval window (00:37:32-00:42:32Z) and widened (23:42:32-01:12:32Z): 0 ES hits both windows -- mechanism NOT confirmed (streak continues). Latency symptom independently re-confirmed: DD metric p95:trace.aspnet_core.request{env:prod,service:tables-fields} over 00:12:32-00:52:32Z peaked 4.79s at 00:34:40Z (3 of 191 points >0.25s threshold) -- a genuine, sharp excursion. Traffic-volume check (the usual alternate explanation per the 2026-07-31/08-04/08-05 notes): sum:trace.aspnet_core.request.hits in the monitor's own 5min eval window = 60 today vs 51 24h-ago (~1.2x) -- NOT a volume spike this time, ruling out the traffic-driven explanation that covered several recent occurrences. Broader Error.keyword sweep on tables-fields in the fire window found 3 hits, all 'Failed to SaveViewBundleInternal' (API.Controllers.FieldController.SaveViewBundleInternal) -- a distinct, not-previously-implicated error signature; not the Redis circuit-breaker message, not the sibling FieldTableNameRef entry's signature either (per playbook step 6, not bumping that entry). 0 status:error DD logs found via a separate service:tables-fields status:error sweep (logs pipeline reports 0 while the ES Error-level index shows 3 -- treat the ES aggregate as authoritative per established practice). No co-firing on ki-2026-05-24-runtime-core-rtc-p95-recurring this cycle (that monitor's own fire this cycle was 06:16:20Z, ~5.5h later -- not a co-fire). Classified known-issue-recurrence with partial-reproduction confidence downgrade (0.8 -> 0.6 for this post) per the standing 2026-08-04 precedent -- neither the documented Redis mechanism nor the traffic-volume alternate explains this occurrence; cause is latency-only-confirmed, unclear. last_notified_at (2026-08-06T13:47:31Z) ~3d21h ago -- EXCEEDS 24h suppression window -> POST to #triage-results, gate_reason=null (window-expiry), with explicit mechanism-unconfirmed disclosure. See docs/investigations/2026-08-10-4ff37c3aa92545dc.md."
       }
     ],
-    "precedence_note": "2026-09-16T01:06:39Z REFUTED: monitor 299251779 fired (peak p95 67.19s, ratio ~66x threshold) but the Redis Cache Circuit Breaker OPENED signature returned 0 ES hits (widened non-exact retry also 0); broad tables-fields error sweep same window found only 1 unrelated InvalidViewName hit. Logged as fresh needs-human (hash 491387a7672ec88b) instead of an occurrence bump."
+    "precedence_note": "2026-09-16T01:06:39Z REFUTED: monitor 299251779 fired (peak p95 67.19s, ratio ~66x threshold) but the Redis Cache Circuit Breaker OPENED signature returned 0 ES hits (widened non-exact retry also 0); broad tables-fields error sweep same window found only 1 unrelated InvalidViewName hit. Logged as fresh needs-human (hash 491387a7672ec88b) instead of an occurrence bump. | 2026-11-19: monitor 299251779 fire (21:29Z) refuted -- evidence_query 0 hits; one 46.9s getfielddependencies request."
   },
   {
     "id": "ki-2026-07-07-classicmethod-p95-latency-monitor-recurring",
@@ -4144,8 +4147,8 @@
     "id": "ki-2026-07-07-notifications-p95-latency-monitor-noise",
     "title": "[CRM][P2] notifications P95 latency high monitor fires but re-query of the same evaluation window shows the metric never approaches the threshold -- monitor/data artifact, not real latency",
     "first_seen": "2026-07-06T10:01:07Z",
-    "last_seen": "2026-09-24T08:43:07Z",
-    "occurrences": 48,
+    "last_seen": "2026-11-19T09:43:07Z",
+    "occurrences": 49,
     "match": {
       "channels": [
         "alert-system",
@@ -4171,7 +4174,7 @@
     "fix_template": null,
     "confidence": 0.72,
     "owning_team": "CRM Experience",
-    "last_notified_at": "2026-09-23T08:43:07Z",
+    "last_notified_at": "2026-11-19T09:43:07Z",
     "notes": [
       {
         "ts": "2026-07-06T11:40:00Z",
@@ -4593,7 +4596,8 @@
         "ts": "2026-09-24T21:36:38Z",
         "note": "2026-09-24 ~22:08Z triage (degraded cycle, no Slack MCP surfaced this session; DD-scan-diff vs prior cutoff 2026-09-24T20:52:11Z). monitor 70171778 fired 21:36:38Z, hash 1737b4b23f28b9af, occ 11->12. By-service 5xx breakdown 21:06:38-21:36:38Z (30min): rest-api 88 (85%), gateway 5, ms-scheduler-api 4, ms-tags-api 3, oauth2.identity.server 3 -- total 103. By-resource on rest-api: patch_/api/v_version_/tables/_table_/_recordid 84 (95.5%), get_..._table 4 (4.5%) -- 5th CONSECUTIVE PATCH-dominant occurrence (following 2026-09-23T19:25:00Z, 2026-09-24T03:15:38Z, 2026-09-24T13:04:38Z, 2026-09-24T13:15:38Z); entry literal POST evidence_query returned 0 hits again (partial reproduction on the exact query, family-level tables/{table} concentration at 100% confirms the mechanism). +1660% vs 24h-ago baseline (88 vs 5) -- notably larger than the prior 4 PATCH-dominant occurrences (84/37/28/24), the biggest PATCH-dominant burst on record for this entry. 0 DD Logs hits, consistent with the APM-only signature. Treated as confirmed-on-mechanism; confidence held at 0.55. last_notified_at (2026-09-24T13:04:38Z) ~8h32m old, WITHIN 24h suppression window; occ 12 not %10; fix_status (recurring-unconfirmed-root-cause) unchanged -> SUPPRESS, gate_reason=known-issue-window, appended to docs/actionable/2026-09-24.md. Flagging the magnitude escalation (largest PATCH burst yet) as worth watching even though the gate held. See docs/investigations/2026-09-24-1737b4b23f28b9af.md."
       }
-    ]
+    ],
+    "precedence_note": "2026-11-19: the 20:04-20:07Z fire was the prod-msl-03 memory-exhaustion host stall (load 314, swap 0%), not this entry's mechanism -- not bumped; see docs/investigations/2026-11-19-035c826a3e7aeef9.md"
   },
   {
     "id": "ki-2026-07-14-cross-service-p95-latency-shared-upstream",
