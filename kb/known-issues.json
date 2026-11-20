@@ -827,6 +827,10 @@
       {
         "ts": "2026-09-24T14:05:12Z",
         "note": "2026-09-24 ~14:07Z triage (degraded cycle, no Slack MCP surfaced this session; DD-scan-diff vs prior cutoff 2026-09-24T13:04:38Z). monitor 77419271 fired 14:05:12Z, hash 16ce453e96da93da, occ 773->774. ES aggregate (kb_to_es_query.py regex-drop bug recurred again -- GetSyncWidgetInfoAsync manually restored) 13:35:12-14:05:12Z: 396 hits, 100% gateway; 24h-ago baseline 352 hits (+12.5%) -- chronic, not an escalation. last_notified_at (2026-09-23T21:15:00Z) ~16h50m ago, WITHIN 24h suppression window; occ 774 not %10 -> SUPPRESS, gate_reason=known-issue-window, appended to docs/actionable/2026-09-24.md. See docs/investigations/2026-09-24-16ce453e96da93da.md."
+      },
+      {
+        "ts": "2026-11-20T02:26:11Z",
+        "note": "2026-11-20 degraded cycle: monitor 77419271 02:26:11Z, hash 2e3ae99feed24973, matched by bare title/monitor-id -- REFUTED, occurrences NOT bumped. Tripping account tcg3: 50 status-0 network failures from one HeadlessChrome client on AS8075 (Microsoft) loading /apps/Public.aspx -- crawler. New FA fa-2026-11-20-tcg3-headless-crawler-public-app-xhr-noise."
       }
     ],
     "prior_last_notified_at": "2026-09-16T19:17:11Z",
@@ -1758,6 +1762,10 @@
       {
         "ts": "2026-09-24T22:06:24Z",
         "note": "2026-09-24 ~22:08Z triage (degraded cycle, no Slack MCP surfaced this session; DD-scan-diff vs prior cutoff 2026-09-24T20:52:11Z). monitor 299251404 fired 22:06:24Z, hash 5dc1f6c501d59d09, occ 17->18, only ~1h50m after the prior occurrence (1b37f3e38e799a01, 20:16:24Z). DD APM error-rate peak 3.95% @ eval window vs 1% threshold (ratio ~2.95); ES fields.dd_service.keyword:tables-fields AND level.keyword:Error 21:36:24-22:06:24Z returned 80 hits, top-3 buckets (FieldTableNameRef Is Null/GetAllFields Failed/GetColumnForAllFields failed, 18 each) match this entry documented signature exactly -- identical shape to the immediately preceding occurrence. No account name recoverable this occurrence (same SaveViewBundleInternal blind-spot variant). last_notified_at (2026-09-24T20:16:24Z) ~1h50m old, WITHIN 24h suppression window; occ 18 not %10; fix_status (needs-human) unchanged -> SUPPRESS, gate_reason=known-issue-window, appended to docs/actionable/2026-09-24.md. See docs/investigations/2026-09-24-5dc1f6c501d59d09.md."
+      },
+      {
+        "ts": "2026-11-20T00:11:24Z",
+        "note": "2026-11-20 degraded cycle: monitor 299251404 transition 00:11:24Z (recovery edge), hash e38eeed179633459, matched this entry by monitor-id/regex only -- REFUTED, occurrences NOT bumped. ES signature was \"account microservice cluster key provider does not work. dbName : rpp\" + SqlException \"Database 'rpp' does not exist\" (2 GetFieldListInternal requests 00:04-00:05Z), no FieldTableNameRef. 1-min re-computed error ratio peaked 1.8% vs 5%. Logged as false-alarm, no KB write."
       }
     ]
   },
@@ -1765,8 +1773,8 @@
     "id": "ki-2026-07-03-eda-consumer-amqp-stopped-publishing",
     "title": "[EDA][Consumer][P3] eda_consumer AMQP publish-hits monitor intermittently goes No Data (team:devops, self-recovering, no correlated pipeline impact)",
     "first_seen": "2026-06-20T10:21:00Z",
-    "last_seen": "2026-11-19T11:29:26Z",
-    "occurrences": 71,
+    "last_seen": "2026-11-20T10:34:26Z",
+    "occurrences": 72,
     "match": {
       "channels": [
         "alert-system",
@@ -1959,6 +1967,10 @@
       {
         "ts": "2026-09-24T10:58:26Z",
         "note": "2026-09-24 degraded cycle: monitor 296641466 fired 10:58:26Z, hash b8e139c9505df0f6, occ 69->70. trace.amqp.command.hits{service:eda_consumer}: 12 near-zero points (1-2), matching monitor's <1/30m low-volume query. 0 status:error logs. last_notified_at (2026-09-23T10:57:26Z) ~24h01m old -- EXCEEDS 24h window; occurrence 70 also a 10th-multiple -- both independently call for notify -> POST to #triage-results, gate_reason=null (window-expiry), last_notified_at bumped to 2026-09-24T10:58:26Z."
+      },
+      {
+        "ts": "2026-11-20T10:34:26Z",
+        "note": "2026-11-20 degraded cycle: monitor 296641466 recovered 10:34:26Z, hash 57f9bc4a2aae03fd, occ 71->72. eda_consumer amqp hits silent 09:08-10:33Z (~85min), resumed 10:33Z. Siblings 296632224/296636101 OK; 0 errors. SUPPRESSED: last_notified_at 2026-11-19T11:29:26Z -> 23h38m at cycle-eval anchor (scan 11:07:08Z), 23h05m by fire ts; wall clock at write (~11:30Z) is at the 24h line -- disclosed, cycle-eval convention used."
       }
     ],
     "precedence_note": "2026-11-19: monitors 296632224/296636101 fires at 2026-11-13T22:23Z were the recovery edge of a fleet-wide Datadog APM blackout (17:37-22:15Z), not this mechanism -- not bumped."
@@ -2535,8 +2547,8 @@
     "id": "ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap",
     "title": "New team:crm AMQP-consumer heartbeat/throughput-stall monitors (5 sibling IDs, created 2026-07-02) intermittently trip on quiet-period low-traffic dips, then self-recover within minutes — no corroborating errors",
     "first_seen": "2026-07-04T13:07:31Z",
-    "last_seen": "2026-11-19T09:29:21Z",
-    "occurrences": 174,
+    "last_seen": "2026-11-20T04:20:21Z",
+    "occurrences": 176,
     "match": {
       "channels": [
         "alert-system",
@@ -2583,7 +2595,7 @@
     "fix_template": null,
     "confidence": 0.82,
     "owning_team": "CRM Experience (runtime-core-subscriber-api, per ownership.md:454) / Admin (mobile-notifications-stack, per ownership.md:416) — split by service; DD monitor tags say team:crm for both, ownership.md disagrees for the mobile-notifications component",
-    "last_notified_at": "2026-11-19T09:29:21Z",
+    "last_notified_at": "2026-11-20T03:32:31Z",
     "notes": [
       {
         "ts": "2026-07-04T16:10:00Z",
@@ -2928,6 +2940,14 @@
       {
         "ts": "2026-09-24T08:26:22Z",
         "note": "2026-09-24 degraded cycle: monitor 302055141 fired 08:26:22Z, hash ab00f18d4427154d, occ 171->172. Same-cycle sibling of 302057011 (fired earlier this cycle, suppressed, did not update last_notified_at). trace.amqp.command.hits: only 8 low/spiky points in the hour, baseline ~0.06 msg/s per KB. 0 status:error logs. last_notified_at (2026-09-23T07:35:21Z, unchanged from before this cycle) ~24h51m old -- EXCEEDS 24h window -> POST to #triage-results, gate_reason=null (window-expiry), last_notified_at bumped to 2026-09-24T08:26:22Z."
+      },
+      {
+        "ts": "2026-11-20T03:32:31Z",
+        "note": "2026-11-20 degraded cycle: monitor 302057011 (runtime-core-subscriber) fired/recovered 03:32:31Z, hash 3ddfa9c1e3bce5fd, occ 174->175. as_rate() below the 2/s floor ~02:23-03:30Z overnight, min 0.35/s @03:43Z, then normal (max 182/s @04:11Z). 0 status:error logs. last_notified_at 2026-11-19T09:29:21Z ~25.6h old at cycle-eval -> window lapsed -> POSTED to #triage-results, last_notified_at -> 2026-11-20T03:32:31Z (fire ts)."
+      },
+      {
+        "ts": "2026-11-20T04:20:21Z",
+        "note": "2026-11-20 degraded cycle: monitor 302055141 (method-mobile-notifications-subscriber) 04:20:21Z, hash 98cbe6cd035bc106, occ 175->176. Sparse overnight heartbeat, 0 errors; exact recovery moment not pinned (sparse points), confidence 0.8. SUPPRESSED (known-issue-window) as a same-cycle ordering artifact: sibling 302057011 processed first reset last_notified_at to 03:32:31Z."
       }
     ]
   },
@@ -4147,8 +4167,8 @@
     "id": "ki-2026-07-07-notifications-p95-latency-monitor-noise",
     "title": "[CRM][P2] notifications P95 latency high monitor fires but re-query of the same evaluation window shows the metric never approaches the threshold -- monitor/data artifact, not real latency",
     "first_seen": "2026-07-06T10:01:07Z",
-    "last_seen": "2026-11-19T09:43:07Z",
-    "occurrences": 49,
+    "last_seen": "2026-11-20T09:43:07Z",
+    "occurrences": 50,
     "match": {
       "channels": [
         "alert-system",
@@ -4174,7 +4194,7 @@
     "fix_template": null,
     "confidence": 0.72,
     "owning_team": "CRM Experience",
-    "last_notified_at": "2026-11-19T09:43:07Z",
+    "last_notified_at": "2026-11-20T09:43:07Z",
     "notes": [
       {
         "ts": "2026-07-06T11:40:00Z",
@@ -4287,6 +4307,10 @@
       {
         "ts": "2026-09-24T08:43:07Z",
         "note": "2026-09-24 degraded cycle: monitor 302056327 fired 08:43:07Z, hash e49af9710d8a20bd, occ 47->48. Fine-grained p95:trace.aspnet.request{service:notifications,env:prod}: baseline 0.006-0.05s except one single point at 08:30:00Z = 53311.58s; at 5-min rollup this bucket resolves to only 0.1195s -- textbook rollup-artifact, same mechanism as all 47 prior occurrences. 0 status:error logs. last_notified_at (2026-09-23T08:43:07Z) is EXACTLY 24h00m00s before this fire -- boundary case; per established precedent in this entry's own notes (2026-08-30, 2026-09-17 occurrences both treated the exact-24h boundary as NOT exceeding) -> SUPPRESS, gate_reason=known-issue-window, last_notified_at unchanged."
+      },
+      {
+        "ts": "2026-11-20T09:43:07Z",
+        "note": "2026-11-20 degraded cycle: monitor 302056327 09:43:07Z (OK at scan), hash 97042596ab37709f, occ 49->50. p95 09:00-10:15Z max 0.618s @09:30Z, 0 points >1s; 0 status:error logs. last_notified_at 2026-11-19T09:43:07Z ~25.4h at cycle-eval -> POSTED (window lapsed; also 50th occurrence)."
       }
     ]
   },
