@@ -1595,5 +1595,27 @@
     "evidence_source": "datadog_logs",
     "evidence_query": "service:method-ui status:error *xhr* @account_name:tcg3 -- expect status_code 0, single IP, HeadlessChrome/bot UA, empty user_identity",
     "recommendation": "Scoped to the account on purpose so it cannot shadow ki-2026-05-21-gateway-microservices-timeout. If the matched fire shows real users / 4xx-5xx, this FA does not apply. Broader fix: have the monitor exclude http.status_code:0 and HeadlessChrome/bot UAs."
+  },
+  {
+    "target": "false-alarms",
+    "id": "fa-2026-11-20-watchdog-sync-xero-heartbeat-latency-story",
+    "match": {
+      "channels": [
+        "alert-system"
+      ],
+      "any_of": [
+        {
+          "contains": "Latency increased on the GET /health/heartbeat resource in sync-xero-api"
+        }
+      ]
+    },
+    "reason": "Monitor 236570583 ('New issue to review', events source:watchdog story_category apm/infrastructure) fired 2026-11-20T14:12:33Z on Watchdog story 27f6d32d-9373-54b4-b466-b9f39c660096: 'Latency increased on the GET /health/heartbeat resource in sync-xero-api' (story_type:latency, ongoing). p95 of trace.aspnet_core.request{service:sync-xero-api,resource_name:get_/health/heartbeat} was 0-1ms in every 15-min bucket 12:00-15:10Z, and sync-xero-api had 0 request errors. A sub-millisecond-to-1ms shift on a health-check endpoint, not user-facing latency.",
+    "silence_for": "24h",
+    "first_seen": "2026-11-20T14:12:33Z",
+    "last_seen": "2026-11-20T14:12:33Z",
+    "occurrences": 1,
+    "evidence_source": "datadog_apm",
+    "evidence_query": "p95:trace.aspnet_core.request{env:prod,service:sync-xero-api,resource_name:get_/health/heartbeat} -- expect single-digit ms; plus sum:trace.aspnet_core.request.errors{env:prod,service:sync-xero-api} ~0",
+    "recommendation": "Keyed on the story title text on purpose, not the bare monitor id, so it can't shadow other 236570583 stories (see ki-2026-05-28 / ki-2026-05-29). Consider excluding resource_name:get_/health/* from the Watchdog monitor query."
   }
 ]
