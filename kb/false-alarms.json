@@ -1577,6 +1577,28 @@
   },
   {
     "target": "false-alarms",
+    "id": "fa-2026-11-20-sitepreps-single-session-cellular-network-drop-xhr-noise",
+    "match": {
+      "channels": [
+        "alert-frontend-errors"
+      ],
+      "any_of": [
+        {
+          "contains": "for account: sitepreps"
+        }
+      ]
+    },
+    "reason": "Monitor 77419271 (>40 critical / >25 warn XHR errors per 5min by @account_name) went Warn on @account_name:sitepreps at 2026-11-20T17:44:11Z and recovered at 17:47:11Z (DD events API). DD logs service:method-ui status:error *xhr* @account_name:sitepreps 17:25-17:55Z returned 46 events (the full set; limit was 100). All 46 had http.status_code 0, error.origin network, and error.stack \"Failed to load\". They came from ONE session (e8356d8b-...) and ONE authenticated user (user_identity 610a45d3-...) on Safari 18.7 / macOS, and ALL on AS6167 Verizon Business (cellular/hotspot). The client IP flipped between an IPv4 and an IPv6 address (redacted) (23/23), which points to an unstable mobile link. The bursts were at 17:41 (20) and 17:47 (18). They covered every endpoint the screen touched (runtime/api/v1/grid, runtime/load, gateway/apps/screen, gateway/documents, analytics, cdn version.json), so the failures were not tied to any one endpoint. Server side was clean: 0 non-method-ui error logs mentioning sitepreps over 17:35-17:55Z, and gateway trace errors stayed flat at 1 per interval. This is one real user's network dropping, not a Method outage. Same status_code-0 single-session family as fa-2026-08-15-sommselection-bingbot-analytics-beacon-noise and fa-2026-11-20-tcg3-headless-crawler-public-app-xhr-noise, but a human user rather than a crawler.",
+    "silence_for": "24h",
+    "first_seen": "2026-11-20T17:44:11Z",
+    "last_seen": "2026-11-20T17:44:11Z",
+    "occurrences": 1,
+    "evidence_source": "datadog_logs",
+    "evidence_query": "service:method-ui status:error *xhr* @account_name:sitepreps -- expect 100% http.status_code 0, single session_id, cellular ASN; any 4xx/5xx or multiple sessions means this FA does NOT apply",
+    "recommendation": "Scoped to the account on purpose so it cannot shadow ki-2026-05-21-gateway-microservices-timeout. Because sitepreps is a real customer, re-verify every fire against the evidence_query. If the fire shows several sessions or real HTTP status codes, treat it as genuine. This is the 3rd status_code-0 single-session 77419271 FA, so the structural fix is to add -@http.status_code:0 (or require >=2 distinct sessions) to the monitor query instead of adding more per-account FAs."
+  },
+  {
+    "target": "false-alarms",
     "id": "fa-2026-11-20-tcg3-headless-crawler-public-app-xhr-noise",
     "match": {
       "channels": [
