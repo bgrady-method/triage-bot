@@ -1417,7 +1417,8 @@
     "first_seen": "2026-08-19T15:19:00Z",
     "last_seen": "2026-11-18T15:49:00Z",
     "occurrences": 8,
-    "recommendation": "Raise the monitor warn threshold (e.g. to ~950-1000) or switch to a rate-of-change / deviation-from-trailing-average check instead of an absolute daily-count threshold -- normal volume has organically grown past the original calibration. Flagging for the CRM team, not silencing indefinitely."
+    "recommendation": "Raise the monitor warn threshold (e.g. to ~950-1000) or switch to a rate-of-change / deviation-from-trailing-average check instead of an absolute daily-count threshold -- normal volume has organically grown past the original calibration. Flagging for the CRM team, not silencing indefinitely.",
+    "precedence_note": "2026-11-20: the 15:18Z Warn (hash d7b530609c0be49f) was REJECTED as a match. The monitor was retuned 11-18 (warn 1500 / alert 2000), so this entry's stale-800-threshold mechanism no longer applies. The breach (1531/24h) came from a single bulk send: 276 SMS created at 15:05:05Z on one messaging service, 40% undelivered (mostly 30006 landline/unreachable), vs ~16% undelivered on 11-17..18. occurrences/last_seen NOT bumped. Don't auto-match future fires without checking for a 5-min burst and the undelivered rate. See docs/investigations/2026-11-20-d7b530609c0be49f.md."
   },
   {
     "target": "false-alarms",
