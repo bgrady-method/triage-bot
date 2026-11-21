@@ -1489,8 +1489,8 @@
     "reason": "Monitor avg(last_10m):p95:trace.aspnet.request{service:default_web_site/reportgenerationapi,env:prod} > 5. Re-query showed max p95 0.746s, fully recovered; 0 ES hits for reportgenerationapi/ReportGeneration in window. Distinct from the separate unfiled innuwindow2 DevExpress-layout/SQL-schema bug on monitor 316587947 (error-rate, not this p95-latency monitor) -- do not conflate.",
     "silence_for": "24h",
     "first_seen": "2026-09-03T20:29:38Z",
-    "last_seen": "2026-11-21T14:48:38Z",
-    "occurrences": 7,
+    "last_seen": "2026-11-21T18:30:38Z",
+    "occurrences": 8,
     "notes": [
       {
         "ts": "2026-11-20T10:40:38Z",
@@ -1499,6 +1499,10 @@
       {
         "ts": "2026-11-21T15:15:00Z",
         "note": "2026-11-21 degraded cycle: monitor 316588178 triggered 14:48:38Z, recovered 14:49:38Z (hash 68f93e5052d73e7e). p95 spiked to 36.2s/45.0s at 14:38-14:39Z on 1-2 requests per bucket (85 hits 14:30-15:00Z), then back to 0.4-1.3s. 0 DD error logs and 0 ES hits in 14:30-14:55Z. One slow render with no failure, so FA (unlike the refuted 11-20 case)."
+      },
+      {
+        "ts": "2026-11-21T19:15:00Z",
+        "note": "2026-11-21 degraded cycle: monitor 316588178 Warn 18:30:38Z, recovered 18:31:38Z (hash b69139a9f661da63). p95 spiked to 36.2s @18:23:30Z and 39.9s @18:25:40Z, each on a single request (1 hit per 10s bucket); every other bucket 0.2-3.3s. 0 DD error logs and 0 ES hits 18:10-18:40Z. Warn only (4s), never crossed critical. Two slow renders with no failure, so FA."
       }
     ]
   },
