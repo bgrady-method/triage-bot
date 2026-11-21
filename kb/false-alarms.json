@@ -1489,8 +1489,8 @@
     "reason": "Monitor avg(last_10m):p95:trace.aspnet.request{service:default_web_site/reportgenerationapi,env:prod} > 5. Re-query showed max p95 0.746s, fully recovered; 0 ES hits for reportgenerationapi/ReportGeneration in window. Distinct from the separate unfiled innuwindow2 DevExpress-layout/SQL-schema bug on monitor 316587947 (error-rate, not this p95-latency monitor) -- do not conflate.",
     "silence_for": "24h",
     "first_seen": "2026-09-03T20:29:38Z",
-    "last_seen": "2026-11-18T10:41:38Z",
-    "occurrences": 3,
+    "last_seen": "2026-11-21T10:25:38Z",
+    "occurrences": 4,
     "notes": [
       {
         "ts": "2026-11-20T10:40:38Z",
@@ -1569,8 +1569,8 @@
     "reason": "Monitor 316588059 sum(last_10m):sum:trace.aspnet.request.hits{service:default_web_site/reportgenerationapi,resource_name:get_/health/check,env:prod}.as_count() < 1 watches an endpoint nothing polls: over 2026-11-13..20 the /health/check resource had only 2 populated hourly points (3 hits each, 11-20 03:00Z and 05:00Z, arriving alongside one-off default.aspx/error.aspx/getsessiondata hits -- scanner-like). The live probe is get_/api/v1/health/pdf (polled steadily) and post_/api/v1/report/generate served traffic on prod-report-03 and -04 throughout. The monitor therefore sits in No Data permanently and only \"fires\" when it returns to No Data after stray traffic; it cannot detect a real outage.",
     "silence_for": "24h",
     "first_seen": "2026-11-20T05:21:40Z",
-    "last_seen": "2026-11-20T05:21:40Z",
-    "occurrences": 1,
+    "last_seen": "2026-11-21T02:22:47Z",
+    "occurrences": 2,
     "evidence_source": "datadog_apm",
     "evidence_query": "sum:trace.aspnet.request.hits{service:default_web_site/reportgenerationapi,env:prod} by {resource_name}.as_count() -- expect get_/health/check ~absent and report/generate + get_/api/v1/health/pdf present",
     "recommendation": "CRM Experience: repoint the heartbeat to resource_name:get_/api/v1/health/pdf or add a real probe for /health/check. If report/generate traffic is ALSO absent, this FA does not apply -- investigate as an outage."
@@ -1613,8 +1613,8 @@
     "reason": "Monitor 77419271 (>40 XHR errors / 5min by @account_name) fired 2026-11-20T02:26:11Z (transition). The tripping account was tcg3: 50/63 sampled method-ui XHR errors 02:10-02:35Z, 100% http.status_code 0 / error.origin network / \"Failed to load\", all from ONE client IP 40.77.179.249 (AS8075 Microsoft hosting), 100% HeadlessChrome 146, empty user_identity, within 6 seconds (02:19:11-02:19:17Z), loading tcg3.method.ws/apps/Public.aspx (referrer completecadsolutions.com) and aborting runtime/api/v1/grid + datatable POSTs. 0 server-side ES errors for tcg3. Automated crawler on a public app page, not users. Same mechanism as fa-2026-08-15-sommselection-bingbot-analytics-beacon-noise (second account).",
     "silence_for": "24h",
     "first_seen": "2026-11-20T02:26:11Z",
-    "last_seen": "2026-11-20T02:26:11Z",
-    "occurrences": 1,
+    "last_seen": "2026-11-20T23:43:11Z",
+    "occurrences": 2,
     "evidence_source": "datadog_logs",
     "evidence_query": "service:method-ui status:error *xhr* @account_name:tcg3 -- expect status_code 0, single IP, HeadlessChrome/bot UA, empty user_identity",
     "recommendation": "Scoped to the account on purpose so it cannot shadow ki-2026-05-21-gateway-microservices-timeout. If the matched fire shows real users / 4xx-5xx, this FA does not apply. Broader fix: have the monitor exclude http.status_code:0 and HeadlessChrome/bot UAs."
