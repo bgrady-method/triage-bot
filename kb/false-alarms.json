@@ -1489,8 +1489,8 @@
     "reason": "Monitor avg(last_10m):p95:trace.aspnet.request{service:default_web_site/reportgenerationapi,env:prod} > 5. Re-query showed max p95 0.746s, fully recovered; 0 ES hits for reportgenerationapi/ReportGeneration in window. Distinct from the separate unfiled innuwindow2 DevExpress-layout/SQL-schema bug on monitor 316587947 (error-rate, not this p95-latency monitor) -- do not conflate.",
     "silence_for": "24h",
     "first_seen": "2026-09-03T20:29:38Z",
-    "last_seen": "2026-11-21T11:36:38Z",
-    "occurrences": 5,
+    "last_seen": "2026-11-21T12:30:38Z",
+    "occurrences": 6,
     "notes": [
       {
         "ts": "2026-11-20T10:40:38Z",
