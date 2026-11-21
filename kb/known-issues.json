@@ -2551,8 +2551,8 @@
     "id": "ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap",
     "title": "New team:crm AMQP-consumer heartbeat/throughput-stall monitors (5 sibling IDs, created 2026-07-02) intermittently trip on quiet-period low-traffic dips, then self-recover within minutes — no corroborating errors",
     "first_seen": "2026-07-04T13:07:31Z",
-    "last_seen": "2026-11-21T11:43:21Z",
-    "occurrences": 179,
+    "last_seen": "2026-11-21T14:21:31Z",
+    "occurrences": 180,
     "match": {
       "channels": [
         "alert-system",
@@ -2599,7 +2599,7 @@
     "fix_template": null,
     "confidence": 0.82,
     "owning_team": "CRM Experience (runtime-core-subscriber-api, per ownership.md:454) / Admin (mobile-notifications-stack, per ownership.md:416) — split by service; DD monitor tags say team:crm for both, ownership.md disagrees for the mobile-notifications component",
-    "last_notified_at": "2026-11-21T03:40:31Z",
+    "last_notified_at": "2026-11-21T14:21:31Z",
     "notes": [
       {
         "ts": "2026-07-04T16:10:00Z",
@@ -2952,6 +2952,10 @@
       {
         "ts": "2026-11-20T04:20:21Z",
         "note": "2026-11-20 degraded cycle: monitor 302055141 (method-mobile-notifications-subscriber) 04:20:21Z, hash 98cbe6cd035bc106, occ 175->176. Sparse overnight heartbeat, 0 errors; exact recovery moment not pinned (sparse points), confidence 0.8. SUPPRESSED (known-issue-window) as a same-cycle ordering artifact: sibling 302057011 processed first reset last_notified_at to 03:32:31Z."
+      },
+      {
+        "ts": "2026-11-21T15:15:00Z",
+        "note": "2026-11-21 15:15Z triage (degraded DD-scan-diff, hash cbd9b426d5b1f003) [runtime-core-subscriber (302057011)]: occ 179->180. Triggered 14:21:31Z, recovered 14:25:31Z. sum:trace.amqp.command.hits{service:runtime-core-subscriber,env:prod}.as_rate() 13:30-14:45Z: 150 points, 40 below 2 msg/s (13:31-14:25Z), min 0.57/s @13:32:30Z, clearing burst 23.8-93.5/s from 14:27Z. service:runtime-core-subscriber status:error 14:00-14:30Z = 0 logs. Canonical quiet-period shape. last_notified_at 03:40:31Z was inside the 24h window, but occ 180 %10==0 -> POSTED gate_reason=known-issue-occurrence-resurface. Midday (not overnight) dip this time."
       }
     ]
   },
