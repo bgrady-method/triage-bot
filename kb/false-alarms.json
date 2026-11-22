@@ -1497,8 +1497,8 @@
     "reason": "Monitor avg(last_10m):p95:trace.aspnet.request{service:default_web_site/reportgenerationapi,env:prod} > 5. Re-query showed max p95 0.746s, fully recovered; 0 ES hits for reportgenerationapi/ReportGeneration in window. Distinct from the separate unfiled innuwindow2 DevExpress-layout/SQL-schema bug on monitor 316587947 (error-rate, not this p95-latency monitor) -- do not conflate.",
     "silence_for": "24h",
     "first_seen": "2026-09-03T20:29:38Z",
-    "last_seen": "2026-11-22T14:41:38Z",
-    "occurrences": 13,
+    "last_seen": "2026-11-22T15:06:38Z",
+    "occurrences": 14,
     "notes": [
       {
         "ts": "2026-11-20T10:40:38Z",
@@ -1531,6 +1531,10 @@
       {
         "ts": "2026-11-22T14:41:38Z",
         "note": "2026-11-22 degraded cycle: monitor 316588178 Warn 14:39:38Z -> Triggered 14:41:38Z -> Recovered 14:48:38Z (hash 9f8426dfd1ebff4c, satellite db8d014775c17ecb). max:trace.aspnet.request 14:20-14:55Z shows two slow renders, 44.15s (14:32Z bucket) and 36.87s (14:38Z bucket); every other bucket <2.3s; trace.aspnet.request.errors returned no data (0 errors). The slow spans are not in indexed span search (sampled), so no trace id. Matches this entry's isolated-slow-render shape (unlike the 13:45Z SQL-timeout 500, which co-fired the error-rate monitor)."
+      },
+      {
+        "ts": "2026-11-22T16:20:00Z",
+        "note": "2026-11-22 degraded cycle: monitor 316588178 Triggered 15:06:38Z, Recovered 15:21:38Z (hash 0430719c98a4af1a). p95 above 5s in 10s buckets 15:05:40-15:11:40Z (peak 11.06s @15:06:40Z, others 7.3-10.5s), 37 hits 15:00-15:25Z. 0 errors (errors metric had no series), 0 DD error logs, 0 ES ReportGenerationAPI hits 14:55-15:25Z. Several moderately slow renders (~8-11s), not one 40s outlier. No failure, so FA."
       }
     ]
   },
