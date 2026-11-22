@@ -549,8 +549,8 @@
     "reason": "DD RUM Error Tracking for service:method-nativemobile-ui over the trailing 4h (2026-07-14T19:00-23:30Z): 181 @type:error events vs 1464 @type:view events = 12.4% error rate (monitor threshold >5%). Message breakdown of all 181 sampled errors: 83 'A server with the specified hostname could not be found.' (DNS resolution failure, 45.9%), 74 'cancelled' (request cancelled mid-flight, typically app backgrounding/navigation-away, 40.9%), 12 'A TLS error caused the secure connection to fail.' (6.6%), plus small counts of 'Network Error'/'offline'/Expo-token-fetch failures. Every message is a client-side network-connectivity signature (DNS/TLS/cancellation on mobile devices with flaky connectivity) -- none are application-level 4xx/5xx or server-side exceptions. No correlated backend service alert fired in the same window. This is inherent RUM noise from real-world mobile network conditions, not a backend incident. 2026-09-24T10:17:08Z (this occurrence): RUM re-query trailing 4h (06:17:08-10:17:08Z) returned 6 hits: 3x 'cancelled' (catalogued class), 1x 'Memory Warning' (device-level, benign, unrelated to network), 2x 'Push registration failed (register-token/launch-token): ...IOException: INTERNAL_SERVER_ERROR' -- not verbatim catalogued here but same GMS/FCM-token-fetch-IOException family documented under sibling entry fa-2026-09-16-nativemobile-push-registration-transient-network-gms (which itself has absorbed new IOException variant strings each occurrence). No backend/server-side correlation (0 hits service:method-nativemobile-ui/nonprod-apps status:error). Still classic mobile-client noise, cross-referenced against the sibling entry rather than a clean verbatim match -- flagged for future attention if INTERNAL_SERVER_ERROR becomes a dominant class.",
     "silence_for": "24h",
     "first_seen": "2026-07-14T23:01:19Z",
-    "last_seen": "2026-11-22T13:14:08Z",
-    "occurrences": 69,
+    "last_seen": "2026-11-22T14:08:08Z",
+    "occurrences": 70,
     "recommendation": "monitor threshold (>5% over trailing 4h) is too sensitive for a mobile RUM error-rate check that includes DNS/TLS/cancellation noise; recommend excluding 'cancelled' and DNS-resolution-failure messages from the numerator, or raising the threshold, before this becomes a recurring low-value fire; flag to Admin (owns method-nativemobile-ui per ownership.md, despite the monitor's team:crm tag). 3 occurrences in ~2.5 weeks now (2026-07-14, 2026-07-30, 2026-07-31) -- worth acting on rather than continuing to re-verify.",
     "notes": [
       {
@@ -716,6 +716,10 @@
       {
         "ts": "2026-11-22T12:33:08Z",
         "note": "2026-11-22 degraded cycle: monitor 313094708 Warn 12:33:08Z -> Alert 12:44:08Z -> Warn 12:48:08Z -> Recovered 12:52:08Z (primary hash c31687a256819e60, satellites afe30530800bc94e, 3df5c0f42cfa6667). Mechanism differs from this entry's network-noise reason: exact monitor formula over the 4h window ending 12:44:08Z (re-queried after the fact) = (208 views - 206 error_free)/208 = 0.96%, far below 5%. errortracking shows 1 @type:error (Memory Warning @12:32:49Z) vs 32 @type:view. 15-min buckets show view vs view.error_free counts skewing by +/-1-5 per bucket at ~200 views/4h (Sunday volume), so the ratio crosses 5% transiently from late-arriving error_free counts, then settles. Low-denominator evaluation artifact, not user-facing errors. Monitor needs a minimum-volume gate."
+      },
+      {
+        "ts": "2026-11-22T14:08:08Z",
+        "note": "2026-11-22 degraded cycle: monitor 313094708 Warn 14:08:08Z -> Recovered 14:17:08Z (hash 5b2a347799da969f). Exact formula over 4h ending 14:08:08Z: (375 views - 372 error_free)/375 = 0.8% vs 3% warn. errortracking 10:08-14:20Z = 1 @type:error (Memory Warning 12:32:49Z). Same Sunday low-volume eval artifact as the 12:33Z and 13:14Z fires. Monitor needs a minimum-volume gate."
       }
     ],
     "note": "2026-08-04 ~12:10Z triage (degraded cycle, no Slack MCP surfaced this session, DD monitor scan diff vs prior cutoff 2026-08-04T11:09:26Z): monitor 305454649 fired 2026-08-04T11:25:20Z, hash e487adb84d33e216, occ 13->14, Alert state at scan time (elevated vs the usual Warn). DD RUM Error Tracking for service:method-nativemobile-ui over the monitor's own trailing 4h window (07:25:20-11:25:20Z): 36 @type:error vs 237 @type:view = 15.2% error rate -- above the >5% threshold, consistent with the escalated Alert state (highest rate of the 14 documented occurrences, above the prior peak of 11.0% on 2026-08-01T21:04Z). Sampled errors: dominant 'cancelled', plus Expo-token-fetch 503s, iOS aps-environment entitlement config errors, Network Error, 'The network connection was lost.', Memory Warning, offline/IP-lookup failures -- all client-side/device/third-party-infra signatures, same mechanism family as all 13 prior occurrences, just a higher-volume excursion. No correlated backend alert co-fired this cycle. Still classified as client-side RUM noise, not a backend incident -- flagging the new peak rate for stability-review trend-watch. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-08-04-e487adb84d33e216.md."
@@ -1493,8 +1497,8 @@
     "reason": "Monitor avg(last_10m):p95:trace.aspnet.request{service:default_web_site/reportgenerationapi,env:prod} > 5. Re-query showed max p95 0.746s, fully recovered; 0 ES hits for reportgenerationapi/ReportGeneration in window. Distinct from the separate unfiled innuwindow2 DevExpress-layout/SQL-schema bug on monitor 316587947 (error-rate, not this p95-latency monitor) -- do not conflate.",
     "silence_for": "24h",
     "first_seen": "2026-09-03T20:29:38Z",
-    "last_seen": "2026-11-22T12:24:38Z",
-    "occurrences": 12,
+    "last_seen": "2026-11-22T14:41:38Z",
+    "occurrences": 13,
     "notes": [
       {
         "ts": "2026-11-20T10:40:38Z",
@@ -1523,6 +1527,10 @@
       {
         "ts": "2026-11-22T14:15:00Z",
         "note": "2026-11-22 degraded cycle: monitor 316588178 triggered 13:45:38Z (hash e707ff7fe88c1185). Matched here but REFUTED, occurrences NOT bumped: p95 reproduced (45.69s @13:45Z) on one POST /api/v1/report/generate (trace 6b02f1b000000000d481add22e480ad0, prod-report-03) that returned 500 after a spiderViewFields/spiderColumns metadata query hit SqlException Execution Timeout (30.07s) on sql-prod-1. Caller: runtime-core action for cpvusanew (Statement report). Co-fired P1 error-rate 316587947 at 13:45:47Z. Logged as needs-human e707ff7fe88c1185 (low-impact)."
+      },
+      {
+        "ts": "2026-11-22T14:41:38Z",
+        "note": "2026-11-22 degraded cycle: monitor 316588178 Warn 14:39:38Z -> Triggered 14:41:38Z -> Recovered 14:48:38Z (hash 9f8426dfd1ebff4c, satellite db8d014775c17ecb). max:trace.aspnet.request 14:20-14:55Z shows two slow renders, 44.15s (14:32Z bucket) and 36.87s (14:38Z bucket); every other bucket <2.3s; trace.aspnet.request.errors returned no data (0 errors). The slow spans are not in indexed span search (sampled), so no trace id. Matches this entry's isolated-slow-render shape (unlike the 13:45Z SQL-timeout 500, which co-fired the error-rate monitor)."
       }
     ]
   },
