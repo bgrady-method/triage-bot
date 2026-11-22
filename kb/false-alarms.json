@@ -1489,8 +1489,8 @@
     "reason": "Monitor avg(last_10m):p95:trace.aspnet.request{service:default_web_site/reportgenerationapi,env:prod} > 5. Re-query showed max p95 0.746s, fully recovered; 0 ES hits for reportgenerationapi/ReportGeneration in window. Distinct from the separate unfiled innuwindow2 DevExpress-layout/SQL-schema bug on monitor 316587947 (error-rate, not this p95-latency monitor) -- do not conflate.",
     "silence_for": "24h",
     "first_seen": "2026-09-03T20:29:38Z",
-    "last_seen": "2026-11-22T10:41:38Z",
-    "occurrences": 10,
+    "last_seen": "2026-11-22T11:36:38Z",
+    "occurrences": 11,
     "notes": [
       {
         "ts": "2026-11-20T10:40:38Z",
@@ -1507,6 +1507,10 @@
       {
         "ts": "2026-11-21T21:15:00Z",
         "note": "2026-11-21 degraded cycle: monitor 316588178 Triggered 20:24:38Z, Warn 20:25:38Z, Recovered 20:27:38Z, Warn 20:33:38Z, Recovered 20:34:38Z (hash 348159238af9950b + satellites 591a7cbc48efe603, 0b83042720954ce7). p95 spiked to 45.04s @20:23:40Z and 36.21s @20:33:30Z, each on a single request; every other 10s bucket <=2.74s; 107 hits 20:00-20:45Z. 0 DD error logs, 0 ES hits (ES live: 8966 docs in window). Same spike values (36.2s / 45.0s) recur across 14:38, 18:23, 20:23, 20:33Z today, which points to the same report(s) being re-rendered, not random slowness. FA, but see recommendation in docs/investigations/2026-11-21-348159238af9950b.md."
+      },
+      {
+        "ts": "2026-11-22T12:15:00Z",
+        "note": "2026-11-22 degraded cycle: monitor 316588178 Warn 11:36:38Z, recovered 11:46:38Z (hash f5140f5b0cc4d40a). p95 spiked to 22.82s @11:36:20Z and 11.56s @11:36:30Z, then back to <=2.91s; 71 hits 11:15-11:50Z (low traffic, Sunday). 0 DD error logs 11:15-11:55Z; ES \"Report is Empty\" 0 hits (other ES wildcard sweeps hit 429 circuit-breaker / timeout). Warn only. Second fire today (10:41Z was the first), so this is a slow single render with no failure: FA."
       }
     ]
   },
@@ -1625,11 +1629,17 @@
     "reason": "Monitor 77419271 (>40 XHR errors / 5min by @account_name) fired 2026-11-20T02:26:11Z (transition). The tripping account was tcg3: 50/63 sampled method-ui XHR errors 02:10-02:35Z, 100% http.status_code 0 / error.origin network / \"Failed to load\", all from ONE client IP 40.77.179.249 (AS8075 Microsoft hosting), 100% HeadlessChrome 146, empty user_identity, within 6 seconds (02:19:11-02:19:17Z), loading tcg3.method.ws/apps/Public.aspx (referrer completecadsolutions.com) and aborting runtime/api/v1/grid + datatable POSTs. 0 server-side ES errors for tcg3. Automated crawler on a public app page, not users. Same mechanism as fa-2026-08-15-sommselection-bingbot-analytics-beacon-noise (second account).",
     "silence_for": "24h",
     "first_seen": "2026-11-20T02:26:11Z",
-    "last_seen": "2026-11-22T03:55:11Z",
-    "occurrences": 3,
+    "last_seen": "2026-11-22T11:57:11Z",
+    "occurrences": 4,
     "evidence_source": "datadog_logs",
     "evidence_query": "service:method-ui status:error *xhr* @account_name:tcg3 -- expect status_code 0, single IP, HeadlessChrome/bot UA, empty user_identity",
-    "recommendation": "Scoped to the account on purpose so it cannot shadow ki-2026-05-21-gateway-microservices-timeout. If the matched fire shows real users / 4xx-5xx, this FA does not apply. Broader fix: have the monitor exclude http.status_code:0 and HeadlessChrome/bot UAs."
+    "recommendation": "Scoped to the account on purpose so it cannot shadow ki-2026-05-21-gateway-microservices-timeout. If the matched fire shows real users / 4xx-5xx, this FA does not apply. Broader fix: have the monitor exclude http.status_code:0 and HeadlessChrome/bot UAs.",
+    "notes": [
+      {
+        "ts": "2026-11-22T12:15:00Z",
+        "note": "2026-11-22 degraded cycle: monitor 77419271 Triggered on @account_name:tcg3 11:57:11Z, recovered 12:02:11Z (hash 6ceb9c29bfd31866). DD logs 11:45-12:05Z: 43 events, 100% http.status_code 0 / error.origin network, 100% HeadlessChrome, one client IP (AS8075 Microsoft hosting), no usr.id/session.id, all within 11:56:57-11:57:01Z, view tcg3.method.ws/apps/Public.aspx, referrer completecadsolutions.com. 0 non-method-ui error logs mentioning tcg3. Exact repeat: FA. 2nd tcg3 fire today."
+      }
+    ]
   },
   {
     "target": "false-alarms",
