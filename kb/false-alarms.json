@@ -1207,12 +1207,16 @@
     "reason": "eda_orchestrator_api Kafka-produce error-ratio monitor (sum(last_5m):100 * errors/hits > 1%). DD metric re-query for the alert window (09:50:13-10:30:13Z) shows a legitimate traffic burst (baseline ~5-135 hits/10s climbing to ~2,900 hits/10s for ~90s right before the trigger) against exactly 1 total produce error in the whole 40-min window -- nowhere near a genuine 1% error rate over any real interval. 0 status:error DD logs on the service in-window. Same low-traffic/burst-ratio monitor-noise shape already documented on HTTP-status-ratio monitors (ki-2026-07-04-ms-account-api-4xx-spike-monitor-noise, ki-2026-07-07-gateway-4xx-spike-monitor-noise, fa-2026-07-12-mapi-5xx-rate-low-traffic-ratio-artifact), now confirmed on a Kafka-produce-ratio monitor too.",
     "silence_for": "24h",
     "first_seen": "2026-07-30T10:20:13Z",
-    "last_seen": "2026-10-11T22:27:13Z",
-    "occurrences": 3,
+    "last_seen": "2026-11-22T21:46:12Z",
+    "occurrences": 4,
     "notes": [
       {
         "ts": "2026-07-30T14:29:00Z",
         "note": "2026-07-30 ~14:29Z triage (degraded cycle, no Slack MCP; DD monitor scan-diff vs prior cutoff 2026-07-29T18:01:24Z). First-ever fire of monitor 296639892 in kb/incident-log.jsonl (0 prior mentions). See docs/investigations/2026-07-30-426161c97bbe9dea.md."
+      },
+      {
+        "ts": "2026-11-22T22:12:00Z",
+        "note": "2026-11-22 degraded cycle: 296639892 Warn 21:46:12Z, recovered 21:51:12Z (hash 55182ac9e76ad202). DD metric trace.kafka.produce.errors{service:eda_orchestrator_api,env:prod} = exactly 1 error (@21:46:10Z) in 21:30-22:00Z and 1 in the prior 24h; produce hits 950 in the 5-min eval window 21:41:10-21:46:20Z (~0.1%, warn-tier only, crit 1%). 0 eda_orchestrator_api error logs 21:35-21:55Z. Same single-error-vs-ratio mechanism."
       }
     ]
   },
@@ -1690,5 +1694,27 @@
     "evidence_source": "datadog_apm",
     "evidence_query": "p95:trace.aspnet_core.request{env:prod,service:sync-xero-api,resource_name:get_/health/heartbeat} -- expect single-digit ms; plus sum:trace.aspnet_core.request.errors{env:prod,service:sync-xero-api} ~0",
     "recommendation": "Keyed on the story title text on purpose, not the bare monitor id, so it can't shadow other 236570583 stories (see ki-2026-05-28 / ki-2026-05-29). Consider excluding resource_name:get_/health/* from the Watchdog monitor query."
+  },
+  {
+    "target": "false-alarms",
+    "id": "fa-2026-11-22-crotega-azure-hosted-public-app-analytics-beacon-noise",
+    "match": {
+      "channels": [
+        "alert-frontend-errors"
+      ],
+      "any_of": [
+        {
+          "contains": "for account: crotega"
+        }
+      ]
+    },
+    "reason": "Monitor 77419271 (>40 XHR errors / 5min by @account_name) Triggered on @account_name:crotega 2026-11-22T21:42:11Z, Warn 21:47:11Z, Recovered 21:48:11Z. DD logs service:method-ui status:error *xhr* @account_name:crotega 21:30-21:55Z: 100 events (limit-capped), 100% http.status_code 0 / error.origin network / 'Failed to load', 100% from AS8075 Microsoft Corporation (type hosting, Azure US-East region), 25 distinct client IPs, 34 sessions (~3 errors each), empty user_identity, all on crotega.method.ws/apps/Public.aspx (one public app), 97/100 the aborted 'Runtime Button Clicked' analytics beacon POST, all within 21:41-21:43Z. Desktop Chrome 152-155 UAs (not HeadlessChrome). 0 ES error docs mentioning crotega, 0 non-method-ui DD error logs for crotega, 0 ms-gateway-api error logs 21:38-21:46Z. Reading: a distributed Azure-hosted automated client swarm (link-scanner / crawler pattern) on a public app page aborting fire-and-forget analytics beacons, not users hitting a backend failure. Same family as fa-2026-11-20-tcg3-headless-crawler-public-app-xhr-noise and fa-2026-08-15-sommselection-bingbot-analytics-beacon-noise. Caveat: Azure Virtual Desktop / Cloud PC users would also egress from AS8075; 34 simultaneous anonymous sessions on a Sunday is the reason this was judged automated.",
+    "silence_for": "24h",
+    "first_seen": "2026-11-22T21:42:11Z",
+    "last_seen": "2026-11-22T21:42:11Z",
+    "occurrences": 1,
+    "evidence_source": "datadog_logs",
+    "evidence_query": "service:method-ui status:error *xhr* @account_name:crotega -- expect status_code 0, 100% AS8075 hosting ASN, empty user_identity, analytics beacon URLs, 0 server-side errors",
+    "recommendation": "Scoped to crotega on purpose so it cannot shadow ki-2026-05-21-gateway-microservices-timeout. If a matched fire shows residential/business ASNs, non-zero status codes, or server-side errors, this FA does not apply. Broader fix (3rd account with this shape): have monitor 77419271 exclude http.status_code:0 analytics-beacon URLs and hosting-type ASNs."
   }
 ]
