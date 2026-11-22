@@ -549,8 +549,8 @@
     "reason": "DD RUM Error Tracking for service:method-nativemobile-ui over the trailing 4h (2026-07-14T19:00-23:30Z): 181 @type:error events vs 1464 @type:view events = 12.4% error rate (monitor threshold >5%). Message breakdown of all 181 sampled errors: 83 'A server with the specified hostname could not be found.' (DNS resolution failure, 45.9%), 74 'cancelled' (request cancelled mid-flight, typically app backgrounding/navigation-away, 40.9%), 12 'A TLS error caused the secure connection to fail.' (6.6%), plus small counts of 'Network Error'/'offline'/Expo-token-fetch failures. Every message is a client-side network-connectivity signature (DNS/TLS/cancellation on mobile devices with flaky connectivity) -- none are application-level 4xx/5xx or server-side exceptions. No correlated backend service alert fired in the same window. This is inherent RUM noise from real-world mobile network conditions, not a backend incident. 2026-09-24T10:17:08Z (this occurrence): RUM re-query trailing 4h (06:17:08-10:17:08Z) returned 6 hits: 3x 'cancelled' (catalogued class), 1x 'Memory Warning' (device-level, benign, unrelated to network), 2x 'Push registration failed (register-token/launch-token): ...IOException: INTERNAL_SERVER_ERROR' -- not verbatim catalogued here but same GMS/FCM-token-fetch-IOException family documented under sibling entry fa-2026-09-16-nativemobile-push-registration-transient-network-gms (which itself has absorbed new IOException variant strings each occurrence). No backend/server-side correlation (0 hits service:method-nativemobile-ui/nonprod-apps status:error). Still classic mobile-client noise, cross-referenced against the sibling entry rather than a clean verbatim match -- flagged for future attention if INTERNAL_SERVER_ERROR becomes a dominant class.",
     "silence_for": "24h",
     "first_seen": "2026-07-14T23:01:19Z",
-    "last_seen": "2026-11-22T12:33:08Z",
-    "occurrences": 68,
+    "last_seen": "2026-11-22T13:14:08Z",
+    "occurrences": 69,
     "recommendation": "monitor threshold (>5% over trailing 4h) is too sensitive for a mobile RUM error-rate check that includes DNS/TLS/cancellation noise; recommend excluding 'cancelled' and DNS-resolution-failure messages from the numerator, or raising the threshold, before this becomes a recurring low-value fire; flag to Admin (owns method-nativemobile-ui per ownership.md, despite the monitor's team:crm tag). 3 occurrences in ~2.5 weeks now (2026-07-14, 2026-07-30, 2026-07-31) -- worth acting on rather than continuing to re-verify.",
     "notes": [
       {
@@ -1519,6 +1519,10 @@
       {
         "ts": "2026-11-22T12:24:38Z",
         "note": "2026-11-22 degraded cycle: monitor 316588178 triggered (Alert) 12:24:38Z, recovered 12:40:38Z (hash 6720b16109cd2a7e). p95 spiked to 36.87s @12:24:30Z and 38.38s @12:30:30Z; every other bucket <=2.79s; 29 hits 12:05-12:45Z (Sunday low traffic). 0 DD error logs, 0 ES hits (reportgenerationapi OR ReportGeneration; \"Report is Empty\") in window. Two slow renders, no failure, so FA. Third fire today (10:41Z, 11:36Z, 12:24Z)."
+      },
+      {
+        "ts": "2026-11-22T14:15:00Z",
+        "note": "2026-11-22 degraded cycle: monitor 316588178 triggered 13:45:38Z (hash e707ff7fe88c1185). Matched here but REFUTED, occurrences NOT bumped: p95 reproduced (45.69s @13:45Z) on one POST /api/v1/report/generate (trace 6b02f1b000000000d481add22e480ad0, prod-report-03) that returned 500 after a spiderViewFields/spiderColumns metadata query hit SqlException Execution Timeout (30.07s) on sql-prod-1. Caller: runtime-core action for cpvusanew (Statement report). Co-fired P1 error-rate 316587947 at 13:45:47Z. Logged as needs-human e707ff7fe88c1185 (low-impact)."
       }
     ]
   },
