@@ -1789,6 +1789,28 @@
   },
   {
     "target": "false-alarms",
+    "id": "fa-2026-11-23-northriverelectricinc-single-session-cellular-network-drop-xhr-noise",
+    "match": {
+      "channels": [
+        "alert-frontend-errors"
+      ],
+      "any_of": [
+        {
+          "contains": "for account: northriverelectricinc"
+        }
+      ]
+    },
+    "reason": "Monitor 77419271 (>40 critical / >25 warn XHR errors per 5min by @account_name) fired on @account_name:northriverelectricinc: Warn 20:48:11Z -> Recovered 20:51:11Z (DD events API, degraded cycle). DD logs service:method-ui status:error *xhr* @account_name:northriverelectricinc 2026-11-23T20:35:00Z-20:55:00Z returned 37 events (full set; limit 100), 20:45-20:48Z. All 37 came from ONE session (326a1e0d-...) and ONE user_identity (60a6bee0-...) on a MobileNative client over Verizon Business (cellular ISP ASN). All 37 had http.status_code 0 / error.origin network ('Failed to load'). Endpoints were spread across runtime/api/v1 datatable and grid (6 each), gateway documents (4), gateway tags (3), appribbon, preferences GetReleaseFeatureFlag, dashboard GetDashboardRightPanel and sync firstsync. Server side was clean: 0 non-method-ui error logs for northriverelectricinc and 0 ms-gateway-api error logs 20:35-21:00Z, so ki-2026-05-21-gateway-microservices-timeout does not apply. One real user's cellular link dropped, not a Method outage. Same family as fa-2026-11-23-procaminc2-single-session-cellular-network-drop-xhr-noise.",
+    "silence_for": "24h",
+    "first_seen": "2026-11-23T20:48:11Z",
+    "last_seen": "2026-11-23T20:48:11Z",
+    "occurrences": 1,
+    "evidence_source": "datadog_logs",
+    "evidence_query": "service:method-ui status:error *xhr* @account_name:northriverelectricinc -- expect 100% http.status_code 0, single session, cellular/ISP ASN, 0 server-side errors; multiple sessions or real 4xx/5xx means this FA does NOT apply",
+    "recommendation": "Scoped to the account on purpose so it cannot shadow ki-2026-05-21-gateway-microservices-timeout. This is a real customer, so re-verify every fire against the evidence_query. This is the 6th per-account status_code-0 FA on monitor 77419271 today (rufusbuilderservices, memiairellc, aleproinsurancelogisticsllc, procaminc2, crslaboratories, northriverelectricinc). The structural fix is to exclude @http.status_code:0 from the 77419271 monitor query."
+  },
+  {
+    "target": "false-alarms",
     "id": "fa-2026-11-23-procaminc2-single-session-cellular-network-drop-xhr-noise",
     "match": {
       "channels": [
