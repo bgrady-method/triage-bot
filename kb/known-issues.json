@@ -4948,6 +4948,35 @@
     "prior_last_notified_at": "2026-08-20T13:54:36Z"
   },
   {
+    "id": "ki-2026-11-23-rest-api-odata-edm-date-unquoted-filter-500",
+    "title": "rest-api GET /api/{version}/tables/{table} 500 on unquoted OData date literal (Microsoft.OData.Edm.Date reaches Dapper -> NotSupportedException)",
+    "first_seen": "2026-11-23T05:39:38Z",
+    "last_seen": "2026-11-23T21:21:38Z",
+    "occurrences": 2,
+    "match": {
+      "channels": [
+        "alert-system"
+      ],
+      "any_of": [
+        {
+          "contains": "Microsoft.OData.Edm.Date cannot be used as a parameter value"
+        }
+      ],
+      "precedence_note": "Monitor 70171778 (generic all-service 5xx) also matches ki-2026-07-12 via its bare monitor-id clause. This entry is deliberately NOT keyed on the monitor id/text (it would steal every 70171778 fire). For a 70171778 rest-api fire, run the 5xx-by-resource metric + this entry's evidence_query: if the burst is GET tables and ES shows the Edm.Date NotSupportedException in the window, it is this entry, not ki-2026-07-12."
+    },
+    "evidence_source": "elasticsearch",
+    "evidence_query": "fields.dd_service.keyword:\"rest-api\" AND level.keyword:\"Error\" AND (message.keyword:\"The member p0 of type Microsoft.OData.Edm.Date cannot be used as a parameter value\" OR message.keyword:\"The member p1 of type Microsoft.OData.Edm.Date cannot be used as a parameter value\" OR message.keyword:\"The member p2 of type Microsoft.OData.Edm.Date cannot be used as a parameter value\")",
+    "diagnosis": "Integration clients (PowerShell, python-requests, urllib) call GET /api/v1/tables/<T>?filter=<DateCol> ge 2026-11-10 with an UNQUOTED OData v4 date literal. The OData parser yields a Microsoft.OData.Edm.Date ConstantNode; Method.Data.OData.ODataQueryBuilder.GetConstantValue (runtime-core) only converts string constants to DateTime and returns other types raw, so Edm.Date is bound as a Dapper parameter -> System.NotSupportedException at Dapper.SqlMapper.LookupDbType <- QueryService.QueryAsync (QueryService.cs:28) <- ODataQueryService.QueryTableAsync (ODataQueryService.cs:54) <- TablesController.QueryRecordsAsync -> GlobalExceptionHandler -> HTTP 500. Quoted '2026-11-10' takes the string path and works. Chronic: 390 errors / 27 accounts / 7d as of 2026-11-23 (ES retention edge, predates window); trips 70171778 Warn (>20/5m) when one integration loops (05:39Z ~29 errs; 21:21Z 29 errs from procurementequipment Estimate). Code read from a stale runtime-core ref (2026-07-15, methodcrm fetch 403) -- verify against current source.",
+    "playbook": "1) 5xx-by-resource metric on rest-api for the eval window (expect get_/api/v_version_/tables/_table). 2) ES evidence_query in window; group by fields.Account / RequestPath / RequestQueryString client-side (es aggregate on fields.Account returns 0 -- use search --limit 1000). 3) Confirm query strings contain an unquoted date literal. Customer workaround: quote the date ('2026-11-10'). Fix (Connect/runtime-core): in GetConstantValue map Microsoft.OData.Edm.Date -> DateTime (and TimeOfDay -> TimeSpan); map filter-binding NotSupportedException to 400 in GlobalExceptionHandler.",
+    "fix_status": "proposed",
+    "fix_jira": null,
+    "fix_template": null,
+    "confidence": 0.9,
+    "owning_team": "Connect",
+    "last_notified_at": null,
+    "notes": "Seeded 2026-11-23 ~22:15Z by triage on 2nd confirmed fire the same day (prior: docs/investigations/2026-11-23-fd5cd71496e7be36.md; this: docs/investigations/2026-11-23-656684658e079794.md). Unfiled defect. Both fires scored low-impact (users unresolvable: prod3/4/5 clusters unconfigured) -- scoring gap, flagged to Ben."
+  },
+  {
     "id": "ki-billingengine-api-key1-removed-in-refactor",
     "title": "billingengine-api subscription pages 500 on Sunday after Friday release removed API key1 used by nightly billing agent",
     "first_seen": "2026-04-26T14:18:00Z",
