@@ -1745,6 +1745,28 @@
   },
   {
     "target": "false-alarms",
+    "id": "fa-2026-11-23-crslaboratories-office-isp-network-drop-xhr-noise",
+    "match": {
+      "channels": [
+        "alert-frontend-errors"
+      ],
+      "any_of": [
+        {
+          "contains": "for account: crslaboratories"
+        }
+      ]
+    },
+    "reason": "Monitor 77419271 (>40 critical / >25 warn XHR errors per 5min by @account_name) fired on @account_name:crslaboratories: Warn 17:15:11Z -> Recovered 17:18:11Z (DD events API, degraded cycle). DD logs service:method-ui status:error *xhr* @account_name:crslaboratories 2026-11-23T17:05:00Z-17:25:00Z returned 38 events (full set; limit 100), burst 17:11-17:15Z (31). All 38 had http.status_code 0 / error.origin network. Unlike the single-session family, this was 5 sessions / 5 user_identities, but 31/38 came from 4 users on the SAME ISP ASN (AS18881, ISP type) at the same minutes 17:09-17:16Z; the other 7 came from one user who also appears on a hosting ASN (AS46475, likely VPN egress). That looks like one office's uplink dropping. Endpoints were spread across runtime analytics beacon, runtime action POST, syncutil GetSyncWidgetInfoAsync, grid, dropdown, apps screen and LegacyPermissions. Server side was clean: 0 non-method-ui error logs for crslaboratories 17:00-17:30Z and 0 ms-gateway-api error logs 17:05-17:25Z, so ki-2026-05-21-gateway-microservices-timeout (Ocelot timeouts) does not apply despite the GetSyncWidgetInfoAsync URLs.",
+    "silence_for": "24h",
+    "first_seen": "2026-11-23T17:15:11Z",
+    "last_seen": "2026-11-23T17:15:11Z",
+    "occurrences": 1,
+    "evidence_source": "datadog_logs",
+    "evidence_query": "service:method-ui status:error *xhr* @account_name:crslaboratories -- expect 100% http.status_code 0 clustered on one ISP ASN in the same minutes, 0 ms-gateway-api / server-side errors; real 4xx/5xx or gateway timeouts means this FA does NOT apply (use ki-2026-05-21-gateway-microservices-timeout instead)",
+    "recommendation": "Scoped to the account so it cannot shadow ki-2026-05-21-gateway-microservices-timeout, which crslaboratories has historically matched (Jun-Aug 2026). Re-verify every fire against the evidence_query. This is a MULTI-session status-0 burst, so a '>=2 distinct sessions' condition on 77419271 would NOT have suppressed it. Excluding @http.status_code:0 from the monitor query is the fix that covers both families."
+  },
+  {
+    "target": "false-alarms",
     "id": "fa-2026-11-23-memiairellc-single-session-isp-network-drop-xhr-noise",
     "match": {
       "channels": [
