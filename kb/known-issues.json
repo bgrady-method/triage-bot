@@ -2551,8 +2551,8 @@
     "id": "ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap",
     "title": "New team:crm AMQP-consumer heartbeat/throughput-stall monitors (5 sibling IDs, created 2026-07-02) intermittently trip on quiet-period low-traffic dips, then self-recover within minutes — no corroborating errors",
     "first_seen": "2026-07-04T13:07:31Z",
-    "last_seen": "2026-11-22T22:01:31Z",
-    "occurrences": 194,
+    "last_seen": "2026-11-23T07:01:21Z",
+    "occurrences": 201,
     "match": {
       "channels": [
         "alert-system",
@@ -2599,7 +2599,7 @@
     "fix_template": null,
     "confidence": 0.82,
     "owning_team": "CRM Experience (runtime-core-subscriber-api, per ownership.md:454) / Admin (mobile-notifications-stack, per ownership.md:416) — split by service; DD monitor tags say team:crm for both, ownership.md disagrees for the mobile-notifications component",
-    "last_notified_at": "2026-11-22T18:29:31Z",
+    "last_notified_at": "2026-11-23T04:24:21Z",
     "notes": [
       {
         "ts": "2026-07-04T16:10:00Z",
@@ -4179,8 +4179,8 @@
     "id": "ki-2026-07-07-notifications-p95-latency-monitor-noise",
     "title": "[CRM][P2] notifications P95 latency high monitor fires but re-query of the same evaluation window shows the metric never approaches the threshold -- monitor/data artifact, not real latency",
     "first_seen": "2026-07-06T10:01:07Z",
-    "last_seen": "2026-11-21T09:31:07Z",
-    "occurrences": 51,
+    "last_seen": "2026-11-23T09:31:07Z",
+    "occurrences": 52,
     "match": {
       "channels": [
         "alert-system",
@@ -4206,7 +4206,7 @@
     "fix_template": null,
     "confidence": 0.72,
     "owning_team": "CRM Experience",
-    "last_notified_at": "2026-11-21T09:31:07Z",
+    "last_notified_at": "2026-11-23T09:31:07Z",
     "notes": [
       {
         "ts": "2026-07-06T11:40:00Z",
@@ -4323,6 +4323,10 @@
       {
         "ts": "2026-11-20T09:43:07Z",
         "note": "2026-11-20 degraded cycle: monitor 302056327 09:43:07Z (OK at scan), hash 97042596ab37709f, occ 49->50. p95 09:00-10:15Z max 0.618s @09:30Z, 0 points >1s; 0 status:error logs. last_notified_at 2026-11-19T09:43:07Z ~25.4h at cycle-eval -> POSTED (window lapsed; also 50th occurrence)."
+      },
+      {
+        "ts": "2026-11-23T11:16:00Z",
+        "note": "occ 52 (2026-11-23T09:31:07Z) fired at the exact same minute as occ 51 (2026-11-21T09:31:07Z). The 09:30Z p95 spike is get_/signalr/reconnect (86,487s) and get_/signalr/connect (6,083s) spans closing together, which suggests a daily ~09:30Z app-pool recycle/restart of notifications drops every long-held SignalR connection at once. Monitor fix is unchanged: exclude signalr connect/reconnect/poll resources from the p95 query."
       }
     ]
   },
