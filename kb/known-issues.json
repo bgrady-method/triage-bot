@@ -4759,12 +4759,13 @@
     "id": "ki-2026-07-28-tables-fields-editview-viewgen-failed-after-retry",
     "title": "ms-tables-fields-api EditView view-regeneration fails after retry (System.Exception 'Failed to generate view {X} after retry') -- 4th distinct bug class on monitor 299251404",
     "first_seen": "2026-07-28T17:48:24Z",
-    "last_seen": "2026-08-23T23:11:24Z",
-    "occurrences": 4,
+    "last_seen": "2026-11-24T15:01:24Z",
+    "occurrences": 5,
     "match": {
       "channels": [
         "alert-system",
-        "alert-runtime-monitoring"
+        "alert-runtime-monitoring",
+        "alert-no-code-next-gen"
       ],
       "any_of": [
         {
@@ -4787,7 +4788,7 @@
     "confidence": 0.7,
     "evidence_source": "elasticsearch",
     "evidence_query": "fields.dd_service.keyword:tables-fields AND level.keyword:Error AND message.keyword:\"SaveFieldLegacyExtended Failed\"",
-    "last_notified_at": "2026-08-23T23:11:24Z",
+    "last_notified_at": "2026-11-24T14:43:24Z",
     "notes": [
       {
         "ts": "2026-08-02T17:12:00Z",
@@ -4796,6 +4797,10 @@
       {
         "ts": "2026-08-04T21:08:00Z",
         "note": "2026-08-04 21:08Z triage (degraded cycle, no Slack MCP surfaced this session; DD-scan-diff vs prior cutoff 2026-08-04T20:08:11Z; hash 372c7a127c943bca): occ#3 via monitor 299251404 last_triggered 20:44:24Z (OK by scan time, self-recovered). ES message.keyword aggregate 20:04:24-20:44:24Z over the whole tables-fields Error stream: 25 total hits, dominant signature THIS entry -- 'Table View Creation Failed' (10) + 'EditView ViewGen failed after retry...' (5) + 'SaveFieldLegacyExtended Failed' (6, disaggregated by exceptions.ClassName.keyword: 5 x System.Exception matching this entry, 1 x SqlException belonging to the co-firing ki-2026-07-06 entry). Sample record confirmed exceptions[0].ClassName=System.Exception, Message='Failed to generate view Sponsorship_Opp after retry.', origin Services.Views.ViewService.EditView (ViewService.cs:394) -- matches this entry's documented signature exactly, ruling out ki-2026-07-11's NullReferenceException variant per the standing trap warning. last_notified_at (2026-08-02T17:12:00Z) was ~2d3h32m ago, EXCEEDED the 24h suppression window -> POSTED to #triage-results jointly with ki-2026-07-06 (both fired in the same aggregate window, same monitor 299251404), gate_reason=null (window-expiry). See docs/investigations/2026-08-04-372c7a127c943bca.md."
+      },
+      {
+        "ts": "2026-11-24T15:15:00Z",
+        "note": "2026-11-24 degraded cycle (hash e70607ff07926223, satellite 61461601becb2e05): occ#5 via monitor 299251404 Warn 14:43:24Z (recovered 14:47:24Z) + re-Warn 15:01:24Z, now routed @slack-alert-no-code-next-gen (channel added to match.channels). DD APM 14:00-15:08Z: 11 request errors, ALL on post_/v1/field/savefieldlegacyextended, vs ~2,036 hits. ES tables-fields level:Error 14:35-15:10Z: 74 hits: Table View Creation Failed 26, EditView ViewGen failed after retry 13, SaveFieldLegacyExtended Failed 11 (11/11 System.Exception 'Failed to generate view CustomAgenda|CustomEventSchedule after retry' at ViewService.EditView:394). Exact signature for this entry. NEW DETAIL that removes playbook step 3's 'tenant not captured' gap: the tenant and real SQL error ARE indexed on the same trace's fnCreateViewFromTableName records (fields.AdditionalMetaData.DatabaseName/TableName, plus message text). Query: fields.dd_trace_id.keyword:<id>. 12/12 traces = camcraigconsulting (CustomAgenda 48 recs, CustomEventSchedule 8, CustomAgendaType 2, CustomAgendaStatus 2). Underlying error: 'Invalid column name CustomAgendaStatus / CustomAgendaType / CustomEventScheduleType' in ALTER VIEW. Upstream trigger found: traces 6b05a301 (14:45:21Z) and 6b05a653 (14:59:32Z) show AddDropDownFieldWithRollBack -> AlterTableToAddColumn Failed with SqlException \"Column 'CustomAgendaType' in table 'CustomAgendaType' is of a type that is invalid for use as a key column in an index\", then 'ALTER TABLE DROP COLUMN failed because the column does not exist' on rollback. The parent table's spider metadata for the dropdown field is left referencing a physical column that was never created, so every later EditView on CustomAgenda fails at view regen. The cascade perpetuates itself per table until the orphaned spider rows are repaired. Hypothesis (stale origin/master 2026-07-06, GH 403): FieldService.AddDropDownFieldWithRollBack builds the child table's key column as ColumnType.Text with dropdownField.Size. An oversized or MAX size gives an nvarchar that can't be an index key. Not verified against prod code. Data fix for camcraigconsulting: remove the orphaned spiderColumns/spiderViewFields rows for CustomAgendaType/CustomAgendaStatus on CustomAgenda (and CustomEventScheduleType on CustomEventSchedule), or add the missing physical columns. Then regenerate the views."
       }
     ],
     "owning_team": "Admin"

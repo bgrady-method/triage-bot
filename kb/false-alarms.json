@@ -1665,8 +1665,8 @@
     "reason": "Monitor 77419271 (>40 XHR errors / 5min by @account_name) fired 2026-11-20T02:26:11Z (transition). The tripping account was tcg3: 50/63 sampled method-ui XHR errors 02:10-02:35Z, 100% http.status_code 0 / error.origin network / \"Failed to load\", all from ONE client IP 40.77.179.249 (AS8075 Microsoft hosting), 100% HeadlessChrome 146, empty user_identity, within 6 seconds (02:19:11-02:19:17Z), loading tcg3.method.ws/apps/Public.aspx (referrer completecadsolutions.com) and aborting runtime/api/v1/grid + datatable POSTs. 0 server-side ES errors for tcg3. Automated crawler on a public app page, not users. Same mechanism as fa-2026-08-15-sommselection-bingbot-analytics-beacon-noise (second account).",
     "silence_for": "24h",
     "first_seen": "2026-11-20T02:26:11Z",
-    "last_seen": "2026-11-24T13:01:11Z",
-    "occurrences": 9,
+    "last_seen": "2026-11-24T14:14:11Z",
+    "occurrences": 10,
     "evidence_source": "datadog_logs",
     "evidence_query": "service:method-ui status:error *xhr* @account_name:tcg3 -- expect status_code 0, single IP, HeadlessChrome/bot UA, empty user_identity",
     "recommendation": "Scoped to the account on purpose so it cannot shadow ki-2026-05-21-gateway-microservices-timeout. If the matched fire shows real users / 4xx-5xx, this FA does not apply. Broader fix: have the monitor exclude http.status_code:0 and HeadlessChrome/bot UAs.",
@@ -1678,6 +1678,10 @@
       {
         "ts": "2026-11-24T13:09:00Z",
         "note": "2026-11-24 degraded cycle: monitor 77419271 Triggered on @account_name:tcg3 13:01:11Z, recovered 13:06:11Z (hash 9c01f47ed3414212). DD logs 12:45-13:10Z: 78 events, 100% http.status_code 0 / error.origin network, 100% HeadlessChrome, one client IP (AS8075 Microsoft hosting), no usr.id/session.id, all within 13:00:42-13:00:48Z, view tcg3.method.ws/apps/Public.aspx, referrer completecadsolutions.com. 0 non-method-ui error logs for tcg3. Exact repeat: FA."
+      },
+      {
+        "ts": "2026-11-24T15:15:00Z",
+        "note": "2026-11-24 degraded cycle: monitor 77419271 Triggered on @account_name:tcg3 14:14:11Z, recovered 14:19:11Z (hash 76f0649d669dff7b). DD logs 14:00-14:20Z: 52 events, 100% http.status_code 0, 100% HeadlessChrome, one client IP (40.77.x, same AS8075 range), no usr.id, all within 14:13:19-14:13:23Z on tcg3.method.ws/apps/Public.aspx. 0 server-side tcg3 errors. Exact repeat: 3rd tcg3 fire today (10th total)."
       }
     ]
   },
