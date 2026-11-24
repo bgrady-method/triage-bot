@@ -4759,8 +4759,8 @@
     "id": "ki-2026-07-28-tables-fields-editview-viewgen-failed-after-retry",
     "title": "ms-tables-fields-api EditView view-regeneration fails after retry (System.Exception 'Failed to generate view {X} after retry') -- 4th distinct bug class on monitor 299251404",
     "first_seen": "2026-07-28T17:48:24Z",
-    "last_seen": "2026-11-24T15:01:24Z",
-    "occurrences": 5,
+    "last_seen": "2026-11-24T16:35:24Z",
+    "occurrences": 6,
     "match": {
       "channels": [
         "alert-system",
