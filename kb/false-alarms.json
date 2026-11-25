@@ -1951,6 +1951,50 @@
   },
   {
     "target": "false-alarms",
+    "id": "fa-2026-11-25-duralinesystemsinc2-single-session-syncwidget-poll-network-drop-xhr-noise",
+    "match": {
+      "channels": [
+        "alert-frontend-errors"
+      ],
+      "any_of": [
+        {
+          "contains": "for account: duralinesystemsinc2"
+        }
+      ]
+    },
+    "reason": "Monitor 77419271 (XHR errors per 5min by @account_name) went Warn on @account_name:duralinesystemsinc2 at 18:39:11Z, Triggered 18:41:11Z, flapped Warn/Triggered 18:47-18:49Z, Recovered 18:50:11Z (DD events API, degraded cycle). DD logs service:method-ui @account_name:duralinesystemsinc2 2026-11-25T18:20:00Z-18:55:00Z returned 119 events (full set). 115/119 were http.status_code 0 on GET /gateway/syncutil/syncwidget/duralinesystemsinc2/GetSyncWidgetInfoAsync, all from ONE Chrome/Windows session (9f6b8d89) on one ISP (Cablevision), 18:28:58Z-18:47:59Z (~6 polls/min). The other 4 were ResizeObserver console noise from 2 other sessions. Server side was clean: 0 non-method-ui error logs for the account. Fleet-wide method-ui status-0 errors excluding the 2 alerting accounts: 398 vs 397 in the same window 24h earlier (flat). Platform-wide GetSyncWidgetInfoAsync status-0 in the window: 142, of which 115 from this one session and the next account had 4. Account background: 9 errors same window 24h earlier; 857 over the prior 7d. One client's network path dropped while a tab kept re-polling the sync widget. Not a Method outage. Same shape as fa-2026-11-24-freedomserviceco. ki-2026-05-21-gateway-microservices-timeout (GetSyncWidgetInfoAsync clause) rejected: no gateway or sync-util server errors, and the failures come from one session, not many accounts.",
+    "silence_for": "24h",
+    "first_seen": "2026-11-25T18:39:11Z",
+    "last_seen": "2026-11-25T18:39:11Z",
+    "occurrences": 1,
+    "evidence_source": "datadog_logs",
+    "evidence_query": "service:method-ui status:error @account_name:duralinesystemsinc2 -- expect ~100% http.status_code 0 from one session/ISP, mostly syncutil GetSyncWidgetInfoAsync polls, 0 server-side errors for the account; multiple sessions, real 4xx/5xx or gateway timeouts mean this FA does NOT apply (check ki-2026-05-21)",
+    "recommendation": "Scoped to the account so it cannot shadow ki-2026-05-21. Re-verify each fire: the account has a high 7d background (857), so a multi-session recurrence deserves a real look. Structural fix is still a >=2-sessions guard or excluding @http.status_code:0 in the 77419271 query (3rd single-session status-0 FA on this monitor today)."
+  },
+  {
+    "target": "false-alarms",
+    "id": "fa-2026-11-25-fireandiceheatingandairconditioning-single-session-cellular-network-drop-xhr-noise",
+    "match": {
+      "channels": [
+        "alert-frontend-errors"
+      ],
+      "any_of": [
+        {
+          "contains": "for account: fireandiceheatingandairconditioning"
+        }
+      ]
+    },
+    "reason": "Monitor 77419271 went Triggered on @account_name:fireandiceheatingandairconditioning at 18:50:11Z and Recovered 18:53:11Z (DD events API, degraded cycle). DD logs service:method-ui @account_name:fireandiceheatingandairconditioning 2026-11-25T18:35:00Z-18:55:00Z returned 59 events. 56/59 came from ONE native-mobile session (8f2f7b67, iOS 18.7 WKWebView, MobileNative) on AT&T cellular. 47 were http.status_code 0, mostly /runtime/api/v2/dropdown/<id> (37) plus runtime screen-load and analytics calls. Server side was clean: 0 non-method-ui error logs for the account. Account background: 0 errors same window 24h earlier; 141 over the prior 7d. Fleet-wide status-0 flat (398 vs 397 24h earlier, excluding both alerting accounts). A phone whose cellular connection dropped while the app kept firing requests. Not a Method outage. Same shape as fa-2026-11-25-perfectlypurepools3.",
+    "silence_for": "24h",
+    "first_seen": "2026-11-25T18:50:11Z",
+    "last_seen": "2026-11-25T18:50:11Z",
+    "occurrences": 1,
+    "evidence_source": "datadog_logs",
+    "evidence_query": "service:method-ui status:error @account_name:fireandiceheatingandairconditioning -- expect status-0 errors concentrated in one mobile/cellular session, 0 server-side errors for the account; multi-session or real 4xx/5xx means this FA does NOT apply",
+    "recommendation": "Scoped to the account. Re-verify each fire. Same structural fix as the other per-account status-0 FAs on 77419271."
+  },
+  {
+    "target": "false-alarms",
     "id": "fa-2026-11-25-perfectlypurepools3-single-session-cellular-network-drop-xhr-noise",
     "match": {
       "channels": [
