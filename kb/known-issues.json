@@ -4759,8 +4759,8 @@
     "id": "ki-2026-07-28-tables-fields-editview-viewgen-failed-after-retry",
     "title": "ms-tables-fields-api EditView view-regeneration fails after retry (System.Exception 'Failed to generate view {X} after retry') -- 4th distinct bug class on monitor 299251404",
     "first_seen": "2026-07-28T17:48:24Z",
-    "last_seen": "2026-11-24T23:47:24Z",
-    "occurrences": 8,
+    "last_seen": "2026-11-25T12:30:24Z",
+    "occurrences": 9,
     "match": {
       "channels": [
         "alert-system",
@@ -4801,6 +4801,10 @@
       {
         "ts": "2026-11-24T15:15:00Z",
         "note": "2026-11-24 degraded cycle (hash e70607ff07926223, satellite 61461601becb2e05): occ#5 via monitor 299251404 Warn 14:43:24Z (recovered 14:47:24Z) + re-Warn 15:01:24Z, now routed @slack-alert-no-code-next-gen (channel added to match.channels). DD APM 14:00-15:08Z: 11 request errors, ALL on post_/v1/field/savefieldlegacyextended, vs ~2,036 hits. ES tables-fields level:Error 14:35-15:10Z: 74 hits: Table View Creation Failed 26, EditView ViewGen failed after retry 13, SaveFieldLegacyExtended Failed 11 (11/11 System.Exception 'Failed to generate view CustomAgenda|CustomEventSchedule after retry' at ViewService.EditView:394). Exact signature for this entry. NEW DETAIL that removes playbook step 3's 'tenant not captured' gap: the tenant and real SQL error ARE indexed on the same trace's fnCreateViewFromTableName records (fields.AdditionalMetaData.DatabaseName/TableName, plus message text). Query: fields.dd_trace_id.keyword:<id>. 12/12 traces = camcraigconsulting (CustomAgenda 48 recs, CustomEventSchedule 8, CustomAgendaType 2, CustomAgendaStatus 2). Underlying error: 'Invalid column name CustomAgendaStatus / CustomAgendaType / CustomEventScheduleType' in ALTER VIEW. Upstream trigger found: traces 6b05a301 (14:45:21Z) and 6b05a653 (14:59:32Z) show AddDropDownFieldWithRollBack -> AlterTableToAddColumn Failed with SqlException \"Column 'CustomAgendaType' in table 'CustomAgendaType' is of a type that is invalid for use as a key column in an index\", then 'ALTER TABLE DROP COLUMN failed because the column does not exist' on rollback. The parent table's spider metadata for the dropdown field is left referencing a physical column that was never created, so every later EditView on CustomAgenda fails at view regen. The cascade perpetuates itself per table until the orphaned spider rows are repaired. Hypothesis (stale origin/master 2026-07-06, GH 403): FieldService.AddDropDownFieldWithRollBack builds the child table's key column as ColumnType.Text with dropdownField.Size. An oversized or MAX size gives an nvarchar that can't be an index key. Not verified against prod code. Data fix for camcraigconsulting: remove the orphaned spiderColumns/spiderViewFields rows for CustomAgendaType/CustomAgendaStatus on CustomAgenda (and CustomEventScheduleType on CustomEventSchedule), or add the missing physical columns. Then regenerate the views."
+      },
+      {
+        "ts": "2026-11-25T13:10:00Z",
+        "note": "2026-11-25 degraded cycle (hash cf6bbc475b52def7, 5 satellites): occ#9 via monitor 299251404 Warn 12:30:24Z -> Triggered 12:39:24Z -> ... -> Recovered 13:00:24Z (two flaps, 6 non-recovery transitions). DD APM 12:20-13:05Z: 15 request errors / 842 hits; 5-min rolling rate peak 5.88% @12:39Z vs 5% crit (ratio ~0.18). ES tables-fields level:Error 12:15-13:05Z: 60 hits = Table View Creation Failed 30 | EditView ViewGen failed after retry 15 | SaveFieldLegacyExtended Failed 15; exceptions.Message 'Failed to generate view CustomAgenda after retry.' x15 at ViewService.EditView:394 (System.Exception) -- exact signature. 15 distinct traces (4 lines each). Trace join (6b06da9e..., 6b06d4ad...): classic/MethodWebService records 100% camcraigconsulting, 'Invalid column name CustomAgendaType' on ALTER VIEW viewCustomAgenda; all 30 classic 'Failed to generate view' records in-window are camcraigconsulting. 3rd burst from this account in ~22h (14:43Z, 23:47Z 11-24; 12:30Z 11-25) -- user keeps retrying field saves on CustomAgenda; data repair still outstanding. last_notified_at 2026-11-24T14:43:24Z = 21h47m before fire, WITHIN 24h window; occ 9 %10 != 0; fix_status unchanged -> SUPPRESS gate_reason=known-issue-window. See docs/investigations/2026-11-25-cf6bbc475b52def7.md."
       }
     ],
     "owning_team": "Admin"
