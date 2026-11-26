@@ -1,171 +1,198 @@
-# Alerting & Triage Retrospective — 2025-11 → 2026-11
+# Method Platform Retrospective — 2025-11 → 2026-11
 
-_Generated: 2026-11-25 · Window: 2025-11-25 → 2026-11-25 (12 months) · Scope: the three alert channels (#alert-system, #alert-frontend-errors, #alert-runtime-monitoring), the two incident channels (#swat, #team-incident-response) and the triage-bot that watches them._
+_Generated: 2026-11-26 · Window: 2025-11-25 → 2026-11-25 (12 months) · Scope: the Method production platform (incidents, alert trends, fixes) and the alert channels that watch it: #alert-system, #alert-frontend-errors, #alert-runtime-monitoring, #swat and #team-incident-response._
 
-> **Where the data lives.** `main` stops on **2026-06-18**. The routine kept running after that, but its commits land on **`origin/alerting-system-grafana`**: 1,380 commits ahead of `main`, current to today. This report reads the triage data (`kb/incident-log.jsonl`, 7,560 lines; `kb/known-issues.json`, 104 entries; `kb/false-alarms.json`, 49 entries; `stability-reviews/2026-0[5-9]/`) from that branch through `git show`, not from this branch's working tree. See [Data coverage](#1-data-coverage-and-gaps).
+> **Sources, in order of weight:**
+> 1. The Software Development **post-incident report log** (Confluence SD blog "Post-Incident Report", 39 reports dated in the window).
+> 2. The June 2026 **Postmortem Follow-Up & Stability Plan** (Confluence SD).
+> 3. The triage KB of platform failure modes: `kb/known-issues.json`, 104 entries, read from `origin/alerting-system-grafana`, where the live data is (see §1).
+> 4. The monthly **stability reviews**: Datadog and Elasticsearch error trends.
+> 5. Alert history: `kb/incident-log.jsonl`, 7,560 lines.
+> 6. A census of the alert channels in **Slack**.
+>
+> No personal names, customer account names, Slack message text or secrets are reproduced.
 
 ---
 
 ## Executive summary
 
-- **Biggest improvement: the known-issue KB plus suppression and impact-scored escalation (2026-05-21/22).** Needs-human groups fell from **66–132 a week** (W18–W21) to **19–40 a week** (W22–W25). Human-facing posts fell from **~91–109 a week to ~20–25 a week** (≈ −75%). The known-issue-recurrence (KIR) share of classified groups rose from **0% to 69–88%**. Root-cause grouping (2026-05-04) folds **5,960 alert rows into 2,976 groups** (−50%). A false-alarm KB (from July) absorbs another **452 classifications**.
-- **Biggest platform wins the bot helped drive:**
-  - **oauth_token Mongo bloat** was fixed on 2026-06-03: expired tokens removed, auto-delete index added. It has not recurred.
-  - **The gateway → microservices timeout cluster** (`ki-2026-05-21`, 778 lifetime occurrences) went from an ES error trend of **+1,025% → +42% → −59%** (Jul → Aug → Sep reviews). It has not fired since **2026-09-24** (61 days).
-  - **#alert-runtime-monitoring was relaunched** as a shared monitoring channel on 2026-02-09. Human activity went from **0 messages a month (Dec–Jan) to 28–83 a month (Feb–Sep)**, and the channel's own threads produced dozens of monitor-threshold fixes and tickets.
+- **39 production incidents got a post-incident report this year.** That is about 3 a month, peaking in **April 2026 (10)** and **May (6)**, then 0–4 a month after June. **Four were platform-wide** (sign-in or every screen down):
+  - the morning release on 2026-04-25 (~93 min);
+  - an ms-account-api deploy on 06-04 (~77 min);
+  - legacy auth crypto on 06-16 (~3.5 h);
+  - a gateway .NET runtime swap on 08-26 (~1 h 51 m).
+
+  Together that is **~491 min of full outage, ≈ 99.91% availability** for the year. That is just above the 99.9% peer SLA, before counting partial outages.
+- **The incidents are mostly self-inflicted.** **23 of 39 (59%) were caused by a change we shipped**: a release, deploy, migration, config change or feature flag. 9 were infrastructure or capacity, 5 third-party or abuse, and 2 latent data or code defects. Release-time breakage is the single biggest problem class, and it was still happening in August and November.
+- **Improvements with the biggest impact:**
+  1. **Deploy safety after the June postmortems.** A minimum-healthy-target safeguard on every HTTP service deploy, a third preferences node, and an auth cache plus recycle on the public API. There has been no deploy-capacity or auth-crypto recurrence since.
+  2. **Internal DNS fixed** (Route 53 1024-PPS throttling, May 2026). There were 4 DNS-caused incidents and none after the May fix.
+  3. **The gateway → microservices timeout cluster**, the noisiest platform alert of the summer (778 occurrences), improved from +1,025% to **−59%** by September and has not fired since **2026-09-24**.
+  4. **Outbound email screening** (PL-62308) and SendGrid sub-user hardening came after three malicious-tenant suspensions (Feb, Apr, Apr). There has been no suspension since 2026-04-22.
+  5. **oauth_token Mongo bloat** (~6 TB, growing ~8 GB/day) was fixed in June with a TTL index.
 - **What is still a problem:**
-  - **Chronic, unfixed known issues:**
-    - runtime-core RTC p95 latency (`ki-2026-05-24`, **297** occurrences, no Jira);
-    - ms-scheduler-api `recordId = -1` (`ki-2026-07-03`, **156** occurrences, a one-line fix proposed since July and still unfiled);
-    - the CRM AMQP quiet-period monitor flap (**205**, the threshold is still unchanged);
-    - the notifications p95 monitor noise (**53**).
-  - **Zero of the top-5 stability-review recommendations shipped** in July, August or September.
-- **The bot itself is the second-biggest reliability problem.**
-  - It was **dark for 56 days** (2026-09-25 → 2026-11-19), with no heartbeat and no alert to anyone, plus shorter gaps in late June and mid-July.
-  - **Slack read access has been gone since ~2026-06-18.** Since then it runs in "degraded" mode from the Datadog monitor list, so it cannot see Centreon, Grafana or Logstash-ML alerts and cannot reply in alert threads.
-  - Atlassian access has been unauthenticated for 4+ consecutive reviews.
-  - `main` is 5 months stale.
-- **Engagement is uneven:**
-  - **#alert-runtime-monitoring**: ~433 human messages a year from ~27 people. It is the healthiest channel.
-  - **#alert-system**: ~528 messages from ~33 people. Healthy but bursty: Jan ≈ 100, Jul–Aug and Oct ≈ 12–14 a month.
-  - **#alert-frontend-errors**: **1 human message in 12 months**, against roughly 1,500 alerts a month at the start of the window. It is effectively unwatched.
-  - Per-alert engagement is low everywhere. Across 39 monthly sample days (one per channel per month), only **4 of ~1,540 alerts (~0.3%) got a human thread reply**. When one did, the reply came in a median of ~4 minutes. A busy runtime-monitoring day reached ~6% touched. A sampled ordinary day had a disk warning re-posted **34 times over 5.7 h** before anyone acted.
-  - Engagement is also concentrated: one person accounts for roughly a third of runtime-monitoring messages, mostly prompting a team to look.
+  - **Release safety and late detection.**
+    - The HTML-sanitizer release blocked saving and email for **~3 days** (Nov 20–23).
+    - Email with attachments was stuck for **26 h** (Aug).
+    - TenantId was nulled for **7 days** (Dec).
+    - Fallback email was down **6 days** (Feb).
+    - Many of these were found by customers, not alerts.
+  - **Chronic alerting issues with no fix:**
+    - runtime-core RTC p95 latency: 297 occurrences, no Jira;
+    - ms-scheduler `recordId = -1`: 156 occurrences, a one-line fix proposed since July;
+    - noisy CRM AMQP and notifications monitors;
+    - `method-import-subscriber`: ~60–100k errors/30d with no error monitor.
+  - **Redis / thread-pool pressure keeps returning.**
+  - **Customer communication during incidents** was raised again on the Nov 23 P0.
+- **How engaged the alert channels are:**
+  - **#alert-runtime-monitoring**: ~433 human messages a year from ~27 people. It went from silent in Dec–Jan to 28–83 a month after its Feb 9 relaunch as a shared, on-duty channel.
+  - **#alert-system**: ~528 messages from ~33 people, worked in bursts around incidents and releases.
+  - **#alert-frontend-errors**: **1 human message all year**, against ~30–100 alerts a day.
+  - Per alert, engagement is low everywhere. Across 39 monthly sample days only **~0.3% of alerts got a human thread reply**. When one did, it came in a median of ~4 min.
 
 ---
 
 ## 1. Data coverage and gaps
 
-| Era | Dates | Repo triage data | Slack data | Notes |
+| Source | Coverage | Notes |
+|---|---|---|
+| Confluence PIR log (SD blog "Post-Incident Report") | **39 incidents** with reports dated 2025-12-10 → 2026-11-20 | One more platform-wide DNS outage (~45 min) sits in the log between 2025-10-06 and 2025-12-10 with no date. It is excluded from the counts. Three in-window entries are undated (a runtime blank screen, a v4-screen load error, Android tablet scrolling) and are placed by their position in the log. |
+| Confluence "Postmortem Follow-Up & Stability Plan - June 2026" | the Jun 4 – Jun 16 incidents and their action items | Status as of 2026-06-22. |
+| `kb/known-issues.json` (104 entries) | first_seen 2023-11 → 2026-11; 64 entries first seen inside the window | Read from `origin/alerting-system-grafana`. `main` stops at 2026-06-18 because the triage routine has committed to that branch since (Appendix C). |
+| Stability reviews `2026-05` → `2026-09` | 30-day windows to 2026-09-01 | Datadog and Elasticsearch error trends per service; none since September (Appendix C). |
+| `kb/incident-log.jsonl` (7,560 lines) | 2026-05-01 → 2026-11-25, with a **56-day gap 2026-09-25 → 11-19** | Alert-level trend data. Slack-sourced in May–Jun, Datadog-monitor-sourced after. |
+| Slack alert channels | full year | Human-message census plus one sample day per month (§5). |
+| Jira | **not usable for trend counts** | This account can see only 57 AS (support) tickets created in the window, while key numbering suggests ~1,200. The PIR log is used instead. |
+
+---
+
+## 2. Incidents this year
+
+### 2.1 The incident log
+
+Dates are 2026 unless marked. "Wide" means sign-in or every screen was down for all customers.
+
+| Date | Incident | Duration | Scope | Root-cause class |
 |---|---|---|---|---|
-| (a) Pre-bot baseline | 2025-11-25 → 2026-04-30 | none | human-message search, two single-day volume samples | The KB has 5 PIR-seeded entries dated before May. |
-| (b) Bot era on `main` | 2026-05-01 → 2026-06-18 | `main` and `alerting-system-grafana` (identical up to `b4805a14`) | as above | Slack-sourced polling: alert rows ≈ Slack alert messages. |
-| (c) Bot era on `alerting-system-grafana` | 2026-06-19 → 2026-09-24 | `alerting-system-grafana` only | as above | Mostly **degraded** (Datadog-sourced) cycles: alert rows = DD monitor transitions, not Slack messages. |
-| (d) Bot outage | 2026-09-25 → 2026-11-19 | **no rows at all** (no poll, no heartbeat) | as above | The catch-up cycle on 2026-11-19 logged a "56-day gap … cron/host likely down". |
-| (e) Bot resumed | 2026-11-19 → 2026-11-25 | `alerting-system-grafana` only | as above | Degraded mode (no Slack MCP, Atlassian unauthenticated). |
+| 2025-12-10 | Mongo migration (banner collections in every account DB) overloaded Mongo; new accounts saw no apps | ~2 h | New accounts | Change: migration |
+| 2025-12-15 | REST API developer docs blank: a third-party CDN removed a script | ~2 h | API docs | Third-party |
+| 2025-12 (≈ 15–22) | New-signup onboarding failed: a release-notes omission shipped a migration without its service | ~40 min | New signups | Change: release order |
+| 2025-12-22 → 12-29 | Entity updates wrote TenantId = null after a query-column change (PL-58920) | **~7 days** | Multi-tenant data | Change: code |
+| 01-28 | Release IIS saturation: a 401 burst during single-node rotation gave white screens | ~45 min | Many users | Change: release |
+| 01-29 | Grid Builder v2 intermittent failures: a new node was missing from the release definition | 10–15 min | App Builder | Change: deploy config |
+| 02-09 | Multi-tenant runtime pages with Call Routine failed after an app-name cache change | ~1.5 h | Tenant accounts | Change: code |
+| 02-11 → 02-17 | SendGrid suspended the fallback sub-user after a malicious tenant sent phishing | **~6 days** | Fallback email | Third-party / abuse |
+| 02-17 | App ribbon hidden after a manual app-publish config error | ~4 h | One stock app | Change: publish config |
+| 03-02 → 03-03 | Intermittent error page from one new release-capacity server (untrusted-domain SQL login) | **~21 h** | Intermittent, all | Infra |
+| 03-13 | QBDT real-time sync not triggering: DNS pointed at a misconfigured load-balancer target group | until fixed | QBDT customers | Infra |
+| 04-01 | Field Crew empty-state overlay blocked users (feature flag turned off) | ~20 min | One app | Change: flag |
+| 04-13 | **Elasticsearch outage**: native OOM on 2 of 3 nodes, no master, all writes failed | **5 h 35 m** | Logging, audit trail | Infra |
+| 04-14 → 04-15 | SendGrid suspended the ops sub-user (phishing tenant) | ~11 h | Transactional email | Third-party / abuse |
+| 04-17 | Some saves skipped QuickBooks/Xero sync (ServerTimeModified race) | ~8 h | Sync customers | Change: code |
+| 04-21 → 04-22 | SendGrid suspended the ops sub-user again (incomplete clean-up of the earlier tenant) | ~10 h | Transactional email | Third-party / abuse |
+| 04-25 | **Method down during morning release** (ms-preferences-api security-tag dependency) | **~93 min** | **Wide** | Change: release order |
+| 04-26 | Billing subscription pages 500: a refactor removed a second API key | ~27 min | New customers | Change: code |
+| 04-27 → 04-28 | Gmail sidebar "bandwidth quota exceeded" (Google-side) | ~30 h | Gmail add-on users | Third-party |
+| 04-28 | Platform slowness ×3 from Redis pattern-delete SCAN spikes | 3 episodes | Many users | Infra (code pattern) |
+| 04-30 | QBO real-time sync not enqueuing (old MassTransit + tracer) | ~6.5 h | All QBO customers | Infra |
+| 05-04 | Classic UI app-pool crashes (EDA NuGet thread starvation) | 5 + 3 min | Classic users | Infra |
+| 05-04 | Wrong legacy-sync version deployed; QBDT sync and new-account creation down | ~30 min | Sync, signups | Change: deploy |
+| 05-06 | Calendar Sync deploy failed its health check (.NET 4.8 missing on the server) | ~14 min | Calendar sync | Change: deploy |
+| 05-14 → | Internal DNS NXDOMAIN for microservices.method.int (Route 53 PPS throttling) | intermittent | Many services | Infra |
+| 05-15 | MongoDB rs01 crash: file-descriptor limit after a migration added collections in every tenant DB | ~91 min | Degraded | Change: migration + infra |
+| 05-20 | All 11 Windows hosts failed to resolve microservices.method.int | ~30 min | Many services | Infra |
+| 06-04 | **Platform-wide outage**: an ms-account-api deploy flooded ms-preferences-api; gateway 502s | **~77 min** | **Wide** | Change: deploy |
+| 06-04 | Action Editor lost grid-column references (regression from another fix) | ~2 h | Builders, PS | Change: code |
+| 06-16 | Preferences rolling deploy left a single healthy node (near-outage) | until restored | At risk | Change: deploy |
+| 06-16 | **Legacy auth 500s (crypto handle bug under API load): nobody could sign in** | **~3.5 h** | **Wide** | Infra (latent code under load) |
+| 07-23 | Billing receipts blocked: the sender field pointed at a former employee | ~2 h | Billing receipts | Latent data |
+| Jul–Aug (undated) | Runtime blank screen: new build assets used the wrong caching strategy | ~30 min | All sign-ins | Change: build |
+| Jul–Aug (undated) | v4 stock screens errored: UI, App Builder and migration dependencies out of order | ~30 min | v4 screens | Change: release order |
+| 08-06 → 08-10 | Unfinished Banner control shipped to prod via branch / squash-merge hygiene (P0) | up to ~4 days | App Builder | Change: code |
+| 08-17 → 08-18 | Emails with attachments stuck in Processing (legacy S3 bucket/key convention) | **~26 h** | 44 accounts, 1,058 emails | Latent code |
+| 08-26 | **Gateway down on both hosts**: an under-pressure .NET 10 install replaced the .NET 9 runtime | **~1 h 51 m** | **Wide** | Change: ops |
+| Sep–Nov (undated) | Android tablets could not scroll runtime pages (a Kanban CSS rule on the shared container) | ~2.5 h | Android tablet users | Change: code |
+| 11-20 → 11-23 | HTML-editor sanitizer release blocked saving HTML and sending email (P0) | **~3 days** | Several accounts | Change: release |
 
-**Bot-liveness finding.** The bot is running today: #triage-results (`C0B0Q3KHC07`) has posts from 2026-11-24 and 2026-11-25. It is not committing to `main`. Every stability review since 2026-07-07 notes that the live branch is `alerting-system-grafana` and that `routines/*.yaml` (`push_branches: ["main"]`) is stale. Gaps longer than 36 h in `kb/incident-log.jsonl`:
+### 2.2 Trend
 
-- 2026-05-07 → 05-13 (6 d)
-- 2026-06-20 → 06-24 (4 d)
-- 2026-06-26 → 07-02 (6 d; the "manual outage catch-up" commit `ebfb6fc3`)
-- 2026-07-15 → 07-23 (8 d)
-- 2026-09-06 → 09-09 (3.5 d)
-- **2026-09-25 → 2026-11-19 (55.7 d)**
+| Month | 2025-12 | 01 | 02 | 03 | 04 | 05 | 06 | 07 | 08 | 09–10 | 11 |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| PIRs (dated) | 4 | 2 | 3 | 2 | **10** | 6 | 4 | 1 | 3 | 0 | 1 |
+| of which platform-wide | 0 | 0 | 0 | 0 | 1 | 0 | 2 | 0 | 1 | 0 | 0 |
 
-**Approximation caveats.**
+The three undated PIRs (Jul–Aug ×2, Sep–Nov ×1) are not in the monthly counts.
 
-- **Human-message counts are exact enough** for trend use. They come from Slack search with bots excluded, paged to the end. Thread replies are included. Bot and integration posts are excluded. Two short windows were reconstructed across page boundaries (±5 messages). Counts cover public channels only, so #team-incident-response and #triage-results returned no results because they are private or bot-only.
-- **Alert volume.** For era (b) it is the incident-log alert rows (Slack-sourced). For other eras it is a single-day sample, a weekday in each era. Era (c) and (e) incident-log rows count Datadog monitor transitions and are **not comparable** to Slack message counts. In particular, #alert-frontend-errors rows drop ~90% after June because degraded mode only sees DD monitors, not because the channel went quiet.
-- **"% of alerts touched" and "time to first human reply"** come from thread metadata (`slack_read_channel` detailed mode) on sampled days, not from a full census.
-- No Slack message text, personal names or secrets are reproduced here. People are counted, not named.
+| Root-cause class | Count | Share | Examples |
+|---|---:|---:|---|
+| **Change we shipped** (release order, deploy, migration, config, flag, code) | **23** | **59%** | 04-25, 06-04 ×2, 06-16 deploy, 08-26, 11-20 |
+| Infrastructure / capacity | 9 | 23% | ES OOM, DNS ×3, Redis SCAN, auth crypto under load |
+| Third-party / abuse | 5 | 13% | SendGrid ×3, Google, CDN |
+| Latent data / code defect | 2 | 5% | billing sender, S3 key convention |
+
+**Durations.** The median incident lasted about **2 h**. The long tail is silent failures that ran for days before anyone connected them to a cause: TenantId 7 d, fallback email 6 d, unfinished Banner control on prod ~4 d, sanitizer 3 d, attachments 26 h, intermittent error page 21 h.
+
+**Availability.** The four platform-wide outages total ~491 min. A year has 525,600 min, so availability is **≈ 99.91%** (`references/methodology/metrics-formulas.md`). That clears the 99.9% three-nines peer SLA (Salesforce, HubSpot, QBO, Zoho) by a margin of about one more 1-hour outage. Partial outages are not counted: QBO sync 6.5 h, ES 5.5 h, intermittent error page 21 h.
 
 ---
 
-## 2. Changes made (timeline)
+## 3. Platform changes and their impact (ranked)
 
-Tooling commits are from `git log` on `main` and `origin/alerting-system-grafana`. Per-cycle `triage …`/`poll-cycle …` commits are excluded. Platform fixes come from `kb/known-issues.json`, the stability reviews and Slack.
+| # | Change | When | Metric | Before | After | Evidence |
+|---:|---|---|---|---|---|---|
+| 1 | **Deploy safety after the June postmortems.** Refuse to pull a node when fewer than 2 targets are healthy (all HTTP services), a third preferences node, a 2-min auth cache on the public API, and a periodic app-pool recycle on legacy auth. | Jun 2026 | Deploy-capacity and auth-crypto incidents | 3 in Jun 4–16 (two near or full outages) | 0 recurrences in 5 months | Confluence stability plan; PIR log |
+| 2 | **Internal DNS fix**: stop forwarding `.method.int` to the Route 53 link-local resolver past its 1024-PPS limit | May 2026 | DNS-caused incidents | 4 (one just before the window, Mar 13, May 14, May 20), incl. one platform-wide | 0 after May 20 | PIR log; KB DNS entry (2026-05-14) |
+| 3 | **Gateway → microservices timeout cluster** worked down: the 06-05 rollback, then the follow-ups | Jun → Sep | ES error trend; KB occurrences | +1,025.7% (Jul review), 50–80 fires a week | −59.0% (Sep review); no fire since 2026-09-24 | `stability-reviews/2026-08/2026-08-04-report.md`, `2026-09/2026-09-01-report.md` (on `alerting-system-grafana`); `ki-2026-05-21` |
+| 4 | **Outbound email screening** (PL-62308; held-for-review queue), sub-user rerouting, malicious-tenant clean-up | Apr → Sep | SendGrid suspensions | 3 in Feb–Apr (6 d, 11 h, 10 h of email impact) | 0 since 2026-04-22; screening posts in #alert-runtime-monitoring from Sep | PIR log; Slack |
+| 5 | **oauth_token Mongo bloat**: expired tokens purged, TTL auto-delete index | 2026-06-03 | DB size / backup warnings | ~6 TB, +~8 GB/day, daily backup warning | no recurrence | `stability-reviews/2026-06/2026-06-10-report.md` F1; `ki-oauth-token-db-bloat` |
+| 6 | **#alert-runtime-monitoring relaunch** as the shared CRM + Vertical-Apps monitoring channel | 2026-02-09 | Human messages / month | 0 (Dec, Jan) | 28–83 / month (Feb–Sep); threads end in tickets and threshold fixes | §5.2 |
+| 7 | **Monitor tuning by teams**: TFS health-check noise excluded, mobile RUM self-noise fixed (PL-64578/79/80), SMS volume thresholds rebased, CRM monitors re-thresholded | Jul → Nov | Known-noise alerts | QA No-Data synthetics: 175 + 44 + 13 fires | grid-dropdown, warehouse and release synthetics silent since Aug 6–12 | KB last_seen; Slack threads |
+| 8 | **ES capacity work** after the April outage; Redis and syncservice timeout changes | Jan → Apr | ES outages | 1 (5 h 35 m) | 0 since | PIR log |
 
-| Date | Change | Type | Source |
-|---|---|---|---|
-| 2026-02-09 | `#alert-impact-monitoring` renamed `#alert-runtime-monitoring` and relaunched as the shared CRM + Vertical-Apps alert-monitoring channel (use emotes when on duty) | Process | Slack channel event |
-| 2026-05-01 | Triage-bot scaffolded: hourly pull-mode polling of the alert channels via Slack MCP | Tooling | `7874678f`, `7d77a616` |
-| 2026-05-01 | Architecture/service catalog `CLAUDE.md` loaded each cycle | Tooling | `18c899d8` |
-| 2026-05-04 | v0.6 root-cause **grouping** of alerts before investigating | Tooling | `f0e73c60` (PR #1) |
-| 2026-05-04 | v0.7 service-aware investigation + per-group investigation reports | Tooling | `554d3dd7` (PR #2) |
-| 2026-05-04 | Monthly **stability-review** routine | Tooling | `83743cc5` |
-| 2026-05-06 | Every outbound Slack message logged to `docs/messages/` | Tooling | `3d1e3353` |
-| 2026-05-20 | Stop posting to #swat; DM only | Tooling | `e8cdd115` |
-| 2026-05-20/21 | Durable local scheduling (Task Scheduler) + auto-push | Tooling | `37e57f8f`, `7fc47a08` |
-| 2026-05-21 | KB-approver removed (agents write KB directly); KB seeded with 5 PIR entries | Tooling | `00c082af`, `3c779fba` |
-| 2026-05-21 | **Layer 1: known-issue-recurrence DM suppression** with re-surface | Tooling | `35c8b4fe` |
-| 2026-05-21 | **Layers 2–4: impact-scored escalation, daily digest, PIR ingestion** | Tooling | `30cb0180` |
-| 2026-05-22 | Finer scoring; `docs/actionable/` replaces the digest DM | Tooling | `548b9f87` |
-| 2026-05-25 / 06-01 | PIR ingest +9 / +39 KB entries | Tooling/KB | `82881080`, `aef0b9c3` |
-| 2026-06-03 | **oauth_token bloat fixed**: expired tokens removed, TTL auto-delete index | Platform | Slack #alert-system; `ki-oauth-token-db-bloat` last_seen 2026-06-03 |
-| 2026-06-04 | Hard rule: fetch `origin/<default>` before reading code (stale-clone misattribution) | Tooling | `7a2eed8d` |
-| 2026-06-05 | ms-account-api deploy regression rolled back (P0, ~70 min) | Platform | `ki-2026-05-21` fix_status, `2026-06-10-report.md` |
-| 2026-06-09 | Active-swat-incident shortcut | Tooling | `051e7ef5` |
-| 2026-06-10 | Tighter KB matching + precedence rules | Tooling | `2cde8ecd` |
-| 2026-06-17 | Monitor #team-incident-response; `ownership.md` as identify-only routing | Tooling | `6aed8013` |
-| 2026-06-18 | Grafana-as-code SLO alerts (separate from triage scoring) | Tooling | `813c4836`, `a9194a13` |
-| 2026-06-19 | **Output swap:** findings → #triage-results channel, health → DM | Tooling | `3df088c6` |
-| ~2026-06-18 → | Slack MCP unavailable; **degraded mode** (DD monitor scan-diff) becomes the norm | Tooling (regression) | `2026-07-07`/`08-04` reports |
-| 2026-07-04 → | False-alarm KB grows to 49 entries | KB | `kb/false-alarms.json` |
-| 2026-07-31 → 08-25 | Mobile RUM self-noise tickets filed and partly fixed (PL-64578/64579/64580) | Platform | Slack #alert-runtime-monitoring |
-| 2026-08-19 | Poll #alert-no-code-next-gen; datasource-aware KIR evidence; deterministic investigation pipeline + scoring with eval corpus; Slack-write guard hook; watchdog task; weekly digest | Tooling | `bd35739e`, `ff3b713f`, `249e9f6d`, `b3eb932b`, `b95c10ea` |
-| 2026-09-25 | ms-tags-api subscriber routing hotfix after the tags error queue grew past 74k | Platform | Slack #alert-system |
-| 2026-09-25 → 11-19 | **Routine host down 56 days**; the watchdog did not surface it | Tooling (outage) | incident-log gap; catch-up note 2026-11-19 |
-| 2026-11-18 | SMS volume monitor thresholds raised to the new weekday baseline | Platform | Slack #alert-runtime-monitoring |
-
----
-
-## 3. Biggest-impact improvements (ranked by measured delta)
-
-Weekly numbers come from `scripts/retro_stats.py --ref origin/alerting-system-grafana` (appendix A). "Surfaced" means a DM or a #triage-results post put in front of a human.
-
-| # | Improvement | Metric | Before | After | Evidence |
-|---:|---|---|---|---|---|
-| 1 | **KB + KIR suppression + impact-scored escalation** (05-21/22) | Needs-human groups / week | 66, 91, 71, 132 (W18–W21) | 31, 40, 27, 19 (W22–W25) | appendix A weekly table; `35c8b4fe`, `30cb0180` |
-| | | Surfaced to a human / week | 66–109 | 20–25 | appendix A |
-| | | KIR share of classified groups | 0% → 15% | 69–88% (W22–W29) | appendix A |
-| 2 | **Root-cause grouping** (05-04) | Investigations per alert | 1 : 1 | 2,976 groups for 5,960 alert rows (−50%); 2,964 rows folded in as satellites | appendix A totals; `f0e73c60` |
-| 3 | **False-alarm KB** (July →) | Alerts closed as known false alarms | 0 | 452 classifications over 49 FA entries (Jul 205, Aug 122) | `kb/false-alarms.json`, appendix A |
-| 4 | **Gateway → microservices timeout** rollback + follow-ups | ES error trend (30 d) | +1,025.7% (Jul review) | +42.3% (Aug) → **−59.0%** (Sep); no fire since 2026-09-24 | `stability-reviews/2026-08/2026-08-04-report.md`, `2026-09/2026-09-01-report.md`; `ki-2026-05-21` last_seen |
-| | | KIR rows / week | 50–80 (W22–W24) | 0 (W47–W48) | appendix A per-KB table |
-| 5 | **oauth_token bloat fix** (06-03) | DB growth / alerts | ~8 GB/day growth; daily backup-with-warning | expired tokens purged, TTL index; 0 KIR since 06-03 | `2026-06-10-report.md` F1; `ki-oauth-token-db-bloat`; Slack #alert-system |
-| 6 | **#alert-runtime-monitoring relaunch** (02-09) | Human messages / month | 0 (Dec), 0 (Jan) | 65 (Feb), 43, 28, 45, 52, 83 (Jul), 39, 54 | §5 table |
-| 7 | **KB growth itself** | KB entries fixed/mitigated | 5 PIR seeds | 104 known issues, 44 resolved/mitigated with no recurrence | `kb/known-issues.json`; appendix A |
-
-Cross-check: the 2026-06-10 review independently measured needs-human DMs −46% and KIR matches +92.6% month over month (`stability-reviews/2026-06/2026-06-10-report.md`). That agrees with rows 1 and 7.
+What has not changed: **release-time defects**. The share of incidents caused by a change did not fall after June: **16 of 29 (55%)** before 2026-06-16 and **7 of 10 (70%)** from then on, counting the undated PIRs by their place in the log. The June safeguards stopped *capacity* failures during deploys. They did not stop bad code or bad ordering reaching production.
 
 ---
 
 ## 4. What continues to be a problem
 
-### 4.1 Chronic known issues (open, still firing)
+### 4.1 Release safety and silent failures
 
-| KB entry | Lifetime occurrences | fix_status | Last seen | What is missing |
+- **Change-induced incidents are 59% of the year** and keep coming: Aug 6 (Banner control via branch hygiene), Aug 26 (runtime swap under pressure), Nov 20 (sanitizer).
+- Three recurring sub-patterns:
+  - **Release-order / dependency** problems: Dec signup, Apr 25 outage, v4 screens.
+  - **Migrations run against every tenant DB**: Dec 10 Mongo load, May 15 Mongo FD exhaustion.
+  - **Fixes that break a neighbour**: Jun 4 Action Editor, Apr 26 billing key, Apr 17 sync race.
+- **Detection is late for silent failures.** The longest incidents were found by customers, not alerts: TenantId (7 d), fallback email (6 d), sanitizer (3 d), attachments (26 h), intermittent error page (21 h). The June plan's "detect every incident within minutes" goal and the deep auth health check were still marked in progress on 2026-06-22.
+- **Flags are the fastest recovery when they exist.** Field Crew was turned off in ~20 min; the sanitizer flag was eventually turned off, after 3 days.
+
+### 4.2 Chronic alerting issues (open, still firing)
+
+| KB entry | Lifetime occurrences | fix_status | Last seen | Gap |
 |---|---:|---|---|---|
-| `ki-2026-05-24-runtime-core-rtc-p95-recurring` | 297 | investigating | 2026-11-25 | No Jira, no owner action in 6 months. Latency only; a new correlate (rest-api paged queries saturating one SQL host) was logged on 11-24. |
-| `ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap` | 205 | monitoring-noise-suspected-unconfirmed | 2026-11-25 | Threshold change recommended in Aug and Sep reviews (ICE 12–15); not done. |
-| `ki-2026-07-03-ms-scheduler-api-seriesid-negative-recordid` | 156 | proposed | 2026-11-24 | **Top ICE (54.0) in both the Aug and Sep reviews.** One-line guard, unfiled for 20 weeks. |
-| `ki-2026-07-03-eda-consumer-amqp-stopped-publishing` | 73 | escalated-for-review | 2026-11-20 | No decision recorded. |
-| `ki-2026-07-07-notifications-p95-latency-monitor-noise` | 53 | monitoring-noise-suspected-unconfirmed | 2026-11-25 | A daily batch trips the monitor; needs a min-hits guard. |
-| `ki-2026-07-02-tables-fields-fieldtablenameref-null-linked-fields` | 20 | needs-human | 2026-11-20 | Still recurring. |
-| *(no KB entry yet)* Twilio bulk-SMS callback burst / mobile-notifications thread-pool starvation | 5 bot-seen fires 11-17 → 11-24 | — | 2026-11-24 | A defect has been proposed. The KB seed is waiting on a decision, so every weekday burst escalates. |
+| runtime-core RTC Screen Load / Action Execution p95 (`ki-2026-05-24`) | 297 | investigating | 2026-11-25 | No Jira. A new correlate on 11-24: paged rest-api queries saturating one SQL host. |
+| CRM AMQP consumer quiet-period flap (`ki-2026-07-04`) | 205 | noise, unconfirmed | 2026-11-25 | Threshold change recommended twice; not done. |
+| ms-scheduler-api `recordId = -1` (`ki-2026-07-03`) | 156 | proposed | 2026-11-24 | A one-line guard, top ICE (54) in two reviews; unfiled for 20 weeks. |
+| EDA consumer stopped publishing (`ki-2026-07-03-eda…`) | 73 | escalated-for-review | 2026-11-20 | No decision recorded. |
+| notifications p95 monitor noise (`ki-2026-07-07`) | 53 | noise, unconfirmed | 2026-11-25 | Tripped by the daily batch. |
+| tables-fields linked-field NRE / view-regen failures (`ki-2026-05-28…`, `ki-2026-07-28…`) | 20 + 9 | needs-human | 2026-11-20/25 | Single-tenant metadata corruption that blocks customers' table edits. |
+| *(no KB entry)* Twilio bulk-SMS callbacks starve the mobile-notifications thread pool | 5 fires 11-17 → 11-24 | — | 2026-11-24 | A sync Redis `Get` on the request thread; defect proposed. |
+| **Unmonitored error streams**: `method-import-subscriber` and 13 other services | 62,794 errors/30d (Sep) | — | — | No error-rate monitor (`2026-09-01-report.md` F3). |
 
-Not every open entry is still a problem. These have gone quiet and are candidates to close, not to work on: `ki-2026-07-03-method-ui-grid-dropdown-performance-test-nodata` (175 occurrences, last seen 2026-08-12), the warehouse dashboard no-data (44, last seen 08-06), ms-account-api 4xx noise (52, last seen 08-10), and the synthetics sign-in transient (38, last seen 08-10).
+### 4.3 Recurring infrastructure pressure
 
-### 4.2 Recommendations that never shipped
+- **Redis / Valkey and thread pools**: Apr 28 SCAN slowness, the RTC p95 chronic issue, Nov mobile-notifications thread-pool starvation, and Nov Valkey egress shaping (triage notes 2026-11-21).
+- **MSL hosts**: audit-trail and import subscribers drive CPU alerts all year. Upsizing was discussed in March, and a memory-exhaustion episode was logged on 2026-11-19.
+- **Third-party exposure**: SendGrid, Google and the CDN together caused 5 incidents. Rainforest payment latency/503 monitors fired 26 + 25 times in Jul–Aug.
 
-From the recommendation trackers: in `2026-08-04-report.md`, **0 of the 5** July top recommendations had shipped. In `2026-09-01-report.md`, **0 of the 5** August ones had. The repeat items:
+### 4.4 Follow-through and communication
 
-- ship the ms-scheduler guard;
-- add a real error-rate monitor for `method-import-subscriber` (104,125 → 62,794 errors/30d with 0% monitor coverage);
-- retire the 8 chronic No-Data QA monitors;
-- fix the ms-account-api `IsMLMEnabled` schema drift;
-- re-threshold the CRM AMQP monitors;
-- re-authenticate Atlassian (4 reports running).
+- **Zero of the top-5 stability-review recommendations shipped** in July, August or September (`2026-08-04-report.md`, `2026-09-01-report.md` trackers).
+- On the Nov 23 P0, support asked in #swat for customer communication and impact counts; affected accounts could not be fully counted. Status-page and incident comms were not part of the June plan.
 
-Only the oauth_token fix (June, F1) is evidenced as done.
+### 4.5 Alert noise and volume
 
-### 4.3 Tool and bot reliability
-
-| Gap | Duration / scope | Evidence |
-|---|---|---|
-| Routine host down, no heartbeat, nobody alerted | 2026-09-25 → 2026-11-19 (56 d); also 4–8 d gaps in late Jun and mid-Jul | incident-log gaps (§1); catch-up note on 2026-11-19 |
-| Slack MCP unavailable → degraded mode | ~2026-06-18 → today | Can't see non-Datadog alerts (Centreon, Grafana, Logstash ML), so the KIR share fell to 30–31% in W47–W48. Can't reply in alert threads. Heartbeats on 11-19 → 11-21. |
-| Atlassian MCP unauthenticated | 4+ consecutive reviews | `2026-09-01-report.md` header |
-| ES 401 (17 d), SSH bastion down (no account-impact lookups) | June | poll-cycle notes 2026-06-18 |
-| GitHub token 403 on `methodcrm` → stale local clones | Aug–Sep | `2026-09-01-report.md` F1 |
-| `main` 5 months stale; routine YAML says `main` | since 2026-06-18 | `git rev-list origin/main..origin/alerting-system-grafana` = 1,380 |
-| Spend | $171 lifetime; peak weeks $19–24 (W28, W32) during degraded backlog cycles | appendix A |
-
-### 4.4 Alert noise the bot does not reach
-
-- **Repeat notifications.** On the sampled ordinary weekday (2026-11-23), 34 of #alert-system's 59 messages were one Centreon disk WARNING re-posted every 10 minutes for 5 h 42 m. A human then fixed it in one message.
-- **#alert-frontend-errors volume** fell from **52 messages** on the 2025-11-03 sample day to **21** on 2026-11-23 (single-day samples, so treat it as directional). It still has **1 human message in 12 months**: §5.
+- **Repeat notifications**: on 2026-11-23 one Centreon disk warning was posted 34 times in 5.7 h before a one-message fix.
+- **#alert-frontend-errors** ran ~30–100 alerts a day (Dec–Sep sample days) with no human readers. It fell to 10 on 2026-11-03 (§5.3).
 
 ---
 
@@ -203,7 +230,7 @@ Each channel gets one row per month. Two kinds of measurement are mixed, and the
 | 2026-07 | 14 | 7 | (DD-sourced) | 07-07 | 37 | 0 | 0% | — |
 | 2026-08 | 12 | 5 | (DD-sourced) | 08-04 | 22 | 0 | 0% | — |
 | 2026-09 | 74 | 11 | (DD-sourced) | 09-01 | 9 | 1 | 11% | 33 m |
-| 2026-10 | 14 | 8 | (bot down) | 10-06 | ~100 | 0 | 0% | — |
+| 2026-10 | 14 | 8 | (tooling down) | 10-06 | ~100 | 0 | 0% | — |
 | 2026-11 | 36 | 15 | (DD-sourced) | 11-03 | 7 | 0 | 0% | — (one thread reply that day was on an earlier alert) |
 | **12 months** | **~528** | **~33** | | | **352** | **3** | **0.9%** | median ≈ 4 m when touched |
 
@@ -222,7 +249,7 @@ Each channel gets one row per month. Two kinds of measurement are mixed, and the
 | 2026-07 | 83 | 14 | (DD-sourced) | 07-07 | 38 | 0 | 0% | — |
 | 2026-08 | 39 | 9 | (DD-sourced) | 08-04 | 32 | 0 | 0% | — |
 | 2026-09 | 54 | 11 | (DD-sourced) | 09-01 | 43 | 0 | 0% | — |
-| 2026-10 | 10 | 4 | (bot down) | 10-06 | 58 | 0 | 0% | — |
+| 2026-10 | 10 | 4 | (tooling down) | 10-06 | 58 | 0 | 0% | — |
 | 2026-11 | 7 | 5 | (DD-sourced) | 11-03 | 53 | 1 | 2% | 24 m |
 | **12 months** | **~433** | **~27** | | | **482+** | **1** | **≤0.2%** | 24 m (n = 1) |
 
@@ -241,15 +268,15 @@ Each channel gets one row per month. Two kinds of measurement are mixed, and the
 | 2026-07 | 0 | 0 | (DD-sourced) | 07-07 | 36 | 0 | 0% | — |
 | 2026-08 | 0 | 0 | (DD-sourced) | 08-04 | 65 | 0 | 0% | — |
 | 2026-09 | 0 | 0 | (DD-sourced) | 09-01 | 73 | 0 | 0% | — |
-| 2026-10 | 0 | 0 | (bot down) | 10-06 | 48 | 0 | 0% | — |
+| 2026-10 | 0 | 0 | (tooling down) | 10-06 | 48 | 0 | 0% | — |
 | 2026-11 | 0 | 0 | (DD-sourced) | 11-03 | 10 | 0 | 0% | — |
 | **12 months** | **1** | **1** | | | **703+** | **0** | **0%** | never |
 
-Because this channel had one human message all year, every month's touch rate is 0% from the census alone; the sample days only add volume. Sample-day volume fell from 46–100+ a day (Dec–May) to **10 on 2026-11-03** (and 21 on 2026-11-23, §4.4). That is the first sustained drop, but nobody watches what is left.
+Because this channel had one human message all year, every month's touch rate is 0% from the census alone; the sample days only add volume. Sample-day volume fell from 46–100+ a day (Dec–May) to **10 on 2026-11-03** (and 21 on 2026-11-23). That is the first sustained drop, but nobody watches what is left.
 
 ### 5.4 Human messages per 100 alerts, and detailed-mode samples
 
-Era (b) only, where incident-log alert rows are Slack-sourced.
+May–Jun 2026 only, where incident-log alert rows are Slack-sourced.
 
 | Channel | Month | Alert rows | Human messages | Human msgs per 100 alerts |
 |---|---|---:|---:|---:|
@@ -264,7 +291,7 @@ Additional samples read in detailed mode (thread and reaction metadata):
 
 | Sample | Alert messages | With a human thread or reaction | % touched | Time to first human response |
 |---|---:|---:|---:|---|
-| #alert-system, 2025-11-03 (pre-bot weekday) | 13 | 0 threads (one Centreon alert acknowledged in the Centreon tool) | 0% | Centreon ack in ~25 s; no Slack reply |
+| #alert-system, 2025-11-03 (weekday) | 13 | 0 threads (one Centreon alert acknowledged in the Centreon tool) | 0% | Centreon ack in ~25 s; no Slack reply |
 | #alert-runtime-monitoring, 2026-09-24 (an above-average day) | 34 | 2 threads (2 and 9 replies) + 1 reaction | ~6–9% | ~1 h and ~3.5 h for the two threaded alerts |
 | #alert-system, 2026-11-23 (recent weekday) | 58 | 1 top-level human message | ~2% | 5 h 42 m after the first of 34 repeated disk warnings |
 
@@ -274,12 +301,12 @@ Additional samples read in detailed mode (thread and reaction metadata):
 
 ### 5.5 Commentary
 
-- **#alert-runtime-monitoring is the success story**, and the cause was a process change, not tooling. The 2026-02-09 relaunch gave it named on-duty teams and an emote convention. It went from silent to the most conversational alert channel. Threads there routinely end in a ticket, a threshold change or a "known noise" verdict. That is the human version of what the bot's KB does. The October–November dip (10 and 7) lines up with the bot outage and with fewer new monitors, so it needs watching.
+- **#alert-runtime-monitoring is the success story**, and the cause was a process change, not tooling. The 2026-02-09 relaunch gave it named on-duty teams and an emote convention. It went from silent to the most conversational alert channel. Threads there routinely end in a ticket, a threshold change or a "known noise" verdict. The October–November dip (10 and 7) needs watching: it coincides with fewer new monitors and no channel-level change.
 - **#alert-system is worked, but in bursts.** It peaks during incidents and releases (Jan ≈ 100 around app-update and EDA issues; Sep 74 around the tags-queue incident) and goes quiet otherwise (Jul–Aug and Oct ≈ 12–14). Most messages are ops actions (restarts, recycles, purges) and questions about whether a release caused an alert, not alert-by-alert acknowledgement. Repeat notifications drown the signal.
 - **#alert-frontend-errors is effectively unwatched.** It had about 900 alerts a month in May–June, ~1,500 a month extrapolated from the Nov 2025 sample, and one human message all year. Its monitor (77419271, browser XHR errors) is also the single largest source of new false-alarm entries in Nov 2026 (single-session client network drops).
 - **#swat is human-driven and healthy.** Incident channels are not the engagement problem.
 - **Concentration risk.** Roughly a third of #alert-runtime-monitoring messages come from one person, and a large share of those are prompts asking a team whether anyone is investigating. Engagement depends on that one person prompting.
-- **Effect of the bot on channel engagement.** In era (b) the bot DMed the operator rather than posting in-channel, so it could not change channel behaviour directly. From 2026-06-19 it posts to #triage-results, which is not covered by public search. Whether its analysis reaches the channel teams is **unmeasured**. The bot's notes in degraded mode explicitly say it cannot check operator engagement either.
+- **Effect of automated triage on channel engagement.** The triage routine posts its findings outside the alert channels: to the operator by DM through June, then to #triage-results. It therefore could not change in-channel behaviour, and whether its analysis reaches the owning teams is **unmeasured** (Appendix C).
 
 ---
 
@@ -287,13 +314,14 @@ Additional samples read in detailed mode (thread and reaction metadata):
 
 | # | Recommendation | Impact | Confidence | Effort | ICE | Why |
 |---:|---|---:|---:|---:|---:|---|
-| 1 | **Ship the ms-scheduler-api `recordId <= 0` guard** (carry-forward) | 6 | 9 | 1 | **54.0** | 156 fires, a one-line fix, top item in two reviews (§4.1) |
-| 2 | **Add an external dead-man's switch for the triage routine.** Alert a human (not the bot's own channel) when there has been no poll-cycle for more than 6 h. | 8 | 9 | 2 | **36.0** | A 56-day silent outage; the watchdog task did not catch it (§4.3) |
-| 3 | **Decide the fate of #alert-frontend-errors.** Route monitor 77419271 to its owning team with an on-duty emote convention (as for runtime-monitoring), or downgrade it to a daily digest, or retire it. | 7 | 8 | 2 | **28.0** | 1 human message a year against ~900–1,500 alerts a month (§5) |
-| 4 | **Merge `alerting-system-grafana` into `main`** (or make it the default branch) and fix `routines/*.yaml` push targets | 6 | 9 | 2 | **27.0** | 1,380 commits of KB, investigations and tooling invisible on `main` (§1) |
-| 5 | **Restore Slack read access for the routine** (MCP connector or bot-token `channels:history`) | 8 | 8 | 3 | **21.3** | Degraded mode can't see non-DD alerts or reply in threads; the KIR share fell to ~30% (§4.3) |
-| 6 | **Throttle re-notification** on Centreon (and Grafana) checks: notify on state change plus every 60 min, not every 10 | 5 | 8 | 2 | **20.0** | 34 identical posts in 5.7 h on the sample day (§4.4) |
-| 7 | **File a Jira and an owner for runtime-core RTC p95** (`ki-2026-05-24`) | 7 | 6 | 3 | **14.0** | 297 occurrences, the longest-running open item, no ticket (§4.1) |
+| 1 | **Ship the ms-scheduler-api `recordId <= 0` guard** (carry-forward) | 6 | 9 | 1 | **54.0** | 156 alert fires, a one-line fix, the top item in two reviews (§4.2) |
+| 2 | **Give #alert-frontend-errors an owner, or retire it.** Route monitor 77419271 to the owning team with the same on-duty convention that revived #alert-runtime-monitoring, or downgrade it to a daily digest. | 7 | 8 | 2 | **28.0** | 1 human message a year against ~30–100 alerts a day (§5.3); the runtime-monitoring relaunch shows the convention works (§3 #6) |
+| 3 | **Synthetic deep checks for the silent-failure paths**: sign-in including the legacy-auth encrypt path, send an email with an attachment, an accounting-sync enqueue, a tenant entity save round-trip | 8 | 8 | 3 | **21.3** | The longest incidents (7 d, 6 d, 3 d, 26 h, 21 h) were silent and customer-found (§4.1); the June plan already names a deep auth health check |
+| 4 | **Ship risky user-facing changes behind a flag by default**, with a documented kill switch in the release notes | 7 | 8 | 3 | **18.7** | Field Crew recovered in 20 min by flag; the sanitizer took 3 days. 23 of 39 incidents were change-induced (§2.2). |
+| 5 | **Incident comms playbook**: a status-page update within 30 min of a P0 and an affected-account query template | 5 | 7 | 2 | **17.5** | Raised by support on the Nov 23 P0 (§4.4) |
+| 6 | **Error-rate monitors for the silent burners** (`method-import-subscriber` and the 13 other services found in the Sep review) | 5 | 10 | 3 | **16.7** | ~63k errors/30d with 0% monitor coverage (§4.2) |
+| 7 | **Release-dependency gate**: a release cannot go out unless its declared service, migration and UI dependencies ship together. Run tenant-wide migrations throttled, with an FD/connection budget. | 9 | 6 | 4 | **13.5** | Release order caused the 04-25 outage, the Dec signup failure and v4 screens; migrations caused 12-10 and 05-15 (§4.1) |
+| 8 | **File and own the RTC p95 / Redis thread-pool work**: async cache reads in mobile-notifications, a rest-api paging limit on the hot SQL host | 7 | 6 | 4 | **10.5** | 297 occurrences, plus the recurring Redis/thread-pool pressure (§4.3) |
 
 ---
 
@@ -305,7 +333,7 @@ Command:
 python scripts/retro_stats.py --ref origin/alerting-system-grafana --as-of 2026-11-25 --top-kb 12
 ```
 
-(Run with the `--ref` flag because the live data is on that branch; see §1. Weeks W40–W46 are absent because there are no rows during the outage.)
+(Run with the `--ref` flag because the live data is on that branch; see §1 and Appendix C. Weeks W40–W46 are absent because there are no rows during the outage.)
 
 ```
 Lines parsed: 7560 (skipped 0); span 2026-05-01 19:24Z -> 2026-11-25 21:08Z
@@ -358,6 +386,9 @@ KB timeline: 104 entries, 44 resolved/mitigated, 60 open (`fix_status` breakdown
 
 ## Appendix B — methodology
 
+- **Incidents.** Confluence SD blog "Post-Incident Report" (page 133496969, version 80, read 2026-11-26): every entry above the 2025-06-16 heading, filtered to the window by its stated duration or date. Durations and root-cause classes are taken from the "Duration" and "Root Cause" fields; the class labels are this report's. Plus "Postmortem Follow-Up & Stability Plan - June 2026" (page 1049427980) for the June action items.
+- **Jira.** `project = "AS" AND created >= "2025-11-25"` returned 57 visible issues, too few to use for trends (§1).
+
 - **Repo data.** `git fetch origin`; `git log --format='%ad|%h|%s'` on `origin/main` and on `origin/main..origin/alerting-system-grafana`, excluding per-cycle commits. `scripts/retro_stats.py` (JSON-parses every line; ISO and epoch `ts`), as in appendix A. Stability reviews read: `2026-06-10`, `2026-08-04`, `2026-09-01` (Executive Summary and trackers).
 - **Slack human activity.** `slack_search_public` with `filters: in:<#channel> after:2025-11-24 [before:…]`, `include_bots: false`, `sort: timestamp`, paged to the end. Each result was tallied by month and distinct author ID; the 20-page cap was handled by re-querying with `before:`. Channels: `CPHHABKAA` (#alert-system), `C063V5HTTFU` (#alert-runtime-monitoring), `C03TYHGRS23` (#alert-frontend-errors), `C01L5K42GQ6` (#swat, last month only), `C0B6233UN4S` (#team-incident-response, no public results), `C0B0Q3KHC07` (#triage-results, no human results).
 - **Slack samples.** `slack_read_channel`:
@@ -366,3 +397,24 @@ KB timeline: 104 entries, 44 resolved/mitigated, 60 open (`fix_status` breakdown
   - detailed mode for thread and reaction metadata: #alert-system 2025-11-03, #alert-runtime-monitoring 2026-09-24;
   - the latest #triage-results posts for bot liveness.
 - **Read-only.** No Slack posts, Jira writes or KB edits were made for this report.
+
+## Appendix C — the alert-triage tooling (context for the data above)
+
+Most of the alert-level numbers in this report come from the triage routine in this repo. Its own health limits what they can show, so it is summarised here.
+
+- **Where the data lives.** Since 2026-06-18 the routine has committed to `origin/alerting-system-grafana` (1,380 commits ahead of `main`), not `main`. Every stability review since 2026-07-07 notes this.
+- **Coverage gaps.**
+  - The routine was **dark for 56 days** (2026-09-25 → 2026-11-19), with no poll and no heartbeat. There were also 4–8 day gaps in late June and mid-July.
+  - Slack read access has been missing since ~2026-06-18. Since then it reads Datadog monitors only, so Centreon, Grafana and Logstash-ML alerts are not in the incident log after June.
+  - Atlassian access has been unauthenticated for 4+ reviews, so no PIR sync and no Jira cross-reference.
+- **What it changed for alert handling (weekly, from Appendix A):**
+  - Root-cause grouping (05-04) folded 5,960 alert rows into 2,976 groups.
+  - Known-issue suppression and impact-scored escalation (05-21/22) cut needs-human groups from 66–132 a week to 19–40, and human-facing posts from ~91–109 a week to ~20–25.
+  - The known-issue share of classified groups went from 0% to 69–88%.
+  - A false-alarm KB (from July) absorbed 452 classifications.
+- **Tooling recommendations** (outside the platform ranking above):
+  - an external dead-man's switch on the routine (no poll in more than 6 h → alert a human);
+  - merge `alerting-system-grafana` into `main`;
+  - restore Slack read access.
+- **Scripts.** `scripts/retro_stats.py` produces Appendix A. `--ref <branch>` reads the KB and log straight from a git ref.
+
