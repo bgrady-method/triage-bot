@@ -142,7 +142,7 @@ This table covers both kinds of change. Platform fixes come from the PIR log, th
 |---|---|---|---|
 | 2026-02-09 | `#alert-impact-monitoring` renamed `#alert-runtime-monitoring` and relaunched as the shared CRM + Vertical-Apps alert-monitoring channel (use emotes when on duty) | Process | Slack channel event |
 | 2026-04-13 → | Elasticsearch capacity work after the native-OOM outage (heap/direct-memory rebalanced) | Platform | PIR log entry 2026-04-13 |
-| 2026-04-15 → 09 | Outbound email screening (PL-62308 held-for-review queue), SendGrid sub-user reroute, malicious-tenant clean-up | Platform | PIR log entries 02-11, 04-14, 04-21; screening posts in #alert-runtime-monitoring |
+| 2026-04 → 09 | Outbound email screening (PL-62308 held-for-review queue), SendGrid sub-user reroute, malicious-tenant clean-up | Platform | PIR log entries 02-11, 04-14, 04-21; screening posts in #alert-runtime-monitoring |
 | 2026-05-01 | Triage-bot scaffolded: hourly pull-mode polling of the alert channels via Slack MCP | Tooling | `7874678f`, `7d77a616` |
 | 2026-05-01 | Architecture/service catalog `CLAUDE.md` loaded each cycle | Tooling | `18c899d8` |
 | 2026-05-04 | v0.6 root-cause **grouping** of alerts before investigating | Tooling | `f0e73c60` (PR #1) |
