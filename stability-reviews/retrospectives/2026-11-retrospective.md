@@ -134,6 +134,46 @@ The three undated PIRs (Jul–Aug ×2, Sep–Nov ×1) are not in the monthly cou
 
 **Availability.** The four platform-wide outages total ~491 min. A year has 525,600 min, so availability is **≈ 99.91%** (`references/methodology/metrics-formulas.md`). That clears the 99.9% three-nines peer SLA (Salesforce, HubSpot, QBO, Zoho) by a margin of about one more 1-hour outage. Partial outages are not counted: QBO sync 6.5 h, ES 5.5 h, intermittent error page 21 h.
 
+### 2.3 Changes made (timeline)
+
+This table covers both kinds of change. Platform fixes come from the PIR log, the June stability plan, `kb/known-issues.json`, the stability reviews and Slack. Alert-triage tooling commits come from `git log` on `main` and `origin/alerting-system-grafana`; per-cycle `triage …`/`poll-cycle …` commits are excluded. Short SHAs are given for the tooling commits.
+
+| Date | Change | Type | Source |
+|---|---|---|---|
+| 2026-02-09 | `#alert-impact-monitoring` renamed `#alert-runtime-monitoring` and relaunched as the shared CRM + Vertical-Apps alert-monitoring channel (use emotes when on duty) | Process | Slack channel event |
+| 2026-04-13 → | Elasticsearch capacity work after the native-OOM outage (heap/direct-memory rebalanced) | Platform | PIR log entry 2026-04-13 |
+| 2026-04-15 → 09 | Outbound email screening (PL-62308 held-for-review queue), SendGrid sub-user reroute, malicious-tenant clean-up | Platform | PIR log entries 02-11, 04-14, 04-21; screening posts in #alert-runtime-monitoring |
+| 2026-05-01 | Triage-bot scaffolded: hourly pull-mode polling of the alert channels via Slack MCP | Tooling | `7874678f`, `7d77a616` |
+| 2026-05-01 | Architecture/service catalog `CLAUDE.md` loaded each cycle | Tooling | `18c899d8` |
+| 2026-05-04 | v0.6 root-cause **grouping** of alerts before investigating | Tooling | `f0e73c60` (PR #1) |
+| 2026-05-04 | v0.7 service-aware investigation + per-group investigation reports | Tooling | `554d3dd7` (PR #2) |
+| 2026-05-04 | Monthly **stability-review** routine | Tooling | `83743cc5` |
+| 2026-05-06 | Every outbound Slack message logged to `docs/messages/` | Tooling | `3d1e3353` |
+| 2026-05-20 | Stop posting to #swat; DM only | Tooling | `e8cdd115` |
+| 2026-05-20/21 | Durable local scheduling (Task Scheduler) + auto-push | Tooling | `37e57f8f`, `7fc47a08` |
+| 2026-05-20 → | Internal DNS: stop forwarding `.method.int` to the Route 53 link-local resolver past its 1024-PPS limit | Platform | PIR log entries 05-14, 05-20; KB DNS entry |
+| 2026-05-21 | KB-approver removed (agents write KB directly); KB seeded with 5 PIR entries | Tooling | `00c082af`, `3c779fba` |
+| 2026-05-21 | **Layer 1: known-issue-recurrence DM suppression** with re-surface | Tooling | `35c8b4fe` |
+| 2026-05-21 | **Layers 2–4: impact-scored escalation, daily digest, PIR ingestion** | Tooling | `30cb0180` |
+| 2026-05-22 | Finer scoring; `docs/actionable/` replaces the digest DM | Tooling | `548b9f87` |
+| 2026-05-25 / 06-01 | PIR ingest +9 / +39 KB entries | Tooling/KB | `82881080`, `aef0b9c3` |
+| 2026-06 (by 06-22) | Deploy safety: refuse to pull a node when fewer than 2 targets are healthy (all HTTP services), third preferences node, 2-min public-API auth cache, legacy-auth periodic recycle | Platform | Confluence "Postmortem Follow-Up & Stability Plan - June 2026" |
+| 2026-06-03 | **oauth_token bloat fixed**: expired tokens removed, TTL auto-delete index | Platform | Slack #alert-system; `ki-oauth-token-db-bloat` last_seen 2026-06-03 |
+| 2026-06-04 | Hard rule: fetch `origin/<default>` before reading code (stale-clone misattribution) | Tooling | `7a2eed8d` |
+| 2026-06-05 | ms-account-api deploy regression rolled back (P0, ~70 min) | Platform | `ki-2026-05-21` fix_status, `2026-06-10-report.md` |
+| 2026-06-09 | Active-swat-incident shortcut | Tooling | `051e7ef5` |
+| 2026-06-10 | Tighter KB matching + precedence rules | Tooling | `2cde8ecd` |
+| 2026-06-17 | Monitor #team-incident-response; `ownership.md` as identify-only routing | Tooling | `6aed8013` |
+| 2026-06-18 | Grafana-as-code SLO alerts (separate from triage scoring) | Tooling | `813c4836`, `a9194a13` |
+| ~2026-06-18 → | Slack MCP unavailable; **degraded mode** (DD monitor scan-diff) becomes the norm | Tooling (regression) | `2026-07-07`/`08-04` reports |
+| 2026-06-19 | **Output swap:** findings → #triage-results channel, health → DM | Tooling | `3df088c6` |
+| 2026-07-04 → | False-alarm KB grows to 49 entries | KB | `kb/false-alarms.json` |
+| 2026-07-31 → 08-25 | Mobile RUM self-noise tickets filed and partly fixed (PL-64578/64579/64580) | Platform | Slack #alert-runtime-monitoring |
+| 2026-08-19 | Poll #alert-no-code-next-gen; datasource-aware KIR evidence; deterministic investigation pipeline + scoring with eval corpus; Slack-write guard hook; watchdog task; weekly digest | Tooling | `bd35739e`, `ff3b713f`, `249e9f6d`, `b3eb932b`, `b95c10ea` |
+| 2026-09-25 | ms-tags-api subscriber routing hotfix after the tags error queue grew past 74k | Platform | Slack #alert-system |
+| 2026-09-25 → 11-19 | **Routine host down 56 days**; the watchdog did not surface it | Tooling (outage) | incident-log gap; catch-up note 2026-11-19 |
+| 2026-11-18 | SMS volume monitor thresholds raised to the new weekday baseline | Platform | Slack #alert-runtime-monitoring |
+
 ---
 
 ## 3. Platform changes and their impact (ranked)
@@ -416,5 +456,6 @@ Most of the alert-level numbers in this report come from the triage routine in t
   - an external dead-man's switch on the routine (no poll in more than 6 h → alert a human);
   - merge `alerting-system-grafana` into `main`;
   - restore Slack read access.
+- **Tooling commits** with SHAs are in the §2.3 timeline.
 - **Scripts.** `scripts/retro_stats.py` produces Appendix A. `--ref <branch>` reads the KB and log straight from a git ref.
 
