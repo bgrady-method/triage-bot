@@ -2036,5 +2036,27 @@
     "evidence_source": "datadog_logs",
     "evidence_query": "service:method-ui status:error *xhr* @account_name:perfectlypurepools3 -- expect 100% http.status_code 0, one dominant session, ISP/cellular ASN, 0 server-side errors; multiple sessions or real 4xx/5xx means this FA does NOT apply",
     "recommendation": "Scoped to the account on purpose so it cannot shadow ki-2026-05-21-gateway-microservices-timeout. This is a real customer, so re-verify every fire against the evidence_query. This is the 10th+ per-account status_code-0 FA on 77419271. The structural fix is still to require >=2 distinct sessions or exclude http.status_code:0 in the monitor query."
+  },
+  {
+    "target": "false-alarms",
+    "id": "fa-2026-11-26-haydenfire1-mapbox-style-fetch-abort-on-map-unmount-xhr-noise",
+    "match": {
+      "channels": [
+        "alert-frontend-errors"
+      ],
+      "any_of": [
+        {
+          "contains": "for account: haydenfire1"
+        }
+      ]
+    },
+    "reason": "Monitor 77419271 (>40 XHR errors / 5min by @account_name; warn 25) went Warn on haydenfire1 at 2026-11-26T21:26:11Z and recovered 21:27:11Z. DD logs 21:15-21:35Z: 46/46 method-ui XHR errors were 'Fetch error GET https://api.mapbox.com/styles/v1/mapbox/streets-v11', http.status_code 0, error.origin network. The stack is 'AbortError: signal is aborted without reason' at Map.remove -> setStyle -> _updateStyle -> cancel (mapbox-gl in vendor.min.js, called from m-one.vendor). The map control is torn down and cancels its own in-flight style request, so this is client-side self-cancellation, not a Mapbox or Method outage. 81 of the 82 Mapbox errors in 21:00-22:10Z came from ONE session (one user) on one apps/Default.aspx screen. 0 non-Mapbox XHR errors and 0 server-side errors for haydenfire1 in the window.",
+    "silence_for": "24h",
+    "first_seen": "2026-11-26T21:26:11Z",
+    "last_seen": "2026-11-26T21:26:11Z",
+    "occurrences": 1,
+    "evidence_source": "datadog_logs",
+    "evidence_query": "service:method-ui status:error *mapbox* @account_name:haydenfire1 -- expect status_code 0, AbortError stack via Map.remove/setStyle, single session",
+    "recommendation": "Scoped to the account on purpose so it cannot shadow ki-2026-05-21-gateway-microservices-timeout. If a matched fire shows non-Mapbox paths or 4xx/5xx, this FA does not apply. Broader fix: have method-ui RUM drop AbortError (origin network, status 0) for api.mapbox.com, or exclude *api.mapbox.com* from monitor 77419271. Also worth a look: a map control that remounts ~80x in one session suggests a re-render loop on that screen (m-one map widget)."
   }
 ]
