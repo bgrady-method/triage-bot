@@ -192,7 +192,7 @@ Each channel gets one row per month. Two kinds of measurement are mixed, and the
 
 | Month | Human messages | Distinct responders | Incident-log alert rows | Sample day | Alerts (sample day) | Touched | % touched | First human reply |
 |---|---:|---:|---:|---|---:|---:|---:|---|
-| 2025-11 | 9 | 3 | — | 11-25 | 32 | 1 | 3% | 4 m (plus a top-level "who's looking?" 4 m into a Centreon storm) |
+| 2025-11 | 9 | 3 | — | 11-25 | 32 | 1 | 3% | 4 m (plus a top-level message asking who was investigating, 4 m into a Centreon storm) |
 | 2025-12 | 34 | 10 | — | 12-02 | 22 | 0 | 0% | — |
 | 2026-01 | ~100 | 15 | — | 01-06 | 21 | 1 | 5% | 3 m |
 | 2026-02 | 52 | 13 | — | 02-03 | 11 | 0 | 0% | — |
@@ -275,11 +275,11 @@ Additional samples read in detailed mode (thread and reaction metadata):
 ### 5.5 Commentary
 
 - **#alert-runtime-monitoring is the success story**, and the cause was a process change, not tooling. The 2026-02-09 relaunch gave it named on-duty teams and an emote convention. It went from silent to the most conversational alert channel. Threads there routinely end in a ticket, a threshold change or a "known noise" verdict. That is the human version of what the bot's KB does. The October–November dip (10 and 7) lines up with the bot outage and with fewer new monitors, so it needs watching.
-- **#alert-system is worked, but in bursts.** It peaks during incidents and releases (Jan ≈ 100 around app-update and EDA issues; Sep 74 around the tags-queue incident) and goes quiet otherwise (Jul–Aug and Oct ≈ 12–14). Most messages are ops actions (restarts, recycles, purges) and "is this release-related?" prompts, not alert-by-alert acknowledgement. Repeat notifications drown the signal.
+- **#alert-system is worked, but in bursts.** It peaks during incidents and releases (Jan ≈ 100 around app-update and EDA issues; Sep 74 around the tags-queue incident) and goes quiet otherwise (Jul–Aug and Oct ≈ 12–14). Most messages are ops actions (restarts, recycles, purges) and questions about whether a release caused an alert, not alert-by-alert acknowledgement. Repeat notifications drown the signal.
 - **#alert-frontend-errors is effectively unwatched.** It had about 900 alerts a month in May–June, ~1,500 a month extrapolated from the Nov 2025 sample, and one human message all year. Its monitor (77419271, browser XHR errors) is also the single largest source of new false-alarm entries in Nov 2026 (single-session client network drops).
 - **#swat is human-driven and healthy.** Incident channels are not the engagement problem.
-- **Concentration risk.** Roughly a third of #alert-runtime-monitoring messages come from one person, and a large share of those are "@team, anyone looking at this?" prompts. Engagement depends on that one person prompting.
-- **Effect of the bot on channel engagement.** In era (b) the bot DMed Ben rather than posting in-channel, so it could not change channel behaviour directly. From 2026-06-19 it posts to #triage-results, which is not covered by public search. Whether its analysis reaches the channel teams is **unmeasured**. The bot's notes in degraded mode explicitly say it cannot check "operator-engagement" either.
+- **Concentration risk.** Roughly a third of #alert-runtime-monitoring messages come from one person, and a large share of those are prompts asking a team whether anyone is investigating. Engagement depends on that one person prompting.
+- **Effect of the bot on channel engagement.** In era (b) the bot DMed the operator rather than posting in-channel, so it could not change channel behaviour directly. From 2026-06-19 it posts to #triage-results, which is not covered by public search. Whether its analysis reaches the channel teams is **unmeasured**. The bot's notes in degraded mode explicitly say it cannot check operator engagement either.
 
 ---
 
