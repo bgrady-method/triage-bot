@@ -29,7 +29,7 @@ _Generated: 2026-11-25 · Window: 2025-11-25 → 2026-11-25 (12 months) · Scope
   - **#alert-runtime-monitoring**: ~433 human messages a year from ~27 people. It is the healthiest channel.
   - **#alert-system**: ~528 messages from ~33 people. Healthy but bursty: Jan ≈ 100, Jul–Aug and Oct ≈ 12–14 a month.
   - **#alert-frontend-errors**: **1 human message in 12 months**, against roughly 1,500 alerts a month at the start of the window. It is effectively unwatched.
-  - Even in the healthy channels, a sampled busy day had **~6% of alert messages touched** (thread or reaction). A sampled ordinary day had a disk warning re-posted **34 times over 5.7 h** before anyone acted.
+  - Per-alert engagement is low everywhere. Across 39 monthly sample days (one per channel per month), only **4 of ~1,540 alerts (~0.3%) got a human thread reply**. When one did, the reply came in a median of ~4 minutes. A busy runtime-monitoring day reached ~6% touched. A sampled ordinary day had a disk warning re-posted **34 times over 5.7 h** before anyone acted.
   - Engagement is also concentrated: one person accounts for roughly a third of runtime-monitoring messages, mostly prompting a team to look.
 
 ---
@@ -171,19 +171,83 @@ Only the oauth_token fix (June, F1) is evidenced as done.
 
 ## 5. Alert-channel engagement
 
-### 5.1 Human messages per channel per month
+### How each column is measured
 
-Human (non-bot) messages, including thread replies, from Slack search with `include_bots: false`. 2025-11 covers 11-25 → 11-30 only; 2026-11 covers 11-01 → 11-25.
+Each channel gets one row per month. Two kinds of measurement are mixed, and the column headers say which is which.
 
-| Channel | 2025-11 | 12 | 2026-01 | 02 | 03 | 04 | 05 | 06 | 07 | 08 | 09 | 10 | 11 | 12-mo total | Distinct people (12 mo) |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| #alert-system | 9 | 34 | ~100 | 52 | ~59 | 36 | 29 | 59 | 14 | 12 | 74 | 14 | 36 | **~528** | ~33 |
-| #alert-runtime-monitoring | 7 | 0 | 0 | 65 | 43 | 28 | 45 | 52 | 83 | 39 | 54 | 10 | 7 | **~433** | ~27 |
-| #alert-frontend-errors | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 0 | 0 | **1** | 1 |
-| #swat | — | — | — | — | — | — | — | — | — | — | — | — | ≥20 in 11-21 → 11-23 alone | not censused | — |
-| #team-incident-response | — | — | — | — | — | — | — | — | — | — | — | — | — | n/a (not in public search) | — |
+- **Census columns** (every message in the month):
+  - *Human messages*: Slack search with `include_bots: false`, paged to the end. Thread replies included.
+  - *Distinct responders*: the distinct human author IDs among those messages.
+  - *Incident-log alert rows*: from `kb/incident-log.jsonl`. Only May–Jun 2026 are Slack-sourced and comparable (§1).
+- **Sample-day columns** (one fixed day per month, the first Tuesday; 2025-11 uses 2025-11-25, the first Tuesday in the window):
+  - *Alerts*: bot or integration messages from `slack_read_channel`. "100+" means the page cap was hit.
+  - *Touched*: alerts from that day with a human thread reply, from `is:thread on:<day>` with bots included.
+  - *% touched*: touched ÷ alerts.
+  - *First reply*: time from the alert to its first human reply.
+- **Reactions** cannot be searched per bot message. They were only counted on the detailed-mode sample days in §5.4, where they add at most one alert per day.
 
-### 5.2 Alert volume vs human activity
+2025-11 = 11-25 → 11-30; 2026-11 = 11-01 → 11-25. Monthly alert volume is not censused, because a full read of a year of alerts is too large. A single day per month is an indicator, not a monthly total.
+
+### 5.1 #alert-system (`CPHHABKAA`)
+
+| Month | Human messages | Distinct responders | Incident-log alert rows | Sample day | Alerts (sample day) | Touched | % touched | First human reply |
+|---|---:|---:|---:|---|---:|---:|---:|---|
+| 2025-11 | 9 | 3 | — | 11-25 | 32 | 1 | 3% | 4 m (plus a top-level "who's looking?" 4 m into a Centreon storm) |
+| 2025-12 | 34 | 10 | — | 12-02 | 22 | 0 | 0% | — |
+| 2026-01 | ~100 | 15 | — | 01-06 | 21 | 1 | 5% | 3 m |
+| 2026-02 | 52 | 13 | — | 02-03 | 11 | 0 | 0% | — |
+| 2026-03 | ~59 | 13 | — | 03-03 | 21 | 0 | 0% | — |
+| 2026-04 | 36 | 9 | — | 04-07 | 8 | 0 | 0% | — |
+| 2026-05 | 29 | 8 | 576 | 05-05 | 21 | 0 | 0% | — |
+| 2026-06 | 59 | 9 | 654 | 06-02 | 41 | 0 | 0% | — |
+| 2026-07 | 14 | 7 | (DD-sourced) | 07-07 | 37 | 0 | 0% | — |
+| 2026-08 | 12 | 5 | (DD-sourced) | 08-04 | 22 | 0 | 0% | — |
+| 2026-09 | 74 | 11 | (DD-sourced) | 09-01 | 9 | 1 | 11% | 33 m |
+| 2026-10 | 14 | 8 | (bot down) | 10-06 | ~100 | 0 | 0% | — |
+| 2026-11 | 36 | 15 | (DD-sourced) | 11-03 | 7 | 0 | 0% | — (one thread reply that day was on an earlier alert) |
+| **12 months** | **~528** | **~33** | | | **352** | **3** | **0.9%** | median ≈ 4 m when touched |
+
+### 5.2 #alert-runtime-monitoring (`C063V5HTTFU`)
+
+| Month | Human messages | Distinct responders | Incident-log alert rows | Sample day | Alerts (sample day) | Touched | % touched | First human reply |
+|---|---:|---:|---:|---|---:|---:|---:|---|
+| 2025-11 | 7 | 2 | — | 11-25 | 7 | 0 | 0% | — |
+| 2025-12 | 0 | 0 | — | 12-02 | 4 | 0 | 0% | — |
+| 2026-01 | 0 | 0 | — | 01-06 | 7 | 0 | 0% | — |
+| 2026-02 | 65 | 10 | — | 02-03 | 1 | 0 | 0% | — (channel relaunched 02-09) |
+| 2026-03 | 43 | 8 | — | 03-03 | 10 | 0 | 0% | — |
+| 2026-04 | 28 | 7 | — | 04-07 | 100+ (one app-update error burst) | 0 | 0% | top-level human message ~10 m after the burst |
+| 2026-05 | 45 | 8 | 357 | 05-05 | 100+ | 0 | 0% | — |
+| 2026-06 | 52 | 8 | 213 | 06-02 | 29 | 0 | 0% | top-level human message ~3 m after an alert |
+| 2026-07 | 83 | 14 | (DD-sourced) | 07-07 | 38 | 0 | 0% | — |
+| 2026-08 | 39 | 9 | (DD-sourced) | 08-04 | 32 | 0 | 0% | — |
+| 2026-09 | 54 | 11 | (DD-sourced) | 09-01 | 43 | 0 | 0% | — |
+| 2026-10 | 10 | 4 | (bot down) | 10-06 | 58 | 0 | 0% | — |
+| 2026-11 | 7 | 5 | (DD-sourced) | 11-03 | 53 | 1 | 2% | 24 m |
+| **12 months** | **~433** | **~27** | | | **482+** | **1** | **≤0.2%** | 24 m (n = 1) |
+
+### 5.3 #alert-frontend-errors (`C03TYHGRS23`)
+
+| Month | Human messages | Distinct responders | Incident-log alert rows | Sample day | Alerts (sample day) | Touched | % touched | First human reply |
+|---|---:|---:|---:|---|---:|---:|---:|---|
+| 2025-11 | 0 | 0 | — | 11-25 | 28 | 0 | 0% | — |
+| 2025-12 | 0 | 0 | — | 12-02 | 46 | 0 | 0% | — |
+| 2026-01 | 0 | 0 | — | 01-06 | 52 | 0 | 0% | — |
+| 2026-02 | 0 | 0 | — | 02-03 | 72 | 0 | 0% | — |
+| 2026-03 | 0 | 0 | — | 03-03 | 100+ | 0 | 0% | — |
+| 2026-04 | 0 | 0 | — | 04-07 | 60 | 0 | 0% | — |
+| 2026-05 | 1 | 1 | 898 | 05-05 | 76 | 0 | 0% | — |
+| 2026-06 | 0 | 0 | 850 | 06-02 | 37 | 0 | 0% | — |
+| 2026-07 | 0 | 0 | (DD-sourced) | 07-07 | 36 | 0 | 0% | — |
+| 2026-08 | 0 | 0 | (DD-sourced) | 08-04 | 65 | 0 | 0% | — |
+| 2026-09 | 0 | 0 | (DD-sourced) | 09-01 | 73 | 0 | 0% | — |
+| 2026-10 | 0 | 0 | (bot down) | 10-06 | 48 | 0 | 0% | — |
+| 2026-11 | 0 | 0 | (DD-sourced) | 11-03 | 10 | 0 | 0% | — |
+| **12 months** | **1** | **1** | | | **703+** | **0** | **0%** | never |
+
+Because this channel had one human message all year, every month's touch rate is 0% from the census alone; the sample days only add volume. Sample-day volume fell from 46–100+ a day (Dec–May) to **10 on 2026-11-03** (and 21 on 2026-11-23, §4.4). That is the first sustained drop, but nobody watches what is left.
+
+### 5.4 Human messages per 100 alerts, and detailed-mode samples
 
 Era (b) only, where incident-log alert rows are Slack-sourced.
 
@@ -196,16 +260,19 @@ Era (b) only, where incident-log alert rows are Slack-sourced.
 | #alert-frontend-errors | 2026-05 | 898 | 1 | 0.1 |
 | #alert-frontend-errors | 2026-06 | 850 | 0 | 0.0 |
 
-### 5.3 Touch rate and time to first human reply (sampled days)
+Additional samples read in detailed mode (thread and reaction metadata):
 
 | Sample | Alert messages | With a human thread or reaction | % touched | Time to first human response |
 |---|---:|---:|---:|---|
 | #alert-system, 2025-11-03 (pre-bot weekday) | 13 | 0 threads (one Centreon alert acknowledged in the Centreon tool) | 0% | Centreon ack in ~25 s; no Slack reply |
-| #alert-runtime-monitoring, 2026-09-24 (busiest month) | 34 | 2 threads (2 and 9 replies) + 1 reaction | ~6–9% | ~1 h and ~3.5 h for the two threaded alerts |
+| #alert-runtime-monitoring, 2026-09-24 (an above-average day) | 34 | 2 threads (2 and 9 replies) + 1 reaction | ~6–9% | ~1 h and ~3.5 h for the two threaded alerts |
 | #alert-system, 2026-11-23 (recent weekday) | 58 | 1 top-level human message | ~2% | 5 h 42 m after the first of 34 repeated disk warnings |
-| #alert-frontend-errors, any day | 21–52 / day | 0 | ~0% | none |
 
-### 5.4 Commentary
+### #swat and #team-incident-response
+
+#swat is an incident channel worked by humans: 20+ human messages in 11-21 → 11-23 alone, around one P0. It was not censused month by month. #team-incident-response is not visible to public search, so it is not measured here.
+
+### 5.5 Commentary
 
 - **#alert-runtime-monitoring is the success story**, and the cause was a process change, not tooling. The 2026-02-09 relaunch gave it named on-duty teams and an emote convention. It went from silent to the most conversational alert channel. Threads there routinely end in a ticket, a threshold change or a "known noise" verdict. That is the human version of what the bot's KB does. The October–November dip (10 and 7) lines up with the bot outage and with fewer new monitors, so it needs watching.
 - **#alert-system is worked, but in bursts.** It peaks during incidents and releases (Jan ≈ 100 around app-update and EDA issues; Sep 74 around the tags-queue incident) and goes quiet otherwise (Jul–Aug and Oct ≈ 12–14). Most messages are ops actions (restarts, recycles, purges) and "is this release-related?" prompts, not alert-by-alert acknowledgement. Repeat notifications drown the signal.
@@ -294,7 +361,8 @@ KB timeline: 104 entries, 44 resolved/mitigated, 60 open (`fix_status` breakdown
 - **Repo data.** `git fetch origin`; `git log --format='%ad|%h|%s'` on `origin/main` and on `origin/main..origin/alerting-system-grafana`, excluding per-cycle commits. `scripts/retro_stats.py` (JSON-parses every line; ISO and epoch `ts`), as in appendix A. Stability reviews read: `2026-06-10`, `2026-08-04`, `2026-09-01` (Executive Summary and trackers).
 - **Slack human activity.** `slack_search_public` with `filters: in:<#channel> after:2025-11-24 [before:…]`, `include_bots: false`, `sort: timestamp`, paged to the end. Each result was tallied by month and distinct author ID; the 20-page cap was handled by re-querying with `before:`. Channels: `CPHHABKAA` (#alert-system), `C063V5HTTFU` (#alert-runtime-monitoring), `C03TYHGRS23` (#alert-frontend-errors), `C01L5K42GQ6` (#swat, last month only), `C0B6233UN4S` (#team-incident-response, no public results), `C0B0Q3KHC07` (#triage-results, no human results).
 - **Slack samples.** `slack_read_channel`:
-  - concise mode for volume: #alert-system and #alert-frontend-errors on 2025-11-03 and 2026-11-23;
+  - concise mode for volume: per month, the first Tuesday (2025-11-25, 12-02, 2026-01-06, 02-03, 03-03, 04-07, 05-05, 06-02, 07-07, 08-04, 09-01, 10-06, 11-03) for all three alert channels, using `oldest`/`latest` set to that day in US Eastern time; also #alert-system and #alert-frontend-errors on 2025-11-03 and 2026-11-23;
+  - `slack_search_public` with `filters: in:<#channel> is:thread on:<sample day>` and `include_bots: true` for alert threads and human first-reply times on those days (skipped where the human-message census shows no human message that day);
   - detailed mode for thread and reaction metadata: #alert-system 2025-11-03, #alert-runtime-monitoring 2026-09-24;
   - the latest #triage-results posts for bot liveness.
 - **Read-only.** No Slack posts, Jira writes or KB edits were made for this report.
