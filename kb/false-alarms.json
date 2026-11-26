@@ -549,8 +549,8 @@
     "reason": "DD RUM Error Tracking for service:method-nativemobile-ui over the trailing 4h (2026-07-14T19:00-23:30Z): 181 @type:error events vs 1464 @type:view events = 12.4% error rate (monitor threshold >5%). Message breakdown of all 181 sampled errors: 83 'A server with the specified hostname could not be found.' (DNS resolution failure, 45.9%), 74 'cancelled' (request cancelled mid-flight, typically app backgrounding/navigation-away, 40.9%), 12 'A TLS error caused the secure connection to fail.' (6.6%), plus small counts of 'Network Error'/'offline'/Expo-token-fetch failures. Every message is a client-side network-connectivity signature (DNS/TLS/cancellation on mobile devices with flaky connectivity) -- none are application-level 4xx/5xx or server-side exceptions. No correlated backend service alert fired in the same window. This is inherent RUM noise from real-world mobile network conditions, not a backend incident. 2026-09-24T10:17:08Z (this occurrence): RUM re-query trailing 4h (06:17:08-10:17:08Z) returned 6 hits: 3x 'cancelled' (catalogued class), 1x 'Memory Warning' (device-level, benign, unrelated to network), 2x 'Push registration failed (register-token/launch-token): ...IOException: INTERNAL_SERVER_ERROR' -- not verbatim catalogued here but same GMS/FCM-token-fetch-IOException family documented under sibling entry fa-2026-09-16-nativemobile-push-registration-transient-network-gms (which itself has absorbed new IOException variant strings each occurrence). No backend/server-side correlation (0 hits service:method-nativemobile-ui/nonprod-apps status:error). Still classic mobile-client noise, cross-referenced against the sibling entry rather than a clean verbatim match -- flagged for future attention if INTERNAL_SERVER_ERROR becomes a dominant class.",
     "silence_for": "24h",
     "first_seen": "2026-07-14T23:01:19Z",
-    "last_seen": "2026-11-26T11:23:08Z",
-    "occurrences": 79,
+    "last_seen": "2026-11-26T12:24:08Z",
+    "occurrences": 80,
     "recommendation": "monitor threshold (>5% over trailing 4h) is too sensitive for a mobile RUM error-rate check that includes DNS/TLS/cancellation noise; recommend excluding 'cancelled' and DNS-resolution-failure messages from the numerator, or raising the threshold, before this becomes a recurring low-value fire; flag to Admin (owns method-nativemobile-ui per ownership.md, despite the monitor's team:crm tag). 3 occurrences in ~2.5 weeks now (2026-07-14, 2026-07-30, 2026-07-31) -- worth acting on rather than continuing to re-verify.",
     "notes": [
       {
@@ -724,6 +724,10 @@
       {
         "ts": "2026-11-23T12:15:00Z",
         "note": "occ 72 (degraded cycle, hash cdb5b5bc5d6bae04 + satellite 92450cd129a10f86): 313094708 Warn 11:38:08Z and 11:52:08Z (recovered 11:47:08Z between). Exact formula over 07:52-11:52Z: views 1140, error-free 1123 = 1.5% (under the 3% warn line at query time; evaluation flapping near threshold on low volume). RUM errors 28: 24x 'The Internet connection appears to be offline.', 2x 'Memory Warning', 2x push-token fetch network failures. 25/28 from ONE iPadOS session (64ae85d8...), 23/28 @connectivity.status:not_connected. A single offline device moved the ratio, so this is client-network noise."
+      },
+      {
+        "ts": "2026-11-26T13:20:00Z",
+        "note": "occ 80 (degraded cycle, hash b1978e630fb2d5b5 + satellite 88de96b261e20f72): 313094708 Warn 12:24:08Z -> Recovered 12:39:08Z -> Warn 12:45:08Z -> Recovered 12:57:08Z. RUM @type:error 08:45-12:57Z = 37, all network-class (12 'The request timed out.', 12 'A server with the specified hostname could not be found.', 9 'The network connection was lost.', 4 'The Internet connection appears to be offline.'); 36 of them are the 10:30Z/10:46-10:52Z bursts already counted at occ 78/79, only 1 new error (12:33:15Z). Exact formula as ratio of sums over 08:45-12:45Z: views 527, error-free 521 = 1.1%, under the warn line, so the Warn state was NOT reproduced exactly (same as occ 72). The per-minute pointwise sum of the expression is ~400, so that reading does not match either. Mechanism of the Warn unconfirmed; error content is entirely the catalogued client-network class and 0 server-side errors (service:method-nativemobile-ui status:error). Confidence lowered to 0.8 for this occurrence."
       }
     ],
     "note": "2026-08-04 ~12:10Z triage (degraded cycle, no Slack MCP surfaced this session, DD monitor scan diff vs prior cutoff 2026-08-04T11:09:26Z): monitor 305454649 fired 2026-08-04T11:25:20Z, hash e487adb84d33e216, occ 13->14, Alert state at scan time (elevated vs the usual Warn). DD RUM Error Tracking for service:method-nativemobile-ui over the monitor's own trailing 4h window (07:25:20-11:25:20Z): 36 @type:error vs 237 @type:view = 15.2% error rate -- above the >5% threshold, consistent with the escalated Alert state (highest rate of the 14 documented occurrences, above the prior peak of 11.0% on 2026-08-01T21:04Z). Sampled errors: dominant 'cancelled', plus Expo-token-fetch 503s, iOS aps-environment entitlement config errors, Network Error, 'The network connection was lost.', Memory Warning, offline/IP-lookup failures -- all client-side/device/third-party-infra signatures, same mechanism family as all 13 prior occurrences, just a higher-volume excursion. No correlated backend alert co-fired this cycle. Still classified as client-side RUM noise, not a backend incident -- flagging the new peak rate for stability-review trend-watch. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-08-04-e487adb84d33e216.md."
@@ -1505,8 +1509,8 @@
     "reason": "Monitor avg(last_10m):p95:trace.aspnet.request{service:default_web_site/reportgenerationapi,env:prod} > 5. Re-query showed max p95 0.746s, fully recovered; 0 ES hits for reportgenerationapi/ReportGeneration in window. Distinct from the separate unfiled innuwindow2 DevExpress-layout/SQL-schema bug on monitor 316587947 (error-rate, not this p95-latency monitor) -- do not conflate.",
     "silence_for": "24h",
     "first_seen": "2026-09-03T20:29:38Z",
-    "last_seen": "2026-11-25T10:29:38Z",
-    "occurrences": 20,
+    "last_seen": "2026-11-26T12:31:38Z",
+    "occurrences": 21,
     "notes": [
       {
         "ts": "2026-11-20T10:40:38Z",
@@ -1547,6 +1551,10 @@
       {
         "ts": "2026-11-22T19:15:00Z",
         "note": "2026-11-22 degraded cycle: monitor 316588178 Warn 18:23:38Z, Triggered 18:25:38Z, Warn 18:33:38Z, Recovered 18:35:38Z (hash 14b09e7f02ccb611 + satellites b00e33c5ef1a5adb, a7a0e16669e6ff30). p95 spiked to 35.65s @18:23:30Z and 37.93s @18:25:30Z, each a single slow render; 62 hits 18:05-18:45Z; 0 errors (no error series), 0 DD error logs, 0 ES hits. FA occ 15->16. Same ~36-38s values as the 11-21/11-22 repeats."
+      },
+      {
+        "ts": "2026-11-26T13:20:00Z",
+        "note": "occ 21 2026-11-26 degraded cycle: monitor 316588178 Triggered 12:31:38Z, Recovered 12:34:38Z (hash d0baf9dd537e93be). p95:trace.aspnet.request 12:05-12:45Z: 68 pts, two >5s: 37.62s @12:24:30Z and 40.75s @12:30:40Z, each a single slow render; 171 hits in window; trace.aspnet.request.errors no series (0 errors); 0 DD error logs. Error-rate monitor 316587947 did not co-fire. Same 12:24:30Z slot as the 11-22 fire (36.87s), consistent with a recurring scheduled heavy report. FA."
       }
     ]
   },
