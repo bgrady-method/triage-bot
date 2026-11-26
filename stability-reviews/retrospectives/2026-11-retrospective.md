@@ -123,12 +123,32 @@ Dates are 2026 unless marked. "Wide" means sign-in or every screen was down for 
 
 The three undated PIRs (Jul–Aug ×2, Sep–Nov ×1) are not in the monthly counts.
 
+```mermaid
+xychart-beta
+    title "Incidents per month (bars), platform-wide (line)"
+    x-axis ["Dec 25", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov"]
+    y-axis "Incidents" 0 --> 11
+    bar [4, 2, 3, 2, 10, 6, 4, 1, 3, 0, 0, 1]
+    line [0, 0, 0, 0, 1, 0, 2, 0, 1, 0, 0, 0]
+```
+
+
 | Root-cause class | Count | Share | Examples |
 |---|---:|---:|---|
 | **Change we shipped** (release order, deploy, migration, config, flag, code) | **23** | **59%** | 04-25, 06-04 ×2, 06-16 deploy, 08-26, 11-20 |
 | Infrastructure / capacity | 9 | 23% | ES OOM, DNS ×3, Redis SCAN, auth crypto under load |
 | Third-party / abuse | 5 | 13% | SendGrid ×3, Google, CDN |
 | Latent data / code defect | 2 | 5% | billing sender, S3 key convention |
+
+```mermaid
+pie showData
+    title Root cause of the 39 incidents
+    "Change we shipped" : 23
+    "Infrastructure / capacity" : 9
+    "Third-party / abuse" : 5
+    "Latent data / code defect" : 2
+```
+
 
 **Durations.** The median incident lasted about **2 h**. The long tail is silent failures that ran for days before anyone connected them to a cause: TenantId 7 d, fallback email 6 d, unfinished Banner control on prod ~4 d, sanitizer 3 d, attachments 26 h, intermittent error page 21 h.
 
@@ -190,6 +210,20 @@ This table covers both kinds of change. Platform fixes come from the PIR log, th
 | 8 | **ES capacity work** after the April outage; Redis and syncservice timeout changes | Jan → Apr | ES outages | 1 (5 h 35 m) | 0 since | PIR log |
 
 What has not changed: **release-time defects**. The share of incidents caused by a change did not fall after June: **16 of 29 (55%)** before 2026-06-16 and **7 of 10 (70%)** from then on, counting the undated PIRs by their place in the log. The June safeguards stopped *capacity* failures during deploys. They did not stop bad code or bad ordering reaching production.
+
+The two biggest alert clusters, as known-issue recurrences logged per week (Appendix A; W26–W29 and W37 are partial weeks with triage gaps, and W40–W46 are missing because of the 56-day outage):
+
+```mermaid
+xychart-beta
+    title "Weekly recurrences: gateway timeouts vs RTC p95"
+    x-axis [W21, W22, W23, W24, W25, W26, W27, W28, W29, W30, W31, W32, W33, W34, W35, W36, W37, W38, W39, W47, W48]
+    y-axis "Recurrences / week" 0 --> 90
+    line [23, 60, 50, 80, 54, 7, 13, 50, 7, 3, 32, 35, 23, 36, 36, 13, 0, 9, 12, 0, 0]
+    line [1, 33, 39, 55, 41, 5, 4, 22, 5, 9, 7, 5, 4, 4, 10, 2, 0, 5, 4, 6, 2]
+```
+
+The first line is the gateway → microservices timeouts, which went quiet after 2026-09-24. The second is RTC p95, which is still recurring.
+
 
 ---
 
@@ -339,6 +373,32 @@ Additional samples read in detailed mode (thread and reaction metadata):
 
 #swat is an incident channel worked by humans: 20+ human messages in 11-21 → 11-23 alone, around one P0. It was not censused month by month. #team-incident-response is not visible to public search, so it is not measured here.
 
+### Engagement at a glance
+
+Human messages per month (census, §5.1–5.3). #alert-frontend-errors stays at 0 except for one message in May.
+
+```mermaid
+xychart-beta
+    title "Human messages per month by channel"
+    x-axis ["Nov 25", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov"]
+    y-axis "Human messages" 0 --> 110
+    line [9, 34, 100, 52, 59, 36, 29, 59, 14, 12, 74, 14, 36]
+    line [7, 0, 0, 65, 43, 28, 45, 52, 83, 39, 54, 10, 7]
+```
+
+The first line is #alert-system and the second is #alert-runtime-monitoring. The jump in February is the channel relaunch on 2026-02-09.
+
+Alerts on each monthly sample day, against alerts that got a human thread reply (all three alert channels combined):
+
+```mermaid
+xychart-beta
+    title "Sample-day alerts (bars) vs human-replied (line)"
+    x-axis ["Nov 25", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov"]
+    y-axis "Alerts on the sample day" 0 --> 260
+    bar [67, 72, 80, 84, 131, 168, 197, 107, 111, 119, 125, 206, 70]
+    line [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1]
+```
+
 ### 5.5 Commentary
 
 - **#alert-runtime-monitoring is the success story**, and the cause was a process change, not tooling. The 2026-02-09 relaunch gave it named on-duty teams and an emote convention. It went from silent to the most conversational alert channel. Threads there routinely end in a ticket, a threshold change or a "known noise" verdict. The October–November dip (10 and 7) needs watching: it coincides with fewer new monitors and no channel-level change.
@@ -452,6 +512,14 @@ Most of the alert-level numbers in this report come from the triage routine in t
   - Known-issue suppression and impact-scored escalation (05-21/22) cut needs-human groups from 66–132 a week to 19–40, and human-facing posts from ~91–109 a week to ~20–25.
   - The known-issue share of classified groups went from 0% to 69–88%.
   - A false-alarm KB (from July) absorbed 452 classifications.
+
+```mermaid
+xychart-beta
+    title "Needs-human groups per week (suppression from W21)"
+    x-axis [W18, W19, W20, W21, W22, W23, W24, W25]
+    y-axis "Needs-human groups" 0 --> 140
+    bar [66, 91, 71, 132, 31, 40, 27, 19]
+```
 - **Tooling recommendations** (outside the platform ranking above):
   - an external dead-man's switch on the routine (no poll in more than 6 h → alert a human);
   - merge `alerting-system-grafana` into `main`;
