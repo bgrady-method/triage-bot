@@ -2079,5 +2079,27 @@
     "evidence_source": "datadog_logs",
     "evidence_query": "service:method-ui status:error *mapbox* @account_name:haydenfire1 -- expect status_code 0, AbortError stack via Map.remove/setStyle, single session",
     "recommendation": "Scoped to the account on purpose so it cannot shadow ki-2026-05-21-gateway-microservices-timeout. If a matched fire shows non-Mapbox paths or 4xx/5xx, this FA does not apply. Broader fix: have method-ui RUM drop AbortError (origin network, status 0) for api.mapbox.com, or exclude *api.mapbox.com* from monitor 77419271. Also worth a look: a map control that remounts ~80x in one session suggests a re-render loop on that screen (m-one map widget)."
+  },
+  {
+    "target": "false-alarms",
+    "id": "fa-2026-11-27-watchdog-approutine-subscriber-amqp-publish-latency-story",
+    "match": {
+      "channels": [
+        "alert-system"
+      ],
+      "any_of": [
+        {
+          "contains": "Latency increased on the basic.publish EntityIntegrationEvent"
+        }
+      ]
+    },
+    "reason": "Monitor 236570583 ('New issue to review', Watchdog story_category apm/infrastructure) fired 2026-11-27T14:19:03Z on Watchdog story e71a751e-ae41-53d1-a4ec-bf1984facc1a: 'Latency increased on the basic.publish EntityIntegrationEvent -> <all> resource in approutine-subscriber' (story_type:latency, ongoing, 6 story events 14:18-14:57Z). p95:trace.amqp.command for that resource went from ~0.06-0.094ms (10:00-13:45Z 15-min buckets) to 0.122ms (14:00) / 0.157ms (14:15), then back to 0.05-0.08ms. That's a sub-millisecond RabbitMQ publish-latency shift. It landed in a low-volume trough (hits 363/260 per 15 min vs 4k-73k earlier), and the same 14:00Z trough shows on 2026-11-26 (507 hits), so this is batch-shaped traffic, not a stall. 0 trace.amqp.command errors and 0 status:error logs for approutine-subscriber 13:30-15:15Z.",
+    "silence_for": "24h",
+    "first_seen": "2026-11-27T14:19:03Z",
+    "last_seen": "2026-11-27T14:19:03Z",
+    "occurrences": 1,
+    "evidence_source": "datadog_apm",
+    "evidence_query": "p95:trace.amqp.command{env:prod,service:approutine-subscriber,resource_name:basic.publish_entityintegrationevent_-_all} -- expect sub-ms (<1ms); plus sum:trace.amqp.command.errors{env:prod,service:approutine-subscriber} ~0",
+    "recommendation": "Keyed on the story title text, not the bare monitor id, so it can't shadow other 236570583 stories (ki-2026-05-28 / ki-2026-05-29 / fa-2026-11-20 sync-xero heartbeat). Second sub-ms Watchdog latency story to page alert-system in 7 days. Consider a minimum-latency floor or excluding amqp.command/health resources from the 236570583 query."
   }
 ]
