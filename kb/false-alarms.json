@@ -549,8 +549,8 @@
     "reason": "DD RUM Error Tracking for service:method-nativemobile-ui over the trailing 4h (2026-07-14T19:00-23:30Z): 181 @type:error events vs 1464 @type:view events = 12.4% error rate (monitor threshold >5%). Message breakdown of all 181 sampled errors: 83 'A server with the specified hostname could not be found.' (DNS resolution failure, 45.9%), 74 'cancelled' (request cancelled mid-flight, typically app backgrounding/navigation-away, 40.9%), 12 'A TLS error caused the secure connection to fail.' (6.6%), plus small counts of 'Network Error'/'offline'/Expo-token-fetch failures. Every message is a client-side network-connectivity signature (DNS/TLS/cancellation on mobile devices with flaky connectivity) -- none are application-level 4xx/5xx or server-side exceptions. No correlated backend service alert fired in the same window. This is inherent RUM noise from real-world mobile network conditions, not a backend incident. 2026-09-24T10:17:08Z (this occurrence): RUM re-query trailing 4h (06:17:08-10:17:08Z) returned 6 hits: 3x 'cancelled' (catalogued class), 1x 'Memory Warning' (device-level, benign, unrelated to network), 2x 'Push registration failed (register-token/launch-token): ...IOException: INTERNAL_SERVER_ERROR' -- not verbatim catalogued here but same GMS/FCM-token-fetch-IOException family documented under sibling entry fa-2026-09-16-nativemobile-push-registration-transient-network-gms (which itself has absorbed new IOException variant strings each occurrence). No backend/server-side correlation (0 hits service:method-nativemobile-ui/nonprod-apps status:error). Still classic mobile-client noise, cross-referenced against the sibling entry rather than a clean verbatim match -- flagged for future attention if INTERNAL_SERVER_ERROR becomes a dominant class.",
     "silence_for": "24h",
     "first_seen": "2026-07-14T23:01:19Z",
-    "last_seen": "2026-11-26T14:14:08Z",
-    "occurrences": 81,
+    "last_seen": "2026-11-27T09:18:08Z",
+    "occurrences": 82,
     "recommendation": "monitor threshold (>5% over trailing 4h) is too sensitive for a mobile RUM error-rate check that includes DNS/TLS/cancellation noise; recommend excluding 'cancelled' and DNS-resolution-failure messages from the numerator, or raising the threshold, before this becomes a recurring low-value fire; flag to Admin (owns method-nativemobile-ui per ownership.md, despite the monitor's team:crm tag). 3 occurrences in ~2.5 weeks now (2026-07-14, 2026-07-30, 2026-07-31) -- worth acting on rather than continuing to re-verify.",
     "notes": [
       {
@@ -732,6 +732,10 @@
       {
         "ts": "2026-11-26T15:15:00Z",
         "note": "occ 81 (degraded cycle, hash d7be71cc96b4e123): 313094708 Warn 14:14:08Z -> Recovered 14:38:08Z. RUM @type:error 10:14-14:38Z = 61, all network/device class (23 'The Internet connection appears to be offline.', 12 timed out, 12 hostname not found, 9 connection lost, 4 push-registration token failures, 1 Memory Warning); 56 of them predate the 12:57Z recovery (already counted at occ 78-80). New: a 13:07:35-13:08:11Z burst of 20 errors, 20/20 @connectivity.status:not_connected (19 offline + 1 Expo push-token fetch), i.e. one offline device. Ratio of sums 10:14-14:14Z: views 1066, error-free 1054 = 1.1%, under the 3% warn line, so the Warn was again NOT reproduced exactly (same as occ 72/80); mechanism of the Warn unconfirmed. 0 server-side errors (DD logs service:method-nativemobile-ui status:error 12:57-14:38Z). Confidence 0.8."
+      },
+      {
+        "ts": "2026-11-27T11:15:05Z",
+        "note": "occ 82 (degraded cycle, hash 2e7c02ee75062aa6 + sats c963f80eea75289c): monitor 313094708 Warn 09:10:08Z, Warn 09:18:08Z -> Recovered 09:17:08Z / 09:30:08Z. Monitor formula terms 05:10-09:30Z: sum:rum.measure.view = 255, sum:rum.measure.view.error_free = 254, so 1 errored view of 255 (0.4% ratio of sums). `dd_search.py errortracking --query 'service:method-nativemobile-ui @type:error env:prod'` 05:10-09:18Z and 05:30-09:30Z returned no error events (count null; the same API returned 111 events for all event types, so the query path works). 0 server-side errors in DD logs (`status:error -service:method-ui -service:app-builder` 09:05-09:25Z = 0). A single errored view on very low early-morning volume (255 views in 4h) trips the monitor's per-bucket percentage, summed over 4h. There was no error burst and no backend correlation. Caveat: the 1 errored view had no matching RUM error event, so the exact client-side cause is unconfirmed (disclosed)."
       }
     ],
     "note": "2026-08-04 ~12:10Z triage (degraded cycle, no Slack MCP surfaced this session, DD monitor scan diff vs prior cutoff 2026-08-04T11:09:26Z): monitor 305454649 fired 2026-08-04T11:25:20Z, hash e487adb84d33e216, occ 13->14, Alert state at scan time (elevated vs the usual Warn). DD RUM Error Tracking for service:method-nativemobile-ui over the monitor's own trailing 4h window (07:25:20-11:25:20Z): 36 @type:error vs 237 @type:view = 15.2% error rate -- above the >5% threshold, consistent with the escalated Alert state (highest rate of the 14 documented occurrences, above the prior peak of 11.0% on 2026-08-01T21:04Z). Sampled errors: dominant 'cancelled', plus Expo-token-fetch 503s, iOS aps-environment entitlement config errors, Network Error, 'The network connection was lost.', Memory Warning, offline/IP-lookup failures -- all client-side/device/third-party-infra signatures, same mechanism family as all 13 prior occurrences, just a higher-volume excursion. No correlated backend alert co-fired this cycle. Still classified as client-side RUM noise, not a backend incident -- flagging the new peak rate for stability-review trend-watch. No thread-reply path in degraded mode -- kb-update self-DM sent. See docs/investigations/2026-08-04-e487adb84d33e216.md."
@@ -1519,8 +1523,8 @@
     "reason": "Monitor avg(last_10m):p95:trace.aspnet.request{service:default_web_site/reportgenerationapi,env:prod} > 5. Re-query showed max p95 0.746s, fully recovered; 0 ES hits for reportgenerationapi/ReportGeneration in window. Distinct from the separate unfiled innuwindow2 DevExpress-layout/SQL-schema bug on monitor 316587947 (error-rate, not this p95-latency monitor) -- do not conflate.",
     "silence_for": "24h",
     "first_seen": "2026-09-03T20:29:38Z",
-    "last_seen": "2026-11-26T12:31:38Z",
-    "occurrences": 21,
+    "last_seen": "2026-11-27T10:38:38Z",
+    "occurrences": 23,
     "notes": [
       {
         "ts": "2026-11-20T10:40:38Z",
@@ -1565,6 +1569,14 @@
       {
         "ts": "2026-11-26T13:20:00Z",
         "note": "occ 21 2026-11-26 degraded cycle: monitor 316588178 Triggered 12:31:38Z, Recovered 12:34:38Z (hash d0baf9dd537e93be). p95:trace.aspnet.request 12:05-12:45Z: 68 pts, two >5s: 37.62s @12:24:30Z and 40.75s @12:30:40Z, each a single slow render; 171 hits in window; trace.aspnet.request.errors no series (0 errors); 0 DD error logs. Error-rate monitor 316587947 did not co-fire. Same 12:24:30Z slot as the 11-22 fire (36.87s), consistent with a recurring scheduled heavy report. FA."
+      },
+      {
+        "ts": "2026-11-27T11:15:05Z",
+        "note": "occ 22 (degraded cycle, hash 10c8606934810dd4 + sats a870858aa147a3a5): monitor 316588178 Warn 22:27:38Z, Triggered 22:28:38Z -> Recovered 22:36:38Z. DD metric `p95:trace.aspnet.request{service:default_web_site/reportgenerationapi,env:prod}` 22:00-22:50Z: 78 points at 20s. Only 2 buckets are over 3s: 36.14s @22:26Z and 39.15s @22:27Z. Every other bucket is 0.2-3s. DD logs `service:default_web_site/reportgenerationapi status:error` 22:10-22:45Z = 0. One or two slow report renders inflate p95 on a low-traffic endpoint, with no errors. Same shape as the FA occurrences on 11-21 and 11-26."
+      },
+      {
+        "ts": "2026-11-27T11:15:05Z",
+        "note": "occ 23 (degraded cycle, hash 4adcebf99b27cd9d + sats 7ddd772915f437c9): monitor 316588178 Triggered 10:29:38Z, Warn 10:38:38Z -> Recovered 10:36:38Z / 10:39:38Z. DD metric `p95:trace.aspnet.request{service:default_web_site/reportgenerationapi,env:prod}` 10:00-10:50Z: 75 points at 20s. Only 2 buckets are over 3s: 39.94s @10:25Z and 45.04s @10:28Z. Every other bucket is 0.36-3s. DD logs `service:default_web_site/reportgenerationapi status:error` 10:10-10:45Z = 0. Two single slow report renders, no errors. Same FA shape."
       }
     ]
   },
@@ -1683,8 +1695,8 @@
     "reason": "Monitor 77419271 (>40 XHR errors / 5min by @account_name) fired 2026-11-20T02:26:11Z (transition). The tripping account was tcg3: 50/63 sampled method-ui XHR errors 02:10-02:35Z, 100% http.status_code 0 / error.origin network / \"Failed to load\", all from ONE client IP 40.77.179.249 (AS8075 Microsoft hosting), 100% HeadlessChrome 146, empty user_identity, within 6 seconds (02:19:11-02:19:17Z), loading tcg3.method.ws/apps/Public.aspx (referrer completecadsolutions.com) and aborting runtime/api/v1/grid + datatable POSTs. 0 server-side ES errors for tcg3. Automated crawler on a public app page, not users. Same mechanism as fa-2026-08-15-sommselection-bingbot-analytics-beacon-noise (second account).",
     "silence_for": "24h",
     "first_seen": "2026-11-20T02:26:11Z",
-    "last_seen": "2026-11-26T19:39:11Z",
-    "occurrences": 12,
+    "last_seen": "2026-11-27T05:42:11Z",
+    "occurrences": 14,
     "evidence_source": "datadog_logs",
     "evidence_query": "service:method-ui status:error *xhr* @account_name:tcg3 -- expect status_code 0, single IP, HeadlessChrome/bot UA, empty user_identity",
     "recommendation": "Scoped to the account on purpose so it cannot shadow ki-2026-05-21-gateway-microservices-timeout. If the matched fire shows real users / 4xx-5xx, this FA does not apply. Broader fix: have the monitor exclude http.status_code:0 and HeadlessChrome/bot UAs.",
@@ -1704,6 +1716,14 @@
       {
         "ts": "2026-11-26T20:15:00Z",
         "note": "2026-11-26 degraded cycle: monitor 77419271 Triggered on @account_name:tcg3 19:39:11Z, recovered 19:44:11Z (hash 4cb4ba71992a18ff). DD logs 19:25-19:45Z: 67 events, 100% http.status_code 0 / error.origin network, 100% HeadlessChrome, one client IP (40.77.x, same AS8075 range), no usr.id/session.id, all within 19:38:20-19:38:24Z, view tcg3.method.ws/apps/Public.aspx, referrer completecadsolutions.com. 0 non-method-ui error logs for tcg3. Exact repeat (12th total)."
+      },
+      {
+        "ts": "2026-11-27T11:15:05Z",
+        "note": "occ 13 (degraded cycle, hash 9ee5db04d8a49465): monitor 77419271 Warn on @account_name:tcg3 01:51:11Z -> Recovered 01:56:11Z. DD logs `service:method-ui status:error *xhr* @account_name:tcg3` 01:40-02:00Z: 27 events, all within 01:51:06-01:51:07Z. 27/27 http.status_code 0 / 'Failed to load', 27/27 HeadlessChrome, 1 client IP (AS8075 Microsoft hosting), 0 user identities, view /apps/Public.aspx, aborted runtime/api/v1/datatable + grid POSTs. Exact repeat of the headless-crawler signature on the tcg3 public app."
+      },
+      {
+        "ts": "2026-11-27T11:15:05Z",
+        "note": "occ 14 (degraded cycle, hash cb8d1c579397da9d): monitor 77419271 Warn on @account_name:tcg3 05:42:11Z -> Recovered 05:47:11Z. DD logs `service:method-ui status:error *xhr* @account_name:tcg3` 05:30-05:50Z: 27 events, all within 05:41:31-05:41:39Z. 27/27 http.status_code 0, 27/27 HeadlessChrome, 1 client IP (AS8075 Microsoft hosting), 0 user identities, view /apps/Public.aspx. Exact repeat of the headless-crawler signature (2nd tcg3 fire today)."
       }
     ]
   },

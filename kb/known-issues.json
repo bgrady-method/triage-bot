@@ -2559,8 +2559,8 @@
     "id": "ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap",
     "title": "New team:crm AMQP-consumer heartbeat/throughput-stall monitors (5 sibling IDs, created 2026-07-02) intermittently trip on quiet-period low-traffic dips, then self-recover within minutes — no corroborating errors",
     "first_seen": "2026-07-04T13:07:31Z",
-    "last_seen": "2026-11-26T09:26:21Z",
-    "occurrences": 210,
+    "last_seen": "2026-11-27T09:33:21Z",
+    "occurrences": 218,
     "match": {
       "channels": [
         "alert-system",
@@ -2607,7 +2607,7 @@
     "fix_template": null,
     "confidence": 0.82,
     "owning_team": "CRM Experience (runtime-core-subscriber-api, per ownership.md:454) / Admin (mobile-notifications-stack, per ownership.md:416) — split by service; DD monitor tags say team:crm for both, ownership.md disagrees for the mobile-notifications component",
-    "last_notified_at": "2026-11-26T09:26:21Z",
+    "last_notified_at": "2026-11-26T23:54:31Z",
     "notes": [
       {
         "ts": "2026-07-04T16:10:00Z",
@@ -2968,6 +2968,10 @@
       {
         "ts": "2026-11-22T14:35:31Z",
         "note": "2026-11-22 ~15:15Z triage (degraded DD-scan-diff, hash c2792ac81114ef63, satellites e1d14ad219d1a002, 8d45bd686d432fb3) [runtime-core-subscriber (302057011)]: occ 185->186. Triggered 14:13:31Z (rec 14:16:31), 14:17:31Z (rec 14:34:31), 14:35:31Z (rec 14:36:31). sum:trace.amqp.command.hits{service:runtime-core-subscriber,env:prod}.as_rate() 13:30-14:50Z: 160 points, 70 below 2 msg/s, dip ~14:00-14:33Z with min 0.23/s @14:10Z (never 0), recovering to 3-8 msg/s from 14:33Z; 13:30-13:57Z ran 22-181 msg/s. service:runtime-core-subscriber status:error env:prod 14:00-14:45Z = 0 logs. No sibling monitor co-fired. Canonical quiet-period shape (Sunday midday). Gate: cycle-eval ~15:12Z minus last_notified_at 2026-11-21T14:21:31Z = 24h50m > 24h -> POSTED (the primary fire-ts anchor gives 23h52m and would have suppressed; cycle-eval convention per KB history, disclosed). last_notified_at set to group max fire ts 14:35:31Z."
+      },
+      {
+        "ts": "2026-11-27T11:15:05Z",
+        "note": "2026-11-27 overnight degraded catch-up: 8 groups, occ 211->218. runtime-core-subscriber (302057011) Triggered 23:54:31Z, 00:39:31Z (+Re-Trig 01:09:31Z), 02:24:31Z, 03:28:31Z. method-mobile-notifications-subscriber (302055141) No Data 00:41:21Z, 04:08:21Z (+renotify 05:08, 06:08Z), 07:40:21Z, 09:33:21Z. DD metric `sum:trace.amqp.command.hits{service:runtime-core-subscriber,env:prod}.as_rate()` 23:00-04:30Z: 165 points at 120s, min 0.19/s, max 187/s. The overnight trough runs 0.2-2 msg/s, under the 2 msg/s floor, with short bursts to 15-63/s (23:30, 00:12, 01:42-02:00Z). The morning ramp returns 119-147/s from 04:00Z. DD logs `service:runtime-core-subscriber status:error env:prod` 23:30-04:00Z = 0. DD metric `sum:trace.amqp.command.hits{service:method-mobile-notifications-subscriber,env:prod}.as_rate()` 23:00-10:00Z: only 22 non-null points in 11h (sparse). Every present point is above the 0.005/s floor (min 0.0083/s, max 0.208/s). The No Data fires are gaps between sparse messages: there are no points 03:06-06:12Z and only isolated points 06:12-09:44Z. DD logs `service:method-mobile-notifications-subscriber status:error` 00:00-10:00Z = 0. No sibling errors. Gate: first group POSTED (cycle-eval ~26h since 2026-11-26T09:26:21Z; fire-ts anchor would have suppressed, disclosed); rest suppressed. last_notified_at -> 2026-11-26T23:54:31Z."
       }
     ]
   },
