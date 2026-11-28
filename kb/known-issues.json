@@ -840,8 +840,8 @@
     "id": "ki-2026-05-24-runtime-core-rtc-p95-recurring",
     "title": "runtime-core-api RTC Screen Load / Action Execution p95 latency recurring spikes (latency-only, no errors)",
     "first_seen": "2026-05-23T17:54:29Z",
-    "last_seen": "2026-11-26T05:41:20Z",
-    "occurrences": 300,
+    "last_seen": "2026-11-28T10:40:20Z",
+    "occurrences": 303,
     "match": {
       "channels": [
         "alert-system",
@@ -882,8 +882,8 @@
     "fix_jira": null,
     "fix_template": null,
     "confidence": 0.85,
-    "last_notified_at": "2026-11-26T05:41:20Z",
-    "prior_last_notified_at": "2026-11-22T06:47:18Z",
+    "last_notified_at": "2026-11-28T05:15:18Z",
+    "prior_last_notified_at": "2026-11-26T05:41:20Z",
     "notes": [
       {
         "ts": "2026-09-17T15:25:20Z",
@@ -1100,6 +1100,18 @@
       {
         "ts": "2026-11-23T23:33:20Z",
         "note": "2026-11-24 ~11:15Z triage (degraded cycle, no Slack MCP; DD-scan-diff vs cutoff 2026-11-23T21:21:38Z). Monitor 115456700 Triggered 23:20:20Z + 23:33:20Z (group b3fcd35b1cfc0adf, satellite 7ce8b1f0804df3db), occ 295->296. p95 _screenid* 23:05-23:50Z: 29/270 points >3s, peak 13.11s @23:32:00Z; service:runtime-core-api status:error = 0 logs (latency-only confirmed). NEW CORRELATE: same window, p95:trace.sql_server.query{service:rest-api} on peer.hostname:sql-prod-2 hit 30.19s @23:32 (median 0.45s; other prod hosts <=3.2s), and runtime-core-api's own SQL on sql-prod-2 peaked 1.43s @23:31 vs methoddbclus1 0.04s. rest-api hits spiked to 13,137/5min @23:00 (window median 3,324). Slow (>5s) rest-api spans 23:00-23:45Z dominated by resource 'SELECT ... FROM viewaccInvoiceLine WITH (nolock) WHERE InvoiceTxnDate >= @p0 AND < @p1 ORDER BY RecordID OFFSET/FETCH' (103 spans), user-agent 'n8n' (23 of tagged), host rest.method.me; @account_name not tagged on spans. Watchdog co-fired rest-api 'Latency increased on GET /api/v{version}/tables/{table}' story 730a3712 at 23:28Z (group 18695060eafb172d). Causality ordering holds (rest-api surge 23:00 precedes SQL/RTC spikes 23:16+). Hypothesis: an n8n paged invoice-line export through rest-api saturated sql-prod-2, slowing RTC screen loads for tenants on that cluster. One data point; verify on next fire by checking sql-prod-2 rest-api SQL p95 first."
+      },
+      {
+        "ts": "2026-11-28T11:15:28Z",
+        "note": "2026-11-28 degraded catch-up cycle: monitor 117279738 fire 2026-11-28T05:15:18Z (hash 585c2b16edfeb708), occ 301. Triggered 05:15:18Z, Recovered 05:16:18Z; Triggered 05:19:18Z, Recovered 05:23:18Z. `p95:trace.aspnet_core.request{env:prod,service:runtime-core-api,resource_name:post_/api/v1/runtime/_actionid_*}` 05:05-05:30Z: 59 pts, max 6.872s @05:13Z (threshold 3s), mean 0.43s. APM spans >3s on POST /api/v1/runtime/{actionid}/{screenid}: 1 request (fjsproductionsllc.method.me, 6.93s). One slow action on low Saturday-night traffic set the p95. 0 runtime-core-api DD error logs."
+      },
+      {
+        "ts": "2026-11-28T11:15:28Z",
+        "note": "2026-11-28 degraded catch-up cycle: monitor 115456700 fire 2026-11-28T07:36:20Z (hash f25f52e507081411), occ 302. Triggered 07:36:20Z, Recovered 07:37:20Z. `p95:trace.aspnet_core.request{env:prod,service:runtime-core-api,resource_name:post_/api/v1/runtime/load/_screenid*}` 07:25-07:45Z: 108 pts, max 11.106s @07:32Z (threshold 3s), mean 0.49s. Spans >3s: 2 (alocetsystem.method.me, max 11.0s); one internal-account screen load set the p95. Reproduced."
+      },
+      {
+        "ts": "2026-11-28T11:15:28Z",
+        "note": "2026-11-28 degraded catch-up cycle: monitor 115456700 fire 2026-11-28T10:40:20Z (hash 664487bda9bdc188), occ 303. Triggered 10:40:20Z, Recovered 10:42:20Z. `p95:trace.aspnet_core.request{env:prod,service:runtime-core-api,resource_name:post_/api/v1/runtime/load/_screenid*}` 10:30-10:50Z at default API rollup: 103 pts, max 1.695s @10:39Z, below the 3s threshold; 0 spans >1.5s. PARTIAL reproduction: the breach did not reproduce at this granularity (the monitor uses percentile(last_5m)). Mechanism unconfirmed; confidence downgraded to 0.70."
       }
     ],
     "owning_team": "Vertical App Experience"
@@ -2559,8 +2571,8 @@
     "id": "ki-2026-07-04-crm-amqp-consumer-monitor-family-quiet-period-flap",
     "title": "New team:crm AMQP-consumer heartbeat/throughput-stall monitors (5 sibling IDs, created 2026-07-02) intermittently trip on quiet-period low-traffic dips, then self-recover within minutes — no corroborating errors",
     "first_seen": "2026-07-04T13:07:31Z",
-    "last_seen": "2026-11-27T09:33:21Z",
-    "occurrences": 218,
+    "last_seen": "2026-11-28T10:10:21Z",
+    "occurrences": 223,
     "match": {
       "channels": [
         "alert-system",
@@ -2607,7 +2619,7 @@
     "fix_template": null,
     "confidence": 0.82,
     "owning_team": "CRM Experience (runtime-core-subscriber-api, per ownership.md:454) / Admin (mobile-notifications-stack, per ownership.md:416) — split by service; DD monitor tags say team:crm for both, ownership.md disagrees for the mobile-notifications component",
-    "last_notified_at": "2026-11-26T23:54:31Z",
+    "last_notified_at": "2026-11-28T02:19:31Z",
     "notes": [
       {
         "ts": "2026-07-04T16:10:00Z",
@@ -2972,6 +2984,26 @@
       {
         "ts": "2026-11-27T11:15:05Z",
         "note": "2026-11-27 overnight degraded catch-up: 8 groups, occ 211->218. runtime-core-subscriber (302057011) Triggered 23:54:31Z, 00:39:31Z (+Re-Trig 01:09:31Z), 02:24:31Z, 03:28:31Z. method-mobile-notifications-subscriber (302055141) No Data 00:41:21Z, 04:08:21Z (+renotify 05:08, 06:08Z), 07:40:21Z, 09:33:21Z. DD metric `sum:trace.amqp.command.hits{service:runtime-core-subscriber,env:prod}.as_rate()` 23:00-04:30Z: 165 points at 120s, min 0.19/s, max 187/s. The overnight trough runs 0.2-2 msg/s, under the 2 msg/s floor, with short bursts to 15-63/s (23:30, 00:12, 01:42-02:00Z). The morning ramp returns 119-147/s from 04:00Z. DD logs `service:runtime-core-subscriber status:error env:prod` 23:30-04:00Z = 0. DD metric `sum:trace.amqp.command.hits{service:method-mobile-notifications-subscriber,env:prod}.as_rate()` 23:00-10:00Z: only 22 non-null points in 11h (sparse). Every present point is above the 0.005/s floor (min 0.0083/s, max 0.208/s). The No Data fires are gaps between sparse messages: there are no points 03:06-06:12Z and only isolated points 06:12-09:44Z. DD logs `service:method-mobile-notifications-subscriber status:error` 00:00-10:00Z = 0. No sibling errors. Gate: first group POSTED (cycle-eval ~26h since 2026-11-26T09:26:21Z; fire-ts anchor would have suppressed, disclosed); rest suppressed. last_notified_at -> 2026-11-26T23:54:31Z."
+      },
+      {
+        "ts": "2026-11-28T11:15:28Z",
+        "note": "2026-11-28 degraded catch-up cycle: monitor 302057011 fire 2026-11-28T00:51:31Z (hash 945be5b58ee2d3b2), occ 219. Triggered 00:51:31Z, Re-Triggered 01:21:31Z (renotify), Recovered 01:32:31Z. `sum:trace.amqp.command.hits{service:runtime-core-subscriber,env:prod}.as_rate()` 00:00-03:30Z: 210 pts, min 0.167 msg/s, max 85.3 msg/s @03:15Z, mean 9.7 msg/s (threshold: avg 15m < 2). Saturday overnight quiet period (~20:00 ET); throughput returns to normal. ES unavailable (401)."
+      },
+      {
+        "ts": "2026-11-28T11:15:28Z",
+        "note": "2026-11-28 degraded catch-up cycle: monitor 302057011 fire 2026-11-28T02:19:31Z (hash 4e4639c4401052fb), occ 220. Triggered 02:19:31Z, Re-Triggered 02:49:31Z (renotify), Recovered 02:50:31Z. Same quiet-period rate dip as the 00:51Z fire (same query, 00:00-03:30Z min 0.167 msg/s); recovered to 85 msg/s by 03:15Z."
+      },
+      {
+        "ts": "2026-11-28T11:15:28Z",
+        "note": "2026-11-28 degraded catch-up cycle: monitor 302055141 fire 2026-11-28T05:56:21Z (hash 71e8f1a23f64ece6), occ 221. No data 05:56:21Z, Re-No data 06:56:21Z (renotify), Recovered 07:19:21Z. `sum:trace.amqp.command.hits{service:method-mobile-notifications-subscriber,env:prod}.as_count()` 04:00-11:10Z: only 5 non-null points, 9 messages total. The consumer is idle on a Saturday morning, so the heartbeat sees no data."
+      },
+      {
+        "ts": "2026-11-28T11:15:28Z",
+        "note": "2026-11-28 degraded catch-up cycle: monitor 302055141 fire 2026-11-28T08:29:21Z (hash bb4937c7fb1e2e5c), occ 222. No data 08:29:21Z, Recovered 09:00:21Z. Same idle-consumer pattern (9 messages 04:00-11:10Z)."
+      },
+      {
+        "ts": "2026-11-28T11:15:28Z",
+        "note": "2026-11-28 degraded catch-up cycle: monitor 302055141 fire 2026-11-28T10:10:21Z (hash e7f311b4a71b83e4), occ 223. No data 10:10:21Z, still No Data at scan time (11:07Z). Same idle-consumer pattern (9 messages 04:00-11:10Z)."
       }
     ]
   },
@@ -4191,8 +4223,8 @@
     "id": "ki-2026-07-07-notifications-p95-latency-monitor-noise",
     "title": "[CRM][P2] notifications P95 latency high monitor fires but re-query of the same evaluation window shows the metric never approaches the threshold -- monitor/data artifact, not real latency",
     "first_seen": "2026-07-06T10:01:07Z",
-    "last_seen": "2026-11-25T09:31:07Z",
-    "occurrences": 53,
+    "last_seen": "2026-11-28T09:31:07Z",
+    "occurrences": 54,
     "match": {
       "channels": [
         "alert-system",
@@ -4218,7 +4250,7 @@
     "fix_template": null,
     "confidence": 0.72,
     "owning_team": "CRM Experience",
-    "last_notified_at": "2026-11-25T09:31:07Z",
+    "last_notified_at": "2026-11-28T09:31:07Z",
     "notes": [
       {
         "ts": "2026-07-06T11:40:00Z",
@@ -4339,6 +4371,10 @@
       {
         "ts": "2026-11-23T11:16:00Z",
         "note": "occ 52 (2026-11-23T09:31:07Z) fired at the exact same minute as occ 51 (2026-11-21T09:31:07Z). The 09:30Z p95 spike is get_/signalr/reconnect (86,487s) and get_/signalr/connect (6,083s) spans closing together, which suggests a daily ~09:30Z app-pool recycle/restart of notifications drops every long-held SignalR connection at once. Monitor fix is unchanged: exclude signalr connect/reconnect/poll resources from the p95 query."
+      },
+      {
+        "ts": "2026-11-28T11:15:28Z",
+        "note": "2026-11-28 degraded catch-up cycle: monitor 302056327 fire 2026-11-28T09:31:07Z (hash 62787a93758fe5c7), occ 54. Triggered 09:31:07Z, Recovered 09:41:07Z. This is the same 09:31:07Z fire time as 11-23 and 11-25. `p95:trace.aspnet.request{service:notifications,env:prod} by {resource_name}` 09:25-09:40Z: get_/signalr/reconnect 86,209.8s @09:30Z (a ~23.9h connection-lifetime span), get_/signalr/connect 14.99s, post_/signalr/poll 14.96s. Every request/response resource was <0.2s. This confirms the 11-21 addendum mechanism: long-lived SignalR transport spans inflate p95. The ~24h span length explains why the fire lands at 09:31Z every day."
       }
     ]
   },
